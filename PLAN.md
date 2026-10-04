@@ -357,7 +357,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Draft lecture 4: Seq2seq and attention
 - [ ] Code `03-sequence-models.ipynb`
 - [ ] Code `04-seq2seq-attention.ipynb`
-- [ ] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment)
+- [x] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment; the alignment map is illustrative until Lab 4 supplies a measured one)
 - [ ] Review: Day 1 reads as one thread; Lab 3 perplexity is compared with Lab 1
 
 ### Day 5 — Modules 5–6
