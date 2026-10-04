@@ -345,16 +345,16 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 3 — Modules 1–2
 
-- [ ] Draft lecture 1: Text as data
-- [ ] Draft lecture 2: Word vectors and neural networks
+- [x] Draft lecture 1: Text as data
+- [x] Draft lecture 2: Word vectors and neural networks
 - [ ] Code `01-text-as-data.ipynb`
 - [ ] Code `02-word-vectors.ipynb`
 - [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget
 
 ### Day 4 — Modules 3–4
 
-- [ ] Draft lecture 3: Sequence models
-- [ ] Draft lecture 4: Seq2seq and attention
+- [x] Draft lecture 3: Sequence models
+- [x] Draft lecture 4: Seq2seq and attention
 - [ ] Code `03-sequence-models.ipynb`
 - [ ] Code `04-seq2seq-attention.ipynb`
 - [ ] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment)
