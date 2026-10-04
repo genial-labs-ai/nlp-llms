@@ -362,7 +362,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 5 — Modules 5–6
 
-- [ ] Draft lecture 5: The transformer
+- [x] Draft lecture 5: The transformer
 - [ ] Draft lecture 6: Pretraining and the Hugging Face stack
 - [ ] Code `05-transformer-from-scratch.ipynb`
 - [ ] Code `06-pretraining-huggingface.ipynb`
