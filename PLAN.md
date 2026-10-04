@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status:** planning. No content, notebooks or site scaffolding exist yet. This plan is a living document and will be revised as the build proceeds.
+**Status:** scaffold built (build Days 1–2). Lectures and labs are not yet written. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -86,7 +86,7 @@ nlp-llms/
 ├── facilitator-guide.md  instructor-pace.md  assessments.md
 ├── custom.scss              cosmo override; Inter body, Source Serif 4 headings
 ├── fonts/  images/  data/   vendored fonts, figures, fallback dataset copies
-├── scripts/                 gen_tables.py, gen_notebooks.py, test_notebooks.py, check_links.py
+├── scripts/                 gen_tables.py, gen_notebooks.py, new_notebook.py, test_notebooks.py, check_links.py
 ├── tests/
 ├── pyproject.toml           uv dependency groups: notebooks, site, test, lint, execute
 ├── .github/workflows/       publish.yml (render + deploy), health.yml (scheduled notebook run)
@@ -320,27 +320,28 @@ Ten working days to a first complete version, then continued review. Lectures an
 ### Day 1 — Repository setup
 
 - [x] `git init`, default branch `main`, create the GitHub repository
-- [ ] Add `LICENSE` (CC BY 4.0 for content, MIT for code) and `CITATION.cff`
-- [ ] Add `.gitignore` (`docs/`, `.venv/`, `uv.lock`, `.ipynb_checkpoints/`)
-- [ ] Write `pyproject.toml` with uv dependency groups: `notebooks`, `site`, `test`, `lint`, `execute`
-- [ ] Write a first `README.md` (what it is, who it is for, how to run locally)
-- [ ] Add `CONTRIBUTING.md` and `CHANGELOG.md`
-- [ ] Convert the four AGENTS.md personas into `.claude/agents/*.md` subagents
-- [ ] Draft `_variables.yml` with all 15 modules (`n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`)
-- [ ] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents)
+- [x] Add `LICENSE` (CC BY 4.0 for content, MIT for code) and `CITATION.cff`
+- [x] Add `.gitignore` (`docs/`, `.venv/`, `uv.lock`, `.ipynb_checkpoints/`)
+- [x] Write `pyproject.toml` with uv dependency groups: `notebooks`, `site`, `test`, `lint`, `execute`
+- [x] Write a first `README.md` (what it is, who it is for, how to run locally)
+- [x] Add `CONTRIBUTING.md` and `CHANGELOG.md`
+- [x] Convert the four AGENTS.md personas into `.claude/agents/*.md` subagents
+- [x] Draft `_variables.yml` with all 15 modules (`n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`)
+- [ ] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents). Proposals are in `data/README.md`; licenses still to confirm
 
 ### Day 2 — Quarto initialisation
 
-- [ ] Write `_quarto.yml`: website project, `output-dir: docs`, explicit `render:` list, notebooks as `resources:`, navbar
-- [ ] Write `custom.scss` (cosmo override) and vendor the fonts
-- [ ] Create `index.qmd`, `setup.qmd`, `schedule.qmd`, `day-1.qmd` to `day-4.qmd`, `notebooks.qmd`, `references.qmd`, `faq.qmd`, `teach.qmd`
-- [ ] Create a lecture page template and stub all 15 pages under `lectures/`
-- [ ] Write `scripts/gen_tables.py` (schedule, notebook index, README regions)
-- [ ] Write `scripts/gen_notebooks.py` (header and footer cells, Colab badge, output stripping, idempotent)
-- [ ] Build the notebook template and `00-setup.ipynb` (runtime check, Colab Secrets, `PROVIDER` switch)
-- [ ] Write `scripts/test_notebooks.py` and `scripts/check_links.py`
-- [ ] Add `.github/workflows/publish.yml` (generate, drift gate, lint, render, link check, deploy) and enable GitHub Pages
-- [ ] Confirm `quarto render` is clean and the empty site deploys
+- [x] Write `_quarto.yml`: website project, `output-dir: docs`, explicit `render:` list, notebooks as `resources:`, navbar
+- [x] Write `custom.scss` (cosmo override) and vendor the fonts
+- [x] Create `index.qmd`, `setup.qmd`, `schedule.qmd`, `day-1.qmd` to `day-4.qmd`, `notebooks.qmd`, `references.qmd`, `faq.qmd`, `teach.qmd`
+- [x] Create a lecture page template and stub all 15 pages under `lectures/`
+- [x] Write `scripts/gen_tables.py` (schedule, notebook index, README regions)
+- [x] Write `scripts/gen_notebooks.py` (header and footer cells, Colab badge, output stripping, idempotent)
+- [x] Build the notebook template and `00-setup.ipynb` (runtime check, Colab Secrets, `PROVIDER` switch)
+- [x] Write `scripts/test_notebooks.py` and `scripts/check_links.py`
+- [x] Add `.github/workflows/publish.yml` (generate, drift gate, lint, test, render, link check, notebook run, opt-in deploy)
+- [x] Confirm `quarto render` is clean
+- [ ] Enable GitHub Pages (set Pages to deploy from GitHub Actions and the repository variable `DEPLOY_PAGES` to `true`) and confirm the site deploys
 
 ### Day 3 — Modules 1–2
 

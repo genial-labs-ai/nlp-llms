@@ -1,0 +1,269 @@
+# Single source of truth for the workshop.
+# Pages read these values with {{< var ... >}}; scripts/gen_tables.py and
+# scripts/gen_notebooks.py read them to write the generated files.
+# Change a title, duration, objective, URL or pin here, then run the generators.
+
+repo:
+  owner: project-delphi
+  name: nlp-llms
+  branch: main
+  url: https://github.com/project-delphi/nlp-llms
+  site_url: https://project-delphi.github.io/nlp-llms
+  colab_base: https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks
+
+workshop:
+  title: "From Traditional NLP to Modern LLMs"
+  subtitle: "n-grams, attention, RLHF, RLCD and agents"
+  org: "Genial Labs"
+  days: 4
+  lecture_minutes: 45
+  lab_minutes: 50
+
+# Model IDs and SDK pins. Pinned during the build (PLAN.md, build days 6 and 8),
+# after checking each provider's current documentation.
+models:
+  openai: "TBD"
+  anthropic: "TBD"
+  fallback: "TBD"
+
+# Colab Secrets names. The TypeSafe name is unverified until build day 8.
+secrets:
+  openai: OPENAI_API_KEY
+  anthropic: ANTHROPIC_API_KEY
+  typesafe: TYPESAFE_API_KEY
+
+# The daily clock. `module` slots take the day's modules in order.
+schedule:
+  slots:
+    - {start: "09:00", end: "09:10", kind: opening}
+    - {start: "09:10", end: "10:45", kind: module}
+    - {start: "10:45", end: "11:00", kind: break, label: "Break"}
+    - {start: "11:00", end: "12:35", kind: module}
+    - {start: "12:35", end: "13:35", kind: break, label: "Lunch"}
+    - {start: "13:35", end: "15:10", kind: module}
+    - {start: "15:10", end: "15:25", kind: break, label: "Break"}
+    - {start: "15:25", end: "17:00", kind: module}
+
+days:
+  d1:
+    n: 1
+    title: "Foundations: from counts to attention"
+    short: "Foundations"
+    question: "How do we turn text into something a model can learn from?"
+    opening: "Welcome, setup check"
+    slots: [m01, m02, m03, m04]
+  d2:
+    n: 2
+    title: "Transformers and LLMs"
+    short: "Transformers and LLMs"
+    question: "How does one architecture, pretrained at scale, become a general tool?"
+    opening: "Recap of Day 1"
+    slots: [m05, m06, m07, m08]
+  d3:
+    n: 3
+    title: "Training objectives: preference and calibration"
+    short: "Training objectives"
+    question: "What are we optimizing these models for, and what should we be?"
+    opening: "Recap of Day 2"
+    slots: [m09, m10, m11, m12]
+  d4:
+    n: 4
+    title: "RAG, agents and capstone"
+    short: "RAG, agents, capstone"
+    question: "How do we build reliable systems out of these models?"
+    opening: "Recap of Day 3"
+    slots:
+      - m13
+      - m14
+      - {module: m15, label: "Capstone: build"}
+      - {module: m15, label: "Capstone: evaluate and share, then wrap-up"}
+
+setup:
+  slug: 00-setup
+  title: "Setup and environment check"
+  minutes: 10
+  summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
+
+modules:
+  m01:
+    n: 1
+    slug: 01-text-as-data
+    day: 1
+    minutes: 95
+    title: "Text as data"
+    summary: "Tokenization, n-gram language models, TF-IDF and linear classifiers: the count-based baseline everything else is measured against."
+    objectives:
+      - "Tokenize text and justify the choices"
+      - "Build and evaluate an n-gram language model"
+      - "Train a linear text classifier and read its errors"
+    stack: [NumPy, scikit-learn]
+  m02:
+    n: 2
+    slug: 02-word-vectors
+    day: 1
+    minutes: 95
+    title: "Word vectors and neural networks"
+    summary: "From one-hot vectors to learned embeddings, with a PyTorch refresher and the first neural language model."
+    objectives:
+      - "Explain the distributional hypothesis"
+      - "Derive the skip-gram objective with negative sampling"
+      - "Train embeddings and a feed-forward classifier in PyTorch"
+    stack: [PyTorch]
+  m03:
+    n: 3
+    slug: 03-sequence-models
+    day: 1
+    minutes: 95
+    title: "Sequence models"
+    summary: "RNNs, LSTMs and neural language modeling, and why gradients vanish over long sequences."
+    objectives:
+      - "Implement an RNN and an LSTM language model"
+      - "Explain vanishing gradients and how gating addresses them"
+      - "Compare perplexity against the n-gram baseline"
+    stack: [PyTorch]
+  m04:
+    n: 4
+    slug: 04-seq2seq-attention
+    day: 1
+    minutes: 95
+    title: "Seq2seq and attention"
+    summary: "Encoder-decoder models, the fixed-vector bottleneck, and attention as the fix."
+    objectives:
+      - "Build an encoder-decoder model"
+      - "Explain the fixed-vector bottleneck"
+      - "Implement additive and dot-product attention and read attention maps"
+    stack: [PyTorch]
+  m05:
+    n: 5
+    slug: 05-transformer-from-scratch
+    day: 2
+    minutes: 95
+    title: "The transformer"
+    summary: "Self-attention, multi-head attention and positional encodings, assembled into a small GPT."
+    objectives:
+      - "Implement scaled dot-product and multi-head self-attention"
+      - "Assemble a decoder-only transformer"
+      - "Train a small GPT and compare it with the LSTM"
+    stack: [PyTorch]
+  m06:
+    n: 6
+    slug: 06-pretraining-huggingface
+    day: 2
+    minutes: 95
+    title: "Pretraining and the Hugging Face stack"
+    summary: "Subword tokenization, masked and causal pretraining, and using pretrained models through Hugging Face."
+    objectives:
+      - "Explain subword tokenization and the masked and causal pretraining objectives"
+      - "Load, inspect and run pretrained models with Hugging Face"
+      - "Fine-tune an encoder for classification"
+    stack: [Hugging Face, PyTorch]
+  m07:
+    n: 7
+    slug: 07-finetuning-lora
+    day: 2
+    minutes: 95
+    title: "Fine-tuning and LoRA"
+    summary: "Turning a pretrained language model into an instruction follower, efficiently."
+    objectives:
+      - "Turn a pretrained causal LM into an instruction follower"
+      - "Apply LoRA and explain why it works"
+      - "Choose decoding settings and evaluate generated text"
+    stack: [Hugging Face, PEFT, PyTorch]
+  m08:
+    n: 8
+    slug: 08-llm-apis
+    day: 2
+    minutes: 95
+    title: "LLMs through APIs"
+    summary: "OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation."
+    objectives:
+      - "Call OpenAI and Claude models for chat, structured output and tool use"
+      - "Compare providers on one task with one harness"
+      - "Reason about cost, latency and failure modes"
+    stack: [OpenAI, Anthropic, Hugging Face, Pydantic]
+  m09:
+    n: 9
+    slug: 09-preference-learning
+    day: 3
+    minutes: 95
+    title: "Reinforcement and preference learning"
+    summary: "Text generation as a reinforcement-learning problem, the policy gradient, and reward models learned from comparisons."
+    objectives:
+      - "Frame text generation as a reinforcement-learning problem"
+      - "Derive and implement the policy gradient"
+      - "Train a reward model from pairwise preferences"
+    stack: [PyTorch, Hugging Face]
+  m10:
+    n: 10
+    slug: 10-rlhf
+    day: 3
+    minutes: 95
+    title: "RLHF"
+    summary: "The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong."
+    objectives:
+      - "Describe the three-stage RLHF pipeline"
+      - "Optimize a small LM against a reward model with a KL constraint"
+      - "Apply DPO and compare"
+      - "Name RLHF's failure modes and observe one"
+    stack: [PyTorch, Hugging Face]
+  m11:
+    n: 11
+    slug: 11-calibration
+    day: 3
+    minutes: 95
+    title: "Calibration"
+    summary: "What a probability should mean, how to measure it, and how to use confidence to decide when to abstain."
+    objectives:
+      - "Say what a probability should mean"
+      - "Measure calibration with reliability diagrams, ECE and the Brier score"
+      - "Explain proper scoring rules"
+      - "Use confidence to decide when to abstain"
+    stack: [PyTorch, scikit-learn, OpenAI, Anthropic]
+  m12:
+    n: 12
+    slug: 12-rlcd-jev
+    day: 3
+    minutes: 95
+    title: "RLCD and Jev"
+    summary: "Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API."
+    objectives:
+      - "State how RLCD's objective differs from RLHF's, and what is and is not public about it"
+      - "Call Jev for typed decisions"
+      - "Use its confidence to set action thresholds"
+    stack: [PyTorch, TypeSafe SDK]
+  m13:
+    n: 13
+    slug: 13-rag
+    day: 4
+    minutes: 95
+    title: "Retrieval-augmented generation"
+    summary: "Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately."
+    objectives:
+      - "Build a RAG pipeline"
+      - "Choose chunking, embedding and reranking settings from measurements"
+      - "Evaluate retrieval and answer quality separately"
+    stack: [LlamaIndex, LangChain, Jev]
+  m14:
+    n: 14
+    slug: 14-agents
+    day: 4
+    minutes: 95
+    title: "Agents"
+    summary: "Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control."
+    objectives:
+      - "Build a tool-using agent as an explicit graph"
+      - "Add state, memory and human-in-the-loop interrupts"
+      - "Use a calibrated decision model for routing and tool-call approval"
+    stack: [LangChain, LangGraph, Jev]
+  m15:
+    n: 15
+    slug: 15-capstone
+    day: 4
+    minutes: 190
+    title: "Capstone"
+    summary: "Combine retrieval, an agent graph and calibrated control into one system, evaluate it, and explain the design."
+    objectives:
+      - "Combine retrieval, an agent graph and calibrated control into one system"
+      - "Evaluate it for accuracy, abstention and cost"
+      - "Explain the design choices to others"
+    stack: [LlamaIndex, LangGraph, Jev, OpenAI, Anthropic]

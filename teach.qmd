@@ -1,0 +1,29 @@
+---
+title: "Teach this workshop"
+subtitle: "Materials for instructors"
+---
+
+::: {.callout-note appearance="simple"}
+The instructor kit is being written. The facilitator guide, pace sheet and assessments will be linked from this page.
+:::
+
+## The shape of a module
+
+Every module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The lab follows **Predict → Run → Explain → Check**:
+
+1. Ask participants to predict the output before they run a cell.
+2. Run it.
+3. Ask someone to explain the result, especially a surprising one.
+4. Use the checkpoint cell to confirm.
+
+Each lab has a core path sized for the lab slot and one optional stretch section. If a group runs slow, skip the stretch; nothing later depends on it.
+
+## Before the workshop
+
+- Ask participants to complete [Setup](setup.qmd) the day before.
+- Decide whether you will provide API keys or rely on the open-model path. Both work.
+- Run every notebook on a fresh Colab runtime the week before. Colab's preinstalled packages change.
+
+## Reuse
+
+The text is licensed CC BY 4.0 and the code MIT, so you may teach, adapt and share this material with attribution. The source is on [GitHub]({{< var repo.url >}}).

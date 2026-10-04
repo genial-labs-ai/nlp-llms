@@ -1,0 +1,52 @@
+---
+title: "References"
+subtitle: "Readings by day, and the courses this workshop draws on"
+---
+
+## Courses
+
+- Stanford [CS224N: Natural Language Processing with Deep Learning](https://web.stanford.edu/class/cs224n/)
+- CMU [CS 11-747: Neural Networks for NLP](https://phontron.com/class/nn4nlp2021/)
+- MIT [6.S191: Introduction to Deep Learning](https://introtodeeplearning.com/)
+
+## Textbook
+
+- Jurafsky, D. and Martin, J. H. [*Speech and Language Processing*](https://web.stanford.edu/~jurafsky/slp3/) (3rd edition draft).
+
+## Day 1 · Foundations
+
+- Bengio, Y., Ducharme, R., Vincent, P. and Jauvin, C. (2003). [A Neural Probabilistic Language Model](https://www.jmlr.org/papers/v3/bengio03a.html). *JMLR*.
+- Mikolov, T., Sutskever, I., Chen, K., Corrado, G. and Dean, J. (2013). [Distributed Representations of Words and Phrases and their Compositionality](https://arxiv.org/abs/1310.4546). *NeurIPS*.
+- Pennington, J., Socher, R. and Manning, C. (2014). [GloVe: Global Vectors for Word Representation](https://aclanthology.org/D14-1162/). *EMNLP*.
+- Hochreiter, S. and Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation* 9(8).
+- Karpathy, A. (2015). [The Unreasonable Effectiveness of Recurrent Neural Networks](https://karpathy.github.io/2015/05/21/rnn-effectiveness/).
+- Sutskever, I., Vinyals, O. and Le, Q. (2014). [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215). *NeurIPS*.
+- Bahdanau, D., Cho, K. and Bengio, Y. (2015). [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). *ICLR*.
+- Luong, M.-T., Pham, H. and Manning, C. (2015). [Effective Approaches to Attention-based Neural Machine Translation](https://arxiv.org/abs/1508.04025). *EMNLP*.
+
+## Day 2 · Transformers and LLMs
+
+- Vaswani, A. et al. (2017). [Attention Is All You Need](https://arxiv.org/abs/1706.03762). *NeurIPS*.
+- Rush, A. et al. [The Annotated Transformer](https://nlp.seas.harvard.edu/annotated-transformer/).
+- Sennrich, R., Haddow, B. and Birch, A. (2016). [Neural Machine Translation of Rare Words with Subword Units](https://arxiv.org/abs/1508.07909). *ACL*.
+- Devlin, J., Chang, M.-W., Lee, K. and Toutanova, K. (2019). [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805). *NAACL*.
+- Radford, A., Narasimhan, K., Salimans, T. and Sutskever, I. (2018). Improving Language Understanding by Generative Pre-Training. OpenAI.
+- Hu, E. et al. (2021). [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685).
+- [OpenAI API documentation](https://platform.openai.com/docs) and [Anthropic API documentation](https://docs.anthropic.com/).
+
+## Day 3 · Training objectives
+
+- Sutton, R. and Barto, A. (2018). [*Reinforcement Learning: An Introduction*](http://incompleteideas.net/book/the-book-2nd.html) (2nd edition), chapter 13.
+- Christiano, P. et al. (2017). [Deep Reinforcement Learning from Human Preferences](https://arxiv.org/abs/1706.03741). *NeurIPS*.
+- Schulman, J., Wolski, F., Dhariwal, P., Radford, A. and Klimov, O. (2017). [Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347).
+- Ouyang, L. et al. (2022). [Training Language Models to Follow Instructions with Human Feedback](https://arxiv.org/abs/2203.02155). *NeurIPS*.
+- Rafailov, R. et al. (2023). [Direct Preference Optimization: Your Language Model is Secretly a Reward Model](https://arxiv.org/abs/2305.18290). *NeurIPS*.
+- Guo, C., Pleiss, G., Sun, Y. and Weinberger, K. (2017). [On Calibration of Modern Neural Networks](https://arxiv.org/abs/1706.04599). *ICML*.
+- Gneiting, T. and Raftery, A. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association* 102(477).
+- TypeSafe AI. [Jev API documentation](https://docs.typesafe.ai/api). RLCD has no published paper; Module 12 relies on TypeSafe's public statements only.
+
+## Day 4 · RAG and agents
+
+- Lewis, P. et al. (2020). [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401). *NeurIPS*.
+- Yao, S. et al. (2023). [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629). *ICLR*.
+- [LlamaIndex documentation](https://docs.llamaindex.ai/), [LangChain documentation](https://python.langchain.com/) and [LangGraph documentation](https://langchain-ai.github.io/langgraph/).

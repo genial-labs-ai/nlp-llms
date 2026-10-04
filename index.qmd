@@ -1,0 +1,56 @@
+---
+title: "{{< var workshop.title >}}"
+subtitle: "A four-day workshop: {{< var workshop.subtitle >}}"
+toc: false
+---
+
+::: {.callout-note appearance="simple"}
+This workshop is being written. The curriculum and schedule are set; lectures and labs are added module by module.
+:::
+
+Modern language models did not appear from nowhere. Each step, from counting words to attention to training on human preferences, fixed a specific failure of the step before it. This workshop follows that line over four days, and you build each step yourself.
+
+Every module is a short lecture followed by a hands-on lab in Google Colab.
+
+## The four days
+
+{{< include /_includes/days.md >}}
+
+See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd).
+
+## What you will be able to do
+
+- Explain the line of ideas from count-based language models to transformers, and say what problem each step solved.
+- Implement the core of each model in PyTorch: skip-gram, an LSTM language model, seq2seq with attention, and a small GPT.
+- Fine-tune pretrained models with Hugging Face, including LoRA.
+- Use the OpenAI and Claude APIs for prompting, structured output and tool use.
+- Explain RLHF end to end, train a toy version, and name its failure modes.
+- Measure calibration, explain how RLCD's objective differs from RLHF's, and use a calibrated decision model (Jev) through its API.
+- Build and evaluate a RAG pipeline with LlamaIndex and LangChain.
+- Build a LangGraph agent with tools, state, human-in-the-loop checkpoints and confidence-gated control.
+
+## Who it is for {#prerequisites}
+
+Machine learning practitioners who want to understand language models from the ground up. You should be comfortable with:
+
+- **Python and NumPy:** functions, classes, broadcasting, matrix products.
+- **Machine learning basics:** train and test splits, loss functions, gradient descent, logistic regression.
+- **PyTorch:** you have trained at least one model with `nn.Module` and an optimizer loop. Module 2 includes a short refresher.
+- **Math:** vectors and matrices, the chain rule, conditional probability, cross-entropy.
+
+You need a Google account for Colab. API keys are optional: every lab that uses a commercial API also runs on a free open model. See [Setup](setup.qmd).
+
+## How each module works
+
+Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The labs follow one rhythm:
+
+1. **Predict** what a cell will output before you run it.
+2. **Run** it.
+3. **Explain** the result, especially when it differs from your prediction.
+4. **Check** your work against a checkpoint that passes or fails.
+
+Each exercise has a solution folded directly beneath it, and each lab ends with an optional stretch section for those who finish early.
+
+## Sources and inspiration
+
+The approach draws on Stanford [CS224N](https://web.stanford.edu/class/cs224n/), CMU [CS 11-747](https://phontron.com/class/nn4nlp2021/) and MIT [6.S191](https://introtodeeplearning.com/). The full reading list is on the [References](references.qmd) page.

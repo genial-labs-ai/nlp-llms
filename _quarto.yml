@@ -1,0 +1,82 @@
+project:
+  type: website
+  output-dir: docs
+  # Explicit render list. Without it Quarto would try to execute
+  # notebooks/*.ipynb and would render README.md, PLAN.md and AGENTS.md as pages.
+  render:
+    - index.qmd
+    - setup.qmd
+    - schedule.qmd
+    - day-1.qmd
+    - day-2.qmd
+    - day-3.qmd
+    - day-4.qmd
+    - lectures/*.qmd
+    - notebooks.qmd
+    - references.qmd
+    - teach.qmd
+    - faq.qmd
+  # Copied to the site as files. Globs are anchored with a leading `/` so they
+  # cannot match anything inside .venv/.
+  resources:
+    - /.nojekyll
+    - /notebooks/*.ipynb
+    - /fonts/**
+
+website:
+  title: "NLP to LLMs"
+  description: "A four-day workshop on the path from traditional NLP to modern LLMs: n-grams, attention, transformers, RLHF, RLCD and agents."
+  site-url: https://project-delphi.github.io/nlp-llms
+  repo-url: https://github.com/project-delphi/nlp-llms
+  open-graph: true
+  navbar:
+    background: primary
+    search: true
+    left:
+      - href: index.qmd
+        text: Home
+      - href: schedule.qmd
+        text: Schedule
+      - text: Days
+        menu:
+          - href: day-1.qmd
+            text: "Day 1 · Foundations"
+          - href: day-2.qmd
+            text: "Day 2 · Transformers and LLMs"
+          - href: day-3.qmd
+            text: "Day 3 · Training objectives"
+          - href: day-4.qmd
+            text: "Day 4 · RAG, agents, capstone"
+      - href: notebooks.qmd
+        text: Notebooks
+      - href: setup.qmd
+        text: Setup
+      - href: references.qmd
+        text: References
+      - href: teach.qmd
+        text: Teach
+      - href: faq.qmd
+        text: FAQ
+    right:
+      - icon: github
+        href: https://github.com/project-delphi/nlp-llms
+        aria-label: "Source on GitHub"
+  page-footer:
+    left: "From Traditional NLP to Modern LLMs · Genial Labs · Built with [Quarto](https://quarto.org)"
+    right: "Text CC BY 4.0 · Code MIT"
+
+format:
+  html:
+    theme:
+      - cosmo
+      - custom.scss
+    # The @font-face rules sit beside the font files they name.
+    css:
+      - fonts/fonts.css
+    toc: true
+    toc-depth: 3
+    anchor-sections: true
+    code-copy: true
+    code-overflow: wrap
+    html-math-method: katex
+    link-external-newwindow: true

@@ -1,0 +1,13 @@
+---
+title: "Day 3"
+subtitle: "{{< var days.d3.title >}}"
+toc: false
+---
+
+**{{< var days.d3.question >}}**
+
+Day 3 is about what these models are trained to do. RLHF optimizes for what people prefer; calibration asks whether a model's confidence can be trusted; RLCD, as TypeSafe describes it, makes calibration the training objective.
+
+{{< include /_includes/day-3.md >}}
+
+Times are on the [schedule](schedule.qmd).
