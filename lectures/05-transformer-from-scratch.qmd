@@ -4,6 +4,488 @@ title: "{{< var modules.m05.title >}}"
 
 {{< include /_includes/module-05.md >}}
 
+## Timing
+
+| Section | Minutes |
+|---|---|
+| 1. From attention over an encoder to self-attention | 5 |
+| 2. Scaled dot-product attention | 9 |
+| 3. The causal mask | 5 |
+| 4. Multi-head attention | 6 |
+| 5. Positional encodings | 5 |
+| 6. The transformer block | 7 |
+| 7. A decoder-only language model, and the other two variants | 4 |
+| 8. Cost and parallelism | 4 |
+| **Total** | **45** |
+
+The collapsed callouts are optional and sit outside the 45 minutes.
+
+## 1. From attention over an encoder to self-attention
+
+**Objective for this section:** state what Module 4 left open and write self-attention as the query-key-value lookup with all three roles taken from one sequence.
+
+[Module 4](04-seq2seq-attention.qmd) ended with attention as a soft lookup. A query $q$ is scored against keys $k_1, \dots, k_S$, a softmax turns the scores into weights $\alpha_i$, and the result is the weighted average of the values, $\sum_i \alpha_i v_i$. There the query was the decoder state, $q = s_t$, and the encoder states were both keys and values, $k_i = v_i = h_i$.
+
+That model still had two recurrent networks, and Module 4 closed with two questions.
+
+- **What if a sequence attends to itself?** Take the queries, the keys and the values all from the same sequence. Then every position can read every other position in one step, with no encoder and decoder needed to set it up.
+- **What if we then drop the recurrence?** Recurrence is what made Modules 3 and 4 sequential ($h_t$ waits for $h_{t-1}$) and what made distant positions hard to connect (the product of Jacobians in Module 3). If attention does the connecting, the recurrence may not be needed.
+
+The transformer (Vaswani et al., 2017) answers yes to both. This module builds it for the task of Module 3: a language model over tokens $w_1, \dots, w_T$ that predicts $w_{t+1}$ from $w_1, \dots, w_t$.
+
+**Self-attention.** Let $h_1, \dots, h_T \in \mathbb{R}^d$ be the current vectors of the $T$ positions of one sequence. (Where they come from is section 5; how layers stack is section 6.) The transformer uses a single width for embeddings and hidden vectors, so the hidden size $d_h$ of Modules 3 and 4 equals the embedding dimension $d$ here, and we write $d$ throughout.
+
+Each position plays all three roles, through three learned matrices:
+
+$$
+q_t = W_Q^\top h_t, \qquad k_i = W_K^\top h_i, \qquad v_i = W_V^\top h_i ,
+$$ {#eq-qkv-proj}
+
+with $W_Q, W_K, W_V \in \mathbb{R}^{d \times d_k}$. Here $d_k$ is the dimension of the queries, keys and values. (Values may have their own dimension; we set it equal to $d_k$, as is usual.) The transposes appear because we are about to stack positions as *rows* of a matrix; see section 2.
+
+Why three projections instead of using $h_t$ directly, as Module 4's dot-product score did? Because one vector now has three different jobs: what position $t$ is looking for ($q_t$), what position $i$ advertises ($k_i$), and what position $i$ hands over when read ($v_i$). Module 4's additive score already gave the query and the keys separate projections, $W_q$ and $W_k$. The capital subscripts here mark that these are different matrices from those.
+
+The rest is Module 4's attention step, with position $t$ asking and positions $i$ answering:
+
+$$
+\alpha_{t,i} = \frac{\exp\big(\mathrm{score}(q_t, k_i)\big)}{\sum_{j} \exp\big(\mathrm{score}(q_t, k_j)\big)}, \qquad \bar{v}_t = \sum_{i} \alpha_{t,i}\, v_i .
+$$ {#eq-self-attn}
+
+The output $\bar{v}_t \in \mathbb{R}^{d_k}$ is a weighted average of values. The bar has the same meaning as in Module 4's context vector $\bar{h}_t$, which was a weighted average of encoder states. There is one output per position, so a self-attention layer maps $T$ vectors to $T$ vectors.
+
+| General form | Module 4 | Self-attention |
+|---|---|---|
+| query $q$ | decoder state $s_t$ | $W_Q^\top h_t$, from position $t$ |
+| keys $k_i$ | encoder states $h_i$ | $W_K^\top h_i$, same sequence |
+| values $v_i$ | encoder states $h_i$ | $W_V^\top h_i$, same sequence |
+| weights | $\alpha_{t,i}$, target $t$ on source $i$ | $\alpha_{t,i}$, position $t$ on position $i$ |
+| output | context vector $\bar{h}_t$ | $\bar{v}_t$ |
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-self-attention.svg
+     Spec: one row of five token boxes w_1..w_5 with their vectors h_1..h_5 above them.
+     Position t = 4 is highlighted as the asker: an arrow from h_4 through a box "W_Q" to q_4.
+     Each of h_1..h_4 sends one arrow through "W_K" to a key k_i and one through "W_V" to a
+     value v_i. Lines from q_4 to k_1..k_4 carry weights alpha_{4,1}..alpha_{4,4}, drawn with
+     line thickness proportional to the weight (one clearly thickest). The values are summed
+     into a single output box labeled v-bar_4 = sum_i alpha_{4,i} v_i. Position 5 is grayed
+     out with a small "masked (section 3)" label and no line from q_4. Same style as
+     images/04-encoder-decoder.svg.
+     Alt text: "Self-attention for one position: its query is compared with the keys of the
+     positions up to and including itself, and the output is the weighted average of their values." -->
+
+## 2. Scaled dot-product attention
+
+**Objective for this section:** write the attention step in matrix form and derive the scaling factor $1/\sqrt{d_k}$.
+
+**The score.** Module 4 noted that multiplicative scores are cheap because they reduce to matrix products over all pairs at once. The transformer uses the dot product, divided by $\sqrt{d_k}$:
+
+$$
+\mathrm{score}(q_t, k_i) = \frac{q_t^\top k_i}{\sqrt{d_k}} .
+$$ {#eq-score}
+
+**Matrix form.** Stack the vectors as rows. $H \in \mathbb{R}^{T \times d}$ has row $t$ equal to $h_t$. Then
+
+$$
+Q = H W_Q, \qquad K = H W_K, \qquad V = H W_V
+$$
+
+are $T \times d_k$ matrices whose rows are the $q_t$, $k_i$ and $v_i$ of @eq-qkv-proj. The product $Q K^\top$ is a $T \times T$ matrix whose entry $(t, i)$ is $q_t^\top k_i$: every score for the whole sequence in one matrix product. The whole step is
+
+$$
+A = \mathrm{softmax}\!\left(\frac{Q K^\top}{\sqrt{d_k}}\right), \qquad \bar{V} = A\, V ,
+$$ {#eq-sdpa}
+
+where the softmax is applied to each row separately. $A \in \mathbb{R}^{T \times T}$ is the matrix of attention weights, with entry $(t, i)$ equal to $\alpha_{t,i}$ and each row summing to 1. It is the heat-map of Module 4, now square, with the same sequence on both axes. Row $t$ of $\bar{V} \in \mathbb{R}^{T \times d_k}$ is $\bar{v}_t$. This is @eq-self-attn for all positions at once.
+
+In code, with any number of leading batch dimensions:
+
+```python
+def scaled_dot_product_attention(Q, K, V, mask=None):
+    # Q, K, V: (..., T, d_k)    mask: (T, T) bool, True where reading is allowed
+    d_k = Q.size(-1)
+    scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)       # (..., T, T)
+    if mask is not None:
+        scores = scores.masked_fill(~mask, float("-inf"))   # section 3
+    A = torch.softmax(scores, dim=-1)                        # each row sums to 1
+    return A @ V, A                                          # (..., T, d_k), (..., T, T)
+```
+
+**Why divide by $\sqrt{d_k}$.** The argument is about variance, and it is the one given in a footnote of Vaswani et al. (2017). Write the dot product as a sum over the $d_k$ coordinates, $q^\top k = \sum_{j=1}^{d_k} q_j k_j$, where $q_j$ and $k_j$ are the $j$-th coordinates of $q$ and $k$. Assume, as is roughly true at initialization, that all coordinates are independent random variables with mean 0 and variance 1.
+
+1. Each term has mean zero: $\mathbb{E}[q_j k_j] = \mathbb{E}[q_j]\,\mathbb{E}[k_j] = 0$, by independence.
+2. Each term has variance one: $\mathrm{Var}(q_j k_j) = \mathbb{E}[q_j^2 k_j^2] - 0^2 = \mathbb{E}[q_j^2]\,\mathbb{E}[k_j^2] = 1 \cdot 1 = 1$.
+3. The terms are independent, so their variances add: $\mathrm{Var}(q^\top k) = d_k$.
+
+So the unscaled score has standard deviation $\sqrt{d_k}$: it grows with the dimension. Dividing a random variable by a constant divides its variance by the square of the constant, so
+
+$$
+\mathrm{Var}\!\left(\frac{q^\top k}{\sqrt{d_k}}\right) = \frac{d_k}{d_k} = 1 \qquad \text{for every } d_k .
+$$ {#eq-variance}
+
+Why does the size of the scores matter? Because of the softmax. With $d_k = 64$ the unscaled scores have standard deviation 8. Two scores that differ by 8 get weights in the ratio $e^{8} \approx 3000$ to 1, so each row of $A$ is close to one-hot from the first training step. And a one-hot softmax passes almost no gradient. Writing $\mathrm{score}_j$ for $\mathrm{score}(q_t, k_j)$, the derivative of the softmax is
+
+$$
+\frac{\partial \alpha_{t,i}}{\partial\, \mathrm{score}_j} = \alpha_{t,i}\,\big(\mathbb{1}[i = j] - \alpha_{t,j}\big),
+$$
+
+where $\mathbb{1}[i=j]$ is 1 if $i = j$ and 0 otherwise. Every entry is a product that contains either a weight near 0 or one minus a weight near 1, so every entry is near 0. The model would begin training with attention that is already saturated and hard to move. The scaling starts it with scores of unit size, whatever $d_k$ is.
+
+Note what the argument does and does not say. It is a statement about initialization. After training the coordinates are neither independent nor of unit variance, and the model can and does learn peaked attention where that is useful.
+
 ::: {.callout-note appearance="simple"}
-This lecture has not been drafted yet.
+**In the lab.** **Exercise 1** is `scaled_dot_product_attention`: @eq-score and @eq-sdpa. A provided cell then measures the standard deviation of the scores with and without the scaling for several $d_k$, which is @eq-variance made visible; you predict the numbers first.
 :::
+
+## 3. The causal mask
+
+**Objective for this section:** explain why a language model must not read ahead, and write the mask that prevents it.
+
+As written, @eq-sdpa lets position $t$ read every position, including those after it. For a language model that is fatal. The model is trained with teacher forcing (Module 3): one forward pass over $w_1, \dots, w_T$ produces all $T$ predictions, and the prediction at position $t$ is scored against $w_{t+1}$. If position $t$ can read position $t+1$, it can copy the answer. The training loss would fall toward zero, and the model would be useless at generation time, when the future does not exist yet.
+
+An RNN could not make this mistake: $h_t$ was computed before $w_{t+1}$ was read. A transformer computes all positions at once, so the ordering has to be imposed.
+
+We impose it exactly as Module 4 removed padded positions: set the forbidden scores to $-\infty$ before the softmax, since $\exp(-\infty) = 0$. Define the **causal mask** $M \in \mathbb{R}^{T \times T}$ by
+
+$$
+M_{t,i} = \begin{cases} 0 & \text{if } i \le t, \\ -\infty & \text{if } i > t, \end{cases}
+\qquad
+A = \mathrm{softmax}\!\left(\frac{Q K^\top}{\sqrt{d_k}} + M\right).
+$$ {#eq-mask}
+
+$M$ is zero on and below the diagonal and $-\infty$ above it. Consequently $\alpha_{t,i} = 0$ exactly for $i > t$, each row of $A$ still sums to 1 over the allowed positions $i \le t$, and $A$ is lower triangular. Row $t$ always has at least one allowed entry, the diagonal, so no row is empty.
+
+```python
+mask = torch.tril(torch.ones(T, T, dtype=torch.bool))   # True where i <= t
+```
+
+With the mask in place, the output at position $t$ is a function of $w_1, \dots, w_t$ only, and one forward pass gives $T$ valid next-token predictions, as in Module 3. This holds for the whole network only if no other component mixes positions; section 6 checks that.
+
+The property is testable, and the test is the most useful one in the lab: **change a token at position $t_0$, and the outputs at all positions before $t_0$ must not change at all.**
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-causal-mask.svg
+     Spec: a 6 x 6 grid for the character sequence "To be," (one character per row and per
+     column; rows labeled "position t (asks)", columns labeled "position i (is read)").
+     Cells on and below the diagonal are filled in the heat-map color of
+     images/04-attention-alignment.svg with illustrative weights so that each row sums to 1
+     (row 1 is a single cell with weight 1). Cells above the diagonal are hatched gray and
+     labeled once "-inf before the softmax, weight 0 after". Caption must say the weights are
+     illustrative, not measured.
+     Alt text: "A lower-triangular matrix of attention weights: each position reads only
+     itself and earlier positions." -->
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 2** you build the mask of @eq-mask and pass it to your attention function. The checkpoint is the leak test: weights above the diagonal are exactly zero, and changing a later token leaves all earlier outputs unchanged. The same test is then run on the whole trained model.
+:::
+
+## 4. Multi-head attention
+
+**Objective for this section:** explain what one attention head cannot do, and write the multi-head layer and its split.
+
+A softmax gives each position *one* distribution over the positions it reads, and one weighted average. But a position often needs several unrelated things at once. To predict the next character of a play, it helps to know the last few characters (to finish the word), and also who is speaking (to choose the vocabulary), which was settled far back. A single average of the two blurs them.
+
+**Multi-head attention** runs $n_h$ attention steps side by side. Each is called a **head**; head $r$ has its own projections $W_Q^{(r)}, W_K^{(r)}, W_V^{(r)} \in \mathbb{R}^{d \times d_k}$ and so its own weight matrix $A^{(r)}$ and output $\bar{V}^{(r)} = A^{(r)}\, H W_V^{(r)}$, computed by @eq-sdpa with the mask of @eq-mask. The outputs are concatenated along the columns and mixed by one more linear layer:
+
+$$
+\mathrm{MHA}(H) = \big[\, \bar{V}^{(1)} ; \dots ; \bar{V}^{(n_h)} \big]\, W_{\mathrm{proj}} + b_{\mathrm{proj}} .
+$$ {#eq-mha}
+
+The head size is chosen as
+
+$$
+d_k = \frac{d}{n_h},
+$$
+
+so the concatenation has $n_h d_k = d$ columns, $W_{\mathrm{proj}} \in \mathbb{R}^{d \times d}$, $b_{\mathrm{proj}} \in \mathbb{R}^{d}$ (added to every row), and the layer maps $T \times d$ to $T \times d$. We write $W_{\mathrm{proj}}$ and not $W_O$, as the original paper does, because $W_o$ is this workshop's output layer.
+
+**The cost is the same as one big head.** The $n_h$ heads together hold $3 \cdot n_h \cdot d \cdot d_k = 3 d^2$ projection weights, exactly what a single head with $d_k = d$ would hold. Multi-head attention does not add capacity; it spends the same capacity on $n_h$ separate, narrower lookups.
+
+**The split.** In code nobody loops over heads. One $d \times d$ matrix produces all the queries, and a reshape cuts the result into heads: columns $(r-1) d_k + 1$ to $r\, d_k$ of that matrix are $W_Q^{(r)}$. The head index becomes a batch dimension, so the attention function of section 2 runs unchanged.
+
+```python
+B, T, d = H.shape                                         # batch, positions, width
+Q = self.W_Q(H).view(B, T, n_h, d_k).transpose(1, 2)      # (B, n_h, T, d_k)
+K = self.W_K(H).view(B, T, n_h, d_k).transpose(1, 2)      # (B, n_h, T, d_k)
+V = self.W_V(H).view(B, T, n_h, d_k).transpose(1, 2)      # (B, n_h, T, d_k)
+V_bar, A = scaled_dot_product_attention(Q, K, V, mask)    # (B, n_h, T, d_k), (B, n_h, T, T)
+V_bar = V_bar.transpose(1, 2).reshape(B, T, d)            # concatenate the heads
+out = self.proj(V_bar)                                    # (B, T, d): W_proj, b_proj
+```
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-multi-head.svg
+     Spec: left, a block "H (T x d)". Three arrows through boxes W_Q, W_K, W_V give three
+     T x d blocks, each drawn cut into n_h = 4 vertical slices of width d_k = d / n_h, colored
+     per head. Middle: four small parallel boxes "scaled dot-product attention + causal mask",
+     one per color, each emitting a small lower-triangular T x T thumbnail A^(r) and a slice
+     V-bar^(r). Right: the four slices placed side by side ("concatenate, T x d"), then a box
+     "W_proj" giving "MHA(H) (T x d)". Label d_k = d / n_h once.
+     Alt text: "Multi-head attention: the projected queries, keys and values are cut into
+     heads, each head attends separately, and the head outputs are concatenated and projected." -->
+
+::: {.callout-note appearance="simple"}
+**In the lab.** The multi-head layer (@eq-mha) is provided in the core path and calls *your* attention function with the head as a batch dimension, which is why Exercise 1 must accept leading dimensions. In **Exercise 5** you plot $A^{(r)}$ for every head of the trained model. Writing the split yourself is the **stretch** section.
+:::
+
+## 5. Positional encodings
+
+**Objective for this section:** show that self-attention ignores order, and give two ways to restore it.
+
+Look again at @eq-self-attn. Position $t$'s output is a sum over the positions it reads, and each term depends only on the *contents* $h_t$ and $h_i$. The index $i$ appears nowhere except as a label on the sum. Shuffle the earlier positions and the same terms are added in a different order: $\bar{v}_t$ is unchanged. A self-attention layer treats what it reads as a set, not a sequence. This is the blind spot of Module 2's averaged embeddings again: "dog bites man" and "man bites dog".
+
+An RNN had order built into its computation. A transformer has to be told. The fix is to add to each token embedding a vector that depends only on the position. Writing $h_t^{(0)}$ for the input to the first layer,
+
+$$
+h_t^{(0)} = e_{w_t} + p_t ,
+$$ {#eq-pos}
+
+where $e_{w_t} \in \mathbb{R}^d$ is the embedding of token $w_t$ (Module 2) and $p_t \in \mathbb{R}^d$ is the **positional encoding** of position $t$. The same token at two positions now has two different vectors, so queries and keys can depend on position.
+
+**Learned.** Treat $p_1, \dots, p_{T_{\max}}$ as parameters: a second embedding table, indexed by position instead of by token, trained with everything else. $T_{\max}$ is the **context length**, the longest sequence the model accepts. This is what GPT-style models and the lab use. Its limit is plain: there is no $p_t$ for $t > T_{\max}$.
+
+**Sinusoidal** (Vaswani et al., 2017). Fix $p_t$ by formula, with no parameters. For coordinate pairs $j = 0, \dots, d/2 - 1$,
+
+$$
+p_{t,\,2j} = \sin(\omega_j t), \qquad p_{t,\,2j+1} = \cos(\omega_j t), \qquad \omega_j = 10000^{-2j/d} .
+$$ {#eq-sinusoid}
+
+Each pair of coordinates is a point moving around a circle at its own frequency $\omega_j$, fast for small $j$ and slow for large $j$, like the hands of a clock with $d/2$ hands. Because of the angle-addition formulas, $p_{t+\Delta}$ is a fixed rotation of $p_t$ for any offset $\Delta$, which makes "$\Delta$ positions back" a pattern a linear layer can pick up. Vaswani et al. report that learned and sinusoidal encodings performed nearly the same in their experiments.
+
+Both are **absolute** encodings: they mark where a token is, and leave the model to work out how far apart two tokens are. Many current models encode the *relative* offset inside the attention score instead.
+
+::: {.callout-tip collapse="true" title="Optional: rotary position embeddings (RoPE)"}
+Rotary embeddings (Su et al., 2021) add nothing to the input. They act inside each attention layer, on the queries and keys only.
+
+Group the $d_k$ coordinates of a query into $d_k/2$ pairs and treat each pair as a point in the plane. Before taking the dot product, rotate pair $j$ of $q_t$ by the angle $\omega_j t$, and pair $j$ of $k_i$ by the angle $\omega_j i$, with frequencies $\omega_j$ as in @eq-sinusoid (with $d_k$ in place of $d$). Write $R_t$ for this block-wise rotation at position $t$. Rotations preserve length, and the dot product of two rotated vectors depends only on the *difference* of the angles:
+
+$$
+(R_t\, q_t)^\top (R_i\, k_i) = q_t^\top R_{i-t}\, k_i .
+$$
+
+So the score depends on the positions only through the offset $i - t$: the encoding is absolute in how it is applied (each vector is rotated by its own position) and relative in its effect. The values are not rotated. In the words of the paper's abstract, RoPE "encodes the absolute position with a rotation matrix and meanwhile incorporates the explicit relative position dependency in self-attention formulation".
+
+Not covered in the lab.
+:::
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 3** you write the input step of the model, @eq-pos with a learned position table. Before you do, a checkpoint on a single attention layer shows the problem: with positions left out, shuffling the earlier tokens leaves the last position's output unchanged. Sinusoidal encodings (@eq-sinusoid) are not implemented in the lab.
+:::
+
+## 6. The transformer block
+
+**Objective for this section:** assemble attention, a feed-forward layer, residual connections and layer normalization into one block, and say where the normalization goes.
+
+Attention moves information *between* positions. It does little computation *at* a position: $\bar{v}_t$ is a linear function of the values. The block therefore pairs attention with an ordinary feed-forward network, and adds two devices that make a deep stack trainable.
+
+**Feed-forward layer.** A network with one hidden layer, as in Module 2, applied to each position separately and with the same weights at every position:
+
+$$
+\mathrm{FFN}(h) = W_2\, g(W_1 h + b_1) + b_2 ,
+$$ {#eq-ffn}
+
+with $W_1 \in \mathbb{R}^{d_{\mathrm{ff}} \times d}$, $b_1 \in \mathbb{R}^{d_{\mathrm{ff}}}$, $W_2 \in \mathbb{R}^{d \times d_{\mathrm{ff}}}$, $b_2 \in \mathbb{R}^{d}$. The hidden width $d_{\mathrm{ff}}$ is usually $4d$. The nonlinearity $g$ is applied elementwise: ReLU, $g(a) = \max(0, a)$, in the original paper; GPT models use GELU, a smooth variant.
+
+**Layer normalization** (Ba et al., 2016). Rescale one vector $h \in \mathbb{R}^d$ to zero mean and unit variance across its own $d$ coordinates, then apply a learned gain and bias:
+
+$$
+\mathrm{LN}(h) = \gamma \odot \frac{h - \mathrm{mean}(h)}{\sqrt{\mathrm{var}(h) + \epsilon}} + \beta ,
+$$ {#eq-ln}
+
+where $\mathrm{mean}(h)$ and $\mathrm{var}(h)$ are the mean and variance of the $d$ coordinates of $h$, $\gamma, \beta \in \mathbb{R}^d$ are learned (initialized to ones and zeros), $\odot$ is the elementwise product, and $\epsilon$ is a small constant that prevents division by zero. It keeps the scale of the vectors steady from layer to layer. Note that it uses only the vector itself: not other examples in the batch, and not other positions.
+
+**Residual connections.** Each sublayer *adds* its output to its input instead of replacing it. One block, layer $\ell$ of $n_\ell$, with $H^{(\ell-1)} \in \mathbb{R}^{T \times d}$ the matrix of vectors entering it, $\mathrm{LN}$ and $\mathrm{FFN}$ applied to each row, and $H'$ the intermediate result:
+
+$$
+\begin{aligned}
+H' &= H^{(\ell-1)} + \mathrm{MHA}\big(\mathrm{LN}(H^{(\ell-1)})\big), \\
+H^{(\ell)} &= H' + \mathrm{FFN}\big(\mathrm{LN}(H')\big).
+\end{aligned}
+$$ {#eq-block}
+
+Each block has its own parameters. Row $t$ of $H^{(\ell)}$ is $h_t^{(\ell)}$, the vector of position $t$ after layer $\ell$.
+
+Why add? For the reason the LSTM cell state was additive in Module 3. Unroll @eq-block over the layers:
+
+$$
+H^{(n_\ell)} = H^{(0)} + \sum (\text{outputs of all } 2 n_\ell \text{ sublayers}) .
+$$
+
+The vectors run straight through the network, and each sublayer reads them and writes a correction. This running sum is often called the **residual stream**. The derivative of a block's output with respect to its input is the identity matrix plus the derivative of the corrections, so the gradient reaches the first layer through a path with no repeated matrix product on it. Compare the product of Jacobians that made the RNN's gradient vanish.
+
+**Pre-norm and post-norm.** @eq-block normalizes the *input* of each sublayer. This is the **pre-norm** arrangement, used by GPT-2, by most later models and by the lab. The original transformer normalized *after* the addition (**post-norm**):
+
+$$
+H' = \mathrm{LN}\big(H^{(\ell-1)} + \mathrm{MHA}(H^{(\ell-1)})\big), \qquad H^{(\ell)} = \mathrm{LN}\big(H' + \mathrm{FFN}(H')\big).
+$$ {#eq-postnorm}
+
+The difference is what lies on the residual path. In post-norm every block passes the running sum through a normalization, so there is no untouched identity path from input to output. In pre-norm there is. Xiong et al. (2020) analyze the two at initialization: in post-norm the gradients of the parameters near the output are large, which is why the original recipe needs a careful learning-rate warm-up; in pre-norm the gradients are well-behaved and the warm-up can be removed. Two consequences to remember:
+
+- Pre-norm leaves the output of the last block unnormalized, so one final $\mathrm{LN}$ is applied before the output layer (section 7).
+- This is a statement about ease of training, not a ranking. Post-norm models train well with a suitable schedule.
+
+**Does the block respect the causal mask?** Yes. $\mathrm{LN}$ and $\mathrm{FFN}$ act on each position separately, and the residual additions are position by position. The masked attention is the only place where positions exchange information, so the argument of section 3 carries through any number of blocks. (Batch normalization, which mixes examples, would not be so harmless; this is one reason transformers use layer normalization.)
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-transformer-block.svg
+     Spec: two panels. Left panel "one pre-norm block": a thick vertical line, the residual
+     stream, running bottom to top from H^(l-1) to H^(l), colored like the cell-state line in
+     images/03-lstm-cell.svg. Two side branches leave and rejoin it at circled plus signs:
+     first "LN -> masked multi-head attention", then "LN -> FFN". Right panel "the model":
+     bottom to top, "tokens w_1..w_T" -> "token embedding e_w  +  position p_t" -> a stack of
+     blocks labeled "x n_l" -> "final LN" -> "W_o, b_o" -> "softmax" -> "y-hat_t, the
+     distribution over w_{t+1}". A small inset under the left panel shows the post-norm
+     variant of one sublayer (branch, plus, then LN on the main line) for contrast.
+     Alt text: "A pre-norm transformer block with two residual branches, attention and
+     feed-forward, and the decoder-only model built by stacking blocks between the embeddings
+     and the output layer." -->
+
+::: {.callout-note appearance="simple"}
+**In the lab.** The block (@eq-block), with @eq-ffn and @eq-ln inside it, is provided in the core path; you read it and find your attention function in it. Writing the full block yourself is the **stretch** section.
+:::
+
+## 7. A decoder-only language model, and the other two variants
+
+**Objective for this section:** write the whole model from tokens to loss, and place it among the three transformer variants.
+
+Everything is now in place. A **decoder-only transformer**, the architecture of the GPT models, is:
+
+$$
+\begin{aligned}
+h_t^{(0)} &= e_{w_t} + p_t && \text{embed tokens and positions (section 5)} \\
+H^{(\ell)} &= \mathrm{Block}_\ell\big(H^{(\ell-1)}\big), \quad \ell = 1, \dots, n_\ell && \text{blocks with causal masks (section 6)} \\
+z_t &= W_o\, \mathrm{LN}\big(h_t^{(n_\ell)}\big) + b_o && \text{final normalization and output layer} \\
+\hat{y}_t &= \mathrm{softmax}(z_t) && \text{distribution over } w_{t+1}
+\end{aligned}
+$$ {#eq-gpt}
+
+with $z_t \in \mathbb{R}^{|V|}$ the logits and $W_o \in \mathbb{R}^{|V| \times d}$, $b_o \in \mathbb{R}^{|V|}$ the output layer, as in Module 3 with $d$ in place of $d_h$. The parameters $\theta$ are the two embedding tables, the blocks, the final normalization and the output layer.
+
+Training is unchanged from Module 3: teacher forcing, the cross-entropy loss, and perplexity as its exponential, in nats:
+
+$$
+\mathcal{L} = -\frac{1}{T}\sum_{t=1}^{T} \log \hat{y}_t[w_{t+1}], \qquad \mathrm{PPL} = \exp(\mathcal{L}).
+$$ {#eq-loss}
+
+Generation is also unchanged: sample $w_{t+1}$ from $\mathrm{softmax}(z_t/\tau)$ with temperature $\tau$, append it, and repeat. The one new constraint is the context length: once the text is longer than $T_{\max}$, the model sees only the last $T_{\max}$ tokens. An LSTM carries its state forward indefinitely; a transformer has perfect access to everything inside its window and none to anything outside it.
+
+**The three variants.** They differ in the mask and in what is attended to.
+
+| Variant | Mask | Each position reads | Example | In this workshop |
+|---|---|---|---|---|
+| Decoder-only | causal | itself and earlier positions | GPT | this lab; Modules 7 to 10 |
+| Encoder-only | none | all positions, both sides | BERT | Module 6 |
+| Encoder-decoder | none in the encoder, causal in the decoder | the decoder also reads the encoder's output | the original transformer, T5 | not built |
+
+An encoder cannot generate text left to right, because its vectors depend on tokens to the right. It produces a representation of a whole input, which suits classification. Module 6 takes this up.
+
+::: {.callout-tip collapse="true" title="Optional: the encoder-decoder transformer and cross-attention"}
+The original transformer was built for translation, the task of Module 4, and keeps Module 4's two-part shape.
+
+- **The encoder** is a stack of blocks as in @eq-block with no causal mask. Its output is one vector per source position: the counterpart of Module 4's encoder states $h_1, \dots, h_S$.
+- **The decoder** is a stack of blocks with *three* sublayers each: causally masked self-attention over the target so far, then **cross-attention**, then the feed-forward layer. Each has its own residual connection and layer normalization.
+
+Cross-attention is @eq-sdpa with the queries taken from the decoder and the keys and values taken from the encoder output. Let $H_{\mathrm{dec}}$ hold the decoder's current vectors and $H_{\mathrm{enc}}$ the encoder's final ones:
+
+$$
+Q = H_{\mathrm{dec}} W_Q, \qquad K = H_{\mathrm{enc}} W_K, \qquad V = H_{\mathrm{enc}} W_V .
+$$
+
+Here $A$ is $T \times S$, not square, and there is no causal mask on it: the whole source is known. This is exactly Module 4's attention: the query comes from the decoder, the keys and values from the encoder. What changed is the score (scaled dot product), the number of heads, and that it happens in every decoder block instead of once.
+
+Padding is handled as in Module 4: the scores of padded source positions are set to $-\infty$, in the encoder's self-attention and in cross-attention.
+
+A decoder-only model handles a transduction task by writing source and target as one sequence, with the source as the prefix. Self-attention over the prefix then does the work of cross-attention. This is how the instruction-following models of Module 7 work.
+:::
+
+::: {.callout-tip collapse="true" title="Optional: details that implementations add"}
+- **Dropout.** Applied to the attention weights and to each sublayer's output before the residual addition. It is switched off at evaluation, and the leak test in the lab must run with it off.
+- **Weight tying.** The output matrix $W_o$ and the token embedding table have the same shape, $|V| \times d$, and many models share one matrix for both.
+- **Bias terms.** Some implementations add biases to the projections of @eq-qkv-proj; we omit them.
+- **Caching at generation time.** Under the causal mask, the keys and values of earlier positions do not change when a token is appended, so implementations store them and compute only the new position's query at each step.
+:::
+
+::: {.callout-note appearance="simple"}
+**In the lab.** The assembled model (@eq-gpt) and the training loop are provided. In **Exercise 4** you train it on the Shakespeare corpus of Lab 3 and score it with Lab 3's loss and perplexity (@eq-loss) on the same test characters, beside the character n-gram baseline and the LSTM.
+:::
+
+## 8. Cost and parallelism
+
+**Objective for this section:** compare the cost of a self-attention layer with a recurrent layer, and say what the transformer gains and what it pays.
+
+Count the multiplications for one layer over a sequence of length $T$.
+
+- **Self-attention.** There are $T^2$ pairs of positions. Each score is a dot product in $d_k$ dimensions, in each of $n_h$ heads: $T^2 \cdot n_h d_k = T^2 d$. The weighted averages cost the same. So the attention step costs $O(T^2 d)$.
+- **Recurrent layer.** There are $T$ steps. Each multiplies the hidden state by a $d_h \times d_h$ matrix: $O(T d_h^2)$, or $O(T d^2)$ at equal width.
+
+| | Self-attention layer | Recurrent layer |
+|---|---|---|
+| Computation per layer | $O(T^2 d)$ | $O(T d^2)$ |
+| Sequential operations | $O(1)$ | $O(T)$ |
+| Longest path between two positions | $O(1)$ | $O(T)$ |
+
+(These three rows are Table 1 of Vaswani et al., 2017.) Reading the table:
+
+- **Computation.** Self-attention is cheaper when $T < d$ and more expensive when $T > d$. It is quadratic in the sequence length: doubling the context quadruples the cost. It also stores $T^2$ weights per head in every layer.
+- **Sequential operations.** This is the row that changed the field. An RNN needs $T$ steps one after another, because $h_t$ waits for $h_{t-1}$; no amount of hardware removes the wait. In a self-attention layer no position waits for another, so all $T$ are computed at once as matrix products, which is what a GPU is good at.
+- **Path length.** Any two positions are connected by one attention step, so a gradient between them does not pass through a product of $T$ Jacobians. Module 3's vanishing-gradient problem along the sequence does not arise.
+
+Two honest additions.
+
+- The projections and the feed-forward layer of a full block cost $O(T d^2)$ as well, so a transformer block costs $O(T^2 d + T d^2)$. The table compares only the parts that connect positions.
+- Parallelism applies to **training**, where the whole sequence is known. **Generation** is still one token at a time: $w_{t+1}$ must be sampled before position $t+1$ can be processed.
+
+What the transformer pays: a fixed context length, a quadratic cost in it, and the loss of the built-in sense of order, bought back with positional encodings. What it gains: parallel training and short paths. Those two together are what made training on very large corpora practical, which is the subject of [Module 6](06-pretraining-huggingface.qmd).
+
+None of this says that a small transformer beats a small LSTM on a small corpus in a few minutes of training. That is an empirical question, and the lab measures it.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** The results table of Exercise 4 prints training time beside test perplexity for the mini-GPT and the LSTM, so the comparison is at a stated budget.
+:::
+
+## Summary
+
+- Self-attention is Module 4's query-key-value lookup with all three taken from one sequence, through learned projections (@eq-qkv-proj, @eq-self-attn).
+- In matrix form it is two matrix products and a row-wise softmax (@eq-sdpa). Scores are divided by $\sqrt{d_k}$ so that their variance is 1 at initialization whatever the dimension, which keeps the softmax out of its saturated region (@eq-variance).
+- A causal mask sets the scores of later positions to $-\infty$, so position $t$ depends only on $w_1, \dots, w_t$ and one forward pass gives $T$ valid predictions (@eq-mask).
+- Multi-head attention runs $n_h$ narrower lookups in parallel, with $d_k = d / n_h$, at the parameter cost of one (@eq-mha).
+- Self-attention ignores order. Positional encodings, learned or sinusoidal, are added to the token embeddings to restore it (@eq-pos, @eq-sinusoid).
+- A block is attention plus a feed-forward layer, each wrapped in a residual connection with layer normalization (@eq-block). Pre-norm normalizes each sublayer's input and keeps an identity path through the network; post-norm, the original, normalizes after the addition (@eq-postnorm).
+- A decoder-only transformer is embeddings, $n_\ell$ blocks, a final normalization and Module 3's output layer, trained with Module 3's loss (@eq-gpt, @eq-loss).
+- Per layer, self-attention costs $O(T^2 d)$ against the RNN's $O(T d^2)$, with $O(1)$ sequential operations and path length against $O(T)$.
+
+### Equations and where you implement them
+
+| Equation | Lab 5 |
+|---|---|
+| Scaled dot-product attention (@eq-score, @eq-sdpa) | Exercise 1: `scaled_dot_product_attention` |
+| The variance of the scores (@eq-variance) | Exercise 1 follow-up: provided measurement, you predict and explain |
+| Causal mask (@eq-mask) | Exercise 2: `causal_mask`, and the leak test |
+| Token plus position input (@eq-pos) | Exercise 3: the model's input step |
+| The model, loss and perplexity (@eq-gpt, @eq-loss) | Exercise 4: train, then score on the test split beside the n-gram and the LSTM |
+| The weight matrices $A^{(r)}$ per head | Exercise 5: plot the heads; `mean_attention_distance` |
+| Multi-head split and the full block (@eq-mha, @eq-block) | Stretch (provided in the core path) |
+| Projections, feed-forward layer, layer normalization (@eq-qkv-proj, @eq-ffn, @eq-ln) | provided |
+| Sinusoidal encodings, post-norm (@eq-sinusoid, @eq-postnorm) | not implemented |
+
+## Common misconceptions
+
+- **"The transformer is attention and nothing else."** Each block also has a feed-forward layer, which holds about two thirds of the block's weights when $d_{\mathrm{ff}} = 4d$, plus residual connections and layer normalization. Without the residual connections a deep stack does not train.
+- **"The scaling by $\sqrt{d_k}$ is a detail."** Without it the standard deviation of the scores grows as $\sqrt{d_k}$ and the softmax starts saturated. It is also not a temperature you tune: it is fixed by the dimension. The sampling temperature $\tau$ is a different thing, applied to the logits at generation time.
+- **"The causal mask is only needed at training time."** The model was trained with it, so it must be applied at generation too. Position $t$'s vector must be computed the same way whether or not later tokens are present.
+- **"More heads means more parameters."** With $d_k = d / n_h$ the count is the same for any $n_h$. More heads means more, narrower lookups.
+- **"Self-attention knows the order of the tokens."** It does not. Order enters only through the positional encodings (and, in a decoder, weakly through the mask, since position $t$ can tell how many positions it is allowed to read).
+- **"Pre-norm and post-norm are the same thing drawn differently."** They put different operations on the residual path and behave differently at initialization. The original paper is post-norm; GPT-2 and most later models are pre-norm.
+- **"Transformers are faster than RNNs."** They are more *parallel*. Per layer they cost $O(T^2 d)$, which is more than an RNN for long sequences, and generation is still sequential.
+- **"A transformer has unlimited context."** It reads at most $T_{\max}$ tokens, and nothing before them.
+- **"An attention map explains the prediction."** Module 4's caution applies with more force: there are $n_h \times n_\ell$ maps, and the vectors being read at layer $\ell$ are already mixtures of many tokens.
+
+## What Module 6 picks up
+
+We now have the architecture. The model in the lab is tiny, reads characters, and is trained from scratch on one megabyte of text. Module 6 changes each of those: tokens become subwords, the model is trained once on a very large corpus and then reused (**pretraining**), and the two masks of section 7 give two training objectives, causal language modeling for decoders and masked language modeling for encoders. From there on we load transformers from the Hugging Face libraries instead of writing them.
+
+## Readings
+
+1. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L. and Polosukhin, I. (2017). [Attention Is All You Need](https://arxiv.org/abs/1706.03762). *NeurIPS*. The original paper. Read sections 3 and 4; the variance argument is a footnote in section 3.2.1 and the cost comparison is Table 1.
+2. Rush, A. (2018), revised by Huang, A., Subramanian, S., Sum, J., Almubarak, K. and Biderman, S. (2022). [The Annotated Transformer](https://nlp.seas.harvard.edu/annotated-transformer/). The paper, line by line, as working PyTorch code. It implements the post-norm encoder-decoder model, not the pre-norm decoder of the lab.
+3. Jurafsky, D. and Martin, J. H. [*Speech and Language Processing*](https://web.stanford.edu/~jurafsky/slp3/) (3rd edition draft), the chapter "Transformers and Pretraining". A textbook treatment at the level of this lecture. Chapter numbers and titles change between draft releases, so find it by topic.
+4. Xiong, R., Yang, Y., He, D., Zheng, K., Zheng, S., Xing, C., Zhang, H., Lan, Y., Wang, L. and Liu, T.-Y. (2020). [On Layer Normalization in the Transformer Architecture](https://arxiv.org/abs/2002.04745). *ICML*. The analysis of pre-norm against post-norm cited in section 6. Read the introduction and section 3.
+5. Karpathy, A. [nanoGPT](https://github.com/karpathy/nanoGPT). A compact pre-norm GPT in PyTorch with a character-level Shakespeare example; the closest published code to this lab. Its README marks the repository as deprecated in favor of a successor project; `model.py` remains a clear reference.
+
+Also cited above: Ba, J. L., Kiros, J. R. and Hinton, G. E. (2016), [Layer Normalization](https://arxiv.org/abs/1607.06450); Su, J., Lu, Y., Pan, S., Murtadha, A., Wen, B. and Liu, Y. (2021), [RoFormer: Enhanced Transformer with Rotary Position Embedding](https://arxiv.org/abs/2104.09864); Radford, A. et al. (2019), Language Models are Unsupervised Multitask Learners (the GPT-2 report, which moved layer normalization to the input of each sub-block).
