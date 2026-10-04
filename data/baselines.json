@@ -1,0 +1,261 @@
+{
+  "schema_version": 1,
+  "environment": {
+    "lab01": {
+      "machine": "Apple M1 Pro, macOS (arm64), CPU only; not run on Colab",
+      "python": "3.12.13",
+      "numpy": "2.5.3",
+      "scikit-learn": "1.9.1"
+    }
+  },
+  "baselines": [
+    {
+      "id": "lab01.char_ngram.n2",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 2.4922,
+        "perplexity": 12.0882,
+        "bits_per_char": 3.5955
+      },
+      "val_metrics": {
+        "nats_per_char": 2.476
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 2,
+        "k": 0.1,
+        "best_n_up_to_5_on_val": false
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.char_ngram.n3",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 2.0859,
+        "perplexity": 8.0518,
+        "bits_per_char": 3.0093
+      },
+      "val_metrics": {
+        "nats_per_char": 2.0097
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 3,
+        "k": 0.1,
+        "best_n_up_to_5_on_val": false
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.char_ngram.n5",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.8326,
+        "perplexity": 6.2503,
+        "bits_per_char": 2.6439
+      },
+      "val_metrics": {
+        "nats_per_char": 1.7005
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 5,
+        "k": 0.01,
+        "best_n_up_to_5_on_val": true
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.word_ngram.n2",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "comparable_with_later_labs": false,
+      "metrics": {
+        "perplexity_per_word": 304.0
+      },
+      "settings": {
+        "model": "word n-gram, add-k smoothing",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "train words with count >= 2, plus <unk> and <s>: 6,463 entries",
+        "n": 2,
+        "k": 0.01,
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.word_ngram.n3",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "comparable_with_later_labs": false,
+      "metrics": {
+        "perplexity_per_word": 1437.1
+      },
+      "settings": {
+        "model": "word n-gram, add-k smoothing",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "train words with count >= 2, plus <unk> and <s>: 6,463 entries",
+        "n": 3,
+        "k": 0.01,
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.tfidf_logreg",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8838,
+        "macro_f1": 0.8841,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8924,
+            "recall": 0.9125,
+            "f1": 0.9023
+          },
+          "cs.CV": {
+            "precision": 0.8976,
+            "recall": 0.8325,
+            "f1": 0.8638
+          },
+          "cs.LG": {
+            "precision": 0.8089,
+            "recall": 0.8675,
+            "f1": 0.8372
+          },
+          "cs.RO": {
+            "precision": 0.9437,
+            "recall": 0.9225,
+            "f1": 0.933
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8933,
+        "macro_f1": 0.8937
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vectorizer": "CountVectorizer(tokenizer=tokenize, lowercase=False, token_pattern=None, min_df=2), fitted on train",
+        "features": 12469,
+        "train_rows": 4800,
+        "tfidf": "TfidfTransformer() defaults: idf = log((1 + N) / (1 + df)) + 1, L2 row normalization, fitted on train",
+        "model": "LogisticRegression(C=C, max_iter=1000, random_state=0)",
+        "C_grid": [
+          0.1,
+          1.0,
+          10.0,
+          100.0
+        ],
+        "C_chosen_on": "val macro-F1; ties go to the smaller C",
+        "C": 10.0,
+        "seed": 0
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.counts_naive_bayes",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8844,
+        "macro_f1": 0.884,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8902,
+            "recall": 0.9325,
+            "f1": 0.9109
+          },
+          "cs.CV": {
+            "precision": 0.8928,
+            "recall": 0.8325,
+            "f1": 0.8616
+          },
+          "cs.LG": {
+            "precision": 0.8342,
+            "recall": 0.8425,
+            "f1": 0.8383
+          },
+          "cs.RO": {
+            "precision": 0.9208,
+            "recall": 0.93,
+            "f1": 0.9254
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8867,
+        "macro_f1": 0.8865
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vectorizer": "CountVectorizer(tokenizer=tokenize, lowercase=False, token_pattern=None, min_df=2), fitted on train",
+        "features": 12469,
+        "train_rows": 4800,
+        "model": "MultinomialNB(alpha=1.0) on the raw count matrix (no TF-IDF)"
+      },
+      "date": "2026-10-04"
+    }
+  ]
+}
