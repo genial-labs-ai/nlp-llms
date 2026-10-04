@@ -4,7 +4,7 @@
 
 Encoder-decoder models, the fixed-vector bottleneck, and attention as the fix.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/04-seq2seq-attention.ipynb)
 
 ## Learning objectives
 
