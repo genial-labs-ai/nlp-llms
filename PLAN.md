@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status (2026-10-04):** scaffold built (build Days 1–2); datasets fixed; lectures 1–5, 7 and 8 drafted with lab briefs in `briefs/`; Lab 01 built and run locally (not on Colab); Day 1 schematic figures done. In progress at the end of the last session, on local worktree branches not yet merged: lecture 6, Labs 02, 03, 04, 07 and 08, and the Module 1 lecture-versus-lab review. Lectures 2–5, 7 and 8 have not yet been reviewed against their labs. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-04):** scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted with lab briefs in `briefs/`; Lab 01 built and run locally (not on Colab); Day 1 schematic figures done. In progress at the end of the last session, on local worktree branches not yet merged: Labs 02, 03, 04, 07 and 08, and the Module 1 lecture-versus-lab review. Lectures 2–8 have not yet been reviewed against their labs. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -363,7 +363,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 ### Day 5 — Modules 5–6
 
 - [x] Draft lecture 5: The transformer
-- [ ] Draft lecture 6: Pretraining and the Hugging Face stack
+- [x] Draft lecture 6: Pretraining and the Hugging Face stack
 - [ ] Code `05-transformer-from-scratch.ipynb`
 - [ ] Code `06-pretraining-huggingface.ipynb`
 - [ ] Review: Labs 3 → 5 and 1 → 2 → 6 comparisons report consistent metrics on the same data
