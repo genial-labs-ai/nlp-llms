@@ -4,6 +4,361 @@ title: "{{< var modules.m04.title >}}"
 
 {{< include /_includes/module-04.md >}}
 
+## Timing
+
+| Section | Minutes |
+|---|---|
+| 1. From next-token prediction to transduction | 5 |
+| 2. The encoder-decoder model | 8 |
+| 3. The fixed-vector bottleneck | 5 |
+| 4. Attention | 12 |
+| 5. Three score functions | 5 |
+| 6. Attention as soft alignment | 4 |
+| 7. Decoding | 3 |
+| 8. Attention as a query-key-value lookup | 3 |
+| **Total** | **45** |
+
+The collapsed callouts are optional and sit outside the 45 minutes.
+
+## 1. From next-token prediction to transduction
+
+**Objective for this section:** state what Module 3's language model cannot do as it stands.
+
+[Module 3](03-sequence-models.qmd) built a recurrent language model. It reads a prefix $w_1, \dots, w_{t-1}$, keeps a hidden state $h_{t-1}$, and outputs a distribution over the next token $w_t$. Input and output are the same sequence, shifted by one position.
+
+Many tasks do not have that shape. Translation, summarization, and the date normalization used in Lab 4 map one sequence to *another* sequence:
+
+- **Source:** $x_1, \dots, x_S$, with length $S$.
+- **Target:** $y_1, \dots, y_T$, with length $T$.
+
+In general $S \neq T$, and the tokens do not line up one to one. The input `3 March 2021` has 12 characters; its output `2021-03-03` has 10, and the year moves from the end to the front. A model that emits one output per input step cannot do this. This kind of task is called **sequence transduction**, and a model for it is a **sequence-to-sequence (seq2seq)** model.
+
+We want a model of the conditional probability of the target given the source. The chain rule of probability factorizes it exactly, one target token at a time:
+
+$$
+P_\theta(y_1, \dots, y_T \mid x_1, \dots, x_S) = \prod_{t=1}^{T} P_\theta(y_t \mid y_1, \dots, y_{t-1}, x_1, \dots, x_S).
+$$ {#eq-factorization}
+
+Here $\theta$ denotes all model parameters. Each factor is a next-token prediction, as in Module 3, with one addition: it is also conditioned on the whole source. So a seq2seq model is a **conditional language model**. The only new question is how the source gets in.
+
+## 2. The encoder-decoder model
+
+**Objective for this section:** write down the encoder, the decoder, and the training loss.
+
+The answer of Sutskever et al. (2014) and Cho et al. (2014) uses two recurrent networks.
+
+**The encoder** reads the source. Let $e_{x_i} \in \mathbb{R}^d$ be the embedding of source token $x_i$. The encoder produces one hidden state per source position:
+
+$$
+h_i = \mathrm{RNN}_{\mathrm{enc}}(h_{i-1}, e_{x_i}), \qquad i = 1, \dots, S, \qquad h_0 = 0.
+$$ {#eq-encoder}
+
+$\mathrm{RNN}_{\mathrm{enc}}$ is any recurrent cell from Module 3 (the lab uses a GRU), and $h_i \in \mathbb{R}^{d_h}$, where $d_h$ is the hidden size. If the cell is an LSTM, its cell state is carried along as well; we omit it from the notation.
+
+**The decoder** is a second recurrent network with its own parameters. We write its states as $s_t \in \mathbb{R}^{d_h}$ to keep them apart from the encoder states $h_i$. It starts from the encoder's final state and then runs as a language model over the target:
+
+$$
+s_0 = h_S, \qquad s_t = \mathrm{RNN}_{\mathrm{dec}}(s_{t-1}, e_{y_{t-1}}), \qquad t = 1, \dots, T.
+$$ {#eq-decoder}
+
+The input at step $t$ is the embedding of the *previous* target token $y_{t-1}$. Two special tokens mark the boundaries: $y_0$ is a start token `<bos>`, and the target ends with an end token `<eos>`, so that the model can decide when to stop.
+
+**The output layer** turns each decoder state into a distribution over the target vocabulary $V$:
+
+$$
+z_t = W_o s_t + b_o, \qquad P_\theta(y_t \mid y_{<t}, x) = \mathrm{softmax}(z_t),
+$$ {#eq-output}
+
+where $z_t \in \mathbb{R}^{|V|}$ are the logits, $W_o \in \mathbb{R}^{|V| \times d_h}$ and $b_o \in \mathbb{R}^{|V|}$ are the output weights and bias, $y_{<t}$ abbreviates $y_1, \dots, y_{t-1}$, and $x$ abbreviates the whole source.
+
+**The loss** is the negative log-likelihood of the correct target. Taking $-\log$ of @eq-factorization turns the product into a sum:
+
+$$
+\mathcal{L}(\theta) = -\sum_{t=1}^{T} \log P_\theta(y_t \mid y_{<t}, x).
+$$ {#eq-loss}
+
+This is the cross-entropy loss of Module 3, summed over target positions. Gradients flow from the loss through the decoder, through $s_0 = h_S$, and into the encoder, so both networks are trained together.
+
+**Teacher forcing.** During training the decoder input at step $t$ is the *correct* previous token $y_{t-1}$, not the model's own prediction, exactly as in Module 3. At test time the correct target is unknown, so the decoder feeds its own output back in (section 7).
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect)
+     Path: images/04-encoder-decoder.svg
+     Spec: encoder RNN unrolled over a short source (h_1..h_S) on the left, decoder RNN unrolled over the target (s_1..s_T) on the right, joined by a single arrow s_0 = h_S labeled "the only path from source to target"; decoder inputs are <bos>, y_1, ..., outputs are y_1, ..., <eos>.
+     Alt text: An encoder reads the source into a single vector that initializes the decoder.
+-->
+
 ::: {.callout-note appearance="simple"}
-This lecture has not been drafted yet.
+**In the lab.** The encoder (@eq-encoder), the decoder cell and the training loop are provided. In **Exercise 1** you write the teacher-forced forward pass and the loss: @eq-decoder, @eq-output and @eq-loss.
 :::
+
+## 3. The fixed-vector bottleneck
+
+**Objective for this section:** explain why this model degrades as the source gets longer.
+
+Look at where the source enters @eq-decoder: only through $s_0 = h_S$. Everything the decoder will ever know about the source is contained in that one vector. Formally, the model's prediction depends on $x$ only through $h_S$:
+
+$$
+P_\theta(y_1, \dots, y_T \mid x_1, \dots, x_S) = P_\theta(y_1, \dots, y_T \mid h_S).
+$$
+
+The vector $h_S$ has $d_h$ dimensions whether the source has 5 tokens or 500. The amount of information to be carried grows with $S$; the size of the container does not. This is the **fixed-vector bottleneck**.
+
+Two further things make it worse in practice:
+
+1. **The encoder must decide what to keep before it knows what will be asked.** It compresses the source once, and the decoder cannot go back and look again.
+2. **The path is long.** The first source token influences the last target token through $S + T$ recurrent steps. Module 3 showed that gradients shrink along such paths. Gating (LSTM, GRU) helps but does not remove the problem.
+
+These are two different problems. The first is about *capacity*: even a perfectly trained model cannot fit an unbounded amount of information in $d_h$ numbers. The second is about *optimization*. Attention addresses both.
+
+The evidence is empirical. Bahdanau et al. (2015) report that the translation quality of the fixed-vector model drops quickly as sentences get longer. Sutskever et al. (2014) found that simply reversing the source sentence helped markedly, because it shortens the path between the first source words and the first target words. A trick like that is a sign that the architecture is fighting the task.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** The source contains between one and four dates, so the amount the decoder must remember grows with the input. In **Exercise 2** you measure exact-match accuracy by input-length bucket for the model without attention and see where it breaks.
+:::
+
+## 4. Attention
+
+**Objective for this section:** derive the attention step, from scores to weights to the context vector.
+
+**The idea.** Keep *all* encoder states $h_1, \dots, h_S$, not just the last. At each decoder step, let the decoder choose which of them to read.
+
+Choosing a single state (a hard choice) is not differentiable, so we cannot train it with backpropagation. We take a weighted average instead, with weights that the model computes. This takes three steps at each decoder step $t$.
+
+**Step 1: score.** A score function compares the current decoder state with each encoder state and returns a real number, larger when $h_i$ is more relevant to what the decoder needs now:
+
+$$
+\mathrm{score}(s_t, h_i) \in \mathbb{R}, \qquad i = 1, \dots, S.
+$$
+
+Section 5 gives three choices for this function. For now, take the simplest: the dot product $s_t^\top h_i$.
+
+**Step 2: normalize.** A softmax over the *source positions* turns the $S$ scores into weights:
+
+$$
+\alpha_{t,i} = \frac{\exp\big(\mathrm{score}(s_t, h_i)\big)}{\sum_{j=1}^{S} \exp\big(\mathrm{score}(s_t, h_j)\big)}.
+$$ {#eq-weights}
+
+By construction $\alpha_{t,i} > 0$ and $\sum_{i=1}^{S} \alpha_{t,i} = 1$. The **attention weight** $\alpha_{t,i}$ is how much target step $t$ reads from source position $i$. Note that this softmax runs over the $S$ source positions. It is not the softmax over the vocabulary in @eq-output.
+
+A worked example with $S = 3$: scores $(2, 0, 0)$ give $\exp$ values $(7.39, 1, 1)$, which sum to $9.39$, so the weights are $(0.79, 0.11, 0.11)$. The largest score dominates, but the others still contribute.
+
+**Step 3: average.** The **context vector** is the weighted average of the encoder states:
+
+$$
+\bar{h}_t = \sum_{i=1}^{S} \alpha_{t,i}\, h_i .
+$$ {#eq-context}
+
+::: {.callout-important appearance="simple"}
+**Notation.** The original papers write the context vector as $c_t$. In this workshop $c_t$ is the LSTM cell state from Module 3, so we write the context as $\bar{h}_t$: the bar is a reminder that it is an average of encoder states $h_i$. It lives in the same space, $\bar{h}_t \in \mathbb{R}^{d_h}$.
+:::
+
+**Using the context.** The decoder now has two vectors at step $t$: its own state $s_t$ (what it has produced so far) and the context $\bar{h}_t$ (what it just read from the source). We concatenate them, written $[s_t; \bar{h}_t] \in \mathbb{R}^{2 d_h}$, and pass them through one layer to obtain the **attentional state** $\tilde{s}_t$, which replaces $s_t$ in the output layer:
+
+$$
+\tilde{s}_t = \tanh\big(W_c\, [s_t; \bar{h}_t] + b_c\big), \qquad z_t = W_o \tilde{s}_t + b_o,
+$$ {#eq-attentional}
+
+with $W_c \in \mathbb{R}^{d_h \times 2 d_h}$ and $b_c \in \mathbb{R}^{d_h}$. The rest is unchanged: $\mathrm{softmax}(z_t)$ gives the distribution over $y_t$, and the loss is still @eq-loss.
+
+**Why this fixes the bottleneck.**
+
+- **Capacity.** The decoder reads from $S$ vectors, so the memory grows with the source. A different context $\bar{h}_t$ is computed at every step, so nothing has to be decided in advance.
+- **Path length.** Each $h_i$ is connected to each output step through @eq-context in a single step, however far apart they are. Gradients no longer have to survive $S + T$ recurrent steps.
+- **Trainability.** Every operation in @eq-weights, @eq-context and @eq-attentional is differentiable. The attention weights are not supervised; they are learned from the ordinary loss, because reading the right source position lowers it.
+
+**What it costs.** One score per pair of target and source positions: $S \times T$ score evaluations per sequence pair, where the plain model needed none.
+
+**Padding.** In a batch, shorter sources are padded to a common length. Padded positions must receive zero weight. We achieve this by setting their scores to $-\infty$ before the softmax, since $\exp(-\infty) = 0$.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** **Exercise 3** is the attention step: dot-product scores, the masked softmax of @eq-weights and the context vector of @eq-context. The combination layer of @eq-attentional is provided.
+:::
+
+::: {.callout-tip collapse="true" title="Optional: where exactly does the context enter the decoder?"}
+The two founding papers differ in the order of operations.
+
+- **Luong et al. (2015)**, followed above: run the decoder cell first to get $s_t$, attend with $s_t$ as the query, then combine $s_t$ and $\bar{h}_t$ just before the output layer (@eq-attentional).
+- **Bahdanau et al. (2015)**: attend with the *previous* state $s_{t-1}$ as the query, then feed the context into the recurrent cell as an extra input, $s_t = \mathrm{RNN}_{\mathrm{dec}}(s_{t-1}, [e_{y_{t-1}}; \bar{h}_t])$.
+
+Bahdanau et al. also use a **bidirectional** encoder: one RNN reads the source left to right, another right to left, and $h_i$ is the concatenation of their two states at position $i$, so that each $h_i$ summarizes the context on both sides.
+
+We use the Luong ordering because the query is then simply the current decoder state, which makes the step to Module 5 cleaner. The weights and the context vector are computed by the same equations in both versions.
+:::
+
+## 5. Three score functions
+
+**Objective for this section:** write the dot-product, general and additive scores and say when each applies.
+
+The score function is the only part of attention that has design freedom. Three choices are standard.
+
+**Dot product** (Luong et al., 2015):
+
+$$
+\mathrm{score}(s_t, h_i) = s_t^\top h_i .
+$$ {#eq-dot}
+
+It has no parameters and is the cheapest to compute. It requires $s_t$ and $h_i$ to have the same dimension, and it forces the decoder and encoder to use the same coordinates for "relevant".
+
+**General**, also called **multiplicative** or bilinear (Luong et al., 2015):
+
+$$
+\mathrm{score}(s_t, h_i) = s_t^\top W_a h_i ,
+$$ {#eq-general}
+
+with a learned matrix $W_a$. The matrix lets the two states have different dimensions and lets the model learn which directions of $s_t$ should match which directions of $h_i$. The dot product is the special case $W_a = I$ (the identity matrix).
+
+**Additive** (Bahdanau et al., 2015):
+
+$$
+\mathrm{score}(s_t, h_i) = u^\top \tanh\big(W_q s_t + W_k h_i\big).
+$$ {#eq-additive}
+
+Read it from the inside out. $W_q \in \mathbb{R}^{d_a \times d_h}$ and $W_k \in \mathbb{R}^{d_a \times d_h}$ project the decoder state and the encoder state into a shared space of dimension $d_a$ (the attention size). The projections are *added*, which is where the name comes from. The $\tanh$ is applied elementwise, and the learned vector $u \in \mathbb{R}^{d_a}$ reduces the result to a single number. This is a feed-forward network with one hidden layer, as in Module 2, applied to the pair $(s_t, h_i)$.
+
+| Score | Parameters | Needs equal dimensions | Cost per pair |
+|---|---|---|---|
+| Dot product | none | yes | one dot product |
+| General | $W_a$ | no | one matrix-vector product |
+| Additive | $W_q$, $W_k$, $u$ | no | a one-hidden-layer network |
+
+Neither family is uniformly better; Luong et al. (2015) compare them on translation and find the result depends on the setup. Multiplicative scores are cheaper because they reduce to matrix products over all pairs at once. Module 5 keeps the multiplicative form for that reason.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** Exercise 3 uses the dot-product score (@eq-dot). In **Exercise 4** you implement the additive score (@eq-additive) and plug it into the same attention step. The general score (@eq-general) is not implemented in the lab.
+:::
+
+## 6. Attention as soft alignment
+
+**Objective for this section:** read an attention heat-map and state what it does and does not show.
+
+Collect the weights into a matrix with one row per target position and one column per source position, so that entry $(t, i)$ is $\alpha_{t,i}$. Each row sums to one. Plotted as a heat-map, this matrix shows where the decoder was reading when it produced each output token.
+
+In statistical machine translation, an **alignment** records which source word each target word translates. Attention computes a *soft* alignment: a distribution over source positions instead of a single link. It is learned without any alignment labels.
+
+For the date task the expected pattern is easy to state. While the decoder writes the four digits of the year, the weight should sit on the year in the source, wherever it is. While it writes the month digits `03`, the weight should sit on the word `March`. When the source and target order differ, the bright cells leave the diagonal.
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect)
+     Path: images/04-attention-alignment.svg
+     Spec: attention heat-map for source "3 March 2021" (columns, one per character) and target "2021-03-03" (rows, one per character); cell shade = alpha_{t,i}; bright cells for the year rows over "2021" at the right, the month rows over "March" in the middle, the day rows over "3" at the left, showing an off-diagonal alignment; rows annotated "each row sums to 1". Illustrative weights, to be replaced by the measured map from Lab 4 once the notebook has been run.
+     Alt text: Heat-map of attention weights between the characters of a written date and its ISO form.
+-->
+
+Two cautions when reading these maps:
+
+- **The weights show where the model read, not why.** A bright cell says that $h_i$ contributed strongly to $\bar{h}_t$. It does not explain how that information was used.
+- **$h_i$ is not the token $x_i$.** Each encoder state summarizes the source up to position $i$ (or around it, with a bidirectional encoder). The weight can therefore land one position away from where you expect.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 5** you plot the matrix of $\alpha_{t,i}$ for several inputs and check, with a number, how often the largest weight falls inside the correct date.
+:::
+
+## 7. Decoding
+
+**Objective for this section:** distinguish greedy decoding from beam search.
+
+At test time we want a target sequence with high probability under @eq-factorization. Searching all sequences is infeasible: there are $|V|^T$ of them.
+
+**Greedy decoding** picks the most probable token at each step, $\arg\max_{w \in V} P_\theta(w \mid y_{<t}, x)$, where $y_{<t}$ now holds the tokens the model has already chosen. It feeds the chosen token back as the next input and stops at `<eos>`. It is fast, and it is what the lab's core path uses. It can miss the best sequence, because the best first token does not always start the best sequence.
+
+**Beam search** keeps the $B$ best partial outputs at every step instead of one, where $B$ is the **beam size**. It is still approximate, but it explores more. $B = 1$ is greedy decoding.
+
+Module 3's sampling strategies (temperature, top-k, nucleus) are the alternative when variety is wanted. For transduction tasks with one correct answer, such as dates, we want the most probable output, so we search.
+
+::: {.callout-tip collapse="true" title="Optional: beam search in detail"}
+A **hypothesis** is a partial output $y_1, \dots, y_t$ together with its log-probability so far, which we call its *value* (to keep the word "score" for attention):
+
+$$
+\log P_\theta(y_1, \dots, y_t \mid x) = \sum_{\tau=1}^{t} \log P_\theta(y_\tau \mid y_{<\tau}, x).
+$$
+
+The algorithm:
+
+1. Start with one hypothesis, `<bos>`, with value $0$.
+2. Extend each of the $B$ current hypotheses by every token in $V$. This gives $B \times |V|$ candidates, each valued by adding the new token's log-probability.
+3. Keep the $B$ candidates with the highest values.
+4. A hypothesis that ends in `<eos>` is finished: set it aside and continue with the rest.
+5. Stop at a maximum length or when enough hypotheses have finished. Return the finished hypothesis with the best value.
+
+**Length normalization.** Every added token contributes a negative log-probability, so longer hypotheses have lower values and raw beam search prefers short outputs. The usual correction is to compare finished hypotheses by value divided by length.
+
+**Cost.** Each step runs the decoder on $B$ hypotheses, so beam search costs about $B$ times as much as greedy decoding.
+
+**No guarantee.** Beam search does not always return the most probable sequence, and a larger beam does not always give a better output by the task metric.
+
+The stretch section of the lab implements this algorithm and compares $B = 1, 3, 5$.
+:::
+
+## 8. Attention as a query-key-value lookup
+
+**Objective for this section:** restate attention in the general form that Module 5 builds on.
+
+Nothing in section 4 depends on the vectors coming from an RNN. Rename the parts:
+
+- The **query** $q$ is the vector that asks. Here $q = s_t$.
+- The **keys** $k_1, \dots, k_S$ are what the query is compared against.
+- The **values** $v_1, \dots, v_S$ are what is returned.
+
+In seq2seq attention the encoder states play both roles: $k_i = v_i = h_i$. The attention step, with the target index dropped, is then
+
+$$
+\alpha_i = \frac{\exp\big(\mathrm{score}(q, k_i)\big)}{\sum_{j} \exp\big(\mathrm{score}(q, k_j)\big)}, \qquad \mathrm{output} = \sum_{i} \alpha_i\, v_i .
+$$ {#eq-qkv}
+
+Compare this with a dictionary lookup. A dictionary returns the one value whose key equals the query. Attention is a *soft* lookup: it returns a blend of all the values, weighted by how well each key matches the query.
+
+| General form | In this module |
+|---|---|
+| query $q$ | decoder state $s_t$ |
+| keys $k_i$ | encoder states $h_i$ |
+| values $v_i$ | encoder states $h_i$ |
+| weights $\alpha_i$ | $\alpha_{t,i}$ |
+| output | context vector $\bar{h}_t$ |
+
+The additive score already hints that queries and keys can be given separate learned projections: $W_q$ acts on the query and $W_k$ on the keys.
+
+**The question for Day 2.** Our model still has two recurrent networks, and recurrence is sequential: $h_i$ cannot be computed before $h_{i-1}$, so the positions of a sequence cannot be processed in parallel. But attention already connects any two positions in one step. So:
+
+- What if a sequence attends to *itself*, with queries, keys and values all taken from the same sequence?
+- What if we then drop the recurrence altogether?
+
+That is the transformer, and it is where [Module 5](05-transformer-from-scratch.qmd) starts.
+
+## Summary
+
+- A seq2seq model is a conditional language model: it factorizes $P_\theta(y \mid x)$ over target positions (@eq-factorization) and is trained with cross-entropy under teacher forcing (@eq-loss).
+- The plain encoder-decoder passes the source to the decoder through one vector, $s_0 = h_S$. Its size is fixed while the source grows: the fixed-vector bottleneck.
+- Attention keeps all encoder states. At each target step it scores them against the decoder state, normalizes the scores with a softmax over source positions (@eq-weights), and averages (@eq-context).
+- The score can be a dot product (@eq-dot), a bilinear form (@eq-general) or a small network (@eq-additive).
+- The weights $\alpha_{t,i}$ form a soft alignment that can be plotted and inspected.
+- Greedy decoding takes the best token at each step; beam search keeps $B$ hypotheses. Both are approximate.
+- Attention is a soft lookup with a query, keys and values (@eq-qkv). Here $q = s_t$ and $k_i = v_i = h_i$.
+
+### Equations and where you implement them
+
+| Equation | Lab 4 |
+|---|---|
+| Decoder, output layer and loss (@eq-decoder, @eq-output, @eq-loss) | Exercise 1 |
+| The bottleneck, measured | Exercise 2 |
+| Dot-product score, weights and context (@eq-dot, @eq-weights, @eq-context) | Exercise 3 |
+| Additive score (@eq-additive) | Exercise 4 |
+| The matrix of $\alpha_{t,i}$ as a heat-map | Exercise 5 |
+| Beam search | Stretch |
+| Encoder and combination layer (@eq-encoder, @eq-attentional) | provided |
+
+## Common misconceptions
+
+- **"Attention replaces the RNN."** Not in this module. Here attention is added to a recurrent encoder and decoder. Removing the recurrence is Module 5's step.
+- **"The bottleneck is the vanishing-gradient problem again."** They are different. Vanishing gradients are an optimization problem on long paths. The bottleneck is a capacity problem: a fixed-size vector cannot hold an unbounded amount of information, however well it is trained.
+- **"Attention picks one source token."** It computes a weighted average over all of them. The weights are often peaked, but they are never exactly zero or one.
+- **"The softmax in attention is over the vocabulary."** It is over the $S$ source positions. The softmax over the vocabulary comes later, in the output layer.
+- **"Attention weights explain the model's decision."** They show which encoder states were read, not how the information was used. Treat a heat-map as evidence, not as an explanation.
+- **"Attention is trained with alignment labels."** There are none. The weights are learned from the same cross-entropy loss as everything else.
+- **"Beam search finds the most probable output."** It finds a good one. It is a heuristic search, and a wider beam is not guaranteed to do better on the task metric.
+
+## Readings
+
+1. Sutskever, I., Vinyals, O. and Le, Q. V. (2014). [Sequence to Sequence Learning with Neural Networks](https://arxiv.org/abs/1409.3215). *NeurIPS*. The encoder-decoder with LSTMs, and the source-reversal trick.
+2. Bahdanau, D., Cho, K. and Bengio, Y. (2015). [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473). *ICLR*. Names the bottleneck and introduces additive attention. Read sections 3 and 5.
+3. Luong, T., Pham, H. and Manning, C. D. (2015). [Effective Approaches to Attention-based Neural Machine Translation](https://aclanthology.org/D15-1166/). *EMNLP*. The dot-product and general scores, and the ordering of operations used in this lecture.
+4. Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H. and Bengio, Y. (2014). [Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation](https://aclanthology.org/D14-1179/). *EMNLP*. The RNN encoder-decoder, and the paper that introduced the GRU.
+5. Jurafsky, D. and Martin, J. H. [*Speech and Language Processing*](https://web.stanford.edu/~jurafsky/slp3/) (3rd edition draft), the chapter "RNNs and LSTMs". A textbook treatment at the level of this lecture. Chapter numbers change between draft releases, so find it by title.
