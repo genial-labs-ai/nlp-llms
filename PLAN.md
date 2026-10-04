@@ -347,7 +347,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 - [x] Draft lecture 1: Text as data
 - [x] Draft lecture 2: Word vectors and neural networks
-- [ ] Code `01-text-as-data.ipynb`
+- [x] Code `01-text-as-data.ipynb`
 - [ ] Code `02-word-vectors.ipynb`
 - [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget
 
