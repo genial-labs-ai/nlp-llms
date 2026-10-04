@@ -61,17 +61,7 @@ The output $\bar{v}_t \in \mathbb{R}^{d_k}$ is a weighted average of values. The
 | weights | $\alpha_{t,i}$, target $t$ on source $i$ | $\alpha_{t,i}$, position $t$ on position $i$ |
 | output | context vector $\bar{h}_t$ | $\bar{v}_t$ |
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-self-attention.svg
-     Spec: one row of five token boxes w_1..w_5 with their vectors h_1..h_5 above them.
-     Position t = 4 is highlighted as the asker: an arrow from h_4 through a box "W_Q" to q_4.
-     Each of h_1..h_4 sends one arrow through "W_K" to a key k_i and one through "W_V" to a
-     value v_i. Lines from q_4 to k_1..k_4 carry weights alpha_{4,1}..alpha_{4,4}, drawn with
-     line thickness proportional to the weight (one clearly thickest). The values are summed
-     into a single output box labeled v-bar_4 = sum_i alpha_{4,i} v_i. Position 5 is grayed
-     out with a small "masked (section 3)" label and no line from q_4. Same style as
-     images/04-encoder-decoder.svg.
-     Alt text: "Self-attention for one position: its query is compared with the keys of the
-     positions up to and including itself, and the output is the weighted average of their values." -->
+![Self-attention for one position. Position 4 asks: its query $q_4 = W_Q^\top h_4$ is scored against the keys $k_1, \dots, k_4$, and the output $\bar{v}_4 = \sum_i \alpha_{4,i} v_i$ is the weighted average of the values. Line width grows with the weight $\alpha_{4,i}$; the weights drawn are illustrative. Position 5 is masked for this query (section 3).](/images/05-self-attention.svg){#fig-self-attention fig-alt="Self-attention for one position: its query is compared with the keys of the positions up to and including itself, and the output is the weighted average of their values."}
 
 ## 2. Scaled dot-product attention
 
@@ -162,16 +152,7 @@ With the mask in place, the output at position $t$ is a function of $w_1, \dots,
 
 The property is testable, and the test is the most useful one in the lab: **change a token at position $t_0$, and the outputs at all positions before $t_0$ must not change at all.**
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-causal-mask.svg
-     Spec: a 6 x 6 grid for the character sequence "To be," (one character per row and per
-     column; rows labeled "position t (asks)", columns labeled "position i (is read)").
-     Cells on and below the diagonal are filled in the heat-map color of
-     images/04-attention-alignment.svg with illustrative weights so that each row sums to 1
-     (row 1 is a single cell with weight 1). Cells above the diagonal are hatched gray and
-     labeled once "-inf before the softmax, weight 0 after". Caption must say the weights are
-     illustrative, not measured.
-     Alt text: "A lower-triangular matrix of attention weights: each position reads only
-     itself and earlier positions." -->
+![The causal mask for the six characters of `To be,`. Row $t$ holds the weights $\alpha_{t,i}$ of position $t$. Cells above the diagonal have score $-\infty$ before the softmax and weight 0 after it, so $A$ is lower triangular and each row sums to 1 over $i \le t$ (@eq-mask). The weights are illustrative, not measured.](/images/05-causal-mask.svg){#fig-causal-mask fig-alt="A lower-triangular matrix of attention weights: each position reads only itself and earlier positions."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you build the mask of @eq-mask and pass it to your attention function. The checkpoint is the leak test: weights above the diagonal are exactly zero, and changing a later token leaves all earlier outputs unchanged. The same test is then run on the whole trained model.
@@ -211,15 +192,7 @@ V_bar = V_bar.transpose(1, 2).reshape(B, T, d)            # concatenate the head
 out = self.proj(V_bar)                                    # (B, T, d): W_proj, b_proj
 ```
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-multi-head.svg
-     Spec: left, a block "H (T x d)". Three arrows through boxes W_Q, W_K, W_V give three
-     T x d blocks, each drawn cut into n_h = 4 vertical slices of width d_k = d / n_h, colored
-     per head. Middle: four small parallel boxes "scaled dot-product attention + causal mask",
-     one per color, each emitting a small lower-triangular T x T thumbnail A^(r) and a slice
-     V-bar^(r). Right: the four slices placed side by side ("concatenate, T x d"), then a box
-     "W_proj" giving "MHA(H) (T x d)". Label d_k = d / n_h once.
-     Alt text: "Multi-head attention: the projected queries, keys and values are cut into
-     heads, each head attends separately, and the head outputs are concatenated and projected." -->
+![Multi-head attention with $n_h = 4$. $Q$, $K$ and $V$ are each cut into four slices of width $d_k = d / n_h$. Head $r$ runs masked scaled dot-product attention on its slices and returns $A^{(r)}$ and $\bar{V}^{(r)}$; the four outputs are concatenated and projected by $W_{\mathrm{proj}}$ (@eq-mha).](/images/05-multi-head.svg){#fig-multi-head fig-alt="Multi-head attention: the projected queries, keys and values are cut into heads, each head attends separately, and the head outputs are concatenated and projected."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The multi-head layer (@eq-mha) is provided in the core path and calls *your* attention function with the head as a batch dimension, which is why Exercise 1 must accept leading dimensions. In **Exercise 5** you plot $A^{(r)}$ for every head of the trained model. Writing the split yourself is the **stretch** section.
@@ -323,18 +296,7 @@ The difference is what lies on the residual path. In post-norm every block passe
 
 **Does the block respect the causal mask?** Yes. $\mathrm{LN}$ and $\mathrm{FFN}$ act on each position separately, and the residual additions are position by position. The masked attention is the only place where positions exchange information, so the argument of section 3 carries through any number of blocks. (Batch normalization, which mixes examples, would not be so harmless; this is one reason transformers use layer normalization.)
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/05-transformer-block.svg
-     Spec: two panels. Left panel "one pre-norm block": a thick vertical line, the residual
-     stream, running bottom to top from H^(l-1) to H^(l), colored like the cell-state line in
-     images/03-lstm-cell.svg. Two side branches leave and rejoin it at circled plus signs:
-     first "LN -> masked multi-head attention", then "LN -> FFN". Right panel "the model":
-     bottom to top, "tokens w_1..w_T" -> "token embedding e_w  +  position p_t" -> a stack of
-     blocks labeled "x n_l" -> "final LN" -> "W_o, b_o" -> "softmax" -> "y-hat_t, the
-     distribution over w_{t+1}". A small inset under the left panel shows the post-norm
-     variant of one sublayer (branch, plus, then LN on the main line) for contrast.
-     Alt text: "A pre-norm transformer block with two residual branches, attention and
-     feed-forward, and the decoder-only model built by stacking blocks between the embeddings
-     and the output layer." -->
+![Left: one pre-norm block (@eq-block). The residual stream runs from $H^{(\ell-1)}$ to $H^{(\ell)}$; each sublayer reads a normalized copy of it and adds its output back. Inset: in the original post-norm block (@eq-postnorm) the normalization sits on the main line, after the addition. Right: the decoder-only model (@eq-gpt), with $n_\ell$ blocks between the embeddings and the output layer.](/images/05-transformer-block.svg){#fig-transformer-block fig-alt="A pre-norm transformer block with two residual branches, attention and feed-forward, and the decoder-only model built by stacking blocks between the embeddings and the output layer. An inset shows the post-norm variant, with layer normalization on the main line after the addition."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The block (@eq-block), with @eq-ffn and @eq-ln inside it, is provided in the core path; you read it and find your attention function in it. Writing the full block yourself is the **stretch** section.

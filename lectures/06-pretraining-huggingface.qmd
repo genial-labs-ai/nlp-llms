@@ -113,13 +113,7 @@ A corpus of four words with their counts (the example of Sennrich et al.): `low`
 
 Check merge 1: the pair `e s` occurs in `newest` (6) and `widest` (3), so its count is $6 + 3 = 9$. The pairs `s t` and `t _` also have count 9; the tie rule picks `e s`. After five merges the vocabulary has $11 + 5 = 16$ symbols (@eq-bpe-size), and the algorithm has found a suffix, `est_`, and a stem, `low`, without being told what either is.
 
-<!-- FIGURE 6.1: BPE merges on the toy corpus.
-     Spec: four rows, one per word (low x5, lower x2, newest x6, widest x3), each drawn as a row of symbol boxes ending in "_".
-     Three columns left to right: "start" (all single characters), "after merge 3" (est_ fused into one box in newest and widest),
-     "after merge 5" (low fused into one box in low and lower). Fused boxes highlighted. Under the columns, the merge list
-     1: e+s, 2: es+t, 3: est+_, 4: l+o, 5: lo+w. Same SVG style as images/02-skipgram-window.svg.
-     Target path: images/06-bpe-merges.svg
-     Alt text: "Four words shown as rows of character boxes. After three merges the characters e, s, t and the end-of-word symbol are fused into one box, est_, in newest and widest. After five merges the characters l, o, w are fused into one box, low, in low and lower." -->
+![BPE on the toy corpus of the table above. After three merges the suffix `est_` is one symbol; after five, so is the stem `low`. Each merge adds one symbol to the vocabulary, so $|V|$ goes from 11 to 14 to 16 (@eq-bpe-size).](/images/06-bpe-merges.svg){#fig-bpe-merges fig-alt="Four words shown as rows of character boxes. After three merges the characters e, s, t and the end-of-word symbol are fused into one box, est_, in newest and widest. After five merges the characters l, o, w are fused into one box, low, in low and lower."}
 
 ### Encoding a new word
 
@@ -193,13 +187,7 @@ The recipe has two stages.
 1. **Pretraining.** Train the transformer on a very large corpus of plain text with a **self-supervised** objective: one whose targets are made from the text itself, so no human labels are needed. The result is a set of parameters $\theta_{\text{pre}}$. This is done once, at great cost, usually by someone else.
 2. **Fine-tuning.** Copy $\theta_{\text{pre}}$, add a small task-specific output layer, and continue training on the labeled data of the task. This is cheap: minutes on one GPU.
 
-<!-- FIGURE 6.2: the two-stage recipe.
-     Spec: left panel "Pretraining (once)": a large stack of text ("billions of words, no labels") feeds a transformer block
-     with a language-modeling head; an arrow out labeled theta_pre. Middle: a "copy" arrow. Right panel "Fine-tuning (per task)":
-     the same transformer block (same color, to show reuse) with a small new box on top labeled "classifier W, b (new)",
-     fed by a small stack ("4,800 labeled abstracts"). Same SVG style as images/04-encoder-decoder.svg.
-     Target path: images/06-pretrain-finetune.svg
-     Alt text: "Two stages. In pretraining, a transformer is trained on a large unlabeled text corpus, giving parameters theta-pre. In fine-tuning, those parameters are copied, a small new classifier layer is added on top, and the whole model is trained on a small labeled dataset." -->
+![The transfer recipe. Pretraining on unlabeled text produces $\theta_{\text{pre}}$, once. Fine-tuning copies $\theta_{\text{pre}}$, adds a small new classifier layer, and trains the whole model on the labeled data of the task: here the 4,800 training abstracts of arXiv Topics.](/images/06-pretrain-finetune.svg){#fig-pretrain-finetune fig-alt="Two stages. In pretraining, a transformer is trained on a large unlabeled text corpus, giving parameters theta-pre. In fine-tuning, those parameters are copied, a small new classifier layer is added on top, and the whole model is trained on a small labeled dataset."}
 
 What should the self-supervised objective be? Two answers dominate, and they correspond to the two halves of the original transformer. Recall from Module 5 that a block with a **causal mask** lets position $t$ attend only to positions $\le t$, and a block without the mask lets every position attend to every other.
 
@@ -275,15 +263,7 @@ $|\mathcal{S}|$ is the number of selected positions. Positions outside $\mathcal
 
 Note what the conditioning says: the model sees the *whole* corrupted sequence, left and right of $t$. That is the point.
 
-<!-- FIGURE 6.3: causal versus masked language modeling, side by side.
-     Spec: two panels over the same five-token sentence "the cat sat on the".
-     Left, "Causal LM (GPT)": tokens along the bottom, a transformer bar, and above every position an output arrow labeled with
-     the NEXT token; attention arrows point only leftward; caption "T targets per sequence".
-     Right, "Masked LM (BERT)": input along the bottom with "sat" replaced by [MASK]; attention arrows in both directions;
-     a single output arrow above the masked position labeled "sat"; the other positions greyed with "no loss";
-     caption "about 0.15 T targets per sequence". Same SVG style as images/03-rnn-unrolled.svg.
-     Target path: images/06-clm-vs-mlm.svg
-     Alt text: "Left: a causal language model predicts the next token at every position and each position attends only to earlier positions. Right: a masked language model receives a sentence with one token replaced by a mask symbol, attends in both directions, and predicts the original token only at the masked position." -->
+![Causal and masked language modeling on the same sentence. Left: every position predicts the next token and reads only to its left, so a sequence gives about $T$ targets (@eq-clm). Right: only the selected positions are scored, about 15% of them, and each reads both sides (@eq-mlm). The arcs show what position 3 reads.](/images/06-clm-vs-mlm.svg){#fig-clm-vs-mlm fig-alt="Left: a causal language model predicts the next token at every position and each position attends only to earlier positions. Right: a masked language model receives a sentence with one token replaced by a mask symbol, attends in both directions, and predicts the original token only at the masked position."}
 
 ### Why 80/10/10
 

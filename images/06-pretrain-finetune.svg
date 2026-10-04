@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 336" width="720" height="336" role="img" aria-labelledby="t d">
+  <title id="t">Pretrain once, fine-tune per task</title>
+  <desc id="d">Two panels. Pretraining, done once: a large unlabeled text corpus, billions of words with no labels, feeds a transformer topped by a language-model head that predicts the next or masked tokens; training gives the parameters theta-pre. An arrow labeled copy theta-pre leads to the second panel. Fine-tuning, done per task: the same transformer, starting from theta-pre, gets a small new classifier layer W, b on top that outputs a topic label, and the whole model is trained on 4,800 labeled abstracts.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="720" height="336" rx="8" fill="#ffffff"/>
+  <rect class="panel" x="16" y="40" width="314" height="280" rx="12"/>
+  <rect class="panel" x="390" y="40" width="314" height="280" rx="12"/>
+  <text x="173" y="28" text-anchor="middle" class="b">pretraining (once)</text>
+  <text x="547" y="28" text-anchor="middle" class="b">fine-tuning (per task)</text>
+  <rect class="op" x="73" y="237" width="200" height="48" rx="4"/>
+  <rect class="op" x="68" y="242" width="200" height="48" rx="4"/>
+  <rect class="op" x="63" y="247" width="200" height="48" rx="4"/>
+  <rect class="op" x="58" y="252" width="200" height="48" rx="4"/>
+  <text x="158" y="272" text-anchor="middle" style="font-size:14px">large unlabeled corpus</text>
+  <text x="158" y="290" text-anchor="middle" class="note">billions of words, no labels</text>
+  <line class="ln" x1="173" y1="238" x2="173" y2="218" marker-end="url(#a)"/>
+  <rect class="box" x="88" y="156" width="170" height="60" rx="6" style="fill:#dce5ef;stroke:#16324f;stroke-width:1.5"/>
+  <text x="173" y="182" text-anchor="middle" style="font-size:15px">transformer</text>
+  <text x="173" y="204" text-anchor="middle" class="m" style="font-size:15px"><tspan class="s">trained: </tspan><tspan class="i">θ</tspan><tspan dy="3.6" font-size="10.2">pre</tspan></text>
+  <line class="ln" x1="173" y1="156" x2="173" y2="138" marker-end="url(#a)"/>
+  <rect class="box" x="98" y="104" width="150" height="32" rx="6"/>
+  <text x="173" y="125" text-anchor="middle" style="font-size:13.5px">language-model head</text>
+  <line class="ln" x1="173" y1="104" x2="173" y2="86" marker-end="url(#a)"/>
+  <text x="173" y="76" text-anchor="middle" class="note">predict the next or masked tokens</text>
+  <rect class="op" x="477" y="253" width="150" height="40" rx="4"/>
+  <rect class="op" x="472" y="258" width="150" height="40" rx="4"/>
+  <text x="547" y="276" text-anchor="middle" style="font-size:14px">4,800 labeled</text>
+  <text x="547" y="292" text-anchor="middle" style="font-size:14px">abstracts</text>
+  <line class="ln" x1="547" y1="248" x2="547" y2="218" marker-end="url(#a)"/>
+  <rect class="box" x="462" y="156" width="170" height="60" rx="6" style="fill:#dce5ef;stroke:#16324f;stroke-width:1.5"/>
+  <text x="547" y="182" text-anchor="middle" style="font-size:15px">transformer</text>
+  <text x="547" y="204" text-anchor="middle" class="m" style="font-size:15px"><tspan class="s">starts from </tspan><tspan class="i">θ</tspan><tspan dy="3.6" font-size="10.2">pre</tspan></text>
+  <line class="ln" x1="547" y1="156" x2="547" y2="138" marker-end="url(#a)"/>
+  <rect class="abox" x="472" y="104" width="150" height="32" rx="6"/>
+  <text x="547" y="125" text-anchor="middle" class="m" style="font-size:14px"><tspan class="s">classifier </tspan><tspan class="i">W</tspan><tspan>, </tspan><tspan class="i">b</tspan><tspan class="s"> (new)</tspan></text>
+  <line class="ln" x1="547" y1="104" x2="547" y2="86" marker-end="url(#a)"/>
+  <text x="547" y="76" text-anchor="middle" class="note">topic label</text>
+  <line class="aln" x1="258" y1="186" x2="460" y2="186" marker-end="url(#b)"/>
+  <text x="360" y="174" text-anchor="middle" class="m" style="font-size:15px"><tspan class="s">copy </tspan><tspan class="i">θ</tspan><tspan dy="3.6" font-size="10.2">pre</tspan></text>
+</svg>

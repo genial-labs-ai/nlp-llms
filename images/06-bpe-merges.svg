@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 350" width="720" height="350" role="img" aria-labelledby="t d">
+  <title id="t">BPE merges on the toy corpus</title>
+  <desc id="d">Four words, low (count 5), lower (2), newest (6) and widest (3), each drawn as a row of symbol boxes ending in the end-of-word symbol, underscore. Column 1, start: every symbol is one character and the vocabulary has 11 symbols. Column 2, after merge 3: e, s, t and underscore are fused into one box, est_, in newest and widest; 14 symbols. Column 3, after merge 5: l, o and w are fused into one box, low, in low and lower; 16 symbols. Below, the merge list in order: 1 e+s, 2 es+t, 3 est+_, 4 l+o, 5 lo+w.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="720" height="350" rx="8" fill="#ffffff"/>
+  <text x="24" y="40" text-anchor="start" class="note b">word, count</text>
+  <text x="24" y="101" text-anchor="start" class="mono" style="font-size:15px">low</text>
+  <text x="118" y="101" text-anchor="end" class="m note" style="font-size:15px"><tspan>× 5</tspan></text>
+  <text x="24" y="147" text-anchor="start" class="mono" style="font-size:15px">lower</text>
+  <text x="118" y="147" text-anchor="end" class="m note" style="font-size:15px"><tspan>× 2</tspan></text>
+  <text x="24" y="193" text-anchor="start" class="mono" style="font-size:15px">newest</text>
+  <text x="118" y="193" text-anchor="end" class="m note" style="font-size:15px"><tspan>× 6</tspan></text>
+  <text x="24" y="239" text-anchor="start" class="mono" style="font-size:15px">widest</text>
+  <text x="118" y="239" text-anchor="end" class="m note" style="font-size:15px"><tspan>× 3</tspan></text>
+  <text x="220" y="40" text-anchor="middle" class="b" style="font-size:14.5px">start</text>
+  <text x="220" y="60" text-anchor="middle" class="m note" style="font-size:14px"><tspan>|</tspan><tspan class="i">V</tspan><tspan>| = 11</tspan></text>
+  <rect class="op" x="150" y="83" width="19" height="26" rx="4"/>
+  <text x="159.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">l</text>
+  <rect class="op" x="172" y="83" width="19" height="26" rx="4"/>
+  <text x="181.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">o</text>
+  <rect class="op" x="194" y="83" width="19" height="26" rx="4"/>
+  <text x="203.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="216" y="83" width="19" height="26" rx="4"/>
+  <text x="225.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="150" y="129" width="19" height="26" rx="4"/>
+  <text x="159.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">l</text>
+  <rect class="op" x="172" y="129" width="19" height="26" rx="4"/>
+  <text x="181.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">o</text>
+  <rect class="op" x="194" y="129" width="19" height="26" rx="4"/>
+  <text x="203.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="216" y="129" width="19" height="26" rx="4"/>
+  <text x="225.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="238" y="129" width="19" height="26" rx="4"/>
+  <text x="247.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">r</text>
+  <rect class="op" x="260" y="129" width="19" height="26" rx="4"/>
+  <text x="269.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="150" y="175" width="19" height="26" rx="4"/>
+  <text x="159.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">n</text>
+  <rect class="op" x="172" y="175" width="19" height="26" rx="4"/>
+  <text x="181.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="194" y="175" width="19" height="26" rx="4"/>
+  <text x="203.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="216" y="175" width="19" height="26" rx="4"/>
+  <text x="225.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="238" y="175" width="19" height="26" rx="4"/>
+  <text x="247.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">s</text>
+  <rect class="op" x="260" y="175" width="19" height="26" rx="4"/>
+  <text x="269.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">t</text>
+  <rect class="op" x="282" y="175" width="19" height="26" rx="4"/>
+  <text x="291.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="150" y="221" width="19" height="26" rx="4"/>
+  <text x="159.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="172" y="221" width="19" height="26" rx="4"/>
+  <text x="181.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">i</text>
+  <rect class="op" x="194" y="221" width="19" height="26" rx="4"/>
+  <text x="203.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">d</text>
+  <rect class="op" x="216" y="221" width="19" height="26" rx="4"/>
+  <text x="225.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="238" y="221" width="19" height="26" rx="4"/>
+  <text x="247.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">s</text>
+  <rect class="op" x="260" y="221" width="19" height="26" rx="4"/>
+  <text x="269.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">t</text>
+  <rect class="op" x="282" y="221" width="19" height="26" rx="4"/>
+  <text x="291.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <line class="ln" x1="282" y1="35" x2="348" y2="35" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <text x="410" y="40" text-anchor="middle" class="b" style="font-size:14.5px">after merge 3</text>
+  <text x="410" y="60" text-anchor="middle" class="m note" style="font-size:14px"><tspan>|</tspan><tspan class="i">V</tspan><tspan>| = 14</tspan></text>
+  <rect class="op" x="340" y="83" width="19" height="26" rx="4"/>
+  <text x="349.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">l</text>
+  <rect class="op" x="362" y="83" width="19" height="26" rx="4"/>
+  <text x="371.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">o</text>
+  <rect class="op" x="384" y="83" width="19" height="26" rx="4"/>
+  <text x="393.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="406" y="83" width="19" height="26" rx="4"/>
+  <text x="415.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="340" y="129" width="19" height="26" rx="4"/>
+  <text x="349.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">l</text>
+  <rect class="op" x="362" y="129" width="19" height="26" rx="4"/>
+  <text x="371.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">o</text>
+  <rect class="op" x="384" y="129" width="19" height="26" rx="4"/>
+  <text x="393.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="406" y="129" width="19" height="26" rx="4"/>
+  <text x="415.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="428" y="129" width="19" height="26" rx="4"/>
+  <text x="437.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">r</text>
+  <rect class="op" x="450" y="129" width="19" height="26" rx="4"/>
+  <text x="459.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="340" y="175" width="19" height="26" rx="4"/>
+  <text x="349.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">n</text>
+  <rect class="op" x="362" y="175" width="19" height="26" rx="4"/>
+  <text x="371.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="384" y="175" width="19" height="26" rx="4"/>
+  <text x="393.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="abox" x="406" y="175" width="46" height="26" rx="4"/>
+  <text x="429" y="193" text-anchor="middle" class="mono" style="font-size:15px">est_</text>
+  <rect class="op" x="340" y="221" width="19" height="26" rx="4"/>
+  <text x="349.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="362" y="221" width="19" height="26" rx="4"/>
+  <text x="371.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">i</text>
+  <rect class="op" x="384" y="221" width="19" height="26" rx="4"/>
+  <text x="393.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">d</text>
+  <rect class="abox" x="406" y="221" width="46" height="26" rx="4"/>
+  <text x="429" y="239" text-anchor="middle" class="mono" style="font-size:15px">est_</text>
+  <line class="ln" x1="472" y1="35" x2="538" y2="35" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <text x="600" y="40" text-anchor="middle" class="b" style="font-size:14.5px">after merge 5</text>
+  <text x="600" y="60" text-anchor="middle" class="m note" style="font-size:14px"><tspan>|</tspan><tspan class="i">V</tspan><tspan>| = 16</tspan></text>
+  <rect class="abox" x="530" y="83" width="37" height="26" rx="4"/>
+  <text x="548.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">low</text>
+  <rect class="op" x="570" y="83" width="19" height="26" rx="4"/>
+  <text x="579.5" y="101" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="abox" x="530" y="129" width="37" height="26" rx="4"/>
+  <text x="548.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">low</text>
+  <rect class="op" x="570" y="129" width="19" height="26" rx="4"/>
+  <text x="579.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="592" y="129" width="19" height="26" rx="4"/>
+  <text x="601.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">r</text>
+  <rect class="op" x="614" y="129" width="19" height="26" rx="4"/>
+  <text x="623.5" y="147" text-anchor="middle" class="mono" style="font-size:15px">_</text>
+  <rect class="op" x="530" y="175" width="19" height="26" rx="4"/>
+  <text x="539.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">n</text>
+  <rect class="op" x="552" y="175" width="19" height="26" rx="4"/>
+  <text x="561.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">e</text>
+  <rect class="op" x="574" y="175" width="19" height="26" rx="4"/>
+  <text x="583.5" y="193" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="abox" x="596" y="175" width="46" height="26" rx="4"/>
+  <text x="619" y="193" text-anchor="middle" class="mono" style="font-size:15px">est_</text>
+  <rect class="op" x="530" y="221" width="19" height="26" rx="4"/>
+  <text x="539.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">w</text>
+  <rect class="op" x="552" y="221" width="19" height="26" rx="4"/>
+  <text x="561.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">i</text>
+  <rect class="op" x="574" y="221" width="19" height="26" rx="4"/>
+  <text x="583.5" y="239" text-anchor="middle" class="mono" style="font-size:15px">d</text>
+  <rect class="abox" x="596" y="221" width="46" height="26" rx="4"/>
+  <text x="619" y="239" text-anchor="middle" class="mono" style="font-size:15px">est_</text>
+  <text x="24" y="288" text-anchor="start" class="note">merges, in order</text>
+  <path class="rule" d="M340,262 v6 H490 v-6"/>
+  <text x="344" y="288" text-anchor="start" class="mono" style="font-size:14px">1  e + s</text>
+  <text x="344" y="308" text-anchor="start" class="mono" style="font-size:14px">2  es + t</text>
+  <text x="344" y="328" text-anchor="start" class="mono" style="font-size:14px">3  est + _</text>
+  <path class="rule" d="M530,262 v6 H680 v-6"/>
+  <text x="534" y="288" text-anchor="start" class="mono" style="font-size:14px">4  l + o</text>
+  <text x="534" y="308" text-anchor="start" class="mono" style="font-size:14px">5  lo + w</text>
+  <rect class="abox" x="24" y="318" width="22" height="16" rx="3"/>
+  <text x="52" y="331" text-anchor="start" class="note">a symbol made by a merge</text>
+</svg>
