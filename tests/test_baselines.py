@@ -1,6 +1,7 @@
 """Checks on data/baselines.json, the measured baselines that later labs cite."""
 
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -31,6 +32,16 @@ class Baselines(unittest.TestCase):
             if b["id"].startswith("lab01.char_ngram."):
                 expected = f"{b['settings']['n']}: {b['metrics']['nats_per_char']}"
                 self.assertIn(expected, source, b["id"])
+
+    def test_lab_2_checkpoints_match_the_file(self):
+        """Lab 2 asserts Lab 1's recorded TF-IDF row, and its recorded SGNS row clears its floor."""
+        source = (ROOT / "notebooks" / "02-word-vectors.ipynb").read_text(encoding="utf-8")
+        by_id = {b["id"]: b for b in DOC["baselines"]}
+        lab1 = by_id["lab01.tfidf_logreg"]["metrics"]
+        for metric in ("accuracy", "macro_f1"):
+            self.assertIn(f'tfidf_test[\\"{metric}\\"] - {lab1[metric]}', source, metric)
+        floor = float(re.search(r"ACCURACY_FLOOR = ([0-9.]+)", source).group(1))
+        self.assertGreaterEqual(by_id["lab02.sgns_avg_ffn"]["metrics"]["accuracy"], floor)
 
 
 if __name__ == "__main__":

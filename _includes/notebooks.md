@@ -4,7 +4,7 @@
 |---|---|---|---|
 | 0 | Setup and environment check | Before Day 1 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/00-setup.ipynb) |
 | 1 | [Text as data](lectures/01-text-as-data.qmd) | 1 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb) |
-| 2 | [Word vectors and neural networks](lectures/02-word-vectors.qmd) | 1 | In preparation |
+| 2 | [Word vectors and neural networks](lectures/02-word-vectors.qmd) | 1 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb) |
 | 3 | [Sequence models](lectures/03-sequence-models.qmd) | 1 | In preparation |
 | 4 | [Seq2seq and attention](lectures/04-seq2seq-attention.qmd) | 1 | In preparation |
 | 5 | [The transformer](lectures/05-transformer-from-scratch.qmd) | 2 | In preparation |

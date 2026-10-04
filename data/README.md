@@ -148,7 +148,7 @@ Measured on this file, on the machine named under [What was run](#what-was-run):
 | same | title + abstract | first 600 | | 0.852 | |
 | same | title only | 4,800 | 0.788 | 0.802 | 0.1 s |
 
-The baseline leaves 173 test errors (we did not run the same baseline on AG News, so no comparison with it is claimed). Most of them are between `cs.CV` and `cs.LG` (47 Vision papers predicted as Machine learning) and between `cs.LG` and `cs.CL`. The averaged-embedding model (Lab 2) and the fine-tuned encoder (Lab 6) have **not** been run on it yet; whether they fit the 10-minute T4 budget is checked when those labs are built. With 4,800 training texts of about 183 words, we expect them to, but that is an expectation, not a measurement.
+The baseline leaves 173 test errors (we did not run the same baseline on AG News, so no comparison with it is claimed). Most of them are between `cs.CV` and `cs.LG` (47 Vision papers predicted as Machine learning) and between `cs.LG` and `cs.CL`. The averaged-embedding model of Lab 2 has been run on it (see [Measured baselines](#measured-baselines-baselinesjson)): 0.8669 test accuracy, below TF-IDF. The fine-tuned encoder (Lab 6) has **not** been run on it yet.
 
 **Known properties to teach with.**
 
@@ -227,6 +227,7 @@ Each entry of `baselines` has these fields:
 | `settings` | Everything needed to recompute the value: model, tokenizer, vocabulary rule, grids, chosen hyperparameters, seed |
 | `date` | The day the notebook was executed |
 | `comparable_with_later_labs` | Present and `false` only for numbers that must not be compared (the word-level perplexities) |
+| `embedding_checks` | Lab 2 only: the neighbor hit rate and analogy accuracy of the embeddings behind the entry, on the notebook's hand-written lists. Not test-split metrics |
 
 The top-level `environment` gives, per lab, the machine and library versions of that run.
 
@@ -244,7 +245,16 @@ The character n-gram protocol, which Labs 3 and 5 must follow to be comparable: 
 
 The logistic-regression accuracy here (0.8838) is lower than the 0.892 in the table under [arXiv Topics v1](#arxiv-topics-v1-classification). The tokenizer and `C` of that earlier run are not recorded. Lab 1 uses its own tokenizer and chooses `C` on `val` (600 papers), which picks `C = 10`; with `C = 1` the same pipeline scores 0.8875 on `test`. Lab 1 reports the value the protocol gives, not the best one seen on `test`.
 
-To update the file: execute the notebook, take the `lab01_baselines.json` its baseline-card cell writes, and copy the values into the matching entries. `tests/test_baselines.py` checks the fields and that the Lab 1 checkpoint asserts the recorded n-gram values.
+**Lab 2, measured 2026-10-04** (Linux container, CPU only, 2 PyTorch threads on a shared machine, PyTorch 2.14.1, scikit-learn 1.9.1; not run on Colab):
+
+| `id` | Test accuracy / macro-F1 | Neighbor hit rate | Analogy accuracy |
+|---|---|---|---|
+| `lab02.sgns_avg_ffn`: SGNS trained on the training text, averaged, frozen, feed-forward net | 0.8669 / 0.8670 | 0.72 (13 of 18) | 0.20 (4 of 20) |
+| `lab02.glove_avg_ffn` (stretch): pretrained GloVe 6B 100d, same classifier | 0.8050 / 0.8050 | 0.61 | 0.58 (11 of 19) |
+
+Lab 2 recomputes `lab01.tfidf_logreg` in the notebook and reproduces it exactly (0.8838 / 0.8841). Averaged embeddings are 27 papers (1.7 points) behind it. Three further CPU runs of the same procedure with other random streams gave 0.8638 to 0.8719 test accuracy, so the gap is not seed noise. On a GPU the SGNS numbers will differ slightly, because the random streams and the order of floating-point sums differ.
+
+To update the file: execute the notebook, take the `lab01_baselines.json` or `lab02_baselines.json` its card cell writes, and copy the values into the matching entries. `tests/test_baselines.py` checks the fields, that the Lab 1 checkpoint asserts the recorded n-gram values, and that Lab 2 asserts the recorded Lab 1 TF-IDF values and that its recorded accuracy clears the notebook's floor.
 
 ## What was run
 
