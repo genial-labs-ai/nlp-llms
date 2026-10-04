@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 470" width="680" height="470" role="img" aria-labelledby="t d">
+  <title id="t">The causal mask on the attention weights</title>
+  <desc id="d">A six by six grid for the characters T, o, space, b, e and comma. Rows are the asking position t, columns the position i that is read. Cells on and below the diagonal hold attention weights, shaded darker for larger values and printed as numbers; each row sums to 1, and row 1 is a single cell of weight 1. Cells above the diagonal are hatched: their scores are minus infinity before the softmax, so their weights are 0 after it. The weights are illustrative, not measured.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+    <pattern id="h" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="#f4f6f9"/><line x1="0" y1="0" x2="0" y2="8" stroke="#c5ced8" stroke-width="3"/></pattern>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#f4f6f9"/><stop offset="1" stop-color="#16324f"/></linearGradient>
+  </defs>
+  <rect width="680" height="470" rx="8" fill="#ffffff"/>
+  <text x="320" y="34" text-anchor="middle" class="note">position i (is read)</text>
+  <text transform="translate(40,242.0) rotate(-90)" text-anchor="middle" class="note">position t (asks)</text>
+  <text x="200" y="84" text-anchor="middle" class="mono" style="font-size:17px">T</text>
+  <text x="158" y="128" text-anchor="middle" class="mono" style="font-size:17px">T</text>
+  <text x="200" y="58" text-anchor="middle" class="note" style="font-size:12px">1</text>
+  <text x="70" y="127" text-anchor="middle" class="note" style="font-size:12px">1</text>
+  <text x="248" y="84" text-anchor="middle" class="mono" style="font-size:17px">o</text>
+  <text x="158" y="176" text-anchor="middle" class="mono" style="font-size:17px">o</text>
+  <text x="248" y="58" text-anchor="middle" class="note" style="font-size:12px">2</text>
+  <text x="70" y="175" text-anchor="middle" class="note" style="font-size:12px">2</text>
+  <text x="296" y="84" text-anchor="middle" class="mono" style="font-size:17px">␣</text>
+  <text x="158" y="224" text-anchor="middle" class="mono" style="font-size:17px">␣</text>
+  <text x="296" y="58" text-anchor="middle" class="note" style="font-size:12px">3</text>
+  <text x="70" y="223" text-anchor="middle" class="note" style="font-size:12px">3</text>
+  <text x="344" y="84" text-anchor="middle" class="mono" style="font-size:17px">b</text>
+  <text x="158" y="272" text-anchor="middle" class="mono" style="font-size:17px">b</text>
+  <text x="344" y="58" text-anchor="middle" class="note" style="font-size:12px">4</text>
+  <text x="70" y="271" text-anchor="middle" class="note" style="font-size:12px">4</text>
+  <text x="392" y="84" text-anchor="middle" class="mono" style="font-size:17px">e</text>
+  <text x="158" y="320" text-anchor="middle" class="mono" style="font-size:17px">e</text>
+  <text x="392" y="58" text-anchor="middle" class="note" style="font-size:12px">5</text>
+  <text x="70" y="319" text-anchor="middle" class="note" style="font-size:12px">5</text>
+  <text x="440" y="84" text-anchor="middle" class="mono" style="font-size:17px">,</text>
+  <text x="158" y="368" text-anchor="middle" class="mono" style="font-size:17px">,</text>
+  <text x="440" y="58" text-anchor="middle" class="note" style="font-size:12px">6</text>
+  <text x="70" y="367" text-anchor="middle" class="note" style="font-size:12px">6</text>
+  <rect x="176" y="98" width="48" height="48" fill="#16324f" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="127.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#ffffff">1.00</text>
+  <rect x="224" y="98" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="272" y="98" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="320" y="98" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="368" y="98" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="416" y="98" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="176" y="146" width="48" height="48" fill="#a6b1be" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="175.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.35</text>
+  <rect x="224" y="146" width="48" height="48" fill="#64778a" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="248.0" y="175.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#ffffff">0.65</text>
+  <rect x="272" y="146" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="320" y="146" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="368" y="146" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="416" y="146" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="176" y="194" width="48" height="48" fill="#d3d9e0" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="223.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.15</text>
+  <rect x="224" y="194" width="48" height="48" fill="#b1bbc6" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="248.0" y="223.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.30</text>
+  <rect x="272" y="194" width="48" height="48" fill="#7a8a9c" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="296.0" y="223.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#ffffff">0.55</text>
+  <rect x="320" y="194" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="368" y="194" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="416" y="194" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="176" y="242" width="48" height="48" fill="#dee2e8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="271.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.10</text>
+  <rect x="224" y="242" width="48" height="48" fill="#dee2e8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="248.0" y="271.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.10</text>
+  <rect x="272" y="242" width="48" height="48" fill="#8594a4" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="296.0" y="271.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#ffffff">0.50</text>
+  <rect x="320" y="242" width="48" height="48" fill="#b1bbc6" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="344.0" y="271.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.30</text>
+  <rect x="368" y="242" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="416" y="242" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="176" y="290" width="48" height="48" fill="#e9ecf0" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="319.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.05</text>
+  <rect x="224" y="290" width="48" height="48" fill="#dee2e8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="248.0" y="319.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.10</text>
+  <rect x="272" y="290" width="48" height="48" fill="#d3d9e0" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="296.0" y="319.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.15</text>
+  <rect x="320" y="290" width="48" height="48" fill="#7a8a9c" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="344.0" y="319.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#ffffff">0.55</text>
+  <rect x="368" y="290" width="48" height="48" fill="#d3d9e0" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="392.0" y="319.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.15</text>
+  <rect x="416" y="290" width="48" height="48" fill="url(#h)" stroke="#ffffff" stroke-width="1.5"/>
+  <rect x="176" y="338" width="48" height="48" fill="#dee2e8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="200.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.10</text>
+  <rect x="224" y="338" width="48" height="48" fill="#e9ecf0" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="248.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.05</text>
+  <rect x="272" y="338" width="48" height="48" fill="#c8cfd7" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="296.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.20</text>
+  <rect x="320" y="338" width="48" height="48" fill="#dee2e8" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="344.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.10</text>
+  <rect x="368" y="338" width="48" height="48" fill="#c8cfd7" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="392.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.20</text>
+  <rect x="416" y="338" width="48" height="48" fill="#a6b1be" stroke="#ffffff" stroke-width="1.5"/>
+  <text x="440.0" y="367.0" text-anchor="middle" class="mono" style="font-size:13px;fill:#1f2933">0.35</text>
+  <rect x="176" y="98" width="288" height="288" fill="none" stroke="#c5ced8" stroke-width="1"/>
+  <circle cx="392" cy="170" r="3" fill="#52606d"/>
+  <path class="rule" d="M392.0,170.0 L486,128" style="stroke:#52606d;stroke-width:1"/>
+  <text x="492" y="126" text-anchor="start" class="m note" style="font-size:14.5px"><tspan>−∞</tspan><tspan class="s"> before the softmax,</tspan></text>
+  <text x="492" y="145" text-anchor="start" class="note">weight 0 after</text>
+  <path class="ln" d="M470,341 h7 v42 h-7" style="stroke:#b3541e"/>
+  <text x="484" y="359" text-anchor="start" class="note acc">each row</text>
+  <text x="484" y="376" text-anchor="start" class="note acc">sums to 1</text>
+  <text x="484" y="222" text-anchor="start" class="note">lower triangular:</text>
+  <text x="484" y="240" text-anchor="start" class="m note" style="font-size:14.5px"><tspan class="s">position </tspan><tspan class="i">t</tspan><tspan class="s"> reads </tspan><tspan class="i">i</tspan><tspan> ≤ </tspan><tspan class="i">t</tspan></text>
+  <text x="176" y="432" text-anchor="start" class="m" style="font-size:18px"><tspan class="i">α</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">,</tspan><tspan font-size="12.2" class="i">i</tspan></text>
+  <text x="224" y="431" text-anchor="middle" class="note">0</text>
+  <rect x="234" y="420" width="100" height="13" fill="url(#g)" stroke="#c5ced8"/>
+  <text x="344" y="431" text-anchor="middle" class="note">1</text>
+  <text x="660" y="431" text-anchor="end" class="note acc">illustrative weights, not measured</text>
+</svg>

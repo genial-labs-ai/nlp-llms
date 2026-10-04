@@ -94,11 +94,7 @@ Three points to carry away:
 - **Use `add_generation_prompt=False` for training text and `True` for generation.** A training example already contains the assistant message.
 - **Do not add special tokens twice.** The template writes all the special tokens it needs. If you format to a string and tokenize it afterward, pass `add_special_tokens=False`.
 
-<!-- FIGURE 7.1
-Spec: left, a list of two message boxes (role "user", role "assistant"). An arrow labeled "chat template" leads to, right, one horizontal strip of tokens: <|im_start|> user \n [instruction tokens] <|im_end|> \n <|im_start|> assistant \n [response tokens] <|im_end|>. Special tokens drawn as outlined boxes, content tokens as filled boxes. Under the strip, a row of mask values m_t: 0 under every token up to and including "assistant \n", 1 under the response tokens and the final <|im_end|>. A bracket under the 1s labeled "loss is computed here".
-Target path: images/07-chat-template-mask.svg
-Alt text: A list of chat messages is formatted into one token sequence with special tokens; the loss mask is 1 only on the response tokens and the closing end token.
--->
+![A two-message conversation formatted with the ChatML template, and the response mask $m_t$ of @eq-masked-loss. Special tokens are outlined. Only the response and its closing `<|im_end|>` have $m_t = 1$, so only they are scored.](/images/07-chat-template-mask.svg){#fig-chat-template-mask fig-alt="A list of chat messages is formatted into one token sequence with special tokens; the loss mask is 1 only on the response tokens and the closing end token."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 3** you write `format_chat` and check that it returns exactly the string that `tokenizer.apply_chat_template` returns for the same messages.
@@ -200,11 +196,7 @@ The product $BA$ has the shape of $W_0$, and its rank is at most $r$, because ev
 - **$r$** is the LoRA rank, a different quantity from the frequency rank in Module 1's Zipf plot.
 :::
 
-<!-- FIGURE 7.2
-Spec: the standard LoRA diagram in the workshop's SVG style. Input x (dimension d_in) at the bottom splits into two paths. Left path: a large square block "W_0 (frozen)", drawn in the neutral/gray fill used for provided parts, of size d_out x d_in. Right path: a thin trapezoid "A (r x d_in), random init" narrowing to a waist of width r, then a trapezoid "B (d_out x r), zero init" widening again, both in the accent color used for trainable parts; a small label "x alpha / r" after B. The two paths meet at a "+" node; output h (dimension d_out) at the top. Caption states which blocks are trained.
-Target path: images/07-lora-update.svg
-Alt text: A LoRA layer: the input passes through the frozen weight matrix and, in parallel, through two small trainable matrices A and B whose scaled product is added to the output.
--->
+![A LoRA layer (@eq-lora-forward). The frozen $W_0$ and a low-rank bypass run in parallel: $A$ maps the input down to $r$ numbers and $B$ maps them back up to $d_{\text{out}}$, scaled by $\alpha / r$. Only $A$ and $B$ are trained; $B$ starts at zero, so the layer starts as $W_0$.](/images/07-lora-update.svg){#fig-lora-update fig-alt="A LoRA layer: the input passes through the frozen weight matrix and, in parallel, through two small trainable matrices A and B whose scaled product is added to the output."}
 
 **Parameter count.** $A$ has $r \times d_{\text{in}}$ entries and $B$ has $d_{\text{out}} \times r$, so one adapted layer trains
 

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 330" width="720" height="330" role="img" aria-labelledby="t d">
+  <title id="t">Validate and retry</title>
+  <desc id="d">A left-to-right pipeline: messages, model, parse JSON, validate against the schema, typed object. Above the model, a small row of token cells with two cells hatched shows constrained decoding on the provider side: invalid tokens masked. Failure arrows leave parse JSON (a parse error) and validate (a schema error) and loop back to messages, labeled: on failure, append the error and call again, attempt r + 1 at most R. A third exit leads down: after R failed attempts, return None.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+    <pattern id="hm" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#ffffff"/><line x1="0" y1="0" x2="0" y2="4" stroke="#16324f" stroke-width="2"/></pattern>
+  </defs>
+  <rect width="720" height="330" rx="8" fill="#ffffff"/>
+  <rect class="box" x="16" y="132" width="100" height="46" rx="6"/>
+  <text x="66" y="160" text-anchor="middle" style="font-size:14px">messages</text>
+  <rect class="box" x="150" y="132" width="90" height="46" rx="6"/>
+  <text x="195" y="160" text-anchor="middle" style="font-size:14px">model</text>
+  <rect class="box" x="274" y="132" width="100" height="46" rx="6"/>
+  <text x="324" y="160" text-anchor="middle" style="font-size:14px">parse JSON</text>
+  <rect class="box" x="408" y="132" width="130" height="46" rx="6"/>
+  <text x="473" y="152" text-anchor="middle" style="font-size:14px">validate against</text>
+  <text x="473" y="169" text-anchor="middle" style="font-size:14px">the schema</text>
+  <rect class="box" x="580" y="132" width="120" height="46" rx="6"/>
+  <text x="640" y="160" text-anchor="middle" style="font-size:14px">typed object</text>
+  <line class="ln" x1="116" y1="155" x2="148" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="240" y1="155" x2="272" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="374" y1="155" x2="406" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="538" y1="155" x2="578" y2="155" marker-end="url(#a)"/>
+  <text x="558" y="146" text-anchor="middle" class="note">valid</text>
+  <text x="640" y="198" text-anchor="middle" class="note">for example, Event</text>
+  <rect x="170" y="96" width="9" height="12" fill="#ffffff" stroke="#16324f" stroke-width="1"/>
+  <rect x="180" y="96" width="9" height="12" fill="url(#hm)" stroke="#16324f" stroke-width="1"/>
+  <rect x="190" y="96" width="9" height="12" fill="#ffffff" stroke="#16324f" stroke-width="1"/>
+  <rect x="200" y="96" width="9" height="12" fill="url(#hm)" stroke="#16324f" stroke-width="1"/>
+  <rect x="210" y="96" width="9" height="12" fill="#ffffff" stroke="#16324f" stroke-width="1"/>
+  <line class="ln" x1="195" y1="110" x2="195" y2="130" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2;stroke-dasharray:3 2"/>
+  <text x="195" y="66" text-anchor="middle" class="note">constrained decoding, provider side:</text>
+  <text x="195" y="84" text-anchor="middle" class="note">invalid tokens masked</text>
+  <path class="aln" d="M324,178 V226"/>
+  <path class="aln" d="M473,178 V226"/>
+  <path class="aln" d="M473,226 H66 V180" marker-end="url(#b)"/>
+  <text x="331" y="206" text-anchor="start" class="note acc">parse error</text>
+  <text x="480" y="206" text-anchor="start" class="note acc">schema error</text>
+  <text x="190" y="202" text-anchor="middle" class="note acc">on failure: append the error</text>
+  <text x="190" y="219" text-anchor="middle" class="m acc" style="font-size:13.5px"><tspan class="s">and call again, attempt </tspan><tspan class="i">r</tspan><tspan> + 1 ≤ </tspan><tspan class="i">R</tspan></text>
+  <circle cx="200" cy="226" r="3.6" fill="#b3541e"/>
+  <path class="aln" d="M200,226 V282" marker-end="url(#b)"/>
+  <text x="200" y="304" text-anchor="middle" class="m note" style="font-size:13.5px"><tspan class="s">after </tspan><tspan class="i">R</tspan><tspan class="s"> failed attempts: return None</tspan></text>
+</svg>

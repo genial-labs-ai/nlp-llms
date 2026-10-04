@@ -73,9 +73,17 @@ Participant writes `bm25_scores(query_tokens, doc_term_counts, doc_lengths, k1=1
 - Seeds set in the setup cell; sampling and the stratified subsample must be reproducible.
 - Datasets fetched by URL with the fallback copy under `data/`.
 
+## As built (Director review, 2026-10-04)
+
+The notebook departs from this brief in these ways. All are accepted; the lecture now matches the notebook.
+
+- Exercise 2: `ngram_counts(ids, n, bos)` returns two `Counter`s, `(grams, contexts)`, not a single table.
+- Exercise 3: `perplexity(ids, history, n, counts, k, vocab_size)`. The splits are consecutive, so the `n - 1` tokens of context before a split come from the end of the preceding split (provided helper `history_for`); only the start of train is padded with the start token. This replaces "treat each split as one stream, padded with start tokens".
+- Exercise 5: two functions, `idf_weights(counts)` and `tfidf(counts, idf)`, instead of one `tfidf(counts)`.
+- Naive Bayes is fitted on the raw count matrix, not on TF-IDF features, matching the lecture's derivation.
+- The `k` grid is 0.001, 0.01, 0.1, 0.5, 1.0. The character vocabulary is the 65 characters of train, which equals the full-corpus set.
+
 ## Not verified by the Director
 
-- No code in this brief or in the lecture was executed. The baseline values are unknown until the notebook runs.
-- That scikit-learn's `LogisticRegression.predict_proba` equals softmax of `decision_function` for the pinned version with more than two classes (true for the multinomial formulation; confirm for the pin, since `multi_class` handling changed across recent releases).
-- That `TfidfTransformer` defaults (`smooth_idf=True`, `norm="l2"`, `sublinear_tf=False`) are unchanged in the pinned version.
-- Dataset licenses, sizes and the official test-split size.
+- The checks on the scikit-learn behavior listed in earlier drafts are now covered by the notebook for scikit-learn 1.9.1: the "softmax by hand" cell asserts that `predict_proba` equals softmax of `coef_ x + intercept_`, and Checkpoint 5 asserts agreement with `TfidfTransformer()` defaults. Colab's preinstalled scikit-learn version was not checked.
+- Run time on Colab. Measured locally only (see `data/baselines.json` for the machine).

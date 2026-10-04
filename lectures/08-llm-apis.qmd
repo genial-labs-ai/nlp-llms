@@ -87,7 +87,7 @@ $$ {#eq-append}
 
 where $a^{(k)}$ is the model's reply at turn $k$, $u^{(k+1)}$ is the next user message, and $\Vert$ appends to the list. Two consequences follow. The conversation *is* the list: you can edit it, truncate it or summarize it. And $n_{\text{in}}$ grows with every turn, which section 6 turns into a cost.
 
-<!-- FIGURE: message-list. Left: a client box holding a vertical stack of message cards (system, user, assistant, user), each labeled with its role. An arrow "request: whole list" goes to a provider box containing "chat template -> tokens -> transformer". An arrow "response: text + stop reason + usage (n_in, n_out)" comes back, and the reply is appended to the stack as a new assistant card. Caption point: the server keeps nothing; the list grows on the client. Same SVG style as images/04-encoder-decoder.svg. Target: images/08-message-list.svg. Alt: "A client sends the whole message list on every request and appends the model's reply to it." -->
+![Every request carries the whole message list (@eq-append). The provider renders it with its chat template, runs the model, and returns the reply with its stop reason and token counts; the client appends the reply. The server keeps nothing between requests: the list grows on the client.](/images/08-message-list.svg){#fig-message-list fig-alt="A client sends the whole message list on every request and appends the model's reply to it."}
 
 **One request, two syntaxes.** Both calls below send a system prompt and one user message, cap the output, and read back the text and the token counts.
 
@@ -212,7 +212,7 @@ event = response.parsed_output          # an Event instance
 
 So validate even when the provider constrains: it costs one line, and it is the only defense in the three cases above.
 
-<!-- FIGURE: validate-retry. A left-to-right pipeline: "messages" -> "model" -> "parse JSON" -> "validate against schema" -> "typed object". From "parse JSON" and from "validate" a failure arrow loops back to "messages", labeled "append error, attempt r+1 <= R". A third exit, "give up after R retries -> None", leaves the loop downward. Constrained decoding is shown as a small mask icon on the "model" box with the note "provider-side: invalid tokens masked". Same SVG style as the Day 1 figures. Target: images/08-validate-retry.svg. Alt: "Model output is parsed and validated against a schema; on failure the error is appended to the messages and the model is called again, up to a retry limit." -->
+![Validate and retry. The output is parsed and validated against the schema; on failure the error is appended to the messages and the model is called again, at most $R$ times. Constrained decoding, where the provider offers it, masks invalid tokens during generation; the validation step stays.](/images/08-validate-retry.svg){#fig-validate-retry fig-alt="Model output is parsed and validated against a schema; on failure the error is appended to the messages and the model is called again, up to a retry limit."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you write `extract`: call the model, parse, validate against `Event`, and retry with the error message, up to $R$ times. The same function runs on all three providers. On the open fallback model it is the only method available, and you will see how much of the validity rate comes from the retry.
@@ -237,7 +237,7 @@ The model never runs anything. It writes a request; your code decides whether to
 | `DONE` | Return the final text. | |
 | `FAILED` | Return a failure your program can handle. | |
 
-<!-- FIGURE: tool-loop. A state diagram with four rounded states: CALL (model), EXECUTE (your code), DONE, FAILED. Edges: start -> CALL; CALL -> EXECUTE labeled "reply has tool calls"; EXECUTE -> CALL labeled "append reply + results (by call ID)"; CALL -> DONE labeled "final text"; CALL -> FAILED labeled "truncated or refused"; EXECUTE -> FAILED labeled "k = K_max". Shade CALL as "provider side" and EXECUTE as "your side", with a dashed vertical line between them marking the trust boundary. Under the diagram, a thin strip shows the message list growing by two entries per round trip. Same SVG style as the Day 1 figures. Target: images/08-tool-loop.svg. Alt: "State diagram of the tool-calling loop: the model is called, its tool calls are executed by your code, results are appended to the messages, and the loop repeats until a final answer or a step limit." -->
+![The tool-calling loop of the table above as a state diagram. The model only requests tool calls; your code, on the other side of the trust boundary, decides whether to run them and sends the results back. With one call per round trip, each round trip adds two entries to the message list: the reply with its call, and the result.](/images/08-tool-loop.svg){#fig-tool-loop fig-alt="State diagram of the tool-calling loop: the model is called, its tool calls are executed by your code, results are appended to the messages, and the loop repeats until a final answer or a step limit."}
 
 In code, with `provider.chat` returning the common `Reply` of Exercise 1:
 
