@@ -5,5 +5,368 @@ title: "{{< var modules.m03.title >}}"
 {{< include /_includes/module-03.md >}}
 
 ::: {.callout-note appearance="simple"}
-This lecture has not been drafted yet.
+## Timing
+
+The core path below is planned for 45 minutes: recurrence (5), the RNN language model and teacher forcing (8), backpropagation through time and vanishing gradients (10), gradient clipping (3), the LSTM (10), a fair perplexity comparison (4), sampling (5). Collapsed callouts marked **Optional** are outside the 45 minutes.
 :::
+
+## Where Module 2 left us
+
+Module 2 ended with two neural models of text, and both have the same blind spot.
+
+- **The fixed-window neural language model** (Bengio et al.) predicts the next token from the previous $n-1$ tokens. It shares statistical strength between similar words, which the n-gram model of Module 1 could not, but it still sees nothing beyond the window. Widening the window adds a new block of weights for each position, and what the model learns about a word at position 3 does not transfer to the same word at position 4.
+- **Averaged embeddings** discard order completely: "dog bites man" and "man bites dog" get the same vector.
+
+Language has dependencies of no fixed length. In "The keys to the cabinet in the hall **are** missing", the verb agrees with a noun six tokens back. In a play, the speaker of a line is decided by a name several hundred characters earlier.
+
+We want a model that (1) reads a sequence of any length, (2) applies the same parameters at every position, and (3) carries what it has read forward in a state. That model is the **recurrent neural network** (RNN).
+
+## Notation for this module
+
+The workshop notation applies. Tokens are $w_1,\dots,w_T$, with $T$ the sequence length, drawn from a vocabulary $V$ of size $|V|$. In this module's lab the tokens are **characters**, so $|V|$ is small (fewer than 100).
+
+| Symbol | Meaning |
+|---|---|
+| $x_t = e_{w_t} \in \mathbb{R}^d$ | input vector at step $t$: the embedding of token $w_t$, dimension $d$ |
+| $h_t \in \mathbb{R}^{d_h}$ | hidden state after reading $w_1,\dots,w_t$; $d_h$ is the hidden size; $h_0 = 0$ |
+| $a_t \in \mathbb{R}^{d_h}$ | pre-activation at step $t$, so that $h_t = \tanh(a_t)$ |
+| $W$, $U$, $b$ | recurrent (hidden-to-hidden) matrix, input-to-hidden matrix, bias |
+| $W_o$, $b_o$ | output matrix ($|V| \times d_h$) and output bias |
+| $z_t \in \mathbb{R}^{|V|}$, $\hat{y}_t = \mathrm{softmax}(z_t)$ | logits and predicted distribution over the next token |
+| $\mathcal{L}_t$, $\mathcal{L}$ | loss at step $t$, and its mean over the sequence |
+| $\theta$ | all parameters |
+| $\sigma$ | the logistic sigmoid, applied elementwise |
+| $\odot$ | elementwise product |
+| $\tau$ | sampling temperature (not $T$, which is sequence length) |
+
+::: {.callout-important appearance="simple"}
+## A notation clash, resolved
+
+Module 1 uses $c(\cdot)$ for a count, as in $c(w_{t-1}, w_t)$. The LSTM literature uses $c_t$ for the cell state. In this module **$c_t$ with a time subscript is always the LSTM cell state, a vector in $\mathbb{R}^{d_h}$**. The count function is always written with an argument in parentheses, $c(\cdot)$, and appears only where we describe the n-gram baseline.
+:::
+
+## The recurrent neural network
+
+An RNN reads one token at a time and updates a state vector with the same function at every step:
+
+$$
+a_t = W h_{t-1} + U x_t + b, \qquad h_t = \tanh(a_t).
+$$ {#eq-rnn}
+
+Every symbol is in the table above. The two things to notice are that $W$, $U$ and $b$ carry no time index (the parameters are shared across positions) and that $h_t$ depends on $h_{t-1}$, which depends on $h_{t-2}$, and so on. So $h_t$ is a function of the whole prefix $w_1,\dots,w_t$, with no window.
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/03-rnn-unrolled.svg
+     Spec: left, an RNN cell with a self-loop labeled W; right, the same cell unrolled over
+     steps t-1, t, t+1, showing inputs x_t entering through U, hidden states h_t passed
+     rightward through W, and outputs z_t leaving through W_o; the same W, U, W_o labels
+     repeated at every step to show weight sharing.
+     Alt text: "An RNN drawn as a loop and unrolled over three time steps with shared weights." -->
+
+In code, one step is two lines. Shapes are for a batch of $B$ sequences.
+
+```python
+def rnn_cell_step(x_t, h_prev, W, U, b):
+    # x_t: (B, d)   h_prev: (B, d_h)   W: (d_h, d_h)   U: (d_h, d)   b: (d_h,)
+    a_t = h_prev @ W.T + x_t @ U.T + b      # (B, d_h)
+    return torch.tanh(a_t)                   # h_t: (B, d_h)
+```
+
+**In the lab:** Exercise 1 asks you to write `rnn_cell_step`, which is @eq-rnn. The checkpoint compares your output with PyTorch's `nn.RNNCell` given the same weights.
+
+## The RNN language model
+
+A language model assigns a probability to the next token given the tokens so far. With an RNN, the hidden state is the summary of "the tokens so far":
+
+$$
+z_t = W_o h_t + b_o, \qquad \hat{y}_t = \mathrm{softmax}(z_t), \qquad P_\theta(w_{t+1} \mid w_1,\dots,w_t) = \hat{y}_t[w_{t+1}],
+$$ {#eq-output}
+
+where $\hat{y}_t[w]$ is the entry of $\hat{y}_t$ for token $w$. Compare this with Module 1's bigram model, which conditions on $w_t$ alone, and with Bengio's model, which conditions on a fixed window.
+
+The loss is the same cross-entropy as in Modules 1 and 2, now averaged over the positions of a sequence:
+
+$$
+\mathcal{L}_t = -\log \hat{y}_t[w_{t+1}], \qquad \mathcal{L} = \frac{1}{T}\sum_{t=1}^{T} \mathcal{L}_t.
+$$ {#eq-loss}
+
+Here the model reads $w_1,\dots,w_T$ and the targets are $w_2,\dots,w_{T+1}$: the same text shifted by one position.
+
+Perplexity is the exponential of this mean loss, exactly as defined in Module 1 with the natural logarithm:
+
+$$
+\mathrm{PPL} = \exp(\mathcal{L}) = \exp\Big(-\frac{1}{T}\sum_{t} \log P_\theta(w_{t+1} \mid w_1,\dots,w_t)\Big).
+$$ {#eq-ppl}
+
+**In the lab:** Exercise 2 asks you to write `lm_loss_and_ppl`, which is @eq-loss and @eq-ppl. The checkpoint feeds it uniform logits, for which the perplexity must equal $|V|$.
+
+### Teacher forcing
+
+During training, the input at step $t$ is the **true** token $w_t$ from the corpus, whatever the model predicted at step $t-1$. This is called **teacher forcing**. It has two consequences.
+
+- All $T$ losses of a sequence come from one forward pass, because the inputs are known in advance.
+- At generation time there is no teacher: the model reads its own samples. It can drift into prefixes it never saw in training, and errors can compound. This mismatch is called **exposure bias**. We accept it here; it is one reason sampling choices (the last section) matter.
+
+### Training on a long text: truncated backpropagation
+
+The corpus is one long string, far too long to treat as a single sequence. The lab cuts it into chunks of length $T$ (for example 128 characters), computes @eq-loss on each chunk, and backpropagates within the chunk only. This is **truncated backpropagation through time**. It bounds memory and compute, and it also means the model receives no gradient signal for dependencies longer than $T$. The training loop is provided in the lab.
+
+## Backpropagation through time
+
+**Objective for this section:** explain why a plain RNN struggles to learn long-range dependencies.
+
+Unroll the RNN over $T$ steps and it is a deep feed-forward network with one layer per time step and the same weights in every layer. Backpropagation on this unrolled graph is called **backpropagation through time** (BPTT). Nothing new is needed beyond the chain rule from Module 2, but weight sharing gives the result a particular shape.
+
+Consider the gradient of the loss at step $t$ with respect to the recurrent matrix $W$. $W$ is used at every step $s \le t$, so the total gradient is a sum of one term per use:
+
+$$
+\frac{\partial \mathcal{L}_t}{\partial W} = \sum_{s=1}^{t} \frac{\partial \mathcal{L}_t}{\partial h_t}\; \frac{\partial h_t}{\partial h_s}\; \frac{\partial^{+} h_s}{\partial W}.
+$$ {#eq-bptt}
+
+Reading the three factors from right to left:
+
+- $\dfrac{\partial^{+} h_s}{\partial W}$ is the **immediate** effect of $W$ on $h_s$ at step $s$, treating $h_{s-1}$ as a constant. The $+$ marks that we are not yet following the dependence of $h_{s-1}$ on $W$; the sum over $s$ accounts for that.
+- $\dfrac{\partial h_t}{\partial h_s}$ carries that effect forward from step $s$ to step $t$. It is a $d_h \times d_h$ matrix (a Jacobian).
+- $\dfrac{\partial \mathcal{L}_t}{\partial h_t}$ turns a change in $h_t$ into a change in the loss.
+
+The term with $s$ far below $t$ is the one that teaches the network a long-range dependency: "what I stored at step $s$ mattered for the prediction at step $t$". Everything depends on the size of the middle factor.
+
+### The product of Jacobians
+
+By the chain rule, the middle factor is a product of one-step Jacobians:
+
+$$
+\frac{\partial h_t}{\partial h_s} = \prod_{j=s+1}^{t} \frac{\partial h_j}{\partial h_{j-1}}.
+$$ {#eq-jacprod}
+
+Each one-step Jacobian follows from @eq-rnn. Since $h_j = \tanh(a_j)$ elementwise and $\tanh'(a) = 1 - \tanh^2(a)$, the derivative of $h_j$ with respect to $a_j$ is the diagonal matrix $\mathrm{diag}(1 - h_j^2)$ (the square is elementwise). Since $a_j = W h_{j-1} + \dots$, the derivative of $a_j$ with respect to $h_{j-1}$ is $W$. So
+
+$$
+\frac{\partial h_j}{\partial h_{j-1}} = \mathrm{diag}(1 - h_j^2)\, W.
+$$ {#eq-jac}
+
+### Why the product vanishes or explodes
+
+Write $\lVert \cdot \rVert$ for the spectral norm of a matrix: the largest factor by which it can stretch a vector. Two facts: the norm of a product is at most the product of the norms, and every entry of $1 - h_j^2$ lies in $(0, 1]$, so $\lVert \mathrm{diag}(1 - h_j^2) \rVert \le 1$. Applying both to @eq-jacprod and @eq-jac:
+
+$$
+\Big\lVert \frac{\partial h_t}{\partial h_s} \Big\rVert \;\le\; \prod_{j=s+1}^{t} \lVert \mathrm{diag}(1 - h_j^2) \rVert \, \lVert W \rVert \;\le\; \lVert W \rVert^{\,t-s}.
+$$ {#eq-bound}
+
+The exponent $t - s$ is the distance between the two positions.
+
+- **Vanishing.** If $\lVert W \rVert < 1$, the bound shrinks exponentially with distance. With $\lVert W \rVert = 0.9$ and a distance of 100 characters, the factor is at most $0.9^{100} \approx 2.7 \times 10^{-5}$. Saturated $\tanh$ units (entries of $h_j$ near $\pm 1$) make the diagonal factor smaller still. The long-range terms of @eq-bptt are then negligible beside the short-range ones, and the network learns only short dependencies. Nothing crashes; the model is just quietly no better than a short-window model.
+- **Exploding.** If $\lVert W \rVert > 1$, the bound allows growth, and in practice the product can grow exponentially. The gradient becomes enormous, one update throws the parameters far away, and the loss jumps or becomes `nan`.
+
+Note the logic: $\lVert W \rVert < 1$ is *sufficient* for vanishing, and $\lVert W \rVert > 1$ is *necessary* for exploding, not sufficient. This analysis follows Pascanu, Mikolov and Bengio (2013).
+
+It is the *same* matrix $W$ multiplied $t-s$ times that makes the problem severe. A deep feed-forward network has a different matrix in each layer; an RNN repeats one.
+
+**In the lab:** Exercise 3 begins with a provided measurement of $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ as a function of the distance $T - s$, for the RNN you trained. You predict the shape of the curve before running the cell. It is @eq-jacprod and @eq-bound made visible. The same plot is repeated for the LSTM later.
+
+### Gradient clipping fixes explosion, not vanishing
+
+Let $g$ be the gradient of $\mathcal{L}$ with respect to all parameters, flattened into one vector, and let $\kappa > 0$ be a chosen threshold. **Gradient clipping by norm** rescales $g$ when it is too long:
+
+$$
+g \leftarrow g \cdot \min\Big(1, \frac{\kappa}{\lVert g \rVert}\Big).
+$$ {#eq-clip}
+
+If $\lVert g \rVert \le \kappa$ nothing changes. Otherwise $g$ keeps its direction and its length becomes $\kappa$. This bounds the size of every update, so one exploding batch cannot destroy the model.
+
+Clipping does nothing for vanishing gradients: rescaling a whole gradient vector cannot restore long-range terms that are tiny *relative* to the short-range terms in the same vector. For that we need to change the architecture.
+
+**In the lab:** Exercise 3 asks you to write `clip_gradients`, which is @eq-clip, and to compare gradient norms during training with and without it.
+
+## The LSTM
+
+**Objective for this section:** explain how gating addresses vanishing gradients.
+
+The trouble in @eq-jac is that every step forces the state through a multiplication by $W$ and a $\tanh$. The **long short-term memory** network (LSTM; Hochreiter and Schmidhuber, 1997) adds a second state vector, the **cell state** $c_t \in \mathbb{R}^{d_h}$, which is updated *additively*, and **gates** that decide what to keep, write and reveal. A gate is a vector with entries in $(0, 1)$, produced by a sigmoid, that multiplies another vector elementwise: 0 blocks, 1 passes.
+
+One LSTM step takes $x_t$, $h_{t-1}$ and $c_{t-1}$ and computes:
+
+$$
+\begin{aligned}
+f_t &= \sigma(W_f h_{t-1} + U_f x_t + b_f) && \text{forget gate: what to keep of } c_{t-1} \\
+i_t &= \sigma(W_i h_{t-1} + U_i x_t + b_i) && \text{input gate: what to write} \\
+o_t &= \sigma(W_o^{\text{g}} h_{t-1} + U_o x_t + b_o^{\text{g}}) && \text{output gate: what to reveal} \\
+\tilde{c}_t &= \tanh(W_c h_{t-1} + U_c x_t + b_c) && \text{candidate values to write} \\
+c_t &= f_t \odot c_{t-1} + i_t \odot \tilde{c}_t && \text{cell update} \\
+h_t &= o_t \odot \tanh(c_t) && \text{hidden state}
+\end{aligned}
+$$ {#eq-lstm}
+
+Symbols: $f_t, i_t, o_t \in (0,1)^{d_h}$ are the three gates; $\tilde{c}_t \in (-1,1)^{d_h}$ is the candidate; each gate and the candidate has its own recurrent matrix ($W_f, W_i, W_o^{\text{g}}, W_c$), input matrix ($U_f, U_i, U_o, U_c$) and bias. The superscript $\text{g}$ on the output gate's $W_o^{\text{g}}$ and $b_o^{\text{g}}$ only distinguishes them from the output layer's $W_o$ and $b_o$ in @eq-output. The first four lines have the same form as @eq-rnn; an LSTM has four times the parameters of an RNN with the same $d$ and $d_h$. The output layer @eq-output and the loss @eq-loss are unchanged.
+
+<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/03-lstm-cell.svg
+     Spec: one LSTM cell. A horizontal cell-state line c_{t-1} -> c_t along the top with two
+     operations on it: an elementwise multiply by f_t, then an elementwise add of i_t ⊙ c̃_t.
+     Below it, h_{t-1} and x_t feed four boxes labeled f_t (σ), i_t (σ), c̃_t (tanh), o_t (σ).
+     The output path: c_t -> tanh -> multiply by o_t -> h_t. Color the cell-state line
+     distinctly to show the additive path; label each box with the symbol used in the equations.
+     Alt text: "An LSTM cell: the cell state runs along the top, scaled by the forget gate
+     and added to by the input gate; the output gate controls the hidden state." -->
+
+```python
+def lstm_cell_step(x_t, h_prev, c_prev, p):
+    # p holds W_*, U_*, b_* for f, i, o, c.  All states: (B, d_h)
+    f = torch.sigmoid(h_prev @ p.W_f.T + x_t @ p.U_f.T + p.b_f)
+    i = torch.sigmoid(h_prev @ p.W_i.T + x_t @ p.U_i.T + p.b_i)
+    o = torch.sigmoid(h_prev @ p.W_o.T + x_t @ p.U_o.T + p.b_o)
+    c_tilde = torch.tanh(h_prev @ p.W_c.T + x_t @ p.U_c.T + p.b_c)
+    c = f * c_prev + i * c_tilde          # cell update
+    h = o * torch.tanh(c)                 # hidden state
+    return h, c
+```
+
+**In the lab:** Exercise 4 gives you the four gate lines and asks you to write the last two, the cell update and the hidden state of @eq-lstm. The checkpoint compares your step with `nn.LSTMCell`. After that the lab uses `nn.LSTM`, which is the same computation in optimized form.
+
+### Why this helps the gradient
+
+Look at the cell update and differentiate $c_t$ with respect to $c_{t-1}$ along the direct path, holding the gates and the candidate fixed:
+
+$$
+\frac{\partial c_t}{\partial c_{t-1}} = \mathrm{diag}(f_t) \quad \text{(direct path)}, \qquad \text{so} \qquad \frac{\partial c_t}{\partial c_s} = \prod_{j=s+1}^{t} \mathrm{diag}(f_j) \quad \text{(direct path)}.
+$$ {#eq-lstm-jac}
+
+Compare with @eq-jac. There is no repeated matrix $W$ and no $\tanh'$ on this path, only the forget gates. Where the network sets an entry of $f_j$ close to 1 over a span, the corresponding entry of the cell state, and the gradient with respect to it, pass through that span almost unchanged. Where it sets the entry close to 0, the memory is erased and so is the gradient, which is the correct behavior: nothing stored there should influence what follows.
+
+Three honest qualifications.
+
+- The full Jacobian has further terms, because the gates and the candidate at step $j$ depend on $h_{j-1}$, which depends on $c_{j-1}$. @eq-lstm-jac is the path that does not decay by construction, not the whole derivative.
+- The LSTM does not *guarantee* long memory. It makes long memory *learnable*: the forget gates are computed from the data, and the product in @eq-lstm-jac still shrinks whenever they are below 1.
+- LSTMs can still have exploding gradients, so clipping (@eq-clip) stays on.
+
+A practical detail that follows directly from @eq-lstm-jac: implementations often initialize the forget-gate bias $b_f$ to a positive value so that $f_t \approx 1$ at the start of training and gradients flow before the network has learned what to forget.
+
+::: {.callout-note collapse="true"}
+## Optional: a historical note on the forget gate
+
+The 1997 LSTM had no forget gate: the cell update was $c_t = c_{t-1} + i_t \odot \tilde{c}_t$, the "constant error carousel", whose direct-path Jacobian is exactly the identity. The forget gate was added by Gers, Schmidhuber and Cummins (2000) so that the cell can reset itself on continual input streams. What is called "the LSTM" today, and what `nn.LSTM` implements, is the version with the forget gate.
+:::
+
+### The GRU in brief
+
+The **gated recurrent unit** (GRU; Cho et al., 2014) keeps the same idea, a gated additive update, with one state vector and two gates instead of two states and three gates. It has three quarters of the LSTM's parameters and usually performs comparably. PyTorch provides it as `nn.GRU`, with the same interface as `nn.LSTM` minus the cell state. The lab uses the LSTM.
+
+::: {.callout-note collapse="true"}
+## Optional: the GRU equations
+
+With an **update gate** $u_t$ and a **reset gate** $r_t$, both in $(0,1)^{d_h}$ (we write $u_t$ where the literature writes $z_t$, because $z$ is reserved for logits in this workshop):
+
+$$
+\begin{aligned}
+u_t &= \sigma(W_u h_{t-1} + U_u x_t + b_u) \\
+r_t &= \sigma(W_r h_{t-1} + U_r x_t + b_r) \\
+\tilde{h}_t &= \tanh\big(W_h (r_t \odot h_{t-1}) + U_h x_t + b_h\big) \\
+h_t &= u_t \odot h_{t-1} + (1 - u_t) \odot \tilde{h}_t
+\end{aligned}
+$$
+
+The last line is the counterpart of the LSTM cell update: where $u_t \approx 1$ the state is copied forward and the direct-path Jacobian is close to the identity. This is the form in Cho et al. (2014). PyTorch's `nn.GRU` applies the reset gate after the matrix product instead of before it; the difference does not change the idea.
+:::
+
+## Measuring the improvement fairly
+
+**Objective for this section:** compare perplexity against the n-gram baseline, and know when such a comparison means something.
+
+Perplexity (@eq-ppl) is a *per-token* quantity, so its value depends on what a token is. A character-level model chooses among fewer than 100 symbols at each step; a word-level model chooses among tens of thousands. Their perplexities are on different scales and **must not be compared**. A character-level perplexity of 5 and a word-level perplexity of 150 say nothing about which model is better.
+
+The lab's language model is character-level. For the comparison with Module 1 to be valid, all of the following must hold, and the lab enforces each:
+
+1. **Same token unit.** The baseline is a *character* n-gram model built with Lab 1's method: counts $c(\cdot)$ with add-$k$ smoothing.
+2. **Same data.** The Shakespeare corpus from Lab 1, with the same fixed train, validation and test split.
+3. **Same vocabulary.** Both models assign probability over the same character set $V$.
+4. **Same scored positions.** Both models are scored on exactly the same test characters.
+5. **Same formula.** @eq-ppl with the natural logarithm.
+6. **No tuning on the test split.** The smoothing constant of the baseline and the settings of the neural models are chosen on the validation split.
+
+Character-level results are also often reported in **bits per character**, $\mathrm{BPC} = \log_2 \mathrm{PPL} = \mathcal{L} / \ln 2$, where $\mathcal{L}$ is the mean loss in nats. It is the same measurement on a logarithmic scale; the lab prints both.
+
+**In the lab:** the character n-gram baseline is provided as scaffolding, and your `lm_loss_and_ppl` from Exercise 2 scores the RNN and the LSTM. The results table (n-gram, RNN, LSTM) is the checkpoint for the module's third objective.
+
+::: {.callout-note collapse="true"}
+## Optional: converting between character and word perplexity
+
+If two models both assign a probability to *the same complete test string*, their total log-probabilities are comparable even when their token units differ. Let the test text contain $N_c$ characters (counting spaces) and $N_w$ words. A character model with total negative log-likelihood $\mathrm{NLL}$ has $\mathrm{PPL}_{\text{char}} = \exp(\mathrm{NLL}/N_c)$, and its implied per-word perplexity is
+
+$$
+\exp(\mathrm{NLL}/N_w) = \mathrm{PPL}_{\text{char}}^{\,N_c / N_w}.
+$$
+
+For example, if a text averages 5.5 characters per word including the space, a character perplexity of 4.5 corresponds to $4.5^{5.5} \approx 3{,}900$ per word. The reverse conversion is usually *not* valid: a word-level model with a closed vocabulary maps rare words to an unknown-word token and so does not assign probability to the full string. This is why the lab compares like with like instead of converting.
+:::
+
+## Generating text: sampling strategies
+
+A trained language model gives a distribution $\hat{y}_t$ over the next token. To generate, pick a token from it, feed that token back in as the next input, and repeat. How we pick matters.
+
+**Greedy decoding** takes $\arg\max_w \hat{y}_t[w]$ at every step. It is deterministic and tends to produce repetitive, looping text.
+
+**Sampling with temperature.** Divide the logits by a temperature $\tau > 0$ before the softmax, then sample:
+
+$$
+\hat{y}_t^{(\tau)} = \mathrm{softmax}(z_t / \tau), \qquad w_{t+1} \sim \hat{y}_t^{(\tau)}.
+$$ {#eq-temp}
+
+At $\tau = 1$ this samples from the model's own distribution. As $\tau \to 0$ the largest logit dominates and sampling approaches greedy decoding. As $\tau \to \infty$ the distribution approaches uniform. Temperature changes the *sharpness* of the distribution, never the *ranking* of tokens.
+
+**Top-$k$ sampling** keeps the $k$ most probable tokens, sets the rest to zero, renormalizes and samples. It removes the long tail of unlikely tokens, but $k$ is fixed whether the model is confident or unsure.
+
+**Nucleus (top-$p$) sampling** (Holtzman et al., 2020) keeps the smallest set of most probable tokens whose total probability is at least $p$, renormalizes and samples. The set is small when the model is confident and large when it is not.
+
+```python
+def sample_next(z_t, tau=1.0):
+    # z_t: (|V|,) logits for the next token
+    probs = torch.softmax(z_t / tau, dim=-1)
+    return torch.multinomial(probs, num_samples=1).item()
+```
+
+**In the lab:** Exercise 5 asks you to write the temperature sampling function, @eq-temp, and to generate text at several temperatures. Top-$k$ and nucleus sampling are the stretch section. The same four strategies are how you will control generation from large models in Modules 7 and 8.
+
+## Summary
+
+- An RNN applies one function at every position and carries a hidden state, so it conditions on the whole prefix instead of a fixed window (@eq-rnn, @eq-output).
+- It is trained with teacher forcing and cross-entropy; perplexity is the exponential of the mean loss (@eq-loss, @eq-ppl).
+- The gradient linking distant positions is a product of Jacobians, each containing the same $W$. It shrinks or grows exponentially with distance (@eq-jacprod, @eq-bound).
+- Gradient clipping bounds the update and handles explosion (@eq-clip). It does not address vanishing.
+- The LSTM adds a cell state with an additive, gated update. Along that path the Jacobian is a product of forget gates, which the network can hold near 1 (@eq-lstm, @eq-lstm-jac). The GRU is a lighter variant of the same idea.
+- Perplexities are comparable only at the same token unit, on the same data, vocabulary and scored positions.
+- Greedy, temperature, top-$k$ and nucleus sampling trade off repetition against incoherence (@eq-temp).
+
+### Equation-to-lab map
+
+| Equation | Lab 3 exercise |
+|---|---|
+| RNN step, @eq-rnn | Exercise 1: `rnn_cell_step` |
+| Loss and perplexity, @eq-loss and @eq-ppl | Exercise 2: `lm_loss_and_ppl` |
+| Jacobian product and bound, @eq-jacprod and @eq-bound | Exercise 3, part A: gradient norm against distance (provided measurement, you predict and explain) |
+| Clipping, @eq-clip | Exercise 3, part B: `clip_gradients` |
+| LSTM cell update and hidden state, @eq-lstm | Exercise 4: complete `lstm_cell_step` |
+| Direct-path Jacobian, @eq-lstm-jac | Exercise 4 follow-up: the gradient-distance plot repeated for the LSTM |
+| Temperature sampling, @eq-temp | Exercise 5: `sample_with_temperature` |
+| Top-$k$ and nucleus sampling | Stretch |
+
+## Common misconceptions
+
+- **"An RNN can use unlimited context."** In principle $h_t$ depends on the whole prefix. In practice the usable context is limited by vanishing gradients, by the truncation length used in training, and by the fixed size of $h_t$.
+- **"Gradient clipping fixes vanishing gradients."** It only caps the size of the update. Vanishing is addressed by the architecture.
+- **"The LSTM solves vanishing gradients."** It provides a path on which the gradient *need not* decay. Whether it decays depends on the learned forget gates, and LSTMs still struggle over many hundreds of steps.
+- **"Vanishing gradients means the whole gradient is small."** The total gradient can be a healthy size. What vanishes is the contribution of distant positions *relative* to nearby ones.
+- **"A lower perplexity always means a better model."** Only with the same token unit, the same test text and the same vocabulary. Character-level and word-level perplexities are different scales.
+- **"Temperature changes what the model knows."** It reshapes one distribution at sampling time. The model, its ranking of tokens and its perplexity are unchanged.
+- **"Teacher forcing is cheating."** It is ordinary maximum-likelihood training. Its cost is the train/generate mismatch (exposure bias), not an inflated score: held-out perplexity is also computed with the true prefix.
+
+## What Module 4 picks up
+
+An RNN language model emits one output per input, in step with it. Many tasks instead map one sequence to *another sequence of a different length*: a sentence to its translation, "March 5, 2024" to "2024-03-05". The natural move is to read the input with one RNN and take its **final hidden state** $h_T$ as a summary from which a second RNN generates the output. That single fixed-size vector must then hold everything about the input, however long it is. Module 4 builds this encoder-decoder model, shows where the summary fails, and introduces attention to fix it.
+
+## Readings
+
+1. Hochreiter, S. and Schmidhuber, J. (1997). [Long Short-Term Memory](https://doi.org/10.1162/neco.1997.9.8.1735). *Neural Computation* 9(8), 1735–1780. The original paper; read sections 1 to 4 for the argument.
+2. Pascanu, R., Mikolov, T. and Bengio, Y. (2013). [On the difficulty of training recurrent neural networks](https://proceedings.mlr.press/v28/pascanu13.html). *Proceedings of the 30th International Conference on Machine Learning*, PMLR 28(3), 1310–1318. The source of the Jacobian analysis and of gradient norm clipping.
+3. Karpathy, A. (2015). [The Unreasonable Effectiveness of Recurrent Neural Networks](https://karpathy.github.io/2015/05/21/rnn-effectiveness/). Blog post, May 21, 2015. Character-level models on Shakespeare and other corpora; the model for this lab.
+4. Olah, C. (2015). [Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/). Blog post, August 27, 2015. The clearest diagrams of the gates.
+5. Holtzman, A., Buys, J., Du, L., Forbes, M. and Choi, Y. (2020). [The Curious Case of Neural Text Degeneration](https://arxiv.org/abs/1904.09751). *ICLR 2020*. Introduces nucleus sampling; read for the stretch section.
+
+Also cited above: Cho, K. et al. (2014), [Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation](https://arxiv.org/abs/1406.1078), *EMNLP 2014* (the GRU; this paper returns in Module 4); Gers, F. A., Schmidhuber, J. and Cummins, F. (2000), Learning to Forget: Continual Prediction with LSTM, *Neural Computation* 12(10), 2451–2471 (the forget gate).
