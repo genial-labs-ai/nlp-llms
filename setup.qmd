@@ -1,0 +1,46 @@
+---
+title: "Setup"
+subtitle: "Ten minutes, before Day 1"
+---
+
+## 1. Open the setup notebook
+
+All labs run in [Google Colab](https://colab.research.google.com/), so there is nothing to install. You need a Google account.
+
+Open the setup notebook from the [notebooks page](notebooks.qmd) and choose **Runtime → Run all**. It checks the runtime and tells you which provider the API labs will use.
+
+For the labs from Module 2 onward, switch on a GPU: **Runtime → Change runtime type → T4 GPU**. The free tier is enough for every lab.
+
+## 2. Add API keys (optional)
+
+Some labs call commercial APIs. Keys are optional: with none set, those labs run on a small open model from Hugging Face, and you can still complete every exercise.
+
+If you have keys, add them to **Colab Secrets** (the key icon in the left sidebar), and switch on **Notebook access** for each:
+
+| Secret name | Used in | Where to get a key |
+|---|---|---|
+| `{{< var secrets.openai >}}` | Modules 8, 11, 13–15 | [platform.openai.com](https://platform.openai.com/) |
+| `{{< var secrets.anthropic >}}` | Modules 8, 11, 13–15 | [console.anthropic.com](https://console.anthropic.com/) |
+| `{{< var secrets.typesafe >}}` | Modules 12–15 | [typesafe.ai](https://typesafe.ai/) |
+
+::: {.callout-important appearance="simple"}
+Never paste a key into a notebook cell. Colab Secrets keeps keys out of the notebook file, so they cannot be shared or committed by accident.
+:::
+
+Each API lab states its approximate cost for one full run.
+
+## 3. Check the prerequisites
+
+The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyTorch is rusty, the official [60-minute blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) covers what you need.
+
+## Running locally (optional)
+
+Colab is the supported environment. To run the notebooks on your own machine, install [uv](https://docs.astral.sh/uv/) and run:
+
+```bash
+git clone {{< var repo.url >}}
+cd {{< var repo.name >}}
+uv run --group notebooks jupyter lab
+```
+
+Set the API keys as environment variables with the same names as the secrets above.

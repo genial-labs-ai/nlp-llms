@@ -1,0 +1,35 @@
+[project]
+name = "nlp-llms-workshop"
+version = "0.1.0"
+description = "From Traditional NLP to Modern LLMs: a four-day workshop"
+requires-python = ">=3.12"
+dependencies = []
+
+# Not a package: the groups below are environments for different jobs.
+# Versions are floors, not pins, and there is no lockfile, so local runs track
+# what Colab ships. Each notebook pins what it installs itself.
+[tool.uv]
+package = false
+
+[dependency-groups]
+# Generators and link check.
+site = ["pyyaml>=6.0", "nbformat>=5.10"]
+test = ["pyyaml>=6.0", "nbformat>=5.10"]
+lint = ["ruff>=0.6"]
+# Executing notebooks in CI.
+execute = ["nbclient>=0.10", "nbformat>=5.10", "ipykernel>=6.29", "pip"]
+# Running the labs locally. Grows as labs are written.
+notebooks = [
+    "jupyterlab>=4.2",
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.5",
+    "torch>=2.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

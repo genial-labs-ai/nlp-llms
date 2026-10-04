@@ -1,0 +1,13 @@
+---
+title: "Day 4"
+subtitle: "{{< var days.d4.title >}}"
+toc: false
+---
+
+**{{< var days.d4.question >}}**
+
+Day 4 builds systems: retrieval, agents, and a capstone that combines them with calibrated control. The afternoon is hands-on pair work.
+
+{{< include /_includes/day-4.md >}}
+
+Times are on the [schedule](schedule.qmd).

@@ -1,0 +1,11 @@
+---
+title: "Schedule"
+subtitle: "Four days, 09:00 to 17:00"
+toc: false
+---
+
+Each module is {{< var workshop.lecture_minutes >}} minutes of lecture followed by {{< var workshop.lab_minutes >}} minutes of lab. The capstone on Day 4 takes the whole afternoon.
+
+::: {.table-wide}
+{{< include /_includes/schedule.md >}}
+:::

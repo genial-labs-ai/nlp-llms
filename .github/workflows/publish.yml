@@ -1,0 +1,100 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.6.40
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Regenerate derived files and fail on drift
+        run: |
+          uv run --group site python scripts/gen_tables.py
+          uv run --group site python scripts/gen_notebooks.py
+          DRIFT=$(git status --porcelain -- notebooks _includes lectures README.md)
+          if [ -n "$DRIFT" ]; then
+            echo "Generated files are out of date. Run the generators and commit:"
+            echo "$DRIFT"
+            git diff -- notebooks _includes lectures README.md
+            exit 1
+          fi
+
+      - name: Lint
+        run: |
+          uv run --group lint ruff check scripts tests
+          uv run --group lint ruff format --check scripts tests
+
+      - name: Test
+        run: uv run --group test python -m unittest discover -s tests -v
+
+      - name: Render
+        uses: quarto-dev/quarto-actions/render@v2
+
+      - name: Check internal links
+        run: uv run --group site python scripts/check_links.py
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+
+  notebooks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      # No API keys are passed: this runs the open-model path of every lab.
+      - name: Execute notebooks
+        run: MPLBACKEND=Agg uv run --group execute python scripts/test_notebooks.py
+
+  deploy:
+    needs: render
+    # Opt-in: set the repository variable DEPLOY_PAGES to "true" and set
+    # Pages to deploy from GitHub Actions. The site is public once deployed.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

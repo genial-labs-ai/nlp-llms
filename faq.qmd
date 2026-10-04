@@ -1,0 +1,29 @@
+---
+title: "FAQ"
+---
+
+## Do I need API keys?
+
+No. Every lab that uses a commercial API also runs on a free open model. Keys for OpenAI, Anthropic and TypeSafe let you compare the commercial models directly. See [Setup](setup.qmd).
+
+## Do I need a GPU?
+
+The free T4 GPU in Colab is enough for every lab. Each lab is designed to need under ten minutes of compute.
+
+## How much will the API labs cost?
+
+Each API lab states its approximate cost for one full run. The labs use small inputs and are designed to be inexpensive.
+
+## What are RLCD and Jev?
+
+Jev is a decision model from TypeSafe AI: it takes typed questions and returns typed answers with confidence scores, instead of generating text. RLCD (reinforcement learning for calibrated decisions) is the training method TypeSafe says it used to build it.
+
+TypeSafe has not published how RLCD works. Day 3 teaches calibration from the published literature, states what is public about RLCD, and includes a small training experiment that is our own illustration of the idea, not TypeSafe's method.
+
+## Can I attend only some of the days?
+
+Each day builds on the one before, but the days are grouped so that Days 1–2 (how the models work) and Days 3–4 (how they are trained and used in systems) can each stand as a two-day unit.
+
+## I found a mistake. How do I report it?
+
+Open an issue or a pull request on [GitHub]({{< var repo.url >}}).

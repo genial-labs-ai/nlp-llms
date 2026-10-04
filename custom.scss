@@ -1,0 +1,81 @@
+/*-- scss:defaults --*/
+
+// A quiet academic palette over cosmo: navy for structure, one warm accent.
+$primary: #16324f;
+$accent: #b3541e;
+$link-color: #1d5f8a;
+$body-color: #1f2933;
+
+$font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$headings-font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+$headings-font-weight: 600;
+$font-size-root: 17px;
+
+$navbar-bg: $primary;
+$code-color: #8a3b12;
+
+/*-- scss:rules --*/
+
+// A readable measure for prose; tables and code may run wider.
+main.content p,
+main.content li {
+  line-height: 1.65;
+}
+
+h1.title {
+  font-size: 2.3rem;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  margin-top: 2.2rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #e3e8ee;
+}
+
+.subtitle,
+.lead {
+  color: #52606d;
+}
+
+// Tables: light rules, no heavy borders, comfortable padding.
+main.content table {
+  font-size: 0.94rem;
+
+  th {
+    border-bottom: 2px solid $primary;
+    font-weight: 600;
+  }
+
+  td,
+  th {
+    padding: 0.5rem 0.7rem;
+    vertical-align: top;
+  }
+}
+
+// Wide tables (the four-day schedule) scroll inside their own box on phones.
+.table-wide {
+  overflow-x: auto;
+}
+
+// Colab badges sit on the text baseline in tables and module headers.
+img[alt="Open in Colab"] {
+  vertical-align: middle;
+  margin: 0;
+}
+
+.navbar-brand {
+  font-family: $headings-font-family;
+  font-weight: 600;
+}
+
+.callout {
+  border-left-color: $accent !important;
+}
+
+@media (max-width: 576px) {
+  h1.title {
+    font-size: 1.8rem;
+  }
+}

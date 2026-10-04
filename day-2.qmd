@@ -1,0 +1,13 @@
+---
+title: "Day 2"
+subtitle: "{{< var days.d2.title >}}"
+toc: false
+---
+
+**{{< var days.d2.question >}}**
+
+Day 2 builds the transformer, then follows it through pretraining and fine-tuning to the commercial models you reach through an API.
+
+{{< include /_includes/day-2.md >}}
+
+Times are on the [schedule](schedule.qmd).

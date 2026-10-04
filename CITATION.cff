@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use or adapt this workshop, please cite it as below."
+title: "From Traditional NLP to Modern LLMs"
+authors:
+  - name: "Genial Labs"
+repository-code: "https://github.com/project-delphi/nlp-llms"
+url: "https://project-delphi.github.io/nlp-llms"
+license:
+  - CC-BY-4.0
+  - MIT
+version: 0.1.0
+date-released: "2026-10-04"

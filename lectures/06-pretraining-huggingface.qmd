@@ -1,0 +1,9 @@
+---
+title: "{{< var modules.m06.title >}}"
+---
+
+{{< include /_includes/module-06.md >}}
+
+::: {.callout-note appearance="simple"}
+This lecture has not been drafted yet.
+:::
