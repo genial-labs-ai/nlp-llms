@@ -28,6 +28,12 @@ models:
   anthropic: "claude-haiku-4-5"
   # Open chat model for the no-key path of the API labs (Apache 2.0).
   fallback: "Qwen/Qwen2.5-0.5B-Instruct"
+  # Lab 6: masked LM probed (and fine-tuned on GPU), small encoder fine-tuned on
+  # a CPU runtime, and causal LM probed. Revisions not yet pinned: the Hub was
+  # unreachable from the build container on 2026-10-04.
+  encoder: "distilbert/distilbert-base-uncased"
+  encoder_cpu: "google/bert_uncased_L-4_H-256_A-4"
+  causal_lm: "distilbert/distilgpt2"
   # Base (not instruction-tuned) causal LM fine-tuned in Lab 7 (Apache 2.0).
   instruct_base: "HuggingFaceTB/SmolLM2-135M"
   instruct_base_revision: "93efa2f097d58c2a74874c7e644dbc9b0cee75a2"
