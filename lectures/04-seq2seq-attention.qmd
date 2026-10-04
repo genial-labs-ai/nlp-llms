@@ -81,11 +81,7 @@ This is the cross-entropy loss of Module 3, summed over target positions. Gradie
 
 **Teacher forcing.** During training the decoder input at step $t$ is the *correct* previous token $y_{t-1}$, not the model's own prediction, exactly as in Module 3. At test time the correct target is unknown, so the decoder feeds its own output back in (section 7).
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect)
-     Path: images/04-encoder-decoder.svg
-     Spec: encoder RNN unrolled over a short source (h_1..h_S) on the left, decoder RNN unrolled over the target (s_1..s_T) on the right, joined by a single arrow s_0 = h_S labeled "the only path from source to target"; decoder inputs are <bos>, y_1, ..., outputs are y_1, ..., <eos>.
-     Alt text: An encoder reads the source into a single vector that initializes the decoder.
--->
+![The encoder-decoder model. The encoder states $h_1, \dots, h_S$ read the source and the decoder states $s_1, \dots, s_T$ write the target. The initial decoder state $s_0 = h_S$ is the only path from source to target.](/images/04-encoder-decoder.svg){#fig-encoder-decoder fig-alt="An encoder reads the source into a single vector that initializes the decoder."}
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The encoder (@eq-encoder), the decoder cell and the training loop are provided. In **Exercise 1** you write the teacher-forced forward pass and the loss: @eq-decoder, @eq-output and @eq-loss.
@@ -237,11 +233,7 @@ In statistical machine translation, an **alignment** records which source word e
 
 For the date task the expected pattern is easy to state. While the decoder writes the four digits of the year, the weight should sit on the year in the source, wherever it is. While it writes the month digits `03`, the weight should sit on the word `March`. When the source and target order differ, the bright cells leave the diagonal.
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect)
-     Path: images/04-attention-alignment.svg
-     Spec: attention heat-map for source "3 March 2021" (columns, one per character) and target "2021-03-03" (rows, one per character); cell shade = alpha_{t,i}; bright cells for the year rows over "2021" at the right, the month rows over "March" in the middle, the day rows over "3" at the left, showing an off-diagonal alignment; rows annotated "each row sums to 1". Illustrative weights, to be replaced by the measured map from Lab 4 once the notebook has been run.
-     Alt text: Heat-map of attention weights between the characters of a written date and its ISO form.
--->
+![Illustrative attention weights $\alpha_{t,i}$ for the source `3 March 2021` (columns) and the target `2021-03-03` (rows). The weights are drawn by hand to show the expected pattern and are not measured; they will be replaced by the measured map from Lab 4. Each row sums to 1.](/images/04-attention-alignment.svg){#fig-attention-alignment fig-alt="Heat-map of attention weights between the characters of a written date and its ISO form."}
 
 Two cautions when reading these maps:
 

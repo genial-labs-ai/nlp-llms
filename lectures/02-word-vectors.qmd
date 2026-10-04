@@ -54,7 +54,7 @@ Word2vec's skip-gram model (Mikolov et al., 2013) turns the distributional hypot
 
 **Training pairs.** Take the corpus as one token sequence $w_1, \dots, w_T$. Choose a window half-width $m$ (for example $m = 2$). For each position $t$, the *center word* is $w_t$ and the *context words* are $w_{t+j}$ for $-m \le j \le m$, $j \ne 0$. Each (center, context) pair is one training example. We write a generic pair as $(w, o)$: center word $w$, context ("outside") word $o$.
 
-<!-- FIGURE: skipgram-window. One sentence of about 8 tokens with the center word highlighted and a window of m=2 on each side bracketed; arrows from the center word to each of the 4 context words; beside it, the 4 resulting (center, context) training pairs listed as a column. -->
+![Skip-gram training pairs. With half-width $m = 2$, the center word $w_t$ (*fox*) is paired with each of the four words in its window, giving four (center, context) pairs $(w, o)$.](/images/02-skipgram-window.svg){#fig-skipgram-window fig-alt="A sentence of eight tokens with the center word fox highlighted and a window of two words on each side bracketed. Arrows run from fox to quick, brown, jumps and over. Beside the sentence, the four training pairs are listed: (fox, quick), (fox, brown), (fox, jumps), (fox, over)."}
 
 **Two vectors per word.** Each word gets two embeddings:
 
@@ -119,7 +119,7 @@ $$ {#eq-sgns}
 
 This is the skip-gram negative-sampling (SGNS) loss. The training loss is its average over all (center, context) pairs in the corpus. The first term pulls $e_w$ and $u_o$ together (large dot product); the second pushes $e_w$ away from the context vectors of random words. *Lab: Exercise 1 implements @eq-sgns as `sgns_loss`.*
 
-<!-- FIGURE: sgns-binary. One real pair (center w, context o) and K=3 noise pairs (w, w~1..w~3) drawn as rows; each row shows the dot product u^T e_w feeding a sigmoid and the target label (1 for the real pair, 0 for the noise pairs). -->
+![Negative sampling as binary classification. The real pair $(w, o)$ and $K = 3$ noise pairs $(w, \tilde{w}_k)$ each pass a dot-product score through a sigmoid. The target label is $D = 1$ for the real pair and $D = 0$ for the noise pairs.](/images/02-sgns-binary.svg){#fig-sgns-binary fig-alt="Four rows. The first row is the real pair (w, o): its score, u_o transpose e_w, feeds a sigmoid, and the target label is D = 1. The other three rows are noise pairs (w, w-tilde-1) to (w, w-tilde-3): each score, u_w-tilde-k transpose e_w, feeds a sigmoid, and the target label is D = 0."}
 
 **Step 5: the gradients.** We need one derivative: $\frac{d}{dx} \log \sigma(x) = \frac{\sigma'(x)}{\sigma(x)} = 1 - \sigma(x)$, using $\sigma'(x) = \sigma(x)(1 - \sigma(x))$. Replacing $x$ by $-x$ and applying the chain rule gives $\frac{d}{dx} \log \sigma(-x) = -(1 - \sigma(-x)) = -\sigma(x)$. Apply the chain rule to each term of @eq-sgns:
 
@@ -269,7 +269,7 @@ $$ {#eq-nplm}
 
 with $W_1 \in \mathbb{R}^{d_h \times (n-1)d}$ and $W_2 \in \mathbb{R}^{|V| \times d_h}$. The loss is the average negative log-likelihood of the next word, and its exponential is the perplexity from Module 1, $\mathrm{PPL} = \exp\big(-\tfrac{1}{T} \sum_t \log P_\theta(w_t \mid w_{<t})\big)$, so the two kinds of model can be compared directly.
 
-<!-- FIGURE: bengio-nplm. Left to right: n-1 = 3 context word indices, each looked up in the same shared embedding matrix E; the 3 embeddings concatenated into x; a tanh hidden layer h; a softmax over |V| giving the next-word distribution. Mark E as shared across positions. -->
+![Bengio's neural language model with $n - 1 = 3$ context words. Every position looks up its word in the same embedding matrix $E$. The three embeddings are concatenated into $x$, a tanh hidden layer gives $h$, and a softmax over $|V|$ gives the next-word distribution.](/images/02-bengio-nplm.svg){#fig-bengio-nplm fig-alt="Left to right: three context words, w_{t-3}, w_{t-2} and w_{t-1}, are each looked up in the same shared embedding matrix E. The three embeddings are concatenated into one vector x, which passes through weights W_1 and a tanh hidden layer h, then through weights W_2 and a softmax, giving a bar chart of the next-word distribution over the vocabulary."}
 
 This addresses both failures from Part 1:
 

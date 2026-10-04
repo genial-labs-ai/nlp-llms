@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 250" width="680" height="250" role="img" aria-labelledby="t d">
+  <title id="t">Skip-gram training pairs from one window</title>
+  <desc id="d">A sentence of eight tokens. The center word fox is highlighted, a window of two words on each side is bracketed, arrows run from fox to quick, brown, jumps and over, and the four resulting center-context pairs are listed on the right.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .i { font-style: italic; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+  </defs>
+  <text x="226" y="30" text-anchor="middle" class="note acc">center word</text>
+  <rect class="box" x="12" y="120" width="56" height="38" rx="6"/>
+  <text x="40" y="145" text-anchor="middle" class="note" style="font-size:15px">the</text>
+  <rect class="box" x="74" y="120" width="56" height="38" rx="6"/>
+  <text x="102" y="145" text-anchor="middle" style="font-size:15px">quick</text>
+  <rect class="box" x="136" y="120" width="56" height="38" rx="6"/>
+  <text x="164" y="145" text-anchor="middle" style="font-size:15px">brown</text>
+  <rect class="abox" x="198" y="120" width="56" height="38" rx="6"/>
+  <text x="226" y="145" text-anchor="middle" style="font-size:15px">fox</text>
+  <rect class="box" x="260" y="120" width="56" height="38" rx="6"/>
+  <text x="288" y="145" text-anchor="middle" style="font-size:15px">jumps</text>
+  <rect class="box" x="322" y="120" width="56" height="38" rx="6"/>
+  <text x="350" y="145" text-anchor="middle" style="font-size:15px">over</text>
+  <rect class="box" x="384" y="120" width="56" height="38" rx="6"/>
+  <text x="412" y="145" text-anchor="middle" class="note" style="font-size:15px">the</text>
+  <rect class="box" x="446" y="120" width="56" height="38" rx="6"/>
+  <text x="474" y="145" text-anchor="middle" class="note" style="font-size:15px">lazy</text>
+  <path class="aln" d="M222,118 Q162,10 102,117" marker-end="url(#b)" style="stroke-width:1.8"/>
+  <path class="aln" d="M215,118 Q189.5,62 164,117" marker-end="url(#b)" style="stroke-width:1.8"/>
+  <path class="aln" d="M237,118 Q262.5,62 288,117" marker-end="url(#b)" style="stroke-width:1.8"/>
+  <path class="aln" d="M230,118 Q290,10 350,117" marker-end="url(#b)" style="stroke-width:1.8"/>
+  <text x="102" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">−2</tspan></text>
+  <text x="164" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">−1</tspan></text>
+  <text x="226" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan></text>
+  <text x="288" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">+1</tspan></text>
+  <text x="350" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">+2</tspan></text>
+  <path class="ln" d="M74,194 v9 H378 v-9"/>
+  <text x="226" y="226" text-anchor="middle" class="note">window: m = 2 words on each side</text>
+  <path class="rule" d="M522,24 V232"/>
+  <text x="602" y="52" text-anchor="middle" class="note">training pairs</text>
+  <text x="602" y="76" text-anchor="middle" class="m " style="font-size:18px"><tspan>(</tspan><tspan class="i">w</tspan><tspan>, </tspan><tspan class="i">o</tspan><tspan>)</tspan></text>
+  <text x="602" y="112" text-anchor="middle">(<tspan class="acc" font-weight="600">fox</tspan>, quick)</text>
+  <text x="602" y="140" text-anchor="middle">(<tspan class="acc" font-weight="600">fox</tspan>, brown)</text>
+  <text x="602" y="168" text-anchor="middle">(<tspan class="acc" font-weight="600">fox</tspan>, jumps)</text>
+  <text x="602" y="196" text-anchor="middle">(<tspan class="acc" font-weight="600">fox</tspan>, over)</text>
+</svg>

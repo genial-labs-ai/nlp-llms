@@ -55,12 +55,7 @@ $$ {#eq-rnn}
 
 Every symbol is in the table above. The two things to notice are that $W$, $U$ and $b$ carry no time index (the parameters are shared across positions) and that $h_t$ depends on $h_{t-1}$, which depends on $h_{t-2}$, and so on. So $h_t$ is a function of the whole prefix $w_1,\dots,w_t$, with no window.
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/03-rnn-unrolled.svg
-     Spec: left, an RNN cell with a self-loop labeled W; right, the same cell unrolled over
-     steps t-1, t, t+1, showing inputs x_t entering through U, hidden states h_t passed
-     rightward through W, and outputs z_t leaving through W_o; the same W, U, W_o labels
-     repeated at every step to show weight sharing.
-     Alt text: "An RNN drawn as a loop and unrolled over three time steps with shared weights." -->
+![An RNN drawn as a loop (left) and unrolled over three time steps (right). Inputs $x_t$ enter through $U$, hidden states $h_t$ pass to the next step through $W$, and logits $z_t$ leave through $W_o$. The same $W$, $U$ and $W_o$ are used at every step.](/images/03-rnn-unrolled.svg){#fig-rnn-unrolled fig-alt="An RNN drawn as a loop and unrolled over three time steps with shared weights."}
 
 In code, one step is two lines. Shapes are for a batch of $B$ sequences.
 
@@ -198,14 +193,7 @@ $$ {#eq-lstm}
 
 Symbols: $f_t, i_t, o_t \in (0,1)^{d_h}$ are the three gates; $\tilde{c}_t \in (-1,1)^{d_h}$ is the candidate; each gate and the candidate has its own recurrent matrix ($W_f, W_i, W_o^{\text{g}}, W_c$), input matrix ($U_f, U_i, U_o, U_c$) and bias. The superscript $\text{g}$ on the output gate's $W_o^{\text{g}}$ and $b_o^{\text{g}}$ only distinguishes them from the output layer's $W_o$ and $b_o$ in @eq-output. The first four lines have the same form as @eq-rnn; an LSTM has four times the parameters of an RNN with the same $d$ and $d_h$. The output layer @eq-output and the loss @eq-loss are unchanged.
 
-<!-- FIGURE PLACEHOLDER (Quarto/Colab Architect): images/03-lstm-cell.svg
-     Spec: one LSTM cell. A horizontal cell-state line c_{t-1} -> c_t along the top with two
-     operations on it: an elementwise multiply by f_t, then an elementwise add of i_t ⊙ c̃_t.
-     Below it, h_{t-1} and x_t feed four boxes labeled f_t (σ), i_t (σ), c̃_t (tanh), o_t (σ).
-     The output path: c_t -> tanh -> multiply by o_t -> h_t. Color the cell-state line
-     distinctly to show the additive path; label each box with the symbol used in the equations.
-     Alt text: "An LSTM cell: the cell state runs along the top, scaled by the forget gate
-     and added to by the input gate; the output gate controls the hidden state." -->
+![One LSTM cell. The cell state runs along the top from $c_{t-1}$ to $c_t$: it is multiplied elementwise by the forget gate $f_t$, then $i_t \odot \tilde{c}_t$ is added. The output gate $o_t$ scales $\tanh(c_t)$ to give $h_t$.](/images/03-lstm-cell.svg){#fig-lstm-cell fig-alt="An LSTM cell: the cell state runs along the top, scaled by the forget gate and added to by the input gate; the output gate controls the hidden state."}
 
 ```python
 def lstm_cell_step(x_t, h_prev, c_prev, p):

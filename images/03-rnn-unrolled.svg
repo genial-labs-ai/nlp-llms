@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 284" width="720" height="284" role="img" aria-labelledby="t d">
+  <title id="t">An RNN as a loop and unrolled over three time steps</title>
+  <desc id="d">Left: one RNN cell with input x_t entering through U, output z_t leaving through W_o, and a self-loop labeled W. Right: the same cell unrolled over steps t-1, t and t+1; hidden states pass rightward through W and the labels W, U and W_o repeat at every step to show that the weights are shared.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .i { font-style: italic; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+  </defs>
+  <g transform="translate(0,-28)">
+  <rect class="box" x="28" y="135" width="64" height="40" rx="6"/>
+  <text x="60" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <line class="ln" x1="60" y1="244" x2="60" y2="177" marker-end="url(#a)"/>
+  <text x="60" y="268" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <text x="68" y="216" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">U</tspan></text>
+  <line class="ln" x1="60" y1="135" x2="60" y2="70" marker-end="url(#a)"/>
+  <text x="60" y="58" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">z</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <text x="68" y="108" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9" class="i">o</tspan></text>
+  <path class="ln" d="M92,144 C150,132 150,178 95,166" marker-end="url(#a)"/>
+  <text x="141" y="161" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">W</tspan></text>
+  <text x="196" y="141" text-anchor="middle" class="note">unroll</text>
+  <line x1="174" y1="155" x2="218" y2="155" stroke="#52606d" stroke-width="2" marker-end="url(#c)"/>
+  <text x="246" y="160" text-anchor="middle" class="note" style="font-size:20px">…</text>
+  <line class="ln" x1="260" y1="155" x2="286" y2="155" marker-end="url(#a)"/>
+  <text x="272" y="146" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan></text>
+  <rect class="box" x="288" y="135" width="64" height="40" rx="6"/>
+  <text x="320" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">−1</tspan></text>
+  <line class="ln" x1="320" y1="244" x2="320" y2="177" marker-end="url(#a)"/>
+  <text x="320" y="268" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">−1</tspan></text>
+  <text x="328" y="216" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">U</tspan></text>
+  <line class="ln" x1="320" y1="135" x2="320" y2="70" marker-end="url(#a)"/>
+  <text x="320" y="58" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">z</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">−1</tspan></text>
+  <text x="328" y="108" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9" class="i">o</tspan></text>
+  <rect class="box" x="428" y="135" width="64" height="40" rx="6"/>
+  <text x="460" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <line class="ln" x1="460" y1="244" x2="460" y2="177" marker-end="url(#a)"/>
+  <text x="460" y="268" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <text x="468" y="216" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">U</tspan></text>
+  <line class="ln" x1="460" y1="135" x2="460" y2="70" marker-end="url(#a)"/>
+  <text x="460" y="58" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">z</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan></text>
+  <text x="468" y="108" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9" class="i">o</tspan></text>
+  <rect class="box" x="568" y="135" width="64" height="40" rx="6"/>
+  <text x="600" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">+1</tspan></text>
+  <line class="ln" x1="600" y1="244" x2="600" y2="177" marker-end="url(#a)"/>
+  <text x="600" y="268" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">+1</tspan></text>
+  <text x="608" y="216" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">U</tspan></text>
+  <line class="ln" x1="600" y1="135" x2="600" y2="70" marker-end="url(#a)"/>
+  <text x="600" y="58" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">z</tspan><tspan dy="4.6" font-size="12.9" class="i">t</tspan><tspan font-size="12.9">+1</tspan></text>
+  <text x="608" y="108" text-anchor="start" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9" class="i">o</tspan></text>
+  <line class="ln" x1="352" y1="155" x2="426" y2="155" marker-end="url(#a)"/>
+  <text x="390" y="146" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan></text>
+  <line class="ln" x1="492" y1="155" x2="566" y2="155" marker-end="url(#a)"/>
+  <text x="530" y="146" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan></text>
+  <line class="ln" x1="632" y1="155" x2="676" y2="155" marker-end="url(#a)"/>
+  <text x="653" y="146" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan></text>
+  <text x="694" y="160" text-anchor="middle" class="note" style="font-size:20px">…</text>
+  <text x="460" y="300" text-anchor="middle" class="note">the same <tspan class="m i" font-size="16">W</tspan>, <tspan class="m i" font-size="16">U</tspan> and <tspan class="m i" font-size="16">W</tspan><tspan class="m i" font-size="11" dy="4">o</tspan><tspan dy="-4"> at every step</tspan></text>
+  </g>
+</svg>

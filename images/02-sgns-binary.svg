@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 318" width="680" height="318" role="img" aria-labelledby="t d">
+  <title id="t">Negative sampling as binary classification</title>
+  <desc id="d">Four rows. The real pair (w, o) has score u_o transpose e_w, passed through a sigmoid, with target label D = 1. Three noise pairs (w, w-tilde-k) have scores u_w-tilde-k transpose e_w, passed through a sigmoid, with target label D = 0.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .i { font-style: italic; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+  </defs>
+  <text x="90" y="24" text-anchor="middle" class="note" font-weight="600">pair</text>
+  <text x="285" y="24" text-anchor="middle" class="note" font-weight="600">score (dot product)</text>
+  <text x="455" y="24" text-anchor="middle" class="note" font-weight="600">sigmoid</text>
+  <text x="590" y="24" text-anchor="middle" class="note" font-weight="600">target label</text>
+  <path class="rule" d="M20,36 H660"/>
+  <text x="30" y="58" text-anchor="start" class="note acc">real pair, taken from the corpus</text>
+  <text x="30" y="150" text-anchor="start" class="note">K = 3 noise pairs, <tspan class="m i" font-size="16">w̃</tspan><tspan class="m i" font-size="11" dy="4">k</tspan><tspan dy="-4"> drawn from </tspan><tspan class="m i" font-size="16">P</tspan><tspan class="m i" font-size="11" dy="4">n</tspan></text>
+  <rect class="abox" x="30" y="65" width="120" height="38" rx="6"/>
+  <text x="90" y="90" text-anchor="middle" class="m " style="font-size:18px"><tspan>(</tspan><tspan class="i">w</tspan><tspan>, </tspan><tspan class="i">o</tspan><tspan>)</tspan></text>
+  <line class="aln" x1="150" y1="84" x2="213" y2="84" marker-end="url(#b)"/>
+  <rect class="abox" x="215" y="65" width="140" height="38" rx="6"/>
+  <text x="285" y="90" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">u</tspan><tspan dy="4.3" font-size="12.2" class="i">o</tspan><tspan dy="-11.5" font-size="11.2">⊤</tspan><tspan dy="7.2"> </tspan><tspan class="i">e</tspan><tspan dy="4.3" font-size="12.2" class="i">w</tspan></text>
+  <line class="aln" x1="355" y1="84" x2="434" y2="84" marker-end="url(#b)"/>
+  <circle class="abox" cx="455" cy="84" r="19"/>
+  <text x="455" y="90" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">σ</tspan></text>
+  <line class="aln" x1="474" y1="84" x2="533" y2="84" marker-end="url(#b)"/>
+  <rect class="abox" x="535" y="65" width="110" height="38" rx="6"/>
+  <text x="590" y="90" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">D</tspan><tspan> = 1</tspan></text>
+  <rect class="box" x="30" y="157" width="120" height="38" rx="6"/>
+  <text x="90" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan>(</tspan><tspan class="i">w</tspan><tspan>, </tspan><tspan class="i">w̃</tspan><tspan dy="4.3" font-size="12.2">1</tspan><tspan dy="-4.3">)</tspan></text>
+  <line class="ln" x1="150" y1="176" x2="213" y2="176" marker-end="url(#a)"/>
+  <rect class="box" x="215" y="157" width="140" height="38" rx="6"/>
+  <text x="285" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">u</tspan><tspan dy="4.3" font-size="12.2" class="i">w̃</tspan><tspan dy="2.9" font-size="10.1">1</tspan><tspan dy="-14.4" font-size="11.2">⊤</tspan><tspan dy="7.2"> </tspan><tspan class="i">e</tspan><tspan dy="4.3" font-size="12.2" class="i">w</tspan></text>
+  <line class="ln" x1="355" y1="176" x2="434" y2="176" marker-end="url(#a)"/>
+  <circle class="box" cx="455" cy="176" r="19"/>
+  <text x="455" y="182" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">σ</tspan></text>
+  <line class="ln" x1="474" y1="176" x2="533" y2="176" marker-end="url(#a)"/>
+  <rect class="box" x="535" y="157" width="110" height="38" rx="6"/>
+  <text x="590" y="182" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">D</tspan><tspan> = 0</tspan></text>
+  <rect class="box" x="30" y="209" width="120" height="38" rx="6"/>
+  <text x="90" y="234" text-anchor="middle" class="m " style="font-size:18px"><tspan>(</tspan><tspan class="i">w</tspan><tspan>, </tspan><tspan class="i">w̃</tspan><tspan dy="4.3" font-size="12.2">2</tspan><tspan dy="-4.3">)</tspan></text>
+  <line class="ln" x1="150" y1="228" x2="213" y2="228" marker-end="url(#a)"/>
+  <rect class="box" x="215" y="209" width="140" height="38" rx="6"/>
+  <text x="285" y="234" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">u</tspan><tspan dy="4.3" font-size="12.2" class="i">w̃</tspan><tspan dy="2.9" font-size="10.1">2</tspan><tspan dy="-14.4" font-size="11.2">⊤</tspan><tspan dy="7.2"> </tspan><tspan class="i">e</tspan><tspan dy="4.3" font-size="12.2" class="i">w</tspan></text>
+  <line class="ln" x1="355" y1="228" x2="434" y2="228" marker-end="url(#a)"/>
+  <circle class="box" cx="455" cy="228" r="19"/>
+  <text x="455" y="234" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">σ</tspan></text>
+  <line class="ln" x1="474" y1="228" x2="533" y2="228" marker-end="url(#a)"/>
+  <rect class="box" x="535" y="209" width="110" height="38" rx="6"/>
+  <text x="590" y="234" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">D</tspan><tspan> = 0</tspan></text>
+  <rect class="box" x="30" y="261" width="120" height="38" rx="6"/>
+  <text x="90" y="286" text-anchor="middle" class="m " style="font-size:18px"><tspan>(</tspan><tspan class="i">w</tspan><tspan>, </tspan><tspan class="i">w̃</tspan><tspan dy="4.3" font-size="12.2">3</tspan><tspan dy="-4.3">)</tspan></text>
+  <line class="ln" x1="150" y1="280" x2="213" y2="280" marker-end="url(#a)"/>
+  <rect class="box" x="215" y="261" width="140" height="38" rx="6"/>
+  <text x="285" y="286" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">u</tspan><tspan dy="4.3" font-size="12.2" class="i">w̃</tspan><tspan dy="2.9" font-size="10.1">3</tspan><tspan dy="-14.4" font-size="11.2">⊤</tspan><tspan dy="7.2"> </tspan><tspan class="i">e</tspan><tspan dy="4.3" font-size="12.2" class="i">w</tspan></text>
+  <line class="ln" x1="355" y1="280" x2="434" y2="280" marker-end="url(#a)"/>
+  <circle class="box" cx="455" cy="280" r="19"/>
+  <text x="455" y="286" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">σ</tspan></text>
+  <line class="ln" x1="474" y1="280" x2="533" y2="280" marker-end="url(#a)"/>
+  <rect class="box" x="535" y="261" width="110" height="38" rx="6"/>
+  <text x="590" y="286" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">D</tspan><tspan> = 0</tspan></text>
+</svg>
