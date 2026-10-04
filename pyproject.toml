@@ -17,7 +17,16 @@ site = ["pyyaml>=6.0", "nbformat>=5.10"]
 test = ["pyyaml>=6.0", "nbformat>=5.10"]
 lint = ["ruff>=0.6"]
 # Executing notebooks in CI.
-execute = ["nbclient>=0.10", "nbformat>=5.10", "ipykernel>=6.29", "pip"]
+execute = [
+    "nbclient>=0.10",
+    "nbformat>=5.10",
+    "ipykernel>=6.29",
+    "pip",
+    # What the labs import and Colab preinstalls.
+    "numpy>=1.26",
+    "matplotlib>=3.8",
+    "scikit-learn>=1.5",
+]
 # Running the labs locally. Grows as labs are written.
 notebooks = [
     "jupyterlab>=4.2",

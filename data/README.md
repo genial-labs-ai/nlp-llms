@@ -210,6 +210,42 @@ Alternatives that were checked and not chosen:
 - **Dates (Module 4)** and **pairwise preferences (Modules 9 and 10)** are generated inside the notebook. Each lab fixes its generator's seed and records the sizes here when it is written.
 - **Labeled decisions (Modules 11, 12, 14)** and **RAG documents (Modules 13, 15)** are ours, built on build Days 8 and 9. Module 11 also reuses the arXiv Topics test split for its reliability diagrams.
 
+## Measured baselines (`baselines.json`)
+
+[`baselines.json`](baselines.json) records the numbers that later labs and lectures compare against. Cite this file, not a number remembered from a notebook. Every value in it was measured by executing the named notebook; nothing is estimated.
+
+Each entry of `baselines` has these fields:
+
+| Field | Meaning |
+|---|---|
+| `id` | Stable name, `labNN.model[.variant]`, for example `lab01.char_ngram.n5` |
+| `notebook` | The notebook that produced the value |
+| `dataset` | A key of `datasets` in `_variables.yml` (`lm` or `topics`) |
+| `split` | The split the metrics were measured on. Always `test` for a baseline |
+| `metrics` | Metric name to value |
+| `val_metrics` | The same on `val`, where the notebook used it to choose a setting |
+| `settings` | Everything needed to recompute the value: model, tokenizer, vocabulary rule, grids, chosen hyperparameters, seed |
+| `date` | The day the notebook was executed |
+| `comparable_with_later_labs` | Present and `false` only for numbers that must not be compared (the word-level perplexities) |
+
+The top-level `environment` gives, per lab, the machine and library versions of that run.
+
+**Lab 1, measured 2026-10-04** (Apple M1 Pro, CPU, scikit-learn 1.9.1, NumPy 2.5.3; not run on Colab):
+
+| `id` | Test metric | Value |
+|---|---|---|
+| `lab01.char_ngram.n2` (k = 0.1) | nats per character / perplexity / bits per character | 2.4922 / 12.0882 / 3.5955 |
+| `lab01.char_ngram.n3` (k = 0.1) | same | 2.0859 / 8.0518 / 3.0093 |
+| `lab01.char_ngram.n5` (k = 0.01), the best n ≤ 5 on `val` | same | 1.8326 / 6.2503 / 2.6439 |
+| `lab01.tfidf_logreg` (C = 10) | accuracy / macro-F1 | 0.8838 / 0.8841 |
+| `lab01.counts_naive_bayes` | accuracy / macro-F1 | 0.8844 / 0.8840 |
+
+The character n-gram protocol, which Labs 3 and 5 must follow to be comparable: counts from `train` only; vocabulary of 65 characters; add-k smoothing with k chosen on `val` from {0.001, 0.01, 0.1, 0.5, 1.0}; every character of the evaluated split is scored, and the up to n − 1 characters of left context come from the text immediately before the split (the splits are contiguous). The n-gram values are exact counts and reproduce to the last digit. The classifier values come from an iterative solver and may differ in the fourth decimal on another platform or library version.
+
+The logistic-regression accuracy here (0.8838) is lower than the 0.892 in the table under [arXiv Topics v1](#arxiv-topics-v1-classification). The tokenizer and `C` of that earlier run are not recorded. Lab 1 uses its own tokenizer and chooses `C` on `val` (600 papers), which picks `C = 10`; with `C = 1` the same pipeline scores 0.8875 on `test`. Lab 1 reports the value the protocol gives, not the best one seen on `test`.
+
+To update the file: execute the notebook, take the `lab01_baselines.json` its baseline-card cell writes, and copy the values into the matching entries. `tests/test_baselines.py` checks the fields and that the Lab 1 checkpoint asserts the recorded n-gram values.
+
 ## What was run
 
 On 2026-10-04, on macOS 26.6 (arm64), Python 3.12.13, on a home connection. None of this was run on Colab.
