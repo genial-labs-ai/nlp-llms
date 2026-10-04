@@ -5,4 +5,4 @@
 | 5 | [The transformer](lectures/05-transformer-from-scratch.qmd) | Self-attention, multi-head attention and positional encodings, assembled into a small GPT. | In preparation |
 | 6 | [Pretraining and the Hugging Face stack](lectures/06-pretraining-huggingface.qmd) | Subword tokenization, masked and causal pretraining, and using pretrained models through Hugging Face. | In preparation |
 | 7 | [Fine-tuning and LoRA](lectures/07-finetuning-lora.qmd) | Turning a pretrained language model into an instruction follower, efficiently. | In preparation |
-| 8 | [LLMs through APIs](lectures/08-llm-apis.qmd) | OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation. | In preparation |
+| 8 | [LLMs through APIs](lectures/08-llm-apis.qmd) | OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb) |

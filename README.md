@@ -24,7 +24,7 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 | 5 | 2 | [The transformer](https://project-delphi.github.io/nlp-llms/lectures/05-transformer-from-scratch.html) | In preparation |
 | 6 | 2 | [Pretraining and the Hugging Face stack](https://project-delphi.github.io/nlp-llms/lectures/06-pretraining-huggingface.html) | In preparation |
 | 7 | 2 | [Fine-tuning and LoRA](https://project-delphi.github.io/nlp-llms/lectures/07-finetuning-lora.html) | In preparation |
-| 8 | 2 | [LLMs through APIs](https://project-delphi.github.io/nlp-llms/lectures/08-llm-apis.html) | In preparation |
+| 8 | 2 | [LLMs through APIs](https://project-delphi.github.io/nlp-llms/lectures/08-llm-apis.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb) |
 | 9 | 3 | [Reinforcement and preference learning](https://project-delphi.github.io/nlp-llms/lectures/09-preference-learning.html) | In preparation |
 | 10 | 3 | [RLHF](https://project-delphi.github.io/nlp-llms/lectures/10-rlhf.html) | In preparation |
 | 11 | 3 | [Calibration](https://project-delphi.github.io/nlp-llms/lectures/11-calibration.html) | In preparation |
