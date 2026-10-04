@@ -70,7 +70,7 @@ def tokenize(text):
     return re.findall(r"[a-z0-9']+|[^a-z0-9'\s]", text.lower())
 ```
 
-**Lab 1, Exercise 1** asks you to write `tokenize` and `build_vocab`, then measure how much of the held-out text your vocabulary covers.
+**Lab 1, Exercise 1** asks you to write `tokenize` and `build_vocab`. A provided cell then measures how much of the held-out text the vocabulary covers. On the Shakespeare training split, keeping every word gives 11,908 entries and covers 96.1% of validation tokens; dropping words seen once (`min_count = 2`) nearly halves the vocabulary, to 6,463 entries, and still covers 94.0%.
 
 ### Zipf's law
 
@@ -78,16 +78,16 @@ Sort the vocabulary by frequency. Let $r$ be the rank of a word (1 for the most 
 
 $$
 f(r) \approx \frac{A}{r^{s}}, \qquad s \approx 1,
-$$
+$$ {#eq-zipf}
 
 where $A$ is a constant that depends on the corpus size and $s$ is the exponent. Taking logs gives $\log f(r) \approx \log A - s \log r$: a straight line with slope $-s$ on a log–log plot.
 
-<!-- FIGURE 1.1: log-log plot of word frequency f(r) against rank r for the Shakespeare corpus, with a reference line of slope -1; annotate the top three words and the region of words seen once. -->
+![Word frequency against rank in the training split of the Shakespeare corpus, on log–log axes, with a reference line of slope $-1$. Punctuation tokens are left out. Measured with the Lab 1 tokenizer.](/images/01-zipf.svg){#fig-zipf fig-alt="Log-log plot of word count against rank for Tiny Shakespeare. The observed curve falls roughly along a dashed reference line of slope minus one. The top three words are annotated: the (5,703), and (5,041), to (4,439). A label on the flat tail at count 1 reads: 5,444 of 11,897 distinct words (46%) occur once."}
 
 What this means in practice:
 
-- A few words (*the*, *and*, *to*) account for a large share of all tokens.
-- The curve has a long tail: a large share of the vocabulary appears once or twice. In many corpora roughly half of the distinct words appear exactly once.
+- A few words (*the*, *and*, *to*) account for a large share of all tokens. In the lab corpus the ten most frequent words are 19% of all word tokens.
+- The curve has a long tail: a large share of the vocabulary appears once or twice. In many corpora roughly half of the distinct words appear exactly once; in the lab corpus it is 46% (@fig-zipf).
 - Adding more data does not remove the tail. New rare words keep arriving.
 
 So any estimate that depends on the count of a specific word, or worse, a specific word sequence, is unreliable for most of the vocabulary. That is the sparsity problem of Section 1 in quantitative form. Exercise 1 plots this curve for the lab corpus.
@@ -126,21 +126,22 @@ $$ {#eq-mle}
 
 For a bigram model: of all the times we saw *the*, what fraction were followed by *king*?
 
-The model is a table of counts. In code it is a dictionary from context to a counter of next tokens:
+The model is two tables of counts: one for full n-grams, one for contexts. In code, over a list of integer IDs, with `bos` the ID of `<s>`:
 
 ```python
-from collections import Counter, defaultdict
+from collections import Counter
 
-def ngram_counts(ids, n):
-    counts = defaultdict(Counter)          # context tuple -> Counter of next tokens
-    padded = [BOS] * (n - 1) + ids
+def ngram_counts(ids, n, bos):
+    grams, contexts = Counter(), Counter()
+    padded = [bos] * (n - 1) + list(ids)
     for t in range(n - 1, len(padded)):
-        context = tuple(padded[t - n + 1 : t])
-        counts[context][padded[t]] += 1
-    return counts
+        context = tuple(padded[t - n + 1 : t])   # the n - 1 IDs before position t
+        grams[context + (padded[t],)] += 1       # c(w_{t-n+1:t})
+        contexts[context] += 1                   # c(w_{t-n+1:t-1})
+    return grams, contexts
 ```
 
-**Lab 1, Exercise 2** implements @eq-mle.
+**Lab 1, Exercise 2** asks you to write `ngram_counts`: the numerator and denominator of @eq-mle.
 
 ::: {.callout-note collapse="true"}
 ## Optional: why relative frequency is the maximum-likelihood estimate
@@ -178,7 +179,7 @@ Two things to notice:
 
 In this lecture $k$ always means this smoothing constant. (From Module 4 on, $k_i$ with a subscript denotes an attention key; the two never appear together.)
 
-**Lab 1, Exercise 2** implements @eq-addk; its checkpoint is the sum-to-one identity above.
+**Lab 1, Exercise 2** implements @eq-addk as `prob(w, context, counts, k, vocab_size)`; its checkpoint is the sum-to-one identity above. A provided cell after Exercise 3 shows the zero problem directly: with $k = 0$, 20.2% of the validation tokens get probability zero under a word-level bigram model.
 
 ::: {.callout-note collapse="true"}
 ## Optional: better smoothing (interpolation, backoff, Kneser–Ney)
@@ -207,14 +208,18 @@ Lower is better. How to read the number:
 - **One zero makes it infinite.** $\log 0 = -\infty$. An unsmoothed model has infinite perplexity on almost any held-out text.
 
 ```python
-import numpy as np
+import math
 
-def perplexity(prob, ids, n):
-    padded = [BOS] * (n - 1) + ids
-    log_p = [np.log(prob(padded[t], tuple(padded[t - n + 1 : t])))
-             for t in range(n - 1, len(padded))]
-    return float(np.exp(-np.mean(log_p)))
+def perplexity(ids, history, n, counts, k, vocab_size):
+    padded = list(history) + list(ids)           # history: the n - 1 IDs before ids
+    total = 0.0
+    for t in range(n - 1, len(padded)):          # exactly T = len(ids) predictions
+        context = tuple(padded[t - n + 1 : t])
+        total -= math.log(prob(padded[t], context, counts, k, vocab_size))
+    return math.exp(total / len(ids))
 ```
+
+One detail matters for comparisons. The training, validation and test splits are consecutive pieces of one text, so the first tokens of the validation split have real context: the end of the training split. `history` supplies those $n - 1$ tokens. They are context only, never predicted, and the average runs over the $T$ tokens of the split. Only the very start of the training text is padded with `<s>`.
 
 **Lab 1, Exercise 3** implements @eq-ppl and checks it against the uniform model.
 
@@ -222,9 +227,15 @@ Perplexities are comparable only when the two models predict the **same tokens o
 
 ### Sampling
 
-A language model is also a generator. Start from a context, draw the next token from $P(\cdot \mid \text{context})$, append it, slide the context window forward, repeat. **Lab 1, Exercise 4** does this. Bigram samples are locally plausible and globally incoherent. Raising $n$ gives more fluent text, until the samples become verbatim copies of the training data, because most long contexts were seen exactly once and have only one recorded continuation.
+A language model is also a generator. Start from a context, draw the next token from $P(\cdot \mid \text{context})$, append it, slide the context window forward, repeat. **Lab 1, Exercise 4** does this: you write the one line of `sample` that draws the next token. Character bigram samples are locally plausible and globally incoherent; at $n = 3$ fragments of English and the layout of a play appear.
 
-<!-- FIGURE 1.2: for n = 1..5 on the Shakespeare corpus (word level), a bar or line chart of the fraction of test-split n-grams that never occur in the training split; shows sparsity growing with n. -->
+Raising $n$ further exposes the weakness of add-k. Most long contexts were seen only once or twice, so their counts are small, and the $k$ added to each of the $|V|$ possible next tokens takes a large share of the probability. At $n = 5$ with $k = 0.01$, a context seen once has total $1 + 0.01 \times 65 = 1.65$, so about 39% of the probability goes to the 64 characters that never followed it. One such draw produces a context never seen in training, where @eq-addk is uniform, and the sample dissolves into random characters. With a much smaller $k$ the same model stays fluent, but then its samples copy the training text more and more closely, because a context seen once has only one recorded continuation. The $k$ that predicts held-out text best (the one chosen on validation) is not the one that generates the best-looking text.
+
+@fig-ngram-sparsity measures the sparsity behind both effects at the word level.
+
+![Share of word n-grams in the test split of the Shakespeare corpus that never occur in the training split, for $n = 1$ to $5$. Raw words, no `<unk>` mapping. Measured with the Lab 1 tokenizer.](/images/01-ngram-sparsity.svg){#fig-ngram-sparsity fig-alt="Bar chart of the share of test n-grams unseen in training against n-gram order. n = 1: 5%. n = 2: 36%. n = 3: 77%. n = 4: 95%. n = 5: 99%."}
+
+At $n = 3$, 77% of the test trigrams never occur in training. That is why, in the lab, the word-level trigram model has a higher test perplexity than the bigram model (1,437 against 304).
 
 ## 4. Bag-of-words and TF-IDF
 
@@ -236,9 +247,9 @@ A classifier needs a fixed-length input $x$. The **bag-of-words** representation
 
 $$
 x \in \mathbb{R}^{|V|}, \qquad x_w = c(w, D),
-$$
+$$ {#eq-bow}
 
-where $c(w, D)$ is the number of times word $w$ occurs in document $D$. Order is discarded; hence "bag". The vector is **sparse**: an abstract uses a hundred or so of the tens of thousands of words in $V$, so almost every entry is zero.
+where $c(w, D)$ is the number of times word $w$ occurs in document $D$. Order is discarded; hence "bag". The vector is **sparse**: in the lab, $V$ holds the 12,469 words that occur in at least two training abstracts, and an abstract uses about 120 of them, so 99% of the entries are zero.
 
 Raw counts are dominated by the frequent words that Zipf's law promised, and those words say little about the topic. **TF-IDF** (term frequency–inverse document frequency) reweights each count by how rare the word is across documents. Let $N$ be the number of training documents and $\mathrm{df}(w)$ the **document frequency**: the number of training documents that contain $w$ at least once. Then
 
@@ -256,7 +267,7 @@ $$ {#eq-tfidf-sklearn}
 
 followed by scaling each document vector to unit Euclidean length, $x \leftarrow x / \lVert x \rVert_2$. The added ones avoid division by zero and keep words that occur in every document from disappearing entirely. The length scaling stops long documents from having larger vectors than short ones.
 
-**Lab 1, Exercise 5** implements @eq-tfidf-sklearn and checks the result against `TfidfTransformer`.
+**Lab 1, Exercise 5** implements @eq-tfidf-sklearn in two functions, `idf_weights` and `tfidf`, and checks the result against `TfidfTransformer`. The bag-of-words counts (@eq-bow) come from a provided `CountVectorizer` that uses your Exercise 1 tokenizer.
 
 ::: {.callout-note collapse="true"}
 ## Optional: BM25 (the lab's stretch section, used again in Module 13)
@@ -268,7 +279,7 @@ $$
 \frac{c(w, D)\,(k_1 + 1)}{c(w, D) + k_1\bigl(1 - b + b\,\frac{|D|}{\mathrm{avgdl}}\bigr)},
 \qquad
 \mathrm{idf}_{\text{BM25}}(w) = \log\Bigl(\frac{N - \mathrm{df}(w) + 0.5}{\mathrm{df}(w) + 0.5} + 1\Bigr).
-$$
+$$ {#eq-bm25}
 
 $|D|$ is the length of the document in tokens and $\mathrm{avgdl}$ is the average document length in the collection. $k_1$ (typically 1.2 to 2.0) and $b$ (typically 0.75) are hyperparameters; in this formula only, $b$ is the length-normalization strength, not a bias vector.
 
@@ -277,7 +288,7 @@ Two changes from TF-IDF:
 - **Term-frequency saturation.** The fraction grows with $c(w, D)$ but levels off at $k_1 + 1$. The tenth occurrence of a word adds much less than the first.
 - **Length normalization.** A long document needs more occurrences to earn the same score. $b = 0$ turns this off; $b = 1$ applies it fully.
 
-The idf form shown is the non-negative variant used by Lucene. See Robertson and Zaragoza (2009) in the readings.
+The idf form shown is the non-negative variant used by Lucene. See Robertson and Zaragoza (2009) in the readings. The lab's stretch section implements @eq-bm25 as `bm25_scores`.
 :::
 
 ## 5. Naive Bayes and logistic regression
@@ -357,7 +368,7 @@ In **Lab 1, Exercise 5** scikit-learn fits $W$ and $b$; a provided cell named "s
 | Correlated features | Double-counts them, so probabilities are pushed toward 0 and 1 | Shares the weight between them |
 | Tends to win | With very little training data | With more data |
 
-Both give probabilities. Whether those probabilities deserve to be trusted is the subject of Module 11.
+On the lab's 4,800 training abstracts the two tie: 0.884 test accuracy each (Section 7 has the full numbers). Both give probabilities. Whether those probabilities deserve to be trusted is the subject of Module 11.
 
 ## 6. Evaluation: precision, recall and F1
 
@@ -405,7 +416,39 @@ These baselines are strong. TF-IDF with logistic regression is hard to beat on t
 
 Limits 1 and 2 have the same root: the model has no notion of similarity between words, so it cannot generalize from what it saw to what it did not. [Module 2](02-word-vectors.qmd) replaces the atomic symbol with a learned dense vector $e_w \in \mathbb{R}^d$ in which similar words are close, and shows how a neural language model uses those vectors to share statistical strength across n-grams. Limits 3 and 4 are about order and long context; [Module 3](03-sequence-models.qmd) and [Module 4](04-seq2seq-attention.qmd) take them up.
 
-The numbers from this module's lab are the baseline for those claims: the n-gram perplexity is compared with the LSTM in Lab 3, and the classifier's accuracy and macro-F1 with Labs 2 and 6.
+The numbers from this module's lab are the baseline for those claims: the n-gram perplexity is compared with the LSTM in Lab 3 and the transformer in Lab 5, and the classifier's accuracy and macro-F1 with Labs 2 and 6. These are the values measured by Lab 1 and recorded in `data/baselines.json`; your run reproduces them.
+
+| Model | Test split | Result |
+|---|---|---|
+| Character bigram, add-k ($k = 0.1$) | Shakespeare, 60,394 characters | 2.492 nats per character, perplexity 12.09 |
+| Character trigram, add-k ($k = 0.1$) | same | 2.086 nats per character, perplexity 8.05 |
+| **Best character n-gram, $n \le 5$**: $n = 5$, add-k ($k = 0.01$) | same | **1.833 nats per character, perplexity 6.25** |
+| Uniform model over the 65 characters | same | $\log 65 = 4.174$ nats, perplexity 65 |
+| TF-IDF + logistic regression (`C` = 10) | arXiv Topics, 1,600 papers | accuracy 0.884, macro-F1 0.884 |
+| Counts + naive Bayes (add-one) | same | accuracy 0.884, macro-F1 0.884 |
+
+The order $n$ and each $k$ were chosen on the validation split; `C` was chosen on validation by macro-F1. Word-level perplexities (304 for the bigram, 1,437 for the trigram) are printed in the lab for the sparsity discussion and are not comparable with any later number.
+
+## Equation-to-lab map
+
+| Equation | What it is | In Lab 1 |
+|---|---|---|
+| @eq-zipf | Zipf's law | Provided log–log plot after Exercise 1 |
+| @eq-chain | Chain rule | The sum over positions in `perplexity` (Exercise 3) |
+| @eq-markov | Markov assumption | The `context = ...` line, the last $n - 1$ IDs, in `ngram_counts`, `perplexity` and `sample` |
+| @eq-mle | Maximum-likelihood estimate | **Exercise 2**: `ngram_counts` returns its two counts; the provided $k = 0$ cell counts the zeros |
+| @eq-addk | Add-k smoothing | **Exercise 2**: `prob`; Checkpoint 2 tests the sum-to-one identity |
+| @eq-ppl | Perplexity | **Exercise 3**: `perplexity`, with the provided `history_for`; Checkpoint 3 tests the uniform case |
+| Sampling | Drawing from $P(\cdot \mid \text{context})$ | **Exercise 4**: the `rng.choice` line in `sample` |
+| @eq-bow | Bag-of-words counts | Provided `CountVectorizer` with your `tokenize` |
+| @eq-tfidf | Textbook TF-IDF | Not implemented; the lab uses the scikit-learn form |
+| @eq-tfidf-sklearn | scikit-learn TF-IDF | **Exercise 5**: `idf_weights` and `tfidf`; checked against `TfidfTransformer` |
+| @eq-nb | Naive Bayes | Provided: `MultinomialNB(alpha=1.0)` on the count matrix |
+| @eq-softmax | Softmax over logits | Provided cell "Softmax by hand" after Exercise 5 |
+| @eq-ce | Cross-entropy loss (plus the L2 penalty in the text) | Provided: `LogisticRegression(C=...)`, `C` chosen on validation |
+| @eq-grad | Gradient with respect to the logits | Not in Lab 1; Lab 2 checks autograd against it |
+| @eq-prf | Precision, recall, F1 | **Exercise 6**: `prf_from_confusion` |
+| @eq-bm25 | BM25 (optional) | Stretch, Exercise 7: `bm25_scores` |
 
 ## Summary
 
