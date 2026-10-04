@@ -9,7 +9,7 @@
 | 4 | [Seq2seq and attention](lectures/04-seq2seq-attention.qmd) | 1 | In preparation |
 | 5 | [The transformer](lectures/05-transformer-from-scratch.qmd) | 2 | In preparation |
 | 6 | [Pretraining and the Hugging Face stack](lectures/06-pretraining-huggingface.qmd) | 2 | In preparation |
-| 7 | [Fine-tuning and LoRA](lectures/07-finetuning-lora.qmd) | 2 | In preparation |
+| 7 | [Fine-tuning and LoRA](lectures/07-finetuning-lora.qmd) | 2 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/07-finetuning-lora.ipynb) |
 | 8 | [LLMs through APIs](lectures/08-llm-apis.qmd) | 2 | In preparation |
 | 9 | [Reinforcement and preference learning](lectures/09-preference-learning.qmd) | 3 | In preparation |
 | 10 | [RLHF](lectures/10-rlhf.qmd) | 3 | In preparation |
