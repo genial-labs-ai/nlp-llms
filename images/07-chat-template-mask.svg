@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 244" width="760" height="244" role="img" aria-labelledby="t d">
+  <title id="t">A chat template and its response mask</title>
+  <desc id="d">Left: two messages, role user with content Name the capital of France., and role assistant with content Paris. An arrow labeled chat template leads to one token sequence, drawn in two lines: im_start, user, newline, the instruction text, im_end, newline; then im_start, assistant, newline, Paris., im_end. Special tokens are outlined boxes and ordinary text is filled. Under each token is its mask value m_t: 0 for every token up to and including the newline after assistant, and 1 for the response text and the closing im_end. A bracket under the 1s reads: loss is computed here.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="760" height="244" rx="8" fill="#ffffff"/>
+  <text x="16" y="32" text-anchor="start" class="note b">messages</text>
+  <rect class="op" x="16" y="44" width="190" height="48" rx="6"/>
+  <text x="28" y="62" text-anchor="start" class="note b" style="font-size:12.5px">user</text>
+  <text x="28" y="82" text-anchor="start" style="font-size:13.5px">Name the capital of France.</text>
+  <rect class="op" x="16" y="104" width="190" height="48" rx="6"/>
+  <text x="28" y="122" text-anchor="start" class="note b" style="font-size:12.5px">assistant</text>
+  <text x="28" y="142" text-anchor="start" style="font-size:13.5px">Paris.</text>
+  <line class="ln" x1="214" y1="104" x2="266" y2="104" marker-end="url(#a)"/>
+  <text x="240" y="124" text-anchor="middle" class="note">chat</text>
+  <text x="240" y="140" text-anchor="middle" class="note">template</text>
+  <rect class="" x="276" y="44" width="92.8" height="26" rx="3" style="fill:#ffffff;stroke:#16324f;stroke-width:1.5"/>
+  <text x="322.4" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">&lt;|im_start|&gt;</text>
+  <rect class="" x="372.8" y="44" width="37.6" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="391.6" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">user</text>
+  <rect class="" x="414.4" y="44" width="23.8" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="426.3" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">\n</text>
+  <rect class="" x="442.2" y="44" width="196.3" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="540.4" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">Name the capital of France.</text>
+  <rect class="" x="642.5" y="44" width="79" height="26" rx="3" style="fill:#ffffff;stroke:#16324f;stroke-width:1.5"/>
+  <text x="682" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">&lt;|im_end|&gt;</text>
+  <rect class="" x="725.5" y="44" width="23.8" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="737.4" y="61" text-anchor="middle" class="mono" style="font-size:11.5px">\n</text>
+  <text x="268" y="92" text-anchor="end" class="m note" style="font-size:16px"><tspan class="i">m</tspan><tspan dy="3.8" font-size="10.9" class="i">t</tspan></text>
+  <text x="322.4" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="391.6" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="426.3" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="540.4" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0 … 0</text>
+  <text x="682" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="737.4" y="92" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <rect class="" x="276" y="116" width="92.8" height="26" rx="3" style="fill:#ffffff;stroke:#16324f;stroke-width:1.5"/>
+  <text x="322.4" y="133" text-anchor="middle" class="mono" style="font-size:11.5px">&lt;|im_start|&gt;</text>
+  <rect class="" x="372.8" y="116" width="72.1" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="408.9" y="133" text-anchor="middle" class="mono" style="font-size:11.5px">assistant</text>
+  <rect class="" x="448.9" y="116" width="23.8" height="26" rx="3" style="fill:#eef2f6;stroke:#eef2f6;stroke-width:1.5"/>
+  <text x="460.8" y="133" text-anchor="middle" class="mono" style="font-size:11.5px">\n</text>
+  <rect class="" x="476.7" y="116" width="51.4" height="26" rx="3" style="fill:#f8e9de;stroke:#b3541e;stroke-width:1.5"/>
+  <text x="502.4" y="133" text-anchor="middle" class="mono" style="font-size:11.5px">Paris.</text>
+  <rect class="" x="532.1" y="116" width="79" height="26" rx="3" style="fill:#ffffff;stroke:#b3541e;stroke-width:1.5"/>
+  <text x="571.6" y="133" text-anchor="middle" class="mono" style="font-size:11.5px">&lt;|im_end|&gt;</text>
+  <text x="268" y="164" text-anchor="end" class="m note" style="font-size:16px"><tspan class="i">m</tspan><tspan dy="3.8" font-size="10.9" class="i">t</tspan></text>
+  <text x="322.4" y="164" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="408.9" y="164" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="460.8" y="164" text-anchor="middle" class="mono note" style="font-size:13px">0</text>
+  <text x="502.4" y="164" text-anchor="middle" class="mono acc" style="font-size:13px">1 … 1</text>
+  <text x="571.6" y="164" text-anchor="middle" class="mono acc" style="font-size:13px">1</text>
+  <path class="ln" d="M476.7,176 v6 H611.1 v-6" style="stroke:#b3541e"/>
+  <text x="543.9" y="200" text-anchor="middle" class="note acc">loss is computed here</text>
+  <rect class="op" x="16" y="214" width="22" height="16" rx="3"/>
+  <text x="44" y="227" text-anchor="start" class="note">special token</text>
+  <rect x="150" y="214" width="22" height="16" rx="3" style="fill:#eef2f6"/>
+  <text x="178" y="227" text-anchor="start" class="note">ordinary text</text>
+</svg>

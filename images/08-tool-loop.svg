@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 430" width="740" height="430" role="img" aria-labelledby="t d">
+  <title id="t">The tool-calling loop as a state machine</title>
+  <desc id="d">Four states. From start, the loop enters CALL, on the provider side: send the messages and the tool definitions. If the reply has tool calls, it moves to EXECUTE, on your side of a dashed trust boundary: run each tool call. EXECUTE returns to CALL after appending the reply and one result per call, matched by call ID. From CALL, a final text leads to DONE, and a truncated or refused reply leads to FAILED. From EXECUTE, reaching the step limit k = K_max leads to FAILED. Below, the message list: system, user, then a tool call and a tool result for each round trip, two entries per round trip, and finally the final answer.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="740" height="430" rx="8" fill="#ffffff"/>
+  <rect x="16" y="46" width="350" height="170" rx="10" fill="#f4f6f9"/>
+  <rect x="374" y="46" width="350" height="170" rx="10" fill="#fbf1e9"/>
+  <text x="30" y="68" text-anchor="start" class="note">provider side: the model</text>
+  <text x="710" y="68" text-anchor="end" class="note acc">your side: your code</text>
+  <line class="ln" x1="370" y1="42" x2="370" y2="214" style="stroke:#52606d;stroke-dasharray:6 4"/>
+  <text x="370" y="32" text-anchor="middle" class="note">trust boundary</text>
+  <circle cx="50" cy="140" r="6" fill="#16324f"/>
+  <text x="50" y="122" text-anchor="middle" class="note">start</text>
+  <line class="ln" x1="56" y1="140" x2="108" y2="140" marker-end="url(#a)"/>
+  <rect class="box" x="110" y="110" width="160" height="60" rx="22"/>
+  <text x="190" y="137" text-anchor="middle" class="b" style="font-size:15px">CALL</text>
+  <text x="190" y="156" text-anchor="middle" class="note">send messages + tools</text>
+  <rect class="abox" x="470" y="110" width="160" height="60" rx="22"/>
+  <text x="550" y="137" text-anchor="middle" class="b" style="font-size:15px">EXECUTE</text>
+  <text x="550" y="156" text-anchor="middle" class="note">run each tool call</text>
+  <rect class="op" x="110" y="280" width="160" height="60" rx="22"/>
+  <text x="190" y="307" text-anchor="middle" class="b" style="font-size:15px">DONE</text>
+  <text x="190" y="326" text-anchor="middle" class="note">return the text</text>
+  <rect class="op" x="290" y="280" width="160" height="60" rx="22"/>
+  <text x="370" y="307" text-anchor="middle" class="b" style="font-size:15px">FAILED</text>
+  <text x="370" y="326" text-anchor="middle" class="note">return a failure</text>
+  <line class="ln" x1="270" y1="124" x2="468" y2="124" marker-end="url(#a)"/>
+  <text x="370" y="115" text-anchor="middle" class="note">reply has tool calls</text>
+  <line class="aln" x1="470" y1="156" x2="272" y2="156" marker-end="url(#b)"/>
+  <text x="370" y="186" text-anchor="middle" class="note acc">append reply + results (by call ID)</text>
+  <line class="ln" x1="190" y1="170" x2="190" y2="278" marker-end="url(#a)"/>
+  <text x="198" y="236" text-anchor="start" class="note">final text</text>
+  <line class="ln" x1="240" y1="170" x2="322" y2="278" marker-end="url(#a)"/>
+  <text x="292" y="230" text-anchor="start" class="note">truncated or refused</text>
+  <line class="ln" x1="520" y1="170" x2="420" y2="278" marker-end="url(#a)"/>
+  <text x="480" y="238" text-anchor="start" class="m note" style="font-size:15px"><tspan class="i">k</tspan><tspan> = </tspan><tspan class="i">K</tspan><tspan dy="3.6" font-size="10.2">max</tspan></text>
+  <text x="16" y="386" text-anchor="start" class="note b">messages</text>
+  <rect x="96" y="372" width="55.2" height="22" rx="4" style="fill:#f4f6f9;stroke:#16324f;stroke-width:1.2"/>
+  <text x="123.6" y="387" text-anchor="middle" class="mono" style="font-size:12px">system</text>
+  <rect x="155.2" y="372" width="40.8" height="22" rx="4" style="fill:#f4f6f9;stroke:#16324f;stroke-width:1.2"/>
+  <text x="175.6" y="387" text-anchor="middle" class="mono" style="font-size:12px">user</text>
+  <rect x="212" y="372" width="40.8" height="22" rx="4" style="fill:#f4f6f9;stroke:#16324f;stroke-width:1.2"/>
+  <text x="232.4" y="387" text-anchor="middle" class="mono" style="font-size:12px">call</text>
+  <rect x="256.8" y="372" width="55.2" height="22" rx="4" style="fill:#fbf1e9;stroke:#b3541e;stroke-width:1.2"/>
+  <text x="284.4" y="387" text-anchor="middle" class="mono" style="font-size:12px">result</text>
+  <path class="rule" d="M212,400 v5 H312 v-5"/>
+  <text x="262" y="420" text-anchor="middle" class="note" style="font-size:12px">round trip 1: +2</text>
+  <rect x="328" y="372" width="40.8" height="22" rx="4" style="fill:#f4f6f9;stroke:#16324f;stroke-width:1.2"/>
+  <text x="348.4" y="387" text-anchor="middle" class="mono" style="font-size:12px">call</text>
+  <rect x="372.8" y="372" width="55.2" height="22" rx="4" style="fill:#fbf1e9;stroke:#b3541e;stroke-width:1.2"/>
+  <text x="400.4" y="387" text-anchor="middle" class="mono" style="font-size:12px">result</text>
+  <path class="rule" d="M328,400 v5 H428 v-5"/>
+  <text x="378" y="420" text-anchor="middle" class="note" style="font-size:12px">round trip 2: +2</text>
+  <text x="442" y="387" text-anchor="start" class="note">…</text>
+  <rect x="466" y="372" width="48" height="22" rx="4" style="fill:#f4f6f9;stroke:#16324f;stroke-width:1.2"/>
+  <text x="490" y="387" text-anchor="middle" class="mono" style="font-size:12px">final</text>
+</svg>
