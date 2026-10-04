@@ -23,3 +23,6 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# Dataset build cache (data/build_arxiv_topics.py)
+/data/.cache/

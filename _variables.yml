@@ -32,6 +32,54 @@ secrets:
   anthropic: ANTHROPIC_API_KEY
   typesafe: TYPESAFE_API_KEY
 
+# Datasets of the running thread. data/README.md explains each choice and gives
+# the loading cell that notebooks paste; tests/test_data.py checks that the two
+# agree and that the committed copies match these hashes.
+# `urls` are tried in order: canonical first, fallback second. An entry with a
+# `file` has a copy under data/, served from `fallback_base`.
+datasets:
+  checked: "2026-10-04"   # date the licenses were read at license_url
+  fallback_base: https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data
+  topics:
+    name: "arXiv Topics v1"
+    modules: [1, 2, 6, 11]
+    file: arxiv_topics_v1.csv.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/arxiv_topics_v1.csv.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/arxiv_topics_v1.csv.gz
+    sha256: "49b51502fc6cf6ecff23fa266c5372594a88414dd96513579237792710246dc5"
+    bytes: 3172762
+    license: "CC0 1.0"
+    license_url: https://info.arxiv.org/help/api/tou.html
+    classes: [cs.CL, cs.CV, cs.LG, cs.RO]
+    class_names: ["Language", "Vision", "Machine learning", "Robotics"]
+    seed: 0
+    splits: {train: 4800, val: 600, test: 1600}
+  lm:
+    name: "Tiny Shakespeare"
+    modules: [1, 3, 5]
+    file: tinyshakespeare.txt
+    urls:
+      - https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/tinyshakespeare.txt
+    sha256: "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed"
+    bytes: 1115394
+    license: "Public-domain text; MIT packaging"
+    license_url: https://github.com/karpathy/char-rnn
+    # Character offsets, [start, end).
+    splits: {train: [0, 1000000], val: [1000000, 1055000], test: [1055000, 1115394]}
+  instructions:
+    name: "Databricks Dolly 15k"
+    modules: [7]
+    # The full upstream file. Lab 7 fixes a subset and adds `file` if it commits one.
+    urls:
+      - https://huggingface.co/datasets/databricks/databricks-dolly-15k/resolve/bdd27f4d94b9c1f951818a7da7fd7aeea5dbff1a/databricks-dolly-15k.jsonl
+    sha256: "2df9083338b4abd6bceb5635764dab5d833b393b55759dffb0959b6fcbf794ec"
+    bytes: 13085339
+    license: "CC BY-SA 3.0"
+    license_url: https://huggingface.co/datasets/databricks/databricks-dolly-15k
+    records: 15011
+
 # The daily clock. `module` slots take the day's modules in order.
 schedule:
   slots:
