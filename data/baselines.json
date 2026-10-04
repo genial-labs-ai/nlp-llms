@@ -6,6 +6,13 @@
       "python": "3.12.13",
       "numpy": "2.5.3",
       "scikit-learn": "1.9.1"
+    },
+    "lab02": {
+      "machine": "Linux x86_64 container, CPU only, 2 PyTorch threads on a 4-core machine shared with other jobs (load average 14 to 19); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "scikit-learn": "1.9.1"
     }
   },
   "baselines": [
@@ -254,6 +261,107 @@
         "features": 12469,
         "train_rows": 4800,
         "model": "MultinomialNB(alpha=1.0) on the raw count matrix (no TF-IDF)"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab02.sgns_avg_ffn",
+      "notebook": "notebooks/02-word-vectors.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8669,
+        "macro_f1": 0.867,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8851,
+            "recall": 0.905,
+            "f1": 0.8949
+          },
+          "cs.CV": {
+            "precision": 0.8867,
+            "recall": 0.8025,
+            "f1": 0.8425
+          },
+          "cs.LG": {
+            "precision": 0.7874,
+            "recall": 0.8425,
+            "f1": 0.814
+          },
+          "cs.RO": {
+            "precision": 0.9152,
+            "recall": 0.9175,
+            "f1": 0.9164
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8833,
+        "macro_f1": 0.884
+      },
+      "embedding_checks": {
+        "neighbor_hit_rate": 0.7222,
+        "analogy_accuracy": 0.2,
+        "note": "Hand-written lists fixed before training: 18 probe words (hit = an expected word in the top 10) and 20 analogies (top-1, inputs excluded). Not a benchmark."
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "Lab 1's classifier vocabulary: tokens in >= 2 training documents (min_df=2), 12,469 words; out-of-vocabulary tokens dropped",
+        "document_vector": "mean of the embeddings of the in-vocabulary tokens, standardized with train mean and std",
+        "classifier": "FeedForwardClassifier: Linear(100, 256), ReLU, Linear(256, 4); Adam lr 1e-3, weight_decay 1e-4, batch 128, 30 epochs; the epoch with the best val macro-F1 is kept",
+        "embeddings_frozen": true,
+        "train_rows": 4800,
+        "seed": 0,
+        "embeddings": "skip-gram with negative sampling, trained in the notebook on the training-split text only (labels ignored)",
+        "embedding_corpus_tokens": 1091692,
+        "pairs_per_epoch": 4306741,
+        "d": 100,
+        "window": 5,
+        "dynamic_window": true,
+        "K": 5,
+        "noise": "unigram^0.75",
+        "subsampling_tau": 0.001,
+        "epochs": 3,
+        "batch": 16384,
+        "optimizer": "Adam lr 0.01",
+        "init": "E uniform(-0.5/d, 0.5/d), U zero",
+        "sgns_loss_first_step": 4.1589,
+        "sgns_loss_last_50_steps": 2.3416,
+        "sgns_seconds_cpu": 695.2,
+        "best_epoch": 22,
+        "seed_variation": "test accuracy 0.8638 to 0.8719 in three further CPU runs of the same procedure with other random streams; neighbor hit rate 0.72 to 0.83; analogy accuracy 0.20 to 0.30"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab02.glove_avg_ffn",
+      "notebook": "notebooks/02-word-vectors.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.805,
+        "macro_f1": 0.805
+      },
+      "embedding_checks": {
+        "neighbor_hit_rate": 0.6111,
+        "analogy_accuracy": 0.5789,
+        "analogies_scored": 19,
+        "note": "Same lists as lab02.sgns_avg_ffn, neighbors searched within the lab vocabulary; one analogy dropped because GloVe lacks one of its words."
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "Lab 1's classifier vocabulary: tokens in >= 2 training documents (min_df=2), 12,469 words; out-of-vocabulary tokens dropped",
+        "document_vector": "mean of the embeddings of the in-vocabulary tokens, standardized with train mean and std",
+        "classifier": "FeedForwardClassifier: Linear(100, 256), ReLU, Linear(256, 4); Adam lr 1e-3, weight_decay 1e-4, batch 128, 30 epochs; the epoch with the best val macro-F1 is kept",
+        "embeddings_frozen": true,
+        "train_rows": 4800,
+        "seed": 0,
+        "embeddings": "pretrained GloVe 6B 100d (Wikipedia 2014 + Gigaword 5), gensim-data release glove-wiki-gigaword-100, sha256 4934d4708bf3d65f28fc984dbbfa18af9cbd2505d166a7258a1a957808559b43, license PDDL 1.0; restricted to the lab vocabulary",
+        "vocabulary_coverage": 0.9194,
+        "missing_words": "dropped from the averages, like out-of-vocabulary tokens",
+        "stretch_section": true
       },
       "date": "2026-10-04"
     }

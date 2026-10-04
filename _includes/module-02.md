@@ -4,7 +4,7 @@
 
 From one-hot vectors to learned embeddings, with a PyTorch refresher and the first neural language model.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb)
 
 ## Learning objectives
 
