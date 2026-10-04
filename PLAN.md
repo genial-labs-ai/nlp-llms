@@ -370,11 +370,11 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 6 — Modules 7–8
 
-- [ ] Draft lecture 7: Fine-tuning and LoRA
+- [x] Draft lecture 7: Fine-tuning and LoRA
 - [x] Draft lecture 8: LLMs through APIs
 - [ ] Code `07-finetuning-lora.ipynb`
 - [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path
-- [ ] Pin OpenAI and Claude model IDs in `_variables.yml`
+- [x] Pin OpenAI and Claude model IDs in `_variables.yml`
 - [ ] Add repository secrets and make CI skip keyed paths when they are absent
 - [ ] Review: Lab 8 completes with no keys set
 

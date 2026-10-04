@@ -19,12 +19,18 @@ workshop:
   lecture_minutes: 45
   lab_minutes: 50
 
-# Model IDs and SDK pins. Pinned during the build (PLAN.md, build days 6 and 8),
-# after checking each provider's current documentation.
+# Model IDs. Checked against each provider's live documentation on 2026-10-04
+# (PLAN.md, build day 6). Re-check before each delivery: IDs retire.
+# Notebooks cannot read this file on Colab, so they repeat these IDs; a test
+# must fail if a notebook and this file disagree.
 models:
-  openai: "TBD"
-  anthropic: "TBD"
-  fallback: "TBD"
+  openai: "gpt-6-luna"
+  anthropic: "claude-haiku-4-5"
+  # Open chat model for the no-key path of the API labs (Apache 2.0).
+  fallback: "Qwen/Qwen2.5-0.5B-Instruct"
+  # Base (not instruction-tuned) causal LM fine-tuned in Lab 7 (Apache 2.0).
+  instruct_base: "HuggingFaceTB/SmolLM2-135M"
+  instruct_base_revision: "93efa2f097d58c2a74874c7e644dbc9b0cee75a2"
 
 # Colab Secrets names. The TypeSafe name is unverified until build day 8.
 secrets:
