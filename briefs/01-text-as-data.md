@@ -12,10 +12,10 @@ From the Academic Director to the Neural Lab Engineer. Lecture: `lectures/01-tex
 
 | | Language-model corpus | Classification set |
 |---|---|---|
-| Dataset | The Shakespeare corpus (proposed: Tiny Shakespeare) | The news-topic set, 4 classes (proposed: AG News subset) |
-| Train | First 90% of the characters | 10,000 examples, stratified sample of the official train split, seed 0 |
-| Validation | Next 5% | 2,000 examples, stratified, disjoint from train, same seed |
-| Test | Final 5% | The official test split, complete |
+| Dataset | Tiny Shakespeare (fixed in `data/README.md`) | arXiv Topics v1, 4 classes (fixed in `data/README.md`, which overrides this brief) |
+| Train | Characters `[0, 1,000,000)` | 4,800 examples (split stored in the file) |
+| Validation | Characters `[1,000,000, 1,055,000)` | 600 examples |
+| Test | Characters `[1,055,000, 1,115,394)` | 1,600 examples, complete |
 | Preprocessing | None for the character level: case, punctuation and newlines kept | Title and body joined with one space |
 
 Splits are contiguous for the LM corpus (no shuffling) and are computed on character offsets, so Labs 3 and 5 can reproduce them exactly. The sizes for the classification set are my proposal; if the dataset is swapped or the sizes change, change them here first, because Labs 2, 6 and 11 must use the same three splits. Put the split code in one provided cell that later labs copy verbatim.
@@ -55,8 +55,8 @@ The last core cell prints one "baseline card" with exactly these numbers and not
 
 **Classifier (compared in Labs 2 and 6; its probabilities are examined in Lab 11).**
 
-- Metrics: **accuracy and macro-F1 on the test split** of the news-topic set, plus per-class precision, recall and F1.
-- Model: TF-IDF (unigrams, the Exercise 1 tokenizer, scikit-learn default idf and L2 normalization) with multinomial logistic regression; `C` chosen on the validation split by macro-F1; trained on the 10,000-example training split only.
+- Metrics: **accuracy and macro-F1 on the test split** of the topic-classification set, plus per-class precision, recall and F1.
+- Model: TF-IDF (unigrams, the Exercise 1 tokenizer, scikit-learn default idf and L2 normalization) with multinomial logistic regression; `C` chosen on the validation split by macro-F1; trained on the 4,800-example training split only.
 - Also report naive Bayes on the same features and split, as a second reference.
 - Test metrics are computed once, after `C` is fixed.
 

@@ -9,7 +9,7 @@ Participants write the skip-gram negative-sampling (SGNS) loss, train embeddings
 
 ## Data
 
-- **Classification:** the news-topic classification set from Lab 1, with the identical train/validation/test split, tokenizer and vocabulary rule. Import or copy Lab 1's loader and seed; do not re-split. Refer to the dataset generically in prose so a license-driven swap does not force a rewrite.
+- **Classification:** the topic-classification set from Lab 1 (arXiv Topics v1, `data/README.md`), with the identical train/validation/test split, tokenizer and vocabulary rule. Import or copy Lab 1's loader and seed; do not re-split. Refer to the dataset generically in prose so a license-driven swap does not force a rewrite.
 - **Embedding corpus:** the text of that set's **training split only**, labels ignored. Reasons: it is in-domain for the classifier, it needs no second download or license, and it keeps the test split unseen. If Lab 1 subsamples the training split for its classifier, embeddings may still use the full training text, but the classifier must use Lab 1's subset.
 - **Not** the LM corpus from Labs 1 and 3: at roughly 0.2M words in an archaic register it is too small for sensible neighbors and is out of domain.
 - **Risk to measure (unverified):** I estimate the training text at a few million tokens, which should give sensible neighbors for frequent words (countries, sports, companies) and mostly wrong analogies. Measure token count, vocabulary size, pairs per epoch and seconds per epoch on a T4 before fixing hyperparameters. If neighbors are poor within the budget, report it; do not hide it with a cherry-picked word list. Fallback options to raise with the coordinator: more epochs with a smaller vocabulary, or a larger license-clean corpus.

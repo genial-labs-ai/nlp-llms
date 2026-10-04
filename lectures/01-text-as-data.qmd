@@ -230,7 +230,7 @@ A language model is also a generator. Start from a context, draw the next token 
 
 **Objective: represent a whole document as one vector.**
 
-We now switch tasks. In **text classification** the input is a document and the output is one of $C$ labels. The running example is the news-topic classification set, with $C = 4$.
+We now switch tasks. In **text classification** the input is a document and the output is one of $C$ labels. The running example is the topic-classification set: the title and abstract of an arXiv paper, labeled with one of $C = 4$ subject areas (language, vision, machine learning, robotics).
 
 A classifier needs a fixed-length input $x$. The **bag-of-words** representation gives one dimension per vocabulary entry and stores a count:
 
@@ -238,7 +238,7 @@ $$
 x \in \mathbb{R}^{|V|}, \qquad x_w = c(w, D),
 $$
 
-where $c(w, D)$ is the number of times word $w$ occurs in document $D$. Order is discarded; hence "bag". The vector is **sparse**: a news article uses a few hundred of the tens of thousands of words in $V$, so almost every entry is zero.
+where $c(w, D)$ is the number of times word $w$ occurs in document $D$. Order is discarded; hence "bag". The vector is **sparse**: an abstract uses a hundred or so of the tens of thousands of words in $V$, so almost every entry is zero.
 
 Raw counts are dominated by the frequent words that Zipf's law promised, and those words say little about the topic. **TF-IDF** (term frequency–inverse document frequency) reweights each count by how rare the word is across documents. Let $N$ be the number of training documents and $\mathrm{df}(w)$ the **document frequency**: the number of training documents that contain $w$ at least once. Then
 
