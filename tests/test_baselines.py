@@ -32,6 +32,19 @@ class Baselines(unittest.TestCase):
                 expected = f"{b['settings']['n']}: {b['metrics']['nats_per_char']}"
                 self.assertIn(expected, source, b["id"])
 
+    def test_lab_5_quotes_lab_1_values(self):
+        """Lab 5 recomputes the character trigram and 5-gram and asserts Lab 1's recorded values."""
+        path = ROOT / "notebooks" / "05-transformer-from-scratch.ipynb"
+        source = path.read_text(encoding="utf-8")
+        recorded = {
+            b["settings"]["n"]: b
+            for b in DOC["baselines"]
+            if b["id"].startswith("lab01.char_ngram.")
+        }
+        for n in (3, 5):
+            self.assertIn(f"{n}: {recorded[n]['metrics']['nats_per_char']}", source, n)
+            self.assertIn(f"{n}: {recorded[n]['settings']['k']}", source, n)
+
 
 if __name__ == "__main__":
     unittest.main()
