@@ -346,7 +346,7 @@ where $\mathbf{1}[\cdot]$ is 1 when the condition holds and 0 otherwise. In word
 
 There is no closed-form solution, so $\theta$ is found iteratively. The loss is convex, so there are no bad local minima. With $|V|$ larger than the number of training documents, the model can fit the training set perfectly, so we add an **L2 penalty** $\lambda \lVert W \rVert^2$ to the loss, where the regularization strength $\lambda \ge 0$ is a hyperparameter chosen on the validation split. (scikit-learn exposes it as the inverse, `C` $= 1/\lambda$ up to scaling; its `C` is not our class count $C$.)
 
-In **Lab 1, Exercise 5** scikit-learn fits $W$ and $b$; a provided cell named "softmax by hand" recomputes @eq-softmax in NumPy from the fitted `coef_` and `intercept_` and checks it against `predict_proba`. You implement @eq-grad yourself in Lab 2.
+In **Lab 1, Exercise 5** scikit-learn fits $W$ and $b$; a provided cell named "softmax by hand" recomputes @eq-softmax in NumPy from the fitted `coef_` and `intercept_` and checks it against `predict_proba`. You do not implement @eq-grad in this lab; in Lab 2 a provided cell checks PyTorch's automatic gradient against it.
 
 ### Which one?
 
