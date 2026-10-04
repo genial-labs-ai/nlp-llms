@@ -10,6 +10,7 @@ Run:  uv run --group execute python scripts/test_notebooks.py [slug ...]
 
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import time
@@ -19,7 +20,8 @@ import nbformat
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError
 
-NOTEBOOKS = Path(__file__).resolve().parent.parent / "notebooks"
+ROOT = Path(__file__).resolve().parent.parent
+NOTEBOOKS = ROOT / "notebooks"
 TIMEOUT_SECONDS = 900
 
 
@@ -41,6 +43,9 @@ def run(path: Path) -> tuple[bool, float, str]:
 
 
 def main() -> int:
+    # Notebooks run in a temporary directory, so point the data loader
+    # (data/README.md) at the repository's copies instead of the network.
+    os.environ.setdefault("NLP_LLMS_DATA", str(ROOT / "data"))
     wanted = set(sys.argv[1:])
     paths = [p for p in sorted(NOTEBOOKS.glob("*.ipynb")) if not wanted or p.stem in wanted]
     missing = wanted - {p.stem for p in paths}

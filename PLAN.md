@@ -136,7 +136,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** tokenise text and justify the choices; build and evaluate an n-gram language model; train a linear text classifier and read its errors.
 - **Lecture:** what makes language hard (ambiguity, sparsity, compositionality); tokenisation and normalisation; Zipf's law; n-gram language models, smoothing, perplexity; bag-of-words and TF-IDF; naive Bayes and logistic regression; evaluation (precision, recall, F1); where count-based methods stop working.
-- **Lab `01-text-as-data.ipynb`:** build a tokeniser and vocabulary; implement a bigram and trigram LM with add-k smoothing and compute perplexity; sample text from it; TF-IDF + logistic regression classifier on a news-topic subset; error analysis.
+- **Lab `01-text-as-data.ipynb`:** build a tokeniser and vocabulary; implement a bigram and trigram LM with add-k smoothing and compute perplexity; sample text from it; TF-IDF + logistic regression classifier on the topic-classification set (arXiv Topics v1, see `data/README.md`); error analysis.
 - **Stretch:** BM25 scoring (reused in Module 13).
 - **Stack:** NumPy, scikit-learn.
 - **Readings:** Jurafsky & Martin, *Speech and Language Processing* (3rd ed.), chapters on n-gram LMs and classification.
@@ -154,7 +154,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** implement an RNN and an LSTM language model; explain vanishing gradients and how gating addresses them; compare perplexity against the n-gram baseline.
 - **Lecture:** recurrent networks and backpropagation through time; vanishing and exploding gradients, gradient clipping; LSTM and GRU gates; neural language modelling, teacher forcing; sampling strategies (greedy, temperature, top-k, nucleus).
-- **Lab `03-sequence-models.ipynb`:** write an RNN cell by hand, then use `nn.LSTM`; train a character-level LM on a small corpus; measure perplexity against Lab 1's n-gram model; inspect gradient norms with and without clipping; generate text at several temperatures.
+- **Lab `03-sequence-models.ipynb`:** write an RNN cell by hand, then use `nn.LSTM`; train a character-level LM on a small corpus; measure perplexity against Lab 1's n-gram method at character level, on the same split; inspect gradient norms with and without clipping; generate text at several temperatures.
 - **Stretch:** implement top-k and nucleus sampling.
 - **Stack:** PyTorch.
 - **Readings:** Hochreiter & Schmidhuber 1997 (LSTM); Karpathy, "The Unreasonable Effectiveness of RNNs".
@@ -327,7 +327,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Add `CONTRIBUTING.md` and `CHANGELOG.md`
 - [x] Convert the four AGENTS.md personas into `.claude/agents/*.md` subagents
 - [x] Draft `_variables.yml` with all 15 modules (`n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`)
-- [ ] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents). Proposals are in `data/README.md`; licenses still to confirm
+- [x] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents). Decisions and licenses are in `data/README.md`: arXiv Topics v1 replaces AG News (license), Tiny Shakespeare, Dolly 15k. The repo-hosted fallback URLs work only once the repository is public and `data/` is on `main`
 
 ### Day 2 — Quarto initialisation
 
