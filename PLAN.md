@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status:** scaffold built (build Days 1–2). Lectures and labs are not yet written. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-04):** scaffold built (build Days 1–2); datasets fixed; lectures 1–5, 7 and 8 drafted with lab briefs in `briefs/`; Lab 01 built and run locally (not on Colab); Day 1 schematic figures done. In progress at the end of the last session, on local worktree branches not yet merged: lecture 6, Labs 02, 03, 04, 07 and 08, and the Module 1 lecture-versus-lab review. Lectures 2–5, 7 and 8 have not yet been reviewed against their labs. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
