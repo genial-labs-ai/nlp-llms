@@ -1,7 +1,7 @@
 # Lab brief: `notebooks/03-sequence-models.ipynb`
 
 **From:** Academic Director. **To:** Neural Lab Engineer. **Lecture:** `lectures/03-sequence-models.qmd`.
-**Status:** brief only. No number below has been measured; every figure marked "estimate" must be replaced by a measured one.
+**Status:** built (commit a5c4c84) and reviewed against the lecture (2026-10-05). The brief below is the original; the notebook's departures from it, and the measured values, are under "As built" at the end.
 
 ## Objectives exercised
 
@@ -49,3 +49,40 @@ Target: under 10 minutes of compute for Run all with solutions, stretch included
 - Report measured values for: test PPL and BPC of all four models, the decay factor in Exercise 3A, the tolerance in Exercise 5, and run time per section. Set the assertion thresholds from at least three seeds.
 - If the LSTM does not beat the character trigram within the budget, or if the RNN's gradient-distance curve does not decay visibly, report it to the Academic Director. Do not weaken the comparison or the assertion to make the notebook pass.
 - Lab 5 trains a mini-GPT on this corpus and compares with this LSTM. Keep the split, the vocabulary, `lm_loss_and_ppl` and the evaluation routine in a form Lab 5 can restate unchanged.
+
+## As built (Director review, 2026-10-05)
+
+The notebook departs from this brief in these ways. All are accepted; the lecture now matches the notebook.
+
+- **Baseline.** Lab 1 already measures character n-grams, so the "may be word-level" concern above did not arise. Lab 3 restates Lab 1's add-$k$ code (vectorized with NumPy), chooses $k$ on validation from Lab 1's grid, and asserts that it reproduces Lab 1's test values in `data/baselines.json` to 1e-4. It adds Lab 1's best order, the 5-gram, beside the bigram and trigram.
+- **RNN.** Trained with the participant's `rnn_cell_step` in a Python loop (`RNNLM`), not with `nn.RNN`. **LSTM.** `nn.LSTM` (`LSTMLM`), forget-gate bias initialized to 1, checked step by step against `lstm_cell_step` before training.
+- **Training.** Each step draws 64 random 128-character chunks from train, each run from $h_0 = 0$. Evaluation reads the split as one stream in 1,000-character chunks with the state carried across, after an unscored warm-up on the 1,000 characters before the split.
+- **Not equal compute.** The RNN trains for 1,000 steps (103,041 parameters) and the LSTM for 2,000 (350,593). The notebook and the lecture both say the RNN–LSTM gap is not measured at equal compute. `QUICK = True` trains each for a quarter of the steps; its numbers are not the baselines.
+- **Exercise 3A.** Measured on 64 validation chunks of 200 characters, loss at the last position only. Checkpoint: the norm at distance 1 exceeds the norm at distance 199 by more than 1e4 (in the build runs the ratio was infinite because the gradient underflowed to 0).
+- **Exercise 3B demonstration.** Plain SGD at learning rate 2.0, 150 steps, batch 32, chunk length 64, with and without the participant's `clip_gradients` at $\kappa = 1$, instead of a high learning rate with Adam: Adam's normalized steps hide most of clipping's effect. Asserts that the unclipped run ends above $\ln 65$ and the clipped run at least 1 nat lower.
+- **Exercise 4 follow-up.** The gradient–distance plot is repeated for the LSTM, unrolled with `lstm_cell_step`, with forget-gate statistics printed. Checkpoint: LSTM/RNN gradient ratio at distance 50 above 1e3.
+- **Results checkpoint.** LSTM test perplexity at least 1.0 below the trigram's (`PPL_MARGIN`), and below the 5-gram's.
+- **Exercise 5.** `TV_TOL = 0.02` (largest measured over 200 seeds and 3 temperatures: 0.012). Generation also prints an RNN sample at $\tau = 1$.
+- **Minutes.** The notebook's headings now sum to 50: exercises 8 + 6 + 9 + 6 + 8, and the three provided runs 2 (n-gram baseline) + 4 (RNN training) + 7 (LSTM training, gradient plot, results table). The brief's 2 minutes of slack went to the runs. These minutes assume each training run finishes within its section on a T4, which has not been measured.
+
+### Measured (full settings, CPU, seed 0)
+
+Test split, 60,394 characters, recorded in `data/baselines.json`:
+
+| Model | nats/char | PPL | BPC |
+|---|---|---|---|
+| 2-gram, $k = 0.1$ (Lab 1) | 2.4922 | 12.09 | 3.60 |
+| 3-gram, $k = 0.1$ (Lab 1) | 2.0859 | 8.05 | 3.01 |
+| 5-gram, $k = 0.01$ (Lab 1's best) | 1.8326 | 6.25 | 2.64 |
+| RNN, 1,000 steps | 1.6959 | 5.45 | 2.45 |
+| LSTM, 2,000 steps | 1.6114 | 5.01 | 2.32 |
+
+From the Neural Lab Engineer's report of the same run (not recorded in `data/baselines.json`): trained RNN $\lVert W \rVert \approx 5.2$; the RNN's gradient underflows to 0 from distance about 138; LSTM/RNN gradient ratio at distance 50 about 5e4; LSTM forget gates mean 0.74; clipping demonstration final loss 9.34 unclipped, 2.11 clipped. Run all: 72 minutes at full settings and 26 with `QUICK = True`, on a shared 4-vCPU CPU.
+
+## Not verified by the Director
+
+- The notebook was not executed in this review; the numbers above are the engineer's. The gradient, forget-gate and clipping numbers are not in `data/baselines.json`, so no test checks them against the lecture.
+- Run time on a Colab T4, and therefore whether the 50 minutes and the 10-minute compute target hold. On a CPU runtime they do not: 72 minutes of compute at full settings.
+- The comment in Checkpoint 3A says the gradient underflowed to 0 "before distance 110" in every build run; the engineer reports about 138 for the full-settings run. One of the two needs correcting (Neural Lab Engineer).
+- The brief asked for assertion thresholds set from at least three seeds. The checkpoint comments cite seed 0 at full settings and seeds 1 and 2 with `QUICK = True` only.
+- How much of the RNN's gradient decay comes from saturated units and how much from the structure of $W$ (the lecture says the lab does not separate them).
