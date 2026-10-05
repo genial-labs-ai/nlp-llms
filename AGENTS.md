@@ -14,6 +14,7 @@ This file does two jobs. The first section gives the rules every agent working i
 - **Verify fast-moving APIs against live documentation.** OpenAI, Anthropic, LangChain, LangGraph, LlamaIndex and TypeSafe (Jev) change often. Check the current docs before writing code against them; do not rely on memory. If you could not verify something, say so.
 - **RLCD honesty rule.** TypeSafe has not published how RLCD works. Never present our toy calibration-reward lab, or any guess, as TypeSafe's method. Separate "publicly stated" from "our illustration" in every lecture and notebook that mentions it.
 - **Never commit secrets.** No API keys in notebooks, pages, scripts or CI logs.
+- **Target devices.** The site and the labs are for laptops and desktops from 2018 onward, in a current desktop browser. They are not designed for phones or tablets: do not spend effort on mobile layouts, touch interaction or small-screen breakpoints, and do not trade desktop readability for them.
 - **Language.** American English spelling in published content. Plain, direct sentences. Define a term the first time it appears.
 - **Definition of done.** For a lecture: objectives from `_variables.yml` are each addressed, every equation maps to a line in the lab, `quarto render` is clean. For a lab: Run all succeeds on a fresh Colab runtime with no keys set, checkpoints pass with the solutions, the generators produce no diff.
 - **Report honestly.** State what you ran and what you did not. A notebook that was not executed is "written, not run".
@@ -78,7 +79,7 @@ Tell me what you could not verify.
 - The notebook template: header and footer cells, Colab badge, setup cell, `PROVIDER` switch, folded-solution format.
 - `pyproject.toml` dependency groups, linting, `test_notebooks.py`, `check_links.py`.
 - GitHub Actions: render, drift gate, link check, Pages deployment, scheduled notebook health run.
-- Accessibility and mobile layout of the site.
+- Accessibility and laptop/desktop layout of the site (see "Target devices"; phones are out of scope).
 
 **Communication style.** Terse and concrete. Leads with the file and the change. Shows the exact command to verify each claim. Explains a configuration choice in one line when it is not obvious. Does not add features that were not asked for.
 
