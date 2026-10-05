@@ -24,6 +24,13 @@
       "machine": "Linux x86_64 container, 4 vCPU, CPU only, 2 PyTorch threads, shared with other agents' training jobs (load average 5 to 10); full (T4) configuration executed on CPU; not run on Colab or a GPU",
       "python": "3.12.3",
       "torch": "2.14.1+cu130"
+    },
+    "lab11": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with another agent, CPU only; not run on Colab",
+      "python": "3.12.3",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1"
     }
   },
   "baselines": [
@@ -511,6 +518,135 @@
         "seed": 0,
         "mode": "full (the configuration designed for a T4), executed on CPU",
         "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C1",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8875,
+        "mean_confidence": 0.7234,
+        "ece_15": 0.1641,
+        "ece_15_equal_mass": 0.1641,
+        "brier": 0.2111,
+        "log_loss": 0.4356,
+        "tau_star": 0.4685,
+        "ece_15_after": 0.0094,
+        "brier_after": 0.1637,
+        "log_loss_after": 0.3033
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 1, recomputed in Lab 11",
+        "C": 1.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C10",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8838,
+        "mean_confidence": 0.8617,
+        "ece_15": 0.0231,
+        "ece_15_equal_mass": 0.0247,
+        "brier": 0.1662,
+        "log_loss": 0.3142,
+        "tau_star": 0.7895,
+        "ece_15_after": 0.018,
+        "brier_after": 0.1645,
+        "log_loss_after": 0.3065,
+        "ece_by_bins": {
+          "5": 0.022,
+          "15": 0.0231,
+          "50": 0.0379,
+          "100": 0.0548
+        },
+        "ece_15_noise_floor": 0.0193,
+        "selective_l_wrong_10_l_defer_1": {
+          "act on everything": {
+            "lambda": 0.0,
+            "coverage": 1.0,
+            "risk": 0.1163,
+            "cost/case": 1.1625
+          },
+          "defer everything": {
+            "lambda": null,
+            "coverage": 0.0,
+            "risk": null,
+            "cost/case": 1.0
+          },
+          "Chow, lambda* = 0.9": {
+            "lambda": 0.9,
+            "coverage": 0.5781,
+            "risk": 0.0216,
+            "cost/case": 0.5469
+          },
+          "lambda chosen on val": {
+            "lambda": 0.8422,
+            "coverage": 0.6762,
+            "risk": 0.0287,
+            "cost/case": 0.5175
+          },
+          "Chow after temperature scaling": {
+            "lambda": 0.9,
+            "coverage": 0.6931,
+            "risk": 0.0298,
+            "cost/case": 0.5131
+          }
+        }
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 10, recomputed in Lab 11",
+        "C": 10.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C100",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8819,
+        "mean_confidence": 0.9245,
+        "ece_15": 0.0435,
+        "ece_15_equal_mass": 0.0434,
+        "brier": 0.1755,
+        "log_loss": 0.3387,
+        "tau_star": 1.3017,
+        "ece_15_after": 0.0173,
+        "brier_after": 0.171,
+        "log_loss_after": 0.3187
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 100, recomputed in Lab 11",
+        "C": 100.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
       },
       "date": "2026-10-05"
     }
