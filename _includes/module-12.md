@@ -12,4 +12,4 @@ By the end of this module you can:
 
 - State how RLCD's objective differs from RLHF's, and what is and is not public about it
 - Call Jev for typed decisions
-- Use its confidence to set action thresholds
+- Turn its probabilities into act, ask and escalate thresholds from stated costs
