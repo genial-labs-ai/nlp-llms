@@ -13,6 +13,12 @@
       "torch": "2.14.1+cu130",
       "numpy": "2.5.3",
       "scikit-learn": "1.9.1"
+    },
+    "lab03": {
+      "machine": "Linux container, 4 vCPU, CPU only, 2 PyTorch threads on a machine shared with other training jobs; not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3"
     }
   },
   "baselines": [
@@ -364,6 +370,72 @@
         "stretch_section": true
       },
       "date": "2026-10-04"
+    },
+    {
+      "id": "lab03.rnn_lm",
+      "notebook": "notebooks/03-sequence-models.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.6959,
+        "perplexity": 5.4515,
+        "bits_per_char": 2.4467
+      },
+      "val_metrics": {
+        "nats_per_char": 1.6275
+      },
+      "settings": {
+        "model": "character RNN LM, tanh, hand-written cell (rnn_cell_step) in a Python loop",
+        "steps": 1000,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train: random chunks of 128 characters, sampled with replacement from all of train",
+        "d": 64,
+        "d_h": 256,
+        "layers": 1,
+        "chunk_T": 128,
+        "batch_size": 64,
+        "optimizer": "Adam, lr 0.002",
+        "gradient_clipping_kappa": 1.0,
+        "loss": "lm_loss_and_ppl (mean cross-entropy, nats)",
+        "scored": "every character of the split; state carried across 1,000-character chunks; warm-up on the 1,000 characters before the split, not scored",
+        "seed": 0,
+        "device": "cpu",
+        "tuned_on_test": false
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab03.lstm_lm",
+      "notebook": "notebooks/03-sequence-models.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.6114,
+        "perplexity": 5.0098,
+        "bits_per_char": 2.3247
+      },
+      "val_metrics": {
+        "nats_per_char": 1.5316
+      },
+      "settings": {
+        "model": "character LSTM LM, nn.LSTM, forget-gate bias initialized to 1",
+        "steps": 2000,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train: random chunks of 128 characters, sampled with replacement from all of train",
+        "d": 64,
+        "d_h": 256,
+        "layers": 1,
+        "chunk_T": 128,
+        "batch_size": 64,
+        "optimizer": "Adam, lr 0.002",
+        "gradient_clipping_kappa": 1.0,
+        "loss": "lm_loss_and_ppl (mean cross-entropy, nats)",
+        "scored": "every character of the split; state carried across 1,000-character chunks; warm-up on the 1,000 characters before the split, not scored",
+        "seed": 0,
+        "device": "cpu",
+        "tuned_on_test": false
+      },
+      "date": "2026-10-05"
     }
   ]
 }
