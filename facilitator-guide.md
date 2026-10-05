@@ -44,6 +44,8 @@ The workshop was built in a container with no GPU, no access to the Hugging Face
 
 **Model retirement.** Lab 8 and lecture 8 pin `{{< var models.anthropic >}}`. On 2026-10-05 Anthropic listed its retirement as "not sooner than October 15, 2026". Check both providers' deprecation pages before every delivery.
 
+**Module 0 has not been tried on a laptop.** No one has yet installed the three coding agents and built and published the two apps on a fresh macOS, Windows or Linux machine. The install commands and the failures listed in [Module 0](#module-0) come from each tool's documentation, not from a run.
+
 ## Before the workshop
 
 ### A week before
@@ -53,6 +55,7 @@ The workshop was built in a container with no GPU, no access to the Hugging Face
 3. Ask TypeSafe for workshop keys. A room of 30 on one key makes about 12,000 Jev calls in Lab 12, 48,000 in Lab 13's reranking and 15,000 in Lab 14. Rate limits are unknown.
 4. Check the model IDs against the providers' deprecation pages: `{{< var models.openai >}}`, `{{< var models.anthropic >}}`, and the open fallback `{{< var models.fallback >}}`.
 5. Check that the blocking items above are cleared.
+6. Decide whether you will open the room at 08:00 on Day 1 for [Module 0](#module-0), and tell participants. If you will not, send them its page as pre-work. Ask anyone on a managed work laptop to check now that they may install software.
 
 ### The day before
 
@@ -99,6 +102,27 @@ Say this out loud on Day 3, before Lab 12, and again on Day 4. TypeSafe's SDK is
 - **Run all always completes.** Each `# TODO` cell is followed by a folded solution, and Run all runs the solutions after the participants' cells. To test their own code, participants run the `# TODO` cell and then the checkpoint, skipping the solution.
 - **Checkpoints are numbered by exercise.** Checkpoint 3 belongs to Exercise 3. Some labs split a checkpoint (3a, 3b).
 - **Data files** are fetched with a hash check. `fetch` looks in a local `data/` folder first. If a URL fails in the room, download the file from the repository on one machine, upload it to the Colab **Files** panel into a folder named `data`, and rerun the cell.
+
+## Module 0 · {{< var modules.m00.title >}} {#module-0}
+
+Day 1, 08:00–09:00, before the welcome. Optional, and also usable as pre-work. Nothing later in the workshop depends on it.
+
+**What the hour looks like.** There is no talk. Participants work through the [Module 0 page](lectures/00-coding-agents.qmd) on their own laptops, at their own pace. Each one installs a terminal coding agent (Claude Code, Codex or Gemini CLI), sets up git and the GitHub CLI (`gh`), uses the agent to build two small apps in one language of their choice, Python or R (a protein structure explorer for ubiquitin, PDB entry 1UBQ, and an RFM customer segmentation, each with a three.js page), and publishes both on GitHub Pages. Your job is to unblock installs and sign-ins. Expect most problems before anyone writes a prompt: installs, sign-ins and git setup.
+
+**The 08:00 room.** Open at 07:50. Put the Wi-Fi details and the Module 0 page URL on the screen. Have power at every table: installers and agents drain batteries. Have at least one helper who has done the module on each of macOS, Windows and Linux. Keep this section open on a second screen. At 08:55 tell everyone to stop where they are and finish from the page at home.
+
+**Common install failures.** Tool-specific facts come from each tool's README or setup page, and GitHub's Pages documentation, read on {{< var agents_intro.checked >}}; the rest is standard practice. None has been reproduced on a laptop.
+
+- **Node.js version (all systems).** Codex and Gemini CLI install with `npm install -g`, and their npm packages require Node `{{< var agents_intro.node.codex >}}` and `{{< var agents_intro.node.gemini >}}` respectively. Claude Code's npm package requires Node `{{< var agents_intro.node.claude_code >}}`, but its npm install is deprecated: its native installer needs no Node at all. Run `node --version` first. A Node from an old Linux distribution's package manager is often too old; install a current LTS release from nodejs.org or a version manager such as nvm.
+- **`command not found` after an install (all systems).** Open a new terminal first. The Claude Code native installer puts `claude` in `~/.local/bin`, which may not be on `PATH`. For npm installs, the global `bin` folder is under `npm prefix -g`. On macOS and Linux, an `EACCES` error from `npm install -g` means npm is writing to a system folder: do not use `sudo`; switch to a version manager or a user-owned npm prefix.
+- **macOS.** The first `git` command may ask to install the Xcode Command Line Tools. Accept and wait; it takes several minutes, so start it early.
+- **Windows.** Claude Code runs natively (Git for Windows is recommended, so it can use Bash) or inside WSL 2; WSL 1 is not supported. In WSL, install and run everything inside the WSL terminal, not PowerShell. If `which node` inside WSL points to a path under `/mnt/c/`, it is the Windows Node: install Node inside WSL. We have not checked Codex's or Gemini CLI's Windows notes beyond their READMEs, which give a PowerShell installer for Codex.
+- **Corporate proxies and TLS inspection.** Errors such as `SELF_SIGNED_CERT_IN_CHAIN` or `unable to get local issuer certificate` mean a proxy is re-signing traffic. Point the tools at the company's CA bundle (`NODE_EXTRA_CA_CERTS` for Node tools, `git config http.sslCAInfo` for git) and set `HTTPS_PROXY` if the network needs it. Never turn TLS verification off. If the network blocks the agent's service, tether to a phone or pair with someone.
+- **`gh auth login`.** Choose GitHub.com, HTTPS and "Login with a web browser", then paste the one-time code. Check with `gh auth status`. If `git push` still asks for a password, run `gh auth setup-git`. If a commit fails with "Please tell me who you are", set `git config --global user.name` and `user.email`. Work laptops signed in to an enterprise-managed GitHub account can publish Pages only from organization repositories: use a personal account.
+- **GitHub Pages returns 404.** Pages must be switched on for the repository (Settings → Pages). After that, GitHub's documentation says changes can take up to 10 minutes to publish, so a 404 in the first few minutes is normal. The entry file must be named exactly `index.html`. On a free account, Pages works only for public repositories.
+- **The three.js page is blank when opened from disk.** A page that loads three.js as an ES module will not run from a `file://` URL in most browsers. Serve the folder locally (for example `python -m http.server`) or check the published Pages URL instead.
+
+**No agent subscription.** Claude Code needs a Pro, Max, Team, Enterprise or Console account; the free Claude plan does not include it (Claude Code setup documentation, read {{< var agents_intro.checked >}}). Codex's README asks users to sign in with a ChatGPT Plus, Pro, Business, Edu or Enterprise plan, or to use an API key; we could not read OpenAI's plan pages from the build environment, so do not tell anyone Codex is free. Gemini CLI's README states a free tier for a personal Google account (60 requests a minute and 1,000 a day). So a participant with no subscription can use Gemini CLI with a personal Google account, after reading its terms, or pair with someone who has an agent; the person without the agent drives git, `gh` and Pages. Recheck these plan terms before each delivery.
 
 ## Each morning: the first ten minutes
 

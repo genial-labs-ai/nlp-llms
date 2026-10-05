@@ -159,9 +159,12 @@ datasets:
     documents: 13
     characters: 544974
 
-# The daily clock. `module` slots take the day's modules in order.
+# The daily clock. `module` slots take the day's modules in order. The
+# `self_serve` slot is optional and unstaffed: it shows a day's `self_serve`
+# module and stays empty on days that have none.
 schedule:
   slots:
+    - {start: "08:00", end: "09:00", kind: self_serve}
     - {start: "09:00", end: "09:10", kind: opening}
     - {start: "09:10", end: "10:45", kind: module}
     - {start: "10:45", end: "11:00", kind: break, label: "Break"}
@@ -178,6 +181,7 @@ days:
     short: "Foundations"
     question: "How do we turn text into something a model can learn from?"
     opening: "Welcome, setup check"
+    self_serve: {module: m00, label: "Coding agents in the terminal (self-serve)"}
     slots: [m01, m02, m03, m04]
   d2:
     n: 2
@@ -211,7 +215,43 @@ setup:
   minutes: 10
   summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
 
+# Module 0 (coding agents). npm package names, and the version on each package's
+# "latest" dist-tag, read from registry.npmjs.org on `checked`. `node` is each
+# package's `engines.node`. Claude Code's npm install is deprecated in favor of its
+# native installer (code.claude.com/docs/en/setup), which needs no Node.js.
+# Re-check before each delivery: these CLIs release several times a week.
+agents_intro:
+  checked: "2026-10-05"
+  threejs: "0.186.1"
+  clis:
+    claude_code: "@anthropic-ai/claude-code"
+    codex: "@openai/codex"
+    gemini: "@google/gemini-cli"
+  cli_versions:
+    claude_code: "2.1.289"
+    codex: "0.160.1"
+    gemini: "0.62.0"
+  node:
+    claude_code: ">=22.0.0"
+    codex: ">=16"
+    gemini: ">=20"
+
+# `notebook: false` marks a module with no Colab lab (Module 0 runs in the
+# participant's own terminal). Every other module has notebooks/<slug>.ipynb.
 modules:
+  m00:
+    n: 0
+    slug: 00-coding-agents
+    day: 1
+    minutes: 60
+    notebook: false
+    title: "Coding agents in the terminal"
+    summary: "Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work."
+    objectives:
+      - "Install and drive a terminal coding agent"
+      - "Build and check two small data apps with it"
+      - "Publish them with GitHub and GitHub Pages"
+    stack: [Claude Code, Codex, Gemini CLI, git, GitHub CLI, Python or R, three.js]
   m01:
     n: 1
     slug: 01-text-as-data

@@ -8,6 +8,10 @@ toc: false
 
 Day 1 starts from counting words and ends at attention. Each module fixes a specific weakness of the one before it, and the same small datasets run through all four labs so you can measure the improvement.
 
+::: {.callout-tip appearance="simple"}
+**Optional, 08:00–09:00: [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd).** A self-serve hour before the 09:00 welcome. You install a terminal coding agent, build two small data apps with it in Python or R, and publish them on GitHub Pages. You can also do it at home as pre-work. Nothing later in the workshop depends on it.
+:::
+
 {{< include /_includes/day-1.md >}}
 
 Times are on the [schedule](schedule.qmd).

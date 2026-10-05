@@ -20,9 +20,11 @@ Every module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< 
 
 Each lab has a core path sized for the lab slot and one optional stretch section. If a group runs slow, skip the stretch; nothing later depends on it.
 
+Module 0 is the exception: a self-serve hour, 08:00–09:00 on Day 1, with no lecture and no notebook. Participants work through its page on their own laptops; you open the room and help with installs. See its section in the [facilitator guide](facilitator-guide.md#module-0).
+
 ## Before the workshop
 
-- Ask participants to complete [Setup](setup.qmd) the day before.
+- Ask participants to complete [Setup](setup.qmd) the day before, and tell them whether the room opens at 08:00 on Day 1 for [Module 0](lectures/00-coding-agents.qmd) or whether they should do it as pre-work.
 - Decide whether you will provide API keys or rely on the open-model path. Both work.
 - Run every notebook on a fresh Colab runtime the week before. Colab's preinstalled packages change.
 

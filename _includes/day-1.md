@@ -2,6 +2,7 @@
 
 | # | Module | What you will do | Lab |
 |---|---|---|---|
+| 0 | [Coding agents in the terminal](lectures/00-coding-agents.qmd) | Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work. | No notebook: runs in your terminal |
 | 1 | [Text as data](lectures/01-text-as-data.qmd) | Tokenization, n-gram language models, TF-IDF and linear classifiers: the count-based baseline everything else is measured against. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb) |
 | 2 | [Word vectors and neural networks](lectures/02-word-vectors.qmd) | From one-hot vectors to learned embeddings, with a PyTorch refresher and the first neural language model. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb) |
 | 3 | [Sequence models](lectures/03-sequence-models.qmd) | RNNs, LSTMs and neural language modeling, and why gradients vanish over long sequences. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/03-sequence-models.ipynb) |

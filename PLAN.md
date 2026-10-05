@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status (2026-10-05):** All 15 lectures and lab briefs drafted; all 16 notebooks written. Labs 01–05 run end to end on CPU; Labs 06–15 run only on their offline paths (stand-ins, stubs, the local toy decider), because the build container has no Hub access and no API keys. Human work outstanding: the decision-set hand items and audit, Lab 13's 80 questions and the capstone's 45 (after the corpus snapshot is frozen), and TypeSafe's own statements in lecture 12. Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-05):** All 15 lectures and lab briefs drafted; all 16 notebooks written. Labs 01–05 run end to end on CPU; Labs 06–15 run only on their offline paths (stand-ins, stubs, the local toy decider), because the build container has no Hub access and no API keys. Human work outstanding: the decision-set hand items and audit, Lab 13's 80 questions and the capstone's 45 (after the corpus snapshot is frozen), and TypeSafe's own statements in lecture 12. Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. Module 0 (coding agents in the terminal; optional, self-serve, Day 1 08:00–09:00) was added on 2026-10-05: it is wired into `_variables.yml`, the generators, tests and pages; its page, reference solutions and data are being written. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -11,8 +11,8 @@ A 4-day intensive workshop by Genial Labs. This file is the master plan: curricu
 | | |
 |---|---|
 | **Title** | From Traditional NLP to Modern LLMs: n-grams, attention, RLHF, RLCD and agents |
-| **Length** | 4 days, 09:00–17:00, 15 modules (the capstone takes a double slot) |
-| **Module shape** | 95 minutes: about 45 min lecture, 50 min Colab lab |
+| **Length** | 4 days, 09:00–17:00, 15 modules (the capstone takes a double slot), plus an optional self-serve Module 0 on Day 1, 08:00–09:00 |
+| **Module shape** | 95 minutes: about 45 min lecture, 50 min Colab lab. Module 0 is 60 minutes, self-serve, with no lecture and no notebook |
 | **Audience** | ML practitioners: comfortable with Python, NumPy and basic ML, some PyTorch |
 | **Site** | Quarto website, deployed to GitHub Pages |
 | **Labs** | Google Colab notebooks, free-tier T4 runtime |
@@ -77,9 +77,10 @@ nlp-llms/
 ├── setup.qmd                Colab, API keys via Colab Secrets, open-model fallback
 ├── schedule.qmd             four-day timetable (generated table)
 ├── day-1.qmd … day-4.qmd    day index pages
-├── lectures/                one page per module: 01-text-as-data.qmd … 15-capstone.qmd
+├── lectures/                one page per module: 00-coding-agents.qmd … 15-capstone.qmd
 ├── notebooks.qmd            notebook index with Colab badges (generated table)
-├── notebooks/               00-setup.ipynb, 01-… to 15-….ipynb (no outputs committed)
+├── notebooks/               00-setup.ipynb, 01-… to 15-….ipynb (no outputs committed; Module 0 has none)
+├── agents-intro/            Module 0 reference solutions (the two apps)
 ├── references.qmd           papers, courses, docs
 ├── faq.qmd
 ├── teach.qmd                instructor hub
@@ -98,12 +99,12 @@ nlp-llms/
 
 ### Conventions copied from `tensors-workshop`
 
-- **One ID per module.** `NN-kebab-slug` is the same for the lecture page, the notebook and the `_variables.yml` key (`m01` … `m15`).
+- **One ID per module.** `NN-kebab-slug` is the same for the lecture page, the notebook and the `_variables.yml` key (`m00` … `m15`). Module 0 has `notebook: false`: a lecture page but no notebook.
 - **`_variables.yml` is the single source of truth.** Each module entry holds `n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`. Pages read it with `{{< var modules.m01.title >}}`; the generator scripts read it too. Model IDs and package pins also live here, so a version bump is a one-line change.
 - **Generated files are never edited by hand.** `scripts/gen_tables.py` writes the tables in `_includes/` and the marked regions in `README.md`. `scripts/gen_notebooks.py` owns the first cell (title, Colab badge, time, objectives) and the last cell (next notebook, site link) of every notebook, strips outputs and execution counts, and is idempotent. CI fails if running the generators changes anything.
 - **Notebooks are not executed at render time.** `_quarto.yml` lists pages explicitly under `render:` and ships `notebooks/*.ipynb` as `resources:`. There is no `_freeze/`.
 - **Deploy from an Actions artifact.** `publish.yml` renders to `docs/`, which is gitignored, and deploys with `actions/deploy-pages`.
-- **Navbar only, no sidebar.** Home, Schedule, Days (dropdown: Day 1–4), Notebooks, References, Teach, FAQ.
+- **Navbar only, no sidebar.** Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ.
 
 ### Deliberately left out of v1
 
@@ -115,6 +116,7 @@ Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the N
 
 | Time | Day 1: Foundations | Day 2: Transformers and LLMs | Day 3: Training objectives | Day 4: RAG, agents, capstone |
 |---|---|---|---|---|
+| 08:00–09:00 | 0 · Coding agents in the terminal (optional, self-serve) | | | |
 | 09:00–09:10 | Welcome, setup check | Recap of Day 1 | Recap of Day 2 | Recap of Day 3 |
 | 09:10–10:45 | 1 · Text as data | 5 · The transformer | 9 · Reinforcement and preference learning | 13 · Retrieval-augmented generation |
 | 10:45–11:00 | Break | Break | Break | Break |
@@ -131,6 +133,16 @@ Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the N
 Each module lists objectives, the lecture outline, the lab, and key readings. Lab names are the notebook file names under `notebooks/`. Every lab has a core path that fits 50 minutes and one optional stretch section (see section 5).
 
 ### Day 1 — Foundations: from counts to attention
+
+#### Module 0 · Coding agents in the terminal (optional, self-serve, 08:00–09:00)
+
+- **Objectives:** install and drive a terminal coding agent; build and check two small data apps with it; publish them with GitHub and GitHub Pages.
+- **Format:** 60 minutes before the 09:00 welcome, also usable as pre-work. No lecture and no notebook: participants follow the page on their own laptops while facilitators help with installs. Nothing later depends on it.
+- **Page:** `lectures/00-coding-agents.qmd`.
+- **What participants do:** install one coding agent (Claude Code, Codex or Gemini CLI); set up git and the GitHub CLI; in one language of their choice (Python or R), have the agent build (1) a protein structure explorer for ubiquitin (PDB 1UBQ) and (2) an RFM customer segmentation, each with a three.js page; check each app; publish both on GitHub Pages.
+- **Reference solutions:** `agents-intro/`, with data files recorded as `datasets` entries in `_variables.yml`.
+- **Stack:** a coding agent CLI, git, GitHub CLI, Python or R, three.js. npm package names and the versions checked on 2026-10-05 are in `_variables.yml` under `agents_intro`.
+- **Instructor notes:** room setup, install failures per OS and the no-subscription fallback are in `facilitator-guide.md`; a provisional minute plan is in `instructor-pace.md`.
 
 #### Module 1 · Text as data
 
@@ -321,6 +333,7 @@ Every notebook must meet all of these.
 | Lab 11 depends on the Lab 6 logits | `lab06_logits.npz` needs a T4 run with Hub access; without it Lab 11 analyzes the Lab 1 classifier, which is close to calibrated, so the encoder half of lecture 11's section 5 is unmeasured | Lab 11 falls back automatically; an always-on regularization sweep shows temperature scaling in both directions; commit the file after Lab 6's T4 run |
 | Decision set labels need two human annotators | An agent can build the generator but cannot provide independent human labels or write the hand items (the spec forbids model-written items) | Romeo and one instructor write and label 80 hand items and audit 60 template items (estimated 2–3 hours each) |
 | Labs 9 and 10 depend on GPT-2 | They need the Hub (and Lab 10 a GPU); the build container has neither | Build Lab 9's data files and run Lab 10's seed protocol on a Colab T4 |
+| Module 0 tools change fast | The agent CLIs release several times a week, and their install methods and plan terms change (Claude Code's npm install is already deprecated). Only Gemini CLI states a free tier (personal Google account); Claude Code needs a paid plan or Console account; OpenAI's Codex plan pages could not be read from the build container | Versions and the check date live in `_variables.yml` `agents_intro`; re-check installs and plan terms before each delivery; participants without a subscription pair up or use Gemini CLI |
 | Build container network | The cloud build environment blocks huggingface.co, so Labs 6–8's model paths and the Lab 6/7 data files cannot be produced there | Allow huggingface.co in the environment's network settings, or run those steps on Colab |
 
 ---
@@ -431,6 +444,15 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Add `health.yml` (scheduled notebook run) (written: weekly offline, Hub and manual keyed legs; validated with actionlint; not yet run on GitHub)
 - [ ] Final `README.md` with badges and the generated module table
 - [ ] Tag `v1.0.0`, update `CHANGELOG.md`, confirm the deployed site
+
+### Module 0 — Coding agents in the terminal (added 2026-10-05)
+
+- [ ] Draft `lectures/00-coding-agents.qmd` (a generated stub holds its place)
+- [ ] Reference solutions under `agents-intro/` for both apps, in each language the page offers, with checks
+- [ ] Data files for the two apps, with `datasets` entries in `_variables.yml`
+- [x] Wiring: `modules.m00` (`notebook: false`), the `self_serve` slot and `days.d1.self_serve`, `agents_intro` versions; generators, tests, navbar, day, schedule, setup, index and teach pages; facilitator guide and pace sheet sections; `agents-intro` in the ruff paths (remove `agents-intro/.gitkeep` once the solutions land)
+- [ ] Verify every install command (the three agents, git, `gh`) against each tool's current documentation, and refresh `agents_intro`, before each delivery
+- [ ] Run Module 0 end to end on a fresh laptop per OS (macOS, Windows native and WSL 2, Linux); record the times and replace the provisional rows in `instructor-pace.md`
 
 ### Ongoing review (after v1.0)
 
