@@ -13,9 +13,11 @@
   images/08-validate-retry.svg      parse, validate, retry (section 4)
   images/08-tool-loop.svg           the tool-calling loop as a state machine (section 5)
 
-These are schematics: no figure here shows measured data. The only numbers are
-the attention weights in 05-causal-mask.svg, which are invented to show the
-pattern and are labeled as illustrative in the figure and in its caption.
+These are schematics, with one exception: the attention weights in
+05-causal-mask.svg are measured. They are read from images/05-attention-heads.json,
+the weights of the trained Lab 5 mini-GPT on the six characters "To be,"
+(layer 3, head 3; see MEASURED_HEAD below), and the figure and its caption say so.
+The weights drawn in 05-self-attention.svg are illustrative and labeled as such.
 
 The style block and arrow markers are copied from the Day 1 schematics
 (images/02-*.svg to 04-*.svg). Each figure also gets an opaque white backdrop,
@@ -31,12 +33,18 @@ Run:  python scripts/make_figures_05_08.py      (standard library only)
 
 from __future__ import annotations
 
+import json
 import unicodedata
 from pathlib import Path
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent.parent
 IMAGES = ROOT / "images"
+# The measured head drawn in 05-causal-mask.svg: (layer, head), counted from 1.
+# Layer 3, head 3 spreads its weight over several earlier characters, so the
+# lower triangle is visibly filled; the near one-hot heads of layer 1 show the
+# mask less clearly.
+MEASURED_HEAD = (3, 3)
 
 NAVY, ACCENT, INK, MUTED = "#16324f", "#b3541e", "#1f2933", "#52606d"
 RULE, DIM, PALE = "#c5ced8", "#9aa5b1", "#f4f6f9"
@@ -345,16 +353,14 @@ def fig_self_attention() -> str:
 def fig_causal_mask() -> str:
     W, H = 680, 470
     chars = ["T", "o", "␣", "b", "e", ","]
-    weights = [
-        [1.00],
-        [0.35, 0.65],
-        [0.15, 0.30, 0.55],
-        [0.10, 0.10, 0.50, 0.30],
-        [0.05, 0.10, 0.15, 0.55, 0.15],
-        [0.10, 0.05, 0.20, 0.10, 0.20, 0.35],
-    ]
-    for row in weights:
-        assert abs(sum(row) - 1) < 1e-9
+    layer, head = MEASURED_HEAD
+    data = json.loads((IMAGES / "05-attention-heads.json").read_text(encoding="utf-8"))
+    A = data["heads"]["To be,"][layer - 1][head - 1]  # row t, column i; stored to 4 decimals
+    assert len(A) == 6 and all(len(row) == 6 for row in A)
+    for t, row in enumerate(A):
+        assert all(v == 0 for v in row[t + 1 :]), "measured weights above the diagonal must be 0"
+        assert abs(sum(row) - 1) < 1e-3, "each measured row must sum to 1"
+    weights = [row[: t + 1] for t, row in enumerate(A)]
     gx, gy, c = 176, 98, 48
     n = 6
     defs = [
@@ -435,16 +441,25 @@ def fig_causal_mask() -> str:
         f'<rect x="{gx + 58}" y="{ly - 12}" width="100" height="13" fill="url(#g)" stroke="{RULE}"/>'
     )
     b.append(text(gx + 168, ly - 1, "1", "note"))
-    b.append(text(W - 20, ly - 1, "illustrative weights, not measured", "note acc", anchor="end"))
+    b.append(
+        text(
+            W - 20,
+            ly - 1,
+            f"measured: Lab 5 mini-GPT, layer {layer}, head {head}",
+            "note acc",
+            anchor="end",
+        )
+    )
     return svg(
         W,
         H,
-        "The causal mask on the attention weights",
+        f"The causal mask on measured attention weights (Lab 5, layer {layer}, head {head})",
         "A six by six grid for the characters T, o, space, b, e and comma. Rows are the asking position t, "
         "columns the position i that is read. Cells on and below the diagonal hold attention weights, "
-        "shaded darker for larger values and printed as numbers; each row sums to 1, and row 1 is a single "
-        "cell of weight 1. Cells above the diagonal are hatched: their scores are minus infinity before the "
-        "softmax, so their weights are 0 after it. The weights are illustrative, not measured.",
+        "shaded darker for larger values and printed as numbers rounded to two decimals; each row sums to 1, "
+        "and row 1 is a single cell of weight 1. Cells above the diagonal are hatched: their scores are minus "
+        "infinity before the softmax, so their weights are 0 after it. The weights are measured: they are "
+        f"those of layer {layer}, head {head} of the trained Lab 5 mini-GPT reading these six characters.",
         b,
         defs,
     )
