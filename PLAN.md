@@ -315,6 +315,8 @@ Every notebook must meet all of these.
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
 | Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| Capstone questions need human authors | The capstone evaluation set is Lab 13's 80 questions plus 45 new human-written ones (about 30% unanswerable, including memory-bait items) | Romeo and one instructor write and blind-check them after Lab 13's set (about 3 and 2 hours) |
+| Corpus snapshot ordering | `data/workshop_lectures_v1.jsonl.gz` freezes the lectures and `references.qmd`; questions quote it verbatim | Finish `references.qmd` (Modules 1–12) and rebuild the snapshot before anyone writes questions |
 | RAG questions need human authors | Model-written questions copy passage wording (inflating BM25) and model relevance labels are circular with the judge Lab 13 teaches people to check | Romeo and one instructor write and blind-check 80 questions (about 4 and 3 hours); a first batch of 40 unblocks the notebook |
 | Lab 11 depends on the Lab 6 logits | `lab06_logits.npz` needs a T4 run with Hub access; without it Lab 11 analyzes the Lab 1 classifier, which is close to calibrated, so the encoder half of lecture 11's section 5 is unmeasured | Lab 11 falls back automatically; an always-on regularization sweep shows temperature scaling in both directions; commit the file after Lab 6's T4 run |
 | Decision set labels need two human annotators | An agent can build the generator but cannot provide independent human labels or write the hand items (the spec forbids model-written items) | Romeo and one instructor write and label 80 hand items and audit 60 template items (estimated 2–3 hours each) |
@@ -411,7 +413,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 - [x] Draft lecture 13: Retrieval-augmented generation
 - [x] Draft lecture 14: Agents
-- [ ] Draft the Module 15 capstone brief and wrap-up
+- [x] Draft the Module 15 capstone brief and wrap-up
 - [ ] Code `13-rag.ipynb`
 - [ ] Code `14-agents.ipynb`
 - [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set
