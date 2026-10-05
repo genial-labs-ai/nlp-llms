@@ -4,7 +4,7 @@
 
 RNNs, LSTMs and neural language modeling, and why gradients vanish over long sequences.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/03-sequence-models.ipynb)
 
 ## Learning objectives
 

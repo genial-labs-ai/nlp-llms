@@ -43,6 +43,26 @@ class Baselines(unittest.TestCase):
         floor = float(re.search(r"ACCURACY_FLOOR = ([0-9.]+)", source).group(1))
         self.assertGreaterEqual(by_id["lab02.sgns_avg_ffn"]["metrics"]["accuracy"], floor)
 
+    def test_lab_3_restates_the_lab_1_baseline(self):
+        """Lab 3 asserts that its character n-gram reproduces Lab 1's recorded values and k."""
+        source = (ROOT / "notebooks" / "03-sequence-models.ipynb").read_text(encoding="utf-8")
+        for b in DOC["baselines"]:
+            if b["id"].startswith("lab01.char_ngram."):
+                n = b["settings"]["n"]
+                self.assertIn(f"{n}: {b['metrics']['nats_per_char']}", source, b["id"])
+                self.assertIn(f"{n}: {b['settings']['k']}", source, b["id"])
+
+    def test_lab_3_entries_use_the_comparable_metric(self):
+        """Lab 3's neural baselines are character-level and beat the character trigram."""
+        by_id = {b["id"]: b for b in DOC["baselines"]}
+        trigram = by_id["lab01.char_ngram.n3"]["metrics"]["nats_per_char"]
+        for bid in ("lab03.rnn_lm", "lab03.lstm_lm"):
+            b = by_id[bid]
+            self.assertEqual(b["dataset"], "lm", bid)
+            self.assertNotIn("comparable_with_later_labs", b, bid)
+            self.assertEqual(set(b["metrics"]), {"nats_per_char", "perplexity", "bits_per_char"})
+        self.assertLess(by_id["lab03.lstm_lm"]["metrics"]["nats_per_char"], trigram)
+
     def test_lab_5_quotes_lab_1_values(self):
         """Lab 5 recomputes the character trigram and 5-gram and asserts Lab 1's recorded values."""
         path = ROOT / "notebooks" / "05-transformer-from-scratch.ipynb"
