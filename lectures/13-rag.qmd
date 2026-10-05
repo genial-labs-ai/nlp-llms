@@ -68,7 +68,7 @@ A language model has two memories (Lewis et al., 2020):
 
 1. **Freshness and coverage.** Weights are frozen at a training cutoff and contain nothing private. A lecture page written last week, a company's policy or a participant's notes are not in any model. Updating an index is cheap; retraining is not.
 2. **Grounding.** An answer built from quoted passages can cite them, and a reader can check the citation. Whether the answer actually follows from the passages becomes something we can measure (section 9).
-3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The twelve lecture pages of this workshop are about 495,000 characters, very roughly 120,000 tokens (an estimate at four characters per token; the lab measures it). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 12 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, eighty times less.
+3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The lab's snapshot of this workshop's pages (lectures 1–12 and the reading list) is 500,754 characters, 134,949 tokens of the `cl100k_base` tokenizer (measured in Lab 13). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 13 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, about ninety times less.
 
 Long context windows do not remove the third reason, and they weaken the second: Liu et al. (2024) found that models use information at the start and end of a long context better than information in the middle. Retrieval keeps the context short and puts the best passages first.
 
@@ -114,7 +114,7 @@ A retriever ranks chunks, not documents, and the generator reads only the chunks
 - **Large chunks** ($L = 512$ or more) keep explanations whole, but one vector must summarize several ideas, and each retrieved chunk spends more of the generator's context.
 - **Overlap** $L_o$ repeats the end of each chunk at the start of the next, so a sentence near a boundary appears whole in at least one chunk, at the price of storing and embedding some text twice.
 
-On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives about 1,400 chunks at $L = 128$, 660 at $L = 256$ and 320 at $L = 512$ (counted in the build environment on the current pages, 2026-10-05; the lab counts its own snapshot).
+On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives 1,319 chunks at $L = 128$, 645 at $L = 256$ and 325 at $L = 512$ on the lab's snapshot (measured in Lab 13). The splitter counts tokens of `cl100k_base`, the tokenizer bundled with LlamaIndex, not the embedding model's own; and metadata that is embedded with a chunk also shrinks its effective size, which is one reason the lab excludes it.
 
 The fair comparison between chunk sizes is **at a fixed context budget**, not at a fixed $k$. Passing $k$ chunks of $L$ tokens costs about
 
@@ -181,7 +181,7 @@ $$ {#eq-bm25-recall}
 
 The vector of a chunk is as long as the vocabulary and mostly zeros, hence "sparse". BM25 needs no training, and it finds exactly what a dense encoder may blur: an equation label, a model ID such as `Qwen2.5-0.5B-Instruct`, a number such as 0.8669. It fails on paraphrase: a question that uses none of the passage's words scores zero. On a benchmark of 18 retrieval datasets, Thakur et al. (2021) found BM25 a strong baseline that many dense retrievers failed to beat outside the domain they were trained on.
 
-The library the lab uses for BM25, `llama-index-retrievers-bm25` 0.8.0, computes @eq-bm25-recall without the factor $(k_1 + 1)$ in the numerator, as Lucene does. That scales every score by the same constant and leaves the ranking unchanged. We checked it against Module 1's formula on a small corpus: equal to $2.8 \times 10^{-8}$ after dividing by $k_1 + 1$, with $k_1 = 1.5$ and $b = 0.75$ (build environment, 2026-10-05). It also removes English stopwords and, by default, stems words.
+The library the lab uses for BM25, `llama-index-retrievers-bm25` 0.8.0, computes @eq-bm25-recall without the factor $(k_1 + 1)$ in the numerator, as Lucene does. That scales every score by the same constant and leaves the ranking unchanged. We checked it against Module 1's formula on a small corpus: equal to within about $10^{-6}$ after dividing by $k_1 + 1$ (float32 arithmetic in the library), with $k_1 = 1.5$ and $b = 0.75$ (build environment, 2026-10-05). It also removes English stopwords and, by default, stems words.
 
 **Hybrid retrieval** combines the two. Their scores are on different scales (cosines between $-1$ and 1, BM25 sums without an upper bound), so adding them needs a normalization and a weight, both of which must be tuned. **Reciprocal rank fusion** (Cormack et al., 2009) uses ranks instead of scores:
 
@@ -321,7 +321,7 @@ The table tells you which half of the pipeline to work on. It is the reason the 
 - **Faithfulness is only as good as its agreement with people.** Before trusting a judge, compare its verdicts with human labels on a sample and report the agreement (Module 8). Until the lab's audit set exists, its faithfulness numbers are printed as unvalidated.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 5** you write `faithfulness(answer, sources, judge, threshold=0.5)` (@eq-faith), returning the score and the per-sentence verdicts, with `None` for an abstention. Checkpoint: a fake judge with known verdicts, citations stripped before judging, abstention handled. A provided cell generates answers for the `dev` questions through the `PROVIDER` switch, scores faithfulness with the selected judge, checks correctness against the recorded answer forms, prints abstention on unanswerable questions, and fills the two-by-two table above. No answer metric is asserted.
+**In the lab.** In **Exercise 5** you write `faithfulness(answer, sources, judge, threshold=0.5)` (@eq-faith), returning the score and the per-sentence verdicts, with `None` for an abstention. Checkpoint: a fake judge with known verdicts, citations stripped before judging, abstention handled. A provided cell generates answers for the `test` questions through the `PROVIDER` switch, scores faithfulness with the selected judge, checks correctness against the recorded answer forms, prints abstention on unanswerable questions, and fills the two-by-two table above. No answer metric is asserted.
 :::
 
 ## 10. Common failures

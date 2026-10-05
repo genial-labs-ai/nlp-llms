@@ -1,0 +1,39 @@
+{
+  "notice": "AGENT-WRITTEN FIXTURE FOR EXERCISING CODE; NOT AN EVALUATION SET; NO NUMBER FROM IT IS QUOTED ANYWHERE. Written by an AI agent (the Agentic Systems Engineer persona) on 2026-10-05 so that tests/test_rag_questions.py can run before people write data/rag_questions_v1.jsonl. notebooks/13-rag.ipynb never loads it. The real question set must be written and checked by people (briefs/13-rag.md, decision (b)).",
+  "corpus_sha256": "a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3",
+  "items": [
+    {"id": "f001", "split": "dev", "kind": "lookup",
+     "question": "Why does the transformer divide attention logits by the square root of the key width?",
+     "evidence": [[{"slug": "05-transformer-from-scratch", "quote": "So the unscaled score has standard deviation $\\sqrt{d_k}$: it grows with the dimension."}]],
+     "answer": "Without the division the scores' standard deviation grows with the key dimension, which saturates the softmax.",
+     "key_facts": [], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"},
+    {"id": "f002", "split": "dev", "kind": "specific",
+     "question": "Between which two probabilities does the Lab 12 front-desk assistant hand the case to a person for confirmation?",
+     "evidence": [[{"slug": "12-rlcd-jev", "quote": "The assistant acts alone only above 0.969, asks between 0.375 and 0.969, and escalates below 0.375."}]],
+     "answer": "It asks a person when the probability lies between 0.375 and 0.969.",
+     "key_facts": ["0.375"], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"},
+    {"id": "f003", "split": "test", "kind": "multi",
+     "question": "What fixed constant scales a LoRA adapter's update, and what fixed rescaling keeps transformer attention from starting saturated?",
+     "evidence": [
+       [{"slug": "07-finetuning-lora", "quote": "It is a fixed constant that scales the update, tuned like a learning rate."}],
+       [{"slug": "05-transformer-from-scratch", "quote": "So the unscaled score has standard deviation $\\sqrt{d_k}$: it grows with the dimension."}]
+     ],
+     "answer": "LoRA scales its update by alpha over r; attention divides its scores by the square root of the key dimension.",
+     "key_facts": ["alpha"], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"},
+    {"id": "f004", "split": "test", "kind": "lookup",
+     "question": "Which 2020 NeurIPS paper does the reading list give for retrieval-augmented generation?",
+     "evidence": [[{"slug": "references", "quote": "Lewis, P. et al. (2020). [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks]"}]],
+     "answer": "Lewis et al. (2020), Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks.",
+     "key_facts": ["Lewis"], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"},
+    {"id": "f005", "split": "test", "kind": "unanswerable",
+     "question": "Which company sponsored the GPUs for the workshop's first pilot run?",
+     "evidence": [],
+     "answer": "Not in the corpus.",
+     "key_facts": [], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"},
+    {"id": "f006", "split": "dev", "kind": "unanswerable",
+     "question": "How many participants attended the first delivery of this workshop?",
+     "evidence": [],
+     "answer": "Not in the corpus.",
+     "key_facts": [], "author": "AG", "checker": "AG2", "notes": "agent-written fixture"}
+  ]
+}

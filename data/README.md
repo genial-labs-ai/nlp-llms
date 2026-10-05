@@ -16,7 +16,8 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Instruction tuning | 7 | **Databricks Dolly 15k**, a subset | CC BY-SA 3.0 | License confirmed. Lab 7 fixes the subset |
 | Pairwise preferences | 9, 10 | Synthetic, with a known hidden preference | Generated in the notebook | No file. Lab 9 fixes the generator and its seed |
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
-| RAG documents | 13, 15 | The workshop's own lecture pages and reading list | Ours | Built on build Day 9 |
+| RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). **Status `provisional`**: rebuild once `references.qmd` is finished, before any question is written |
+| RAG questions | 13, 15 | **Workshop RAG Questions v1**: 80 questions with evidence spans, written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people. Validator, tools and instructions committed |
 
 AG News, the original proposal for classification, was rejected. See [Why not AG News](#why-not-ag-news).
 
@@ -208,7 +209,7 @@ Alternatives that were checked and not chosen:
 ## Generated and workshop-built sets
 
 - **Dates (Module 4)** and **pairwise preferences (Modules 9 and 10)** are generated inside the notebook. Each lab fixes its generator's seed and records the sizes here when it is written. The dates generator is described below.
-- **Labeled decisions (Modules 11, 12, 14)** are described under [Workshop Desk Decisions v1](#workshop-desk-decisions-v1-decisions-modules-11-12-14). **RAG documents (Modules 13, 15)** are ours, built on build Day 9. Module 11 also reuses the arXiv Topics validation and test splits for its reliability diagrams.
+- **Labeled decisions (Modules 11, 12, 14)** are described under [Workshop Desk Decisions v1](#workshop-desk-decisions-v1-decisions-modules-11-12-14). **RAG documents and questions (Modules 13, 14, 15)** are described under [Workshop Lectures v1](#workshop-lectures-v1-rag-documents-modules-13-14-15) and [Workshop RAG Questions v1](#workshop-rag-questions-v1-modules-13-and-15). Module 11 also reuses the arXiv Topics validation and test splits for its reliability diagrams.
 
 ### Dates to ISO format (Module 4)
 
@@ -319,6 +320,78 @@ def load_decisions():
 ### What is not done yet: the human steps
 
 The instructions for the two people (proposed: Romeo and one instructor; estimated 2 to 3 hours each) are in [`decisions_hand_TEMPLATE.md`](decisions_hand_TEMPLATE.md). In short: write 80 items against the policy text, label them blind, resolve disagreements, merge with `decisions_annotation.py merge-hand`, label the 60-item audit sheet blind, run `agreement`, fix any template bug, rebuild, and update the hash and size here and in `_variables.yml`. Until then, quote results on this set as "template items only".
+
+## Workshop Lectures v1 (RAG documents, Modules 13, 14, 15)
+
+| | |
+|---|---|
+| File | `workshop_lectures_v1.jsonl.gz`, 174,945 bytes (514,299 uncompressed), 13 lines, one JSON object per page |
+| SHA-256 | `a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3` |
+| Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz> |
+| Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz> |
+| Builder | [`build_lectures_corpus.py`](build_lectures_corpus.py): standard library plus PyYAML, no network, no model; reads the pages from one git commit with `git show`, not from the working tree; `--check` rebuilds in memory and compares |
+| Source | lecture pages 01–12 and `references.qmd` at commit `ec97bea4f3a06eda04b036984581ae3f4408ac7d` (`source_commit`; also recorded in every record). Lecture 13 is not included: a corpus that explains RAG to a RAG lab adds nothing |
+| Size | 13 documents, 500,754 characters, 78,764 words; 134,949 tokens of `SentenceSplitter`'s tokenizer (tiktoken `cl100k_base`), measured by Lab 13 |
+| Chunks | 1,319 / 645 / 325 at $L$ = 128 / 256 / 512 tokens with $L_o = L/8$ and metadata excluded (`SentenceSplitter`, `llama-index-core` 0.14.25; measured by Lab 13) |
+| License | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), the license of the pages. The pages quote short passages of third-party material, with sources |
+| Specification | `briefs/13-rag.md`, decision (a) |
+| Status | **`provisional`**. See below |
+
+**Status: provisional.** `references.qmd` is frozen into this snapshot, and its entries for Modules 1–12 are not finished. The snapshot must be **rebuilt once `references.qmd` is complete and before anyone writes a question against it**: set `SOURCE_COMMIT` in the builder to the new commit, run it, and update `sha256`, `bytes`, `source_commit`, `characters` and `status` in `_variables.yml` (and the hash in `notebooks/13-rag.ipynb`, twice, and in the fixture). Questions store verbatim evidence quotes and character offsets are computed from them at load time, so a rebuild after questions exist could silently invalidate them. Three checks in `tests/test_rag_questions.py` prevent that:
+
+1. every evidence quote must occur **exactly once** in its page of the current snapshot, so a rebuild that changes or duplicates the quoted text fails the test, naming each broken item;
+2. the test fails if `data/rag_questions_v1.jsonl` exists while `datasets.lectures.status` is still `provisional`;
+3. once registered, `datasets.rag_questions.corpus_sha256` must equal `datasets.lectures.sha256`, so a later rebuild cannot go unnoticed even if every quote happens to survive.
+
+**Rules for `text`** (fixed in the builder):
+
+- The YAML front matter is removed; the page title (and subtitle, if any) becomes the first line, `# <title>`.
+- `{{< include /_includes/module-NN.md >}}` is replaced by the module's line (number, day, minutes, stack), its summary and its objectives from `_variables.yml`, as plain text. `{{< var ... >}}` is resolved from `_variables.yml` at the same commit.
+- HTML comments (the figure specs) are deleted. Figure captions and alt text stay.
+- Callout fence lines (`::: {.callout-...}` and `:::`) are deleted; a callout's `title`, if it has one, is kept as a line; its content stays.
+- Headings, tables, code and LaTeX are kept as written (encoders handle LaTeX poorly; that is a property of the corpus worth seeing). Trailing spaces are removed and runs of blank lines collapsed to one.
+
+Each record: `slug` (e.g. `01-text-as-data`; `references` for the reading list), `module` (1–12, or `null`), `title`, `text`, `source_commit`, `source_sha256` (of the `.qmd` bytes). Keys are sorted and the gzip header has `mtime=0` and no file name.
+
+**Determinism, as checked (2026-10-05).** Two builds, one of them in a separate interpreter, gave byte-identical files; `--check` reported "identical to a fresh build". `tests/test_rag_questions.py` rebuilds from the source commit and compares the hash when that commit is in the clone's history (it skips on a shallow clone). As for the decision set, the compressed bytes depend on the zlib build, and `--check` says whether a difference is in the content or only in the compression.
+
+**Loading.** Paste this cell after the loading cell of the [Loading contract](#loading-contract) (it uses `fetch`). Labs 14 and 15 instead restate Lab 13's retriever cell, which carries its own `load_corpus`:
+
+```python
+import gzip, json
+
+
+def load_lectures():
+    """Workshop Lectures v1 as [{"doc_id", "title", "text"}, ...]; doc_id is the page slug."""
+    blob = fetch(
+        "workshop_lectures_v1.jsonl.gz",
+        [
+            "https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz",
+            "https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz",
+        ],
+        "a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3",
+    )
+    pages = [json.loads(line) for line in gzip.decompress(blob).decode("utf-8").splitlines()]
+    return [{"doc_id": p["slug"], "title": p["title"], "text": p["text"]} for p in pages]
+```
+
+## Workshop RAG Questions v1 (Modules 13 and 15)
+
+**Not written yet.** `data/rag_questions_v1.jsonl` must be written and checked by people: Romeo and one instructor (proposed), about 4 hours for the author and 3 for the checker for 80 items (estimate). **No language model writes, proposes or labels any item.** Model-written questions copy the passage's wording, which inflates BM25 and surface-matching encoders, and a model labelling relevance is the kind of judge Lab 13 teaches people to check. Lab 15 reuses the `test` split in its fixed evaluation set. Specification: `briefs/13-rag.md`, decision (b). Instructions for the two people: [`rag_questions_TEMPLATE.md`](rag_questions_TEMPLATE.md).
+
+| | |
+|---|---|
+| Size | 80 questions: `dev` 30 (choose settings), `test` 50 (report; reused by Lab 15) |
+| Kinds, per split (±1 item) | `lookup` 40%, `specific` 30%, `multi` 15%, `unanswerable` 15% |
+| Evidence | groups (all needed) of alternative spans (any one suffices); each span a verbatim quote of one or two sentences, at most 60 words, occurring exactly once in its page; `[]` for `unanswerable` |
+| Correctness | `key_facts` on at least 70% of answerable items; every lecture 01–12 covered by at least four questions |
+| License | CC BY 4.0 (proposed; Romeo's call) |
+| Validator | `tests/test_rag_questions.py`, using [`rag_questions_tools.py`](rag_questions_tools.py) |
+| Status | 0 of 80 written. Agreement before resolution: not measured |
+
+**Until the file exists**, `tests/test_rag_questions.py` runs its schema, quote and overlap checks on `tests/fixtures/rag_questions_fixture.json`: six items **written by an AI agent for exercising code, not an evaluation set; no number from it is quoted anywhere.** Lab 13 never loads it: without the real file, the notebook says so and runs its evaluation code on *plumbing probes* (sentences copied from the snapshot, each its own evidence), labelled as measuring nothing about retrieval.
+
+**When it lands:** commit the file, add `datasets.rag_questions` to `_variables.yml` (`name`, `modules: [13, 15]`, `file`, `urls`, `sha256`, `bytes`, `license`, `license_url`, `splits: {dev: 30, test: 50}`, `corpus_sha256` equal to the lectures hash), set the hash in the `DATASETS["rag_questions"]` entry of `notebooks/13-rag.ipynb`, and report here: items written, dropped, alternatives added, and the evidence agreement rate before resolution (`python data/rag_questions_tools.py agreement ...`).
 
 ## Measured baselines (`baselines.json`)
 

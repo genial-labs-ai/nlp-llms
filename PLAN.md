@@ -414,7 +414,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Draft lecture 13: Retrieval-augmented generation
 - [x] Draft lecture 14: Agents
 - [x] Draft the Module 15 capstone brief and wrap-up
-- [ ] Code `13-rag.ipynb`
+- [ ] Code `13-rag.ipynb` (written; offline BM25 path run on plumbing probes; corpus snapshot v1 built, provisional until `references.qmd` is finished; neural, keyed and Jev paths not run; no retrieval numbers until the human questions exist)
 - [ ] Code `14-agents.ipynb`
 - [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set
 - [ ] Smoke-test every keyed path (OpenAI, Claude, Jev) and every fallback path
