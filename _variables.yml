@@ -49,6 +49,9 @@ packages:
   typesafe_sdk: "0.7.2"
   langchain_typesafe: "0.0.1a3"
   system_one_adapter: "0.2.1"
+  # Resolved together with the above for Python 3.12 (Lab 14 brief).
+  langgraph: "1.2.12"
+  langchain_core: "1.6.6"
 
 # Colab Secrets names. TYPESAFE_API_KEY verified 2026-10-05 against typesafe-sdk 0.7.2
 # and langchain-typesafe 0.0.1a3 (briefs/jev-verification.md).

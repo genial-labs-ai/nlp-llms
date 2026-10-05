@@ -263,7 +263,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** build a tool-using agent as an explicit graph; add state, memory and human-in-the-loop interrupts; use a calibrated decision model for routing and tool-call approval.
 - **Lecture:** from the hand-written tool loop of Module 8 to agents; ReAct; LangChain tools and runnables; LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts; where agents fail (loops, wrong tool, unsafe action, prompt injection); using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12.
-- **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a confidence score; gate the risky tool: act above the threshold, ask the human below it; replay from a checkpoint; test against a prompt-injection document.
+- **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a probability; gate the risky tool with an act / ask / escalate guard from Module 12's thresholds (a simulated human answers interrupts in unattended runs); replay from a checkpoint; test against a prompt-injection document.
 - **Stretch:** add a verification node that checks the final answer against the retrieved sources.
 - **Stack:** LangChain, LangGraph, Jev, OpenAI/Claude (fallback: local model and the Module 12 toy decision model).
 - **Readings:** Yao et al. 2022 (ReAct); LangGraph documentation.
@@ -409,7 +409,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 ### Day 9 — Modules 13–15
 
 - [ ] Draft lecture 13: Retrieval-augmented generation
-- [ ] Draft lecture 14: Agents
+- [x] Draft lecture 14: Agents
 - [ ] Draft the Module 15 capstone brief and wrap-up
 - [ ] Code `13-rag.ipynb`
 - [ ] Code `14-agents.ipynb`
