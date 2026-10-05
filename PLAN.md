@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status (2026-10-05):** Lectures 9–10 drafted for the small GPT-2 policy; Labs 09–10 written (Lab 9 Part A run; the GPT-2 parts wait for the Lab 9 data files and a T4). Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-05):** All 15 lectures and lab briefs drafted; Labs 01–14 written (Lab 15, the capstone notebook, not yet). Labs 01–05 run end to end on CPU; Labs 06–14 run only on their offline paths (stand-ins, stubs, the local toy decider), because the build container has no Hub access and no API keys. Human work outstanding: the decision-set hand items and audit, Lab 13's 80 questions and the capstone's 45, `references.qmd`, and TypeSafe's own statements in lecture 12. Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -415,7 +415,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Draft lecture 14: Agents
 - [x] Draft the Module 15 capstone brief and wrap-up
 - [ ] Code `13-rag.ipynb` (written; offline BM25 path run on plumbing probes; corpus snapshot v1 built, provisional until `references.qmd` is finished; neural, keyed and Jev paths not run; no retrieval numbers until the human questions exist)
-- [ ] Code `14-agents.ipynb`
+- [ ] Code `14-agents.ipynb` (written; stub agent + toy router + stub guard path run, with Lab 13's BM25 retriever restated; keyed, Jev and Qwen paths not run)
 - [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set
 - [ ] Smoke-test every keyed path (OpenAI, Claude, Jev) and every fallback path
 

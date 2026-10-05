@@ -91,6 +91,7 @@ jobs:
           NLP_LLMS_LAB10_OFFLINE: tiny
           # Lab 13: BM25 plus labelled stand-ins until its human question set exists.
           NLP_LLMS_LAB13_OFFLINE: "1"
+          NLP_LLMS_LAB14_OFFLINE: "1"
           UV_LINK_MODE: copy
         run: uv run --group execute python scripts/test_notebooks.py
 

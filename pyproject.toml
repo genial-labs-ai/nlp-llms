@@ -35,6 +35,14 @@ execute = [
     "pydantic>=2.13",
     "openai>=3.24",
     "anthropic>=1.11",
+    # Labs 12-14 (pins in _variables.yml `packages`; the notebooks install exact versions).
+    "typesafe-sdk>=0.7.2",
+    "langchain-typesafe>=0.0.1a3",
+    "langgraph>=1.2.12",
+    "langchain-core>=1.6.6",
+    "langchain-text-splitters>=1.1.3",
+    "llama-index-core>=0.14.25",
+    "llama-index-retrievers-bm25>=0.8.0",
 ]
 # Running the labs locally. Grows as labs are written.
 notebooks = [
