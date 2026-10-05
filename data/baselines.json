@@ -19,6 +19,11 @@
       "python": "3.12.3",
       "torch": "2.14.1+cu130",
       "numpy": "2.5.3"
+    },
+    "lab05": {
+      "machine": "Linux x86_64 container, 4 vCPU, CPU only, 2 PyTorch threads, shared with other agents' training jobs (load average 5 to 10); full (T4) configuration executed on CPU; not run on Colab or a GPU",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130"
     }
   },
   "baselines": [
@@ -434,6 +439,78 @@
         "seed": 0,
         "device": "cpu",
         "tuned_on_test": false
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab05.mini_gpt",
+      "notebook": "notebooks/05-transformer-from-scratch.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.5481,
+        "perplexity": 4.7023,
+        "bits_per_char": 2.2334,
+        "scored_characters": 60394
+      },
+      "val_metrics": {
+        "nats_per_char": 1.4004
+      },
+      "settings": {
+        "model": "pre-norm decoder-only transformer: token embedding + learned positions, n_l blocks (causal multi-head self-attention, GELU FFN), final LayerNorm, output layer; dropout on embeddings and sublayer outputs; GPT-2 init (normal 0.02)",
+        "d": 128,
+        "n_h": 4,
+        "n_l": 4,
+        "T_max": 128,
+        "d_ff": 512,
+        "dropout": 0.1,
+        "parameters": 824897,
+        "steps": 3000,
+        "peak_lr": 0.005,
+        "evaluation": "overlapping windows of T_max = 128 with stride 64; only the second half of each window is scored, so every character has 65 to 128 characters of context",
+        "train_seconds": 3921.0,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train (1,000,000 characters), random windows of 128 characters",
+        "scored": "every character of the split (60,394 on test), each once; context from the text immediately before the split",
+        "train_loop": "AdamW(betas=(0.9, 0.99), weight_decay=0.01), linear warm-up over 100 steps, cosine decay to 10% of the peak, gradient-norm clipping at 1.0, cross-entropy (teacher forcing)",
+        "batch_size": 64,
+        "seed": 0,
+        "mode": "full (the configuration designed for a T4), executed on CPU",
+        "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab05.lstm",
+      "notebook": "notebooks/05-transformer-from-scratch.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.5727,
+        "perplexity": 4.8198,
+        "bits_per_char": 2.269,
+        "scored_characters": 60394
+      },
+      "val_metrics": {
+        "nats_per_char": 1.4308
+      },
+      "settings": {
+        "model": "Lab 3's LSTM language model as specified in briefs/03-sequence-models.md (embedding d = 64, one nn.LSTM layer d_h = 256, output layer), retrained in Lab 5; NOT Lab 3's own run",
+        "d": 64,
+        "d_h": 256,
+        "parameters": 350593,
+        "steps": 3000,
+        "peak_lr": 0.008,
+        "evaluation": "state carried through the whole split in chunks of 2,048, after a warm-up on the 1,000 characters before it; no character scored from a cold state",
+        "train_seconds": 347.9,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train (1,000,000 characters), random windows of 128 characters",
+        "scored": "every character of the split (60,394 on test), each once; context from the text immediately before the split",
+        "train_loop": "AdamW(betas=(0.9, 0.99), weight_decay=0.01), linear warm-up over 100 steps, cosine decay to 10% of the peak, gradient-norm clipping at 1.0, cross-entropy (teacher forcing)",
+        "batch_size": 64,
+        "seed": 0,
+        "mode": "full (the configuration designed for a T4), executed on CPU",
+        "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
       },
       "date": "2026-10-05"
     }
