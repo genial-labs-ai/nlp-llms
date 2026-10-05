@@ -230,7 +230,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** say what a probability should mean; measure calibration; explain proper scoring rules; use confidence to decide when to abstain.
 - **Lecture:** calibration versus accuracy; reliability diagrams, ECE and its pitfalls, Brier score, log loss; proper scoring rules and why they reward honest probabilities; why modern neural nets and preference-tuned LLMs are often miscalibrated; post-hoc fixes (temperature scaling); verbalised confidence from LLMs; selective prediction: risk–coverage curves and the cost of a wrong action.
-- **Lab `11-calibration.ipynb`:** plot a reliability diagram and compute ECE and Brier score for the Lab 6 classifier; apply temperature scaling; ask an LLM for verbalised confidence on a labelled decision set and measure its calibration; draw a risk–coverage curve and choose an abstention threshold.
+- **Lab `11-calibration.ipynb`:** plot a reliability diagram and compute ECE and Brier score for the Lab 6 classifier (falling back to the Lab 1 classifier, recomputed in the notebook, until the Lab 6 logits are committed); apply temperature scaling; ask an LLM for verbalised confidence on the shared decision set (`data/decisions_v1.jsonl.gz`, specified in `briefs/11-calibration.md`) and measure its calibration; draw a risk–coverage curve and choose an abstention threshold.
 - **Stretch:** show numerically that the Brier score is proper and that accuracy is not.
 - **Stack:** PyTorch, scikit-learn, OpenAI/Claude (fallback: local model).
 - **Readings:** Guo et al. 2017 (calibration of modern neural networks); Gneiting & Raftery 2007 (proper scoring rules).
@@ -315,6 +315,8 @@ Every notebook must meet all of these.
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
 | Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| Lab 11 depends on the Lab 6 logits | `lab06_logits.npz` needs a T4 run with Hub access; without it Lab 11 analyzes the Lab 1 classifier, which is close to calibrated, so the encoder half of lecture 11's section 5 is unmeasured | Lab 11 falls back automatically; an always-on regularization sweep shows temperature scaling in both directions; commit the file after Lab 6's T4 run |
+| Decision set labels need two human annotators | An agent can build the generator but cannot provide independent human labels or write the hand items (the spec forbids model-written items) | Romeo and one instructor write and label 80 hand items and audit 60 template items (estimated 2–3 hours each) |
 | Labs 9 and 10 depend on GPT-2 | They need the Hub (and Lab 10 a GPU); the build container has neither | Build Lab 9's data files and run Lab 10's seed protocol on a Colab T4 |
 | Build container network | The cloud build environment blocks huggingface.co, so Labs 6–8's model paths and the Lab 6/7 data files cannot be produced there | Allow huggingface.co in the environment's network settings, or run those steps on Colab |
 
@@ -397,11 +399,11 @@ Ten working days to a first complete version, then continued review. Lectures an
 ### Day 8 — Modules 11–12
 
 - [ ] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found (verified against the published packages and the TypeSafe and LangChain repositories; `docs.typesafe.ai` was blocked and is still unread, see `briefs/jev-verification.md`; left unticked until the docs are read from a networked machine)
-- [ ] Draft lecture 11: Calibration
+- [x] Draft lecture 11: Calibration
 - [ ] Draft lecture 12: RLCD and Jev (public facts and our illustration clearly separated)
 - [ ] Code `11-calibration.ipynb`
 - [ ] Code `12-rlcd-jev.ipynb`
-- [ ] Build and label the shared decision set used by Labs 11, 12 and 14
+- [ ] Build and label the shared decision set used by Labs 11, 12 and 14 (spec in `briefs/11-calibration.md`: `data/build_decisions.py` generates the template items; Romeo and one instructor write and label the 80 hand-written items and audit 60 template items)
 - [ ] Review: the RLCD honesty rule (AGENTS.md) holds in both the lecture and the lab
 
 ### Day 9 — Modules 13–15
