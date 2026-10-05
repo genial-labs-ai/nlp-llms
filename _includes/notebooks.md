@@ -11,7 +11,7 @@
 | 6 | [Pretraining and the Hugging Face stack](lectures/06-pretraining-huggingface.qmd) | 2 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/06-pretraining-huggingface.ipynb) |
 | 7 | [Fine-tuning and LoRA](lectures/07-finetuning-lora.qmd) | 2 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/07-finetuning-lora.ipynb) |
 | 8 | [LLMs through APIs](lectures/08-llm-apis.qmd) | 2 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb) |
-| 9 | [Reinforcement and preference learning](lectures/09-preference-learning.qmd) | 3 | In preparation |
+| 9 | [Reinforcement and preference learning](lectures/09-preference-learning.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb) |
 | 10 | [RLHF](lectures/10-rlhf.qmd) | 3 | In preparation |
 | 11 | [Calibration](lectures/11-calibration.qmd) | 3 | In preparation |
 | 12 | [RLCD and Jev](lectures/12-rlcd-jev.qmd) | 3 | In preparation |

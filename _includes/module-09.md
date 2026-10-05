@@ -4,7 +4,7 @@
 
 Text generation as a reinforcement-learning problem, the policy gradient, and reward models learned from comparisons.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb)
 
 ## Learning objectives
 

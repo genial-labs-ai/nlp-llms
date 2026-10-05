@@ -19,6 +19,7 @@ USES = {
     "06-pretraining-huggingface": ["encoder", "encoder_cpu", "causal_lm"],
     "07-finetuning-lora": ["instruct_base", "instruct_base_revision"],
     "08-llm-apis": ["openai", "anthropic", "fallback", "instruct_base_revision"],
+    "09-preference-learning": ["causal_lm"],
 }
 
 # Commercial model IDs: any such literal in a notebook must be a pinned value.
