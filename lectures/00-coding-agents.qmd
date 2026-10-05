@@ -366,12 +366,13 @@ with the Kyte-Doolittle values in one dictionary (or named vector) at the top.
 Run the script and show me what it prints.
 ```
 
-*What you should see:* the script downloads `1ubq.pdb` (another permission prompt for the network) and prints [[MEASURED: n_ca]] residues, a radius of gyration near [[MEASURED: rg_ca]] Å, and [[MEASURED: contacts_all]] contacts. `protein/data.json` exists. If the RCSB download fails, the script should fall back to the workshop copy; say so to the agent if it did not.
+*What you should see:* the script downloads `1ubq.pdb` (another permission prompt for the network) and prints 76 residues, a radius of gyration near 11.49 Å, and 326 contacts. `protein/data.json` exists. If the RCSB download fails, the script should fall back to the workshop copy; say so to the agent if it did not.
 
 **4. Check two numbers yourself.** Do this in your second terminal, not through the agent. The program below is ten lines of `awk`, a text tool that ships with macOS, Linux and WSL; it reads the same PDB columns, computes $R_g$ by the formula above, and counts contacts twice: all pairs, and pairs at least 3 apart in the chain.
 
 ```bash
-awk '/^ATOM/ && substr($0,13,4) == " CA " {
+awk 'BEGIN { n = 0 }   # start at 0: an unset n would make the first key "" not 0
+     /^ATOM/ && substr($0,13,4) == " CA " {
        x[n] = substr($0,31,8); y[n] = substr($0,39,8); z[n] = substr($0,47,8); n++ }
      END {
        for (i = 0; i < n; i++) { mx += x[i]/n; my += y[i]/n; mz += z[i]/n }
@@ -400,7 +401,7 @@ Make that change, add an assertion that no pair with |i - j| < 3 is ever counted
 and run the script again.
 ```
 
-The new count is [[MEASURED: contacts_sep3]], equal to the second number from your `awk` check.
+The new count is 177, equal to the second number from your `awk` check.
 
 ::: {.callout-note appearance="simple" collapse="true"}
 ## R only: if your count was already right
@@ -561,7 +562,7 @@ Run the script and show me what it prints, then show me the first five rows
 of the RFM table.
 ```
 
-*What you should see:* [[MEASURED: rfm_customers]] customers, a silhouette score for each $k$ from 3 to 6, the chosen $k$, and one line per segment. Keep the first five rows on screen for step 4.
+*What you should see:* 3,000 customers, a silhouette score for each $k$ from 3 to 6, the chosen $k$, and one line per segment. Keep the first five rows on screen for step 4.
 
 **4. Check one customer yourself.** Take the first customer ID from those five rows. In your second terminal, compute that customer's numbers straight from the raw file:
 
@@ -586,17 +587,17 @@ from the clock. Add an assertion that the smallest recency is at least 1, and ru
 the script again.
 ```
 
-*What you should see:* the reference date is now 2026-01-01, the smallest recency is [[MEASURED: rfm_recency_min]], and your hand-computed recency matches. The chosen $k$ and the segments may change. With the reference solutions they are:
+*What you should see:* the reference date is now 2026-01-01, the smallest recency is 1 day, and your hand-computed recency matches. The chosen $k$ and the segments may change. With the reference solutions they are:
 
 ::: {.panel-tabset group="language"}
 
 #### Python
 
-$k$ = [[MEASURED: rfm_k_python]]; segments and sizes: [[MEASURED: rfm_segments_python]].
+$k$ = 4; segments and sizes: Lost 950, At risk 789, New or promising 644, Champions 617.
 
 #### R
 
-$k$ = [[MEASURED: rfm_k_r]]; segments and sizes: [[MEASURED: rfm_segments_r]].
+$k$ = 4; segments and sizes: Lost 949, At risk 790, New or promising 644, Champions 617 (base `kmeans()` and scikit-learn can differ by a customer or two).
 
 :::
 
