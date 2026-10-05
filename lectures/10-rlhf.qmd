@@ -4,6 +4,10 @@ title: "{{< var modules.m10.title >}}"
 
 {{< include /_includes/module-10.md >}}
 
+::: {.recap}
+**Where we are.** [Module 9](09-preference-learning.qmd) built two tools and kept them apart: a policy gradient that can optimize any reward, and a reward model learned from comparisons. It also warned that a reward model can be trusted only on text like its training data. This module answers one question: how do we optimize a language model against a learned reward without letting the optimizer exploit the reward's errors?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -18,6 +22,8 @@ title: "{{< var modules.m10.title >}}"
 | **Total** | **45** |
 
 The collapsed callouts are optional and sit outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## Notation for this module
 
@@ -59,7 +65,7 @@ The value function in section 5 is written $v_\psi$ in lowercase, because $V$ is
 
 **Objective for this section:** say why plugging a learned reward into the policy gradient is not enough.
 
-[Module 9](09-preference-learning.qmd) built two tools. The **policy gradient** (REINFORCE) raises the probability of sampled responses in proportion to how much better than the baseline they scored. The **reward model** $r_\phi$, trained on pairwise preferences with the Bradley–Terry model
+Recall the two tools of [Module 9](09-preference-learning.qmd) in one line each. The **policy gradient** (REINFORCE) raises the probability of sampled responses in proportion to how much better than the baseline they scored. The **reward model** $r_\phi$, trained on pairwise preferences with the Bradley–Terry model
 
 $$
 P(y_w \succ y_l \mid x) = \sigma\big(r_\phi(x, y_w) - r_\phi(x, y_l)\big),
@@ -113,6 +119,14 @@ Alt text: The three stages of RLHF: supervised fine-tuning on demonstrations, a 
 | Reward model | Module 9, Lab 9 | loaded: the reward model trained in Lab 9, as a provided checkpoint |
 | Policy optimization | this module | Exercises 1 to 4 |
 | DPO in place of stages 2 and 3 | this module, section 6 | Exercise 5 |
+
+::: {.self-check}
+**Check yourself.** A team trains its reward model on responses sampled from $\pi_{\text{SFT}}$, as in stage 2. To save a step, it then starts stage 3 from the raw pretrained model and uses that model as $\pi_{\text{ref}}$. The KL penalty is in place and correctly implemented. What is wrong with the setup?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The penalty now holds the policy near the wrong place. Its purpose is to keep $\pi_\theta$ where $r_\phi$ can be trusted, and $r_\phi$ can be trusted on text like its training data, which came from $\pi_{\text{SFT}}$. The raw pretrained model writes different text (it continues prompts where $\pi_{\text{SFT}}$ answers them), so from the first batch $r_\phi$ is scoring responses unlike any it was fitted on, and the penalty then keeps the policy there. The reference policy and the source of the reward model's data have to be the same model, or close to it. Lab 10 respects this in its own way: it skips SFT, but its reward model was trained on continuations from the same GPT-2 that serves as the reference.
+:::
+:::
 
 ::: {.callout-tip collapse="true" title="Optional: the InstructGPT objective in full"}
 Ouyang et al. add a third term to the objective of section 3. Besides the reward and the KL penalty, they mix in the pretraining log-likelihood, weighted by a coefficient $\gamma$:
@@ -174,6 +188,14 @@ where each term inside the sum is @eq-kl over the vocabulary $V$ at one position
 **In the lab.** In **Exercise 1** you write `response_logprobs(model, prompt_ids, response_ids)`, which returns $\log \pi(y_t \mid s_t)$ for every response position (@eq-seq-logprob); its sum over $t$ is $\log \pi(y \mid x)$. Checkpoints: the values match a hand computation on a short example, prompt positions are excluded, and the policy's log-ratio to the reference is exactly zero before training, because the two start as copies. In **Exercise 3** you write `exact_kl(logits, logits_ref)`, the per-position divergence over the vocabulary summed over the response (@eq-kl-chain). It is the drift you report after every training run.
 :::
 
+::: {.self-check}
+**Check yourself.** For one prompt, suppose only three responses are possible, and the reference gives them probabilities $(0.80,\ 0.19,\ 0.01)$. Compute $\mathrm{KL}(\pi \,\Vert\, \pi_{\text{ref}})$ for a policy that always writes the first response, and for one that always writes the third. Both policies have lost all variety. What does the penalty say about each?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A policy with all its probability on one response $y$ has a single term in @eq-kl: $1 \times \log \frac{1}{\pi_{\text{ref}}(y)}$. For the first response that is $-\log 0.80 \approx 0.22$ nats. For the third it is $-\log 0.01 \approx 4.61$ nats, about 20 times more. The penalty separates the two sharply, but by how *unusual* the chosen response is under the reference, not by how much variety was given up, which is the same in both. Collapsing onto what the reference already favors is almost free. This is why the KL term limits drift into strange text and does not prevent mode collapse.
+:::
+:::
+
 ## 4. Optimizing it: a per-token penalty and the policy gradient
 
 **Objective for this section:** turn @eq-rlhf-objective into per-token rewards that the policy gradient of Module 9 can use.
@@ -218,6 +240,14 @@ All responses in a batch have the same length $L$ here, which is how the lab sam
 **In the lab.** In **Exercise 2** you write `token_rewards` (@eq-token-reward). Checkpoints: with $\beta = 0$ the rewards are zero except the score at the end; the sum over positions equals $r_\phi(x, y) - \beta \log \frac{\pi_\theta(y \mid x)}{\pi_{\text{ref}}(y \mid x)}$ on a hand-made batch; no gradient flows through the penalty. At the end of **Exercise 3**, once you have written `exact_kl`, the provided `returns_to_go` and `reinforce_loss` (@eq-pg-kl, restated from Lab 9) and the training loop `rlhf_train` run a short training with a fixed $\beta$. After it, the checkpoint is two numbers on the 64 evaluation prompts: the reward-model score has risen by a set margin, and the drift has stayed below a set bound.
 :::
 
+::: {.self-check}
+**Check yourself.** A sampled response has three tokens. The policy's log-probabilities for them are $(-1.0,\ -2.0,\ -0.5)$ and the reference's are $(-1.5,\ -2.0,\ -2.5)$. The reward model gives the response 2.0, and $\beta = 0.1$. Compute the token rewards $r_t$ (@eq-token-reward) and the returns $G_t$. Which token paid the most, and why is $G_2$ larger than $G_1$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The log-ratios are $(0.5,\ 0,\ 2.0)$, so the penalties are $(-0.05,\ 0,\ -0.2)$, and the score arrives at the last token: $r = (-0.05,\ 0,\ 1.8)$. The returns, summing from the right, are $G = (1.75,\ 1.8,\ 1.8)$. Check: $G_1 = 2.0 - 0.1 \times 2.5 = 1.75$, the reward minus $\beta$ times the whole log-ratio. The third token paid the most: the policy made it $e^{2} \approx 7.4$ times more likely than the reference does. $G_2 > G_1$ because the return from step 2 does not include the 0.05 that token 1 paid. Token 2 is not charged for a departure that happened before it, which is the variance argument for the per-token form.
+:::
+:::
+
 ## 5. PPO in outline
 
 **Objective for this section:** say what PPO adds to the policy gradient, and why the lab can do without it.
@@ -242,6 +272,14 @@ where $\mathrm{clip}(\rho, a, b)$ limits $\rho$ to the interval $[a, b]$, $\epsi
 **Why the lab can do without it.** On the first gradient step for a batch, $\theta = \theta_{\text{old}}$, so $\rho_t = 1$ and the clip is inactive. The gradient of $\rho_t$ at that point is $\nabla_\theta \log \pi_\theta(y_t \mid s_t)$, so the gradient of @eq-ppo-clip is that of @eq-pg-kl with $v_\psi(s_t)$ in place of $b_t$. **One step per batch, with a batch average in place of $v_\psi$, is the special case of PPO that the lab runs.** What PPO adds is sample reuse and a state-dependent baseline: efficiency and stability, not a different objective.
 
 **The cost.** PPO for a language model keeps four networks in memory: the policy, the reference, the reward model and the value function. Each can be as large as the policy. That cost is one motivation for the next section.
+
+::: {.self-check}
+**Check yourself.** Take $\epsilon = 0.2$ and a token whose ratio has already reached $\rho_t = 1.5$. Evaluate the term inside the expectation of @eq-ppo-clip for $\hat{A}_t = +2$ and for $\hat{A}_t = -2$. In which case does the token still produce a gradient, and why is that the right asymmetry?
+
+::: {.callout-tip collapse="true" title="Answer"}
+For $\hat{A}_t = +2$: the unclipped term is $1.5 \times 2 = 3.0$ and the clipped term is $1.2 \times 2 = 2.4$. The $\min$ picks 2.4, which does not depend on $\rho_t$, so the gradient is zero. The token was good and has already been made 1.5 times more likely, and the objective offers nothing for going further. For $\hat{A}_t = -2$: the terms are $-3.0$ and $-2.4$, and the $\min$ picks $-3.0$, the unclipped one, which does depend on $\rho_t$. The token was bad and has been made *more* likely, and the gradient pushes $\rho_t$ back down at full strength. The clip removes the reward for overshooting in a helpful direction and never hides a move in a harmful one.
+:::
+:::
 
 ## 6. DPO: from the optimal policy to a classification loss
 
@@ -272,6 +310,18 @@ $$
 $Z$ does not depend on $\pi$, and the KL is zero only when $\pi = \pi^*$. So **$\pi^*$ is the unique maximizer**: the best policy is the reference, reweighted by the exponentiated reward and renormalized.
 
 Read @eq-optimal-policy as a dial. With large $\beta$, $e^{r/\beta}$ is close to 1 for every response and $\pi^* \approx \pi_{\text{ref}}$. With small $\beta$, the weights grow extreme and $\pi^*$ piles onto the responses the reward rates highest. If the reward is wrong about some responses, small $\beta$ piles onto those too.
+
+::: {.worked-example}
+**Worked example: the optimal policy on three responses.** For one prompt, suppose only three responses are possible. The reference gives them probabilities $(0.80,\ 0.19,\ 0.01)$ and the reward gives them $r = (0,\ 1,\ 2)$. Take $\beta = 1$.
+
+- **Reweight** (@eq-optimal-policy): $\pi_{\text{ref}}(y)\, e^{r(y)/\beta}$ is $0.80 \times 1 = 0.80$, then $0.19 \times e \approx 0.516$, then $0.01 \times e^{2} \approx 0.074$.
+- **Normalize:** $Z = 0.80 + 0.516 + 0.074 \approx 1.390$, so $\pi^* \approx (0.575,\ 0.371,\ 0.053)$.
+- **Expected reward:** $0.371 \times 1 + 0.053 \times 2 \approx 0.478$, up from $0.19 + 0.02 = 0.21$ under the reference.
+- **Drift** (@eq-kl): $\mathrm{KL}(\pi^* \,\Vert\, \pi_{\text{ref}}) \approx 0.148$ nats.
+- **Objective:** $0.478 - 1 \times 0.148 = 0.330$, which is $\beta \log Z = \log 1.390$, as the derivation says it must be at the optimum.
+
+Now turn the dial to $\beta = 0.25$: $\pi^* \approx (0.020,\ 0.253,\ 0.727)$, with expected reward 1.71 and a drift of 3.12 nats. The third response, which the reference writes once in a hundred times, is now written 73 times in a hundred. Whether that is good depends entirely on whether its reward of 2 can be believed, and section 7 takes that question up.
+:::
 
 Why not use @eq-optimal-policy directly? $Z(x)$ sums over every possible response, an astronomically large set. RLHF approximates $\pi^*$ by sampling and following the gradient (section 4). DPO goes another way.
 
@@ -344,6 +394,14 @@ def dpo_loss(logp_w, logp_l, logp_ref_w, logp_ref_l, beta):
 **In the lab.** In **Exercise 5** you write `dpo_loss` (@eq-dpo, @eq-implicit-reward). Checkpoints: the loss is $\log 2$ when policy and reference are identical; it matches a hand computation on a fixed batch; one gradient step widens the gap between $\log \pi_\theta(y_w \mid x)$ and $\log \pi_\theta(y_l \mid x)$. A provided loop then trains a fresh copy of the reference with DPO, on the same preference pairs the Lab 9 reward model was trained on and with the same $\beta$ as Exercise 3. The checkpoint is the held-out preference accuracy of the implicit reward, beside the reward model's. A final table compares the reference, RLHF with the KL penalty, RLHF without it, and DPO on the same held-out prompts.
 :::
 
+::: {.self-check}
+**Check yourself.** DPO training runs with $\beta = 0.1$. Before training the loss on a pair is $\log 2 \approx 0.693$. Some steps later, for that pair, $\log \pi_\theta(y_w \mid x)$ is 1 nat *below* the reference's value and $\log \pi_\theta(y_l \mid x)$ is 3 nats below. Compute the loss on the pair. Has the model become more likely to write the preferred response?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The implicit rewards (@eq-implicit-reward) are $0.1 \times (-1) = -0.1$ and $0.1 \times (-3) = -0.3$, so $\Delta = 0.2$ and the loss is $-\log \sigma(0.2) \approx 0.598$. The loss fell from 0.693, and the pair is now ranked the right way. But the preferred response became *less* likely: its probability was multiplied by $e^{-1} \approx 0.37$. @eq-dpo sees only the difference, and the difference improved because the rejected response fell faster. The probability that left both went to responses that are in neither half of the pair, and nothing in the loss says they are good. This is caution 3, and the reason the lab prints both log-probabilities.
+:::
+:::
+
 ::: {.callout-tip collapse="true" title="Optional: variants of DPO, and when RLHF with sampling still helps"}
 DPO started a family of offline preference losses. **IPO** (Gheshlaghi Azar et al., 2024) replaces the log-sigmoid with a squared loss, arguing that DPO can overfit when preferences in the data are nearly deterministic, because the implicit reward gap can then grow without bound. Others drop the reference model, or learn from single responses labeled good or bad rather than pairs.
 
@@ -366,6 +424,61 @@ Alt text: As drift from the reference grows, the reward model's score keeps risi
 
 *Detect it:* track drift (@eq-kl-chain) next to reward; hold out a better judge (humans, or a gold reward where one exists) and look for the point where proxy and gold separate; read samples.
 
+::: {#demo-kl-dial .demo}
+**Demo: the $\beta$ dial on three responses.** This is an illustration on invented numbers, not lab data. It reuses the three responses of the worked example in section 6: reference probabilities $(0.80,\ 0.19,\ 0.01)$ and reward-model scores $(0,\ 1,\ 2)$. We add a gold reward of $(0,\ 1,\ -1)$: the reward model is right about the first two responses and badly wrong about the third, which the reference almost never writes.
+
+**Predict first.** As $\beta$ falls from 10 to 0.1, the reward-model score of the optimal policy can only rise. What does the gold reward do?
+
+```{ojs}
+//| echo: false
+viewof beta10 = Inputs.range([0.1, 10], {label: "KL coefficient β", step: 0.01, value: 1, transform: Math.log})
+```
+
+```{ojs}
+//| echo: false
+toy10 = {
+  const names = ["A: plain", "B: better", "C: exploit"], ref = [0.80, 0.19, 0.01], r = [0, 1, 2], gold = [0, 1, -1];
+  const solve = beta => {                                   // the optimal policy: ref × exp(r / β), normalized
+    const w = ref.map((q, i) => q * Math.exp(r[i] / beta)), Z = w.reduce((a, c) => a + c, 0), pi = w.map(v => v / Z);
+    const dot = v => pi.reduce((a, p, i) => a + p * v[i], 0);
+    return {pi, proxy: dot(r), gold: dot(gold), kl: pi.reduce((a, p, i) => a + p * Math.log(p / ref[i]), 0)};
+  };
+  const now = solve(beta10);
+  const bars = names.flatMap((name, i) => [{name, policy: "reference", p: ref[i]}, {name, policy: "optimal", p: now.pi[i]}]);
+  const path = Array.from({length: 121}, (_, i) => solve(10 ** (1 - i / 60))).flatMap(s => [   // β from 10 down to 0.1
+    {kl: s.kl, value: s.proxy, which: "reward-model score"}, {kl: s.kl, value: s.gold, which: "gold reward"}]);
+  return {now, bars, path};
+}
+```
+
+```{ojs}
+//| echo: false
+html`<div style="display: flex; gap: 16px; flex-wrap: wrap;">${Plot.plot({
+  width: 360, height: 300, marginLeft: 45,
+  fx: {label: null}, x: {axis: null, domain: ["reference", "optimal"]}, y: {label: "probability", domain: [0, 1], grid: true},
+  color: {legend: true, domain: ["reference", "optimal"], range: ["#1d5f8a", "#b3541e"]},
+  marks: [Plot.barY(toy10.bars, {fx: "name", x: "policy", y: "p", fill: "policy"}), Plot.ruleY([0])]
+})}${Plot.plot({
+  width: 360, height: 300, marginLeft: 45, grid: true,
+  x: {label: "drift: KL from the reference (nats)"}, y: {label: "expected reward"},
+  color: {legend: true, domain: ["reward-model score", "gold reward"], range: ["#b3541e", "#1d5f8a"]},
+  marks: [
+    Plot.ruleY([0], {stroke: "#bbb"}),
+    Plot.line(toy10.path, {x: "kl", y: "value", stroke: "which", strokeWidth: 2}),
+    Plot.dot([{kl: toy10.now.kl, value: toy10.now.proxy, which: "reward-model score"}, {kl: toy10.now.kl, value: toy10.now.gold, which: "gold reward"}],
+      {x: "kl", y: "value", fill: "which", r: 5})
+  ]
+})}</div>`
+```
+
+```{ojs}
+//| echo: false
+html`<p>At β = ${beta10.toFixed(2)}: reward-model score <strong>${toy10.now.proxy.toFixed(3)}</strong>, gold reward <strong>${toy10.now.gold.toFixed(3)}</strong>, drift <strong>${toy10.now.kl.toFixed(3)}</strong> nats.</p>`
+```
+
+The left panel is @eq-optimal-policy: the reference, reweighted by $e^{r/\beta}$ and renormalized. The right panel plots the two expected rewards against the drift of @eq-kl, with one point for each $\beta$. The demo shows the shape that Gao et al. measured: along the whole path the reward-model score rises, while the gold reward rises, peaks near $\beta \approx 0.65$ and then falls below where it started, because a small $\beta$ lets the policy pile onto the one response the reward model overrates. $\beta$ chooses where on this curve training stops. Nothing in the reward-model score says where the peak is.
+:::
+
 **Mode collapse.** A policy tuned with RL tends to produce a narrower range of outputs: the same phrasing, the same structure, less variety across samples for the same prompt. Kirk et al. (2024) measured lower output diversity after RLHF than after SFT alone. Section 3 explains why the KL term does not prevent this: $\mathrm{KL}(\pi_\theta \,\Vert\, \pi_{\text{ref}})$ penalizes putting probability where the reference has little, not dropping modes the reference has.
 
 *Detect it:* sample several responses per prompt and measure their variety, for instance the share of distinct n-grams.
@@ -387,6 +500,14 @@ One consequence matters for the rest of Day 3. Nothing in a preference compariso
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you set $\beta = 0$ and run the same training loop again, with the same seed, steps and learning rate. Predict first what happens to the reward-model score, the drift and the samples. Because Lab 9's preferences were generated from a hidden rule that we know, the lab can compute the **gold reward**, the score the hidden rule gives, next to the reward model's score, which a real RLHF run cannot do. The gap between the two is there by construction: the hidden rule stops crediting positive words after three and penalizes a response crowded with words from its lists, and both parts were set so that GPT-2's own continuations, the only text in the preference pairs, almost never trigger them. The reward model could not learn what its data never showed. The checkpoint asserts the signature of reward hacking against the run with the penalty: the reward-model score is at least as high, the drift is several times larger, the gold reward is lower, and the share of distinct token bigrams in the samples has fallen. These thresholds are provisional until the seed protocol in the brief (seeds 0–4 on a T4) has been run; they will then be set from the smallest gap across seeds. The **stretch** section sweeps $\beta$ and plots both rewards against drift.
+:::
+
+::: {.self-check}
+**Check yourself.** After a training run without the KL penalty you observe three things, each compared with the run that had the penalty: the reward-model score is higher, the drift is several times larger, and the share of distinct token bigrams in the samples has fallen. A colleague writes "reward hacking confirmed". Which failure modes do these three observations establish, and which measurement is still missing?
+
+::: {.callout-tip collapse="true" title="Answer"}
+They establish large drift and, through the bigram share, a loss of variety: mode collapse. They do not yet establish reward hacking. By the definition in section 1, reward hacking means the reward-model score improves while quality gets *worse* by the standard the reward model stands for. All three observations are also what successful optimization far from the reference would look like. The missing measurement is an independent judge: the gold reward in the lab, people or a held-out stronger judge in a real system. That is why the lab's checkpoint has four parts, and why the fourth, a lower gold reward, is the one a real RLHF run cannot compute and must replace with human evaluation.
+:::
 :::
 
 **Where this leaves us.** RLHF and DPO make a model better at producing what raters prefer. They say nothing about whether the model's confidence means anything, and section 7 gives reasons to expect it often does not. [Module 11](11-calibration.qmd) defines what a confidence should mean and measures it. [Module 12](12-rlcd-jev.qmd) then turns to RLCD, a training approach from TypeSafe whose details are unpublished. That module separates what TypeSafe has stated publicly from our own illustration of the idea; nothing on this page describes TypeSafe's method.

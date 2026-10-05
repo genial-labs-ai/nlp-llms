@@ -4,6 +4,10 @@ title: "{{< var modules.m06.title >}}"
 
 {{< include /_includes/module-06.md >}}
 
+::: {.recap}
+**Where we are.** [Module 5](05-transformer-from-scratch.qmd) built a decoder-only transformer and trained it from random parameters on one megabyte of text, one character at a time. The architecture was sound; the data and the token were the limits. This module answers one question: how do we train a transformer once, on far more text and with a better token, so that every later task starts from what it learned?
+:::
+
 ## Plan for the 45 minutes
 
 | Minutes | Section | Lab exercise it prepares |
@@ -18,6 +22,8 @@ title: "{{< var modules.m06.title >}}"
 | 43–45 | 8. What changes at scale, and what is still missing | (sets up Module 7) |
 
 Collapsed boxes marked **Optional** are outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 Notation carried over from earlier modules: tokens $w_1, \dots, w_T$; vocabulary $V$ of size $|V|$; embedding $e_w \in \mathbb{R}^d$; logits $z$ and $\hat{y} = \mathrm{softmax}(z)$; parameters $\theta$; loss $\mathcal{L}$; perplexity $\mathrm{PPL}$; number of classes $C$. All logarithms are natural. New in this module:
 
@@ -158,6 +164,22 @@ Expect splits that do not follow the morphology a linguist would draw (in the il
 **In the lab.** In **Exercise 1** you write `pair_counts(words)` (step 3a) and `merge_pair(words, pair)` (step 3c); the checkpoint is the table above (first merges `e`+`s`, `es`+`t`, `est`+`_`, `l`+`o`, `lo`+`w`), the encoding of `lowest` and $|V| = 11 + 5$. In **Exercise 2** you write `tokens_per_word(encode_fn, texts)`, train a BPE tokenizer on the arXiv training texts with the `tokenizers` library, and compare it with the two pretrained tokenizers above by tokens per word on the validation texts.
 :::
 
+::: {.self-check}
+**Check yourself.** Continue the worked example by one step. After merge 5 the words are `low _` (5), `low e r _` (2), `n e w est_` (6) and `w i d est_` (3). Which pair does merge 6 choose, with what count, and what decided it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+`e` + `w`, with count 6. Three pairs tie at 6, all of them inside `newest`: (`e`, `w`), (`n`, `e`) and (`w`, `est_`). Every pair that involves `low` now counts less (`low` + `_` is 5, `low` + `e` is 2). The tie rule picks the pair that sorts first, (`e`, `w`), so `newest` becomes `n ew est_` and the vocabulary has $11 + 6 = 17$ symbols. A different tie rule would give a different vocabulary from the same data, so the rule is part of the tokenizer.
+:::
+:::
+
+::: {.self-check}
+**Check yourself.** Neither `slowest` nor `lowers` is in the toy corpus. Encode both with the five merges of the table. Which costs more tokens, and why?
+
+::: {.callout-tip collapse="true" title="Answer"}
+`slowest` becomes `s low est_`: 3 tokens. `lowers` becomes `low e r s _`: 5 tokens. The longer word is cheaper because it is made of two pieces the corpus made frequent, plus one leftover character. In `lowers`, only `low` is a learned piece: no merge ever joined `e r`, `r s` or `s _`, so the rest falls back to characters. Cost follows the frequency of the pieces in the training corpus, not the length of the word.
+:::
+:::
+
 ::: {.callout-note collapse="true" title="Optional: WordPiece"}
 WordPiece (used by BERT and DistilBERT) also builds a vocabulary by merging pairs, bottom up. It differs from BPE in two places.
 
@@ -198,6 +220,14 @@ What should the self-supervised objective be? Two answers dominate, and they cor
 | Example | GPT (Radford et al., 2018) | BERT (Devlin et al., 2019) |
 | Natural use | generating text | classifying and tagging text |
 
+::: {.self-check}
+**Check yourself.** Lab 2 trained skip-gram embeddings by predicting the words around a center word. Is that objective self-supervised, by this section's definition? If so, what is new in the recipe above?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Yes. The targets, the context words, are made from the text itself, and no person labeled anything. What is new is how much is transferred. Skip-gram hands on one table with one vector per word, the same in every sentence. Pretraining hands on the whole network that computes the contextual vectors $h_t$, so fine-tuning starts with every layer already trained and only the small task layer random.
+:::
+:::
+
 ## 4. Causal language modeling: GPT
 
 **Objective: write the causal objective and recognize it as Module 1's.**
@@ -230,8 +260,27 @@ This is the cross-entropy you minimized in Lab 5, and its exponential is the per
 
 **Perplexity across tokenizers.** Module 1 warned that perplexities are comparable only over the same tokens. GPT-2's perplexity is per BPE token and Lab 5's is per character, so the two numbers cannot be compared directly. The total negative log-probability of a text, $T \cdot \mathcal{L}_{\text{CLM}}$, does not depend on the unit. Divide it by the number of characters to get nats per character under either model.
 
+::: {.worked-example}
+**Worked example: one text, two units.** A text of 12 characters is 3 BPE tokens. A causal LM gives the three tokens probabilities 0.5, 0.25 and 0.125, each conditioned on the tokens before it. (Assume a start token, so that all three are scored.)
+
+- **Loss** (@eq-clm): $\mathcal{L}_{\text{CLM}} = \tfrac{1}{3}(\log 2 + \log 4 + \log 8) = 2 \log 2 \approx 1.386$ nats per token.
+- **Perplexity:** $\exp(2 \log 2) = 4$. On average the model is as uncertain as a uniform choice among 4 tokens.
+- **Total:** $3 \times 1.386 = 4.159$ nats for the whole text. This number does not depend on the unit.
+- **Per character:** $4.159 / 12 \approx 0.347$ nats, which is a perplexity of $e^{0.347} \approx 1.41$ per character.
+
+The same model on the same text has perplexity 4 per token and 1.41 per character. Neither is wrong. They are rates over different units, and only the total, or a rate over a shared unit, compares models that use different tokenizers.
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 3** you write `lm_perplexity(text, model, tokenizer)`: take the logits of a pretrained causal LM (`{{< var models.causal_lm >}}`), shift them one position against the input IDs, and compute @eq-clm over tokens 2 to $T$. The checkpoint compares your value with `exp` of the loss the library returns (relative tolerance $10^{-3}$), and checks that a sentence scores a lower perplexity than the same words shuffled. A provided cell then converts the total to nats per character, as described above.
+:::
+
+::: {.self-check}
+**Check yourself.** On the same test text, model A reports a perplexity of 20 per BPE token, and its tokens average 4 characters. Model B, a character model, reports a perplexity of 3. Which model fits the text better?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Model A, although its perplexity is the larger number. Convert both to nats per character. A spends $\log 20 \approx 3.00$ nats per token, so $3.00 / 4 \approx 0.75$ nats per character. B spends $\log 3 \approx 1.10$ nats per character. Lower is better, so A wins. Said another way, A's perplexity per character is $20^{1/4} \approx 2.1$, below B's 3.
+:::
 :::
 
 ## 5. Masked language modeling: BERT
@@ -281,6 +330,71 @@ The random branch touches only $0.15 \times 0.1 = 1.5\%$ of all tokens, which is
 
 The gain is that every $h_t$ is conditioned on the full input, which is what classification wants.
 
+::: {#demo-masking .demo}
+**Demo: what each objective reads and what it scores.** An illustration on one invented sentence, not lab data.
+
+**Predict first.** At a selection rate of 0.15, how many of the 12 positions does the masked objective score on average, and how many does the causal objective score? Then raise the rate toward 0.6 and say what each scored position loses.
+
+```{ojs}
+//| echo: false
+viewof obj06 = Inputs.radio(["masked (BERT)", "causal (GPT)"], {label: "Objective", value: "masked (BERT)"})
+viewof rate06 = Inputs.range([0.05, 0.6], {label: "Selection rate (masked)", step: 0.05, value: 0.15})
+viewof draw06 = Inputs.range([1, 30], {label: "Random draw (masked)", step: 1, value: 1})
+viewof pos06 = Inputs.range([2, 12], {label: "Predicted position t (causal)", step: 1, value: 6})
+```
+
+```{ojs}
+//| echo: false
+state06 = {
+  const words = ["the", "cat", "sat", "on", "the", "mat", "and", "looked", "at", "the", "red", "door"];
+  const other = ["tree", "blue", "ran", "seven", "river", "sing"];
+  let s = draw06 * 7919;
+  const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;   // a small seeded generator
+  const causal = obj06.startsWith("causal");
+  const cells = [];
+  words.forEach((w, i) => {
+    const t = i + 1, sel = rnd() < rate06, u = rnd(), v = rnd();
+    if (causal) {
+      cells.push({t, row: "input", text: w, kind: t < pos06 ? "read" : "not read"});
+      if (t === pos06) cells.push({t, row: "target", text: w, kind: "target"});
+    } else {                                                        // select, then 80/10/10
+      const kind = !sel ? "not selected" : u < 0.8 ? "[MASK]" : u < 0.9 ? "random token" : "unchanged";
+      const text = kind === "[MASK]" ? "[MASK]" : kind === "random token" ? other[Math.floor(v * other.length)] : w;
+      cells.push({t, row: "input", text, kind});
+      if (sel) cells.push({t, row: "target", text: w, kind: "target"});
+    }
+  });
+  const scored = causal ? words.length - 1 : cells.filter(c => c.row === "target").length;
+  return {cells, scored, causal, T: words.length};
+}
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 720, height: 150, marginLeft: 55, marginBottom: 35,
+  x: {domain: Array.from({length: 12}, (_, i) => i + 1), label: "position", padding: 0.06},
+  y: {domain: ["input", "target"], label: null, padding: 0.12},
+  color: {legend: true,
+    domain: state06.causal ? ["read", "not read", "target"] : ["not selected", "[MASK]", "random token", "unchanged", "target"],
+    range: state06.causal ? ["#c9d7ee", "#eeeeee", "#1d5f8a"] : ["#e8ecf1", "#f0b98d", "#f3df8f", "#b9dcc0", "#1d5f8a"]},
+  marks: [
+    Plot.cell(state06.cells, {x: "t", y: "row", fill: "kind", inset: 1}),
+    Plot.text(state06.cells, {x: "t", y: "row", text: "text", fontSize: 12, fill: d => d.kind === "target" ? "white" : "#1f2933"})
+  ]
+})
+```
+
+```{ojs}
+//| echo: false
+html`<p><strong>${state06.scored} of ${state06.T}</strong> positions are scored in this sequence. ${state06.causal
+  ? `A causal model scores every position from 2 to T in one pass. The picture shows one of them, position ${pos06}, which reads only the ${pos06 - 1} tokens to its left.`
+  : `The expected number at this rate is ${(rate06 * state06.T).toFixed(1)}. Each scored position reads every other position, corrupted ones included.`}</p>`
+```
+
+The demo applies the select and corrupt steps above to one sentence and shows the targets of @eq-mlm, or the left context of @eq-clm. It shows the trade that the selection rate makes: a higher rate gives more targets per sequence, but each target is predicted from a more damaged context. At 0.15, about $0.15 \times 12 = 1.8$ of the 12 positions are scored, against 11 for the causal objective.
+:::
+
 BERT's inputs also carry two special tokens: `[CLS]` at the start and `[SEP]` at the end (and between two sentences when the input is a pair). The output vector at the first position, $h_{\texttt{[CLS]}}$, is used in Section 7 as the representation of the whole input.
 
 For scale: BERT-base has 12 layers, $d = 768$ and 110 million parameters, pretrained on 3.3 billion words (BooksCorpus and English Wikipedia).
@@ -312,6 +426,22 @@ The probe's output is not quoted here: it has not been reproduced in the worksho
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you write `mask_tokens(input_ids, special_mask, mask_id, vocab_size, p=0.15)`, the select and corrupt steps above, and return the corrupted IDs and the targets with $-100$ outside $\mathcal{S}$. The checkpoint measures the selected share (between 0.13 and 0.17) and the split of the selected positions on a padded batch of 256 training texts. In the build, run on an offline stand-in tokenizer, the reference solution selected 0.148 of the real tokens; of those, 0.799 became `[MASK]`, 0.102 a random token and 0.099 stayed unchanged. With DistilBERT's tokenizer the token count differs, so your shares will differ slightly. A provided cell then computes @eq-mlm on 16 validation abstracts with the pretrained masked LM, checks it against a hand computation, and runs the fill-in-the-blank probe shown above. The masked LM is DistilBERT (`{{< var models.encoder >}}`) on every runtime, GPU or CPU.
+:::
+
+::: {.self-check}
+**Check yourself.** A colleague says: "BERT replaces 15% of the tokens with `[MASK]`." A batch holds 2,000 real tokens. Give the expected number of tokens that are scored, that the model sees as `[MASK]`, that it sees as a random token, and that are scored although they were left unchanged. Then correct the sentence.
+
+::: {.callout-tip collapse="true" title="Answer"}
+Scored: $0.15 \times 2000 = 300$. Seen as `[MASK]`: $0.8 \times 300 = 240$, which is 12% of the batch. Random: 30. Unchanged but scored: 30. So the input differs from the original at about 270 positions (13.5%), while the loss of @eq-mlm averages over all 300. The corrected sentence: BERT *selects* 15% of the tokens for prediction and replaces 80% of those with `[MASK]`.
+:::
+:::
+
+::: {.self-check}
+**Check yourself.** Someone proposes a perplexity for BERT: mask each token of a sentence in turn, read off $P(w_t \mid \text{all the other tokens})$, multiply the $T$ values, and treat the product as $P(w_1, \dots, w_T)$. Why is this not the perplexity of @eq-clm?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Each factor conditions on the tokens to the *right* of $t$ as well as the left, so the product is not the chain rule, and it does not define a probability distribution over sentences: summed over all sentences it need not equal 1. The product is still a usable score for ranking sentences under one model (it is called a pseudo-likelihood). It is not comparable with a causal model's perplexity, and it costs $T$ forward passes where the causal model needs one.
+:::
 :::
 
 ::: {.callout-note collapse="true" title="Optional: next-sentence prediction, and what later encoders changed"}
@@ -404,6 +534,14 @@ print(encoding.tokens, encoding.ids)
 
 ::: {.callout-warning appearance="simple"}
 **Attention weights need `attn_implementation="eager"`.** The default attention implementation computes attention in a fused kernel and returns no weights, so `output_attentions=True` alone gives you nothing to plot. Load the model with `AutoModel.from_pretrained(name, attn_implementation="eager")`, as the stretch does.
+:::
+
+::: {.self-check}
+**Check yourself.** You tokenize two texts with `padding=True` and `return_tensors="pt"`. With their special tokens they are 5 and 9 tokens long. Give the shape of `input_ids`, the number of zeros in `attention_mask`, and the shape of `last_hidden_state` from DistilBERT. What goes wrong with `padding=False`?
+
+::: {.callout-tip collapse="true" title="Answer"}
+`input_ids` has shape $(2, 9)$: the batch is padded to its longest text. The shorter row carries 4 `[PAD]` tokens, so the mask has 4 zeros. `last_hidden_state` has shape $(2, 9, 768)$: one vector per position, padding included, and the vectors at padded positions should be ignored. Without padding the two rows have different lengths and cannot be stacked into one tensor. That is why Section 7's collator pads each batch, and only to that batch's longest text.
+:::
 :::
 
 ## 7. Fine-tuning an encoder for classification
@@ -512,6 +650,14 @@ Keep the logits. A classifier's output $\hat{y}$ claims to be a probability. Whe
 **In the lab.** In **Exercise 5** you write `tokenize(batch)` and `compute_metrics(eval_pred)`, predict the starting loss ($\log 4$) before running, and fine-tune with the provided `finetune`. The checkpoints assert that the validation loss before training is within 0.25 of $\log 4$, recompute @eq-head by hand from $h_{\texttt{[CLS]}}$ and check it against the model's logits, and print test accuracy and macro-F1 beside the TF-IDF baseline (recomputed in the notebook) and Lab 2's result (read from `data/baselines.json`).
 
 **Which encoder runs.** On a GPU runtime the lab fine-tunes DistilBERT (`{{< var models.encoder >}}`) on all 4,800 training texts: 2 epochs, $\eta = 5 \times 10^{-5}$. On a CPU runtime, to fit the time budget, it falls back to BERT-mini (`{{< var models.encoder_cpu >}}`: 4 layers, $d = 256$, the same vocabulary) trained on the first **800** training texts: 3 epochs, $\eta = 10^{-4}$. Validation and test are never reduced. The lab prints the model and the number of training rows beside every number it reports. A CPU-fallback row is not a fair comparison with TF-IDF trained on all 4,800 texts.
+:::
+
+::: {.self-check}
+**Check yourself.** DistilBERT has about 66 million parameters. How many parameters does the layer of @eq-head add for $C = 4$ and $d = 768$? In the fine-tuning of this section, how many parameters does each gradient step update? How many would it update if the encoder were frozen?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$W$ has $4 \times 768 = 3{,}072$ entries and $b$ has 4, so the layer adds 3,076 parameters: about 0.005% of the model. Standard fine-tuning updates all of them *and* the 66 million of the encoder, because the gradient flows through $W$ into every layer. With the encoder frozen (a linear probe), only the 3,076 would move, and $h_{\texttt{[CLS]}}$ would stay whatever pretraining made it. (The library's DistilBERT head also has the extra hidden layer mentioned above, so its count is somewhat larger. The contrast is the same.)
+:::
 :::
 
 ## 8. What changes at scale, and what is still missing
