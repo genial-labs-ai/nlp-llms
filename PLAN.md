@@ -60,6 +60,7 @@ Drawn from Stanford CS224N, CMU CS 11-747 and MIT 6.S191:
 - **Short lecture, immediate lab.** No lecture runs longer than 45 minutes before hands-on work (MIT 6.S191).
 - **Predict → Run → Explain → Check.** The lab rhythm carried over from `tensors-workshop`: participants predict an output, run the cell, explain the result, then pass a checkpoint assertion.
 - **One running thread.** The same small datasets and the same tasks reappear across modules, so improvements are measured, not asserted.
+- **Retrieve and manipulate before the lab.** Each lecture opens with a recap box, closes most sections with a check-yourself question (answer folded), carries its derivations through a worked numeric example, and has at most one interactive demo. These sit outside the 45 minutes. Authoring hooks: `.recap`, `.self-check`, `.worked-example`, `.demo` (styled in `custom.scss`; `filters/pedagogy.lua` styles the per-section objective lines).
 - **Honesty about what is known.** Where a method is unpublished (RLCD), the material says so and separates public facts from our own illustration.
 
 ---
@@ -85,7 +86,7 @@ nlp-llms/
 ├── faq.qmd
 ├── teach.qmd                instructor hub
 ├── facilitator-guide.md  instructor-pace.md  assessments.md
-├── custom.scss              cosmo override; Inter body, Source Serif 4 headings
+├── custom.scss              cosmo override; Inter body, Source Serif 4 headings (custom-dark.scss: dark theme tokens)
 ├── fonts/  images/  data/   vendored fonts, figures, fallback dataset copies
 ├── scripts/                 gen_tables.py, gen_notebooks.py, new_notebook.py, test_notebooks.py, check_links.py
 ├── tests/
@@ -104,7 +105,7 @@ nlp-llms/
 - **Generated files are never edited by hand.** `scripts/gen_tables.py` writes the tables in `_includes/` and the marked regions in `README.md`. `scripts/gen_notebooks.py` owns the first cell (title, Colab badge, time, objectives) and the last cell (next notebook, site link) of every notebook, strips outputs and execution counts, and is idempotent. CI fails if running the generators changes anything.
 - **Notebooks are not executed at render time.** `_quarto.yml` lists pages explicitly under `render:` and ships `notebooks/*.ipynb` as `resources:`. There is no `_freeze/`.
 - **Deploy from an Actions artifact.** `publish.yml` renders to `docs/`, which is gitignored, and deploys with `actions/deploy-pages`.
-- **Navbar only, no sidebar.** Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ.
+- **Navbar, plus a module sidebar on lecture pages.** Navbar: Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ. Inside `lectures/` a generated left sidebar (`_includes/sidebar.yml`) lists the modules by day, with previous/next module links at the foot of each page. (Changed 2026-10-05; `tensors-workshop` has no sidebar.)
 
 ### Deliberately left out of v1
 
