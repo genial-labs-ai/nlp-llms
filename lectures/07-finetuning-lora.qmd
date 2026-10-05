@@ -462,7 +462,7 @@ You now have an instruction follower that you tuned yourself, running on one GPU
 ## Readings
 
 1. Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L. and Chen, W. (2022). [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685). *ICLR*. The method. Read section 4 for the layer and section 7 for the analysis of rank.
-2. Aghajanyan, A., Zettlemoyer, L. and Gupta, S. (2021). [Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning](https://arxiv.org/abs/2012.13255). *ACL*. The evidence that fine-tuning needs few degrees of freedom, on which LoRA's hypothesis builds.
+2. Aghajanyan, A., Gupta, S. and Zettlemoyer, L. (2021). [Intrinsic Dimensionality Explains the Effectiveness of Language Model Fine-Tuning](https://arxiv.org/abs/2012.13255). *ACL*. The evidence that fine-tuning needs few degrees of freedom, on which LoRA's hypothesis builds.
 3. Hugging Face. [PEFT documentation: LoRA](https://huggingface.co/docs/peft/main/en/developer_guides/lora). The developer guide for `LoraConfig`: initialization, rank-stabilized scaling, merging. Read alongside the lab.
 4. Hugging Face. [Transformers documentation: Chat templates](https://huggingface.co/docs/transformers/main/en/chat_templating). How `apply_chat_template` works, the generation prompt, and templates in training.
 5. Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E. P., Zhang, H., Gonzalez, J. E. and Stoica, I. (2023). [Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena](https://arxiv.org/abs/2306.05685). *NeurIPS Datasets and Benchmarks Track*. Model-graded evaluation and its measured biases.

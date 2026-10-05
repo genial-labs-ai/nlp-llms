@@ -498,6 +498,6 @@ All five are official documentation, opened on 2026-10-04. Documentation changes
 2. OpenAI. [Structured outputs](https://developers.openai.com/api/docs/guides/structured-outputs). Schema-constrained output with Pydantic, the supported subset of JSON Schema, and how refusals and truncation appear.
 3. Anthropic. [Tool use with Claude](https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview). The `tool_use` and `tool_result` blocks, a complete round trip, and how tool definitions are billed.
 4. Anthropic. [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs). JSON outputs and strict tool use, with the schema limitations.
-5. Anthropic. [Handling stop reasons](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons). Every way a response can end and what to do about each; the OpenAI counterpart is the `status` field described in its [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
+5. Anthropic. [Stop reasons and fallback](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons). Every way a response can end and what to do about each; the OpenAI counterpart is the `status` field described in its [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning).
 
 For prices, use the providers' own pages, which are the only current source: [OpenAI pricing](https://developers.openai.com/api/docs/pricing) and [Anthropic pricing](https://platform.claude.com/docs/en/about-claude/pricing).
