@@ -85,6 +85,10 @@ jobs:
           NLP_LLMS_QUICK: "1"
           NLP_LLMS_CELL_TIMEOUT: "1800"
           OMP_NUM_THREADS: "4"
+          # Until Lab 9's GPT-2 data files are built and committed (PLAN.md, Day 7),
+          # Labs 9 and 10 run on their labeled offline stand-ins in CI.
+          NLP_LLMS_LAB09_OFFLINE: tiny
+          NLP_LLMS_LAB10_OFFLINE: tiny
         run: uv run --group execute python scripts/test_notebooks.py
 
   deploy:
