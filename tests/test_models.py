@@ -22,6 +22,7 @@ USES = {
     "09-preference-learning": ["causal_lm"],
     "10-rlhf": ["causal_lm"],
     "11-calibration": ["openai", "anthropic", "fallback"],
+    "13-rag": ["openai", "anthropic", "fallback", "embedding", "reranker", "nli", "jev"],
 }
 
 # Commercial model IDs: any such literal in a notebook must be a pinned value.
