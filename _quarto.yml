@@ -6,6 +6,7 @@ project:
   render:
     - index.qmd
     - setup.qmd
+    - coding-assistants.qmd
     - schedule.qmd
     - day-1.qmd
     - day-2.qmd
@@ -57,6 +58,8 @@ website:
         text: Notebooks
       - href: setup.qmd
         text: Setup
+      - href: coding-assistants.qmd
+        text: Coding assistants
       - href: references.qmd
         text: References
       - href: teach.qmd
