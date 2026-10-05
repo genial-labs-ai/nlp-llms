@@ -315,7 +315,7 @@ What this changes in the brief and the lecture:
 
 **Deviations from this brief, accepted:**
 
-- *Recorded values* are asserted at `atol=5e-3` (accuracy, mean $\hat{p}$, ECE, binary Brier for six reward/split/family rows; the `dev`-chosen pair and its `test` cost), not 1e-4, to allow float differences across machines. $\tau^*$ is recorded, not asserted.
+- *Recorded values* are asserted with room for about two items to flip across machines: `atol=0.015` for accuracy, mean $\hat{p}$, ECE and binary Brier on six reward/split/family rows, 0.02 for the `dev`-chosen pair and 0.07 for its `test` cost. The first CI run on a GitHub runner flipped one of the 150 policy test items (accuracy 0.7467 against 0.7400), which the earlier 5e-3 did not allow. $\tau^*$ is recorded, not asserted.
 - *Exercise 1's qualitative claims* are asserted (as this brief allowed after five seeds held), with margins of at most half the smallest seed margin: accuracy-model weight growth from step 1,500 to 3,000 above 15; its norm above the Brier model's by 15; its `train` mean $\hat{p}$ above 0.98; Brier `train` $|\hat{p} - \text{accuracy}| < 0.02$; `train` ECE gap above 0.05; `test` ECE gap above 0.025.
 - *`LocalDecider`* answers a `Noul` only when it is one of the five policy questions; any other `Noul` raises `UnsupportedQuestion` (behavior table above, amended). Labs 14 and 15 must catch it for guard and verify questions.
 - *Constraint (b)*: the Lab 11 export exists (Lab 11 cell `ex4-export`, fields `id, split, family, answer, confidence, valid, label, provider, model, date`; Lab 12 checks all ten). The committed reference run `data/lab11_reference_decisions_v1.jsonl.gz` does not exist and Lab 12 does not look for it; without an export the decider is drawn alone.
