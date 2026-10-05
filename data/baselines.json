@@ -1007,7 +1007,7 @@
           0.0,
           1.0
         ],
-        "chosen_on_dev_note": "tau_act is the largest dev probability, 0.9999993 (float32): ask about almost everything",
+        "chosen_on_dev_note": "tau_act is the 11th-largest dev probability, 0.9999993 (float32 softmax; five dev answers have p = 1.0): act on the 11 most confident dev answers (all right), ask about the other 89, never escalate; on test it asks about 88% and acts on 12%",
         "rule": "escalate below tau_esc, ask in between, act at or above tau_act (lecture eq-three-empirical)",
         "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)"
       },
