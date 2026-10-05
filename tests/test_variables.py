@@ -124,10 +124,9 @@ class AgentsIntro(unittest.TestCase):
                 "gemini": "@google/gemini-cli",
             },
         )
-        self.assertEqual(set(a["cli_versions"]), set(a["clis"]))
         self.assertEqual(set(a["node"]), set(a["clis"]))
-        for version in a["cli_versions"].values():
-            self.assertRegex(version, r"^\d+\.\d+\.\d+$")
+        for key in ("claude_code", "codex", "gemini_cli"):  # versions live in `assistants`
+            self.assertRegex(V["assistants"][key], r"^\d+\.\d+\.\d+$")
 
 
 if __name__ == "__main__":

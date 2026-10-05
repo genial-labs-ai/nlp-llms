@@ -67,7 +67,7 @@ packages:
 # installer fetches the latest release. Re-check before each delivery.
 assistants:
   checked: "2026-10-05"
-  codex: "0.160.0"
+  codex: "0.160.1"
   claude_code: "2.1.289"
   gemini_cli: "0.62.0"
   kimi_code: "2.1.1"
@@ -225,11 +225,11 @@ setup:
   minutes: 10
   summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
 
-# Module 0 (coding agents). npm package names, and the version on each package's
-# "latest" dist-tag, read from registry.npmjs.org on `checked`. `node` is each
-# package's `engines.node`. Claude Code's npm install is deprecated in favor of its
-# native installer (code.claude.com/docs/en/setup), which needs no Node.js.
-# Re-check before each delivery: these CLIs release several times a week.
+# Module 0 (coding agents): npm package names and the pinned three.js version, read
+# from registry.npmjs.org on `checked`. CLI versions live in `assistants` above.
+# Claude Code's docs recommend its native installer, which needs no Node.js; npm is
+# an alternative (code.claude.com/docs/en/setup). Re-check before each delivery:
+# these CLIs release several times a week.
 agents_intro:
   checked: "2026-10-05"
   threejs: "0.186.1"
@@ -237,10 +237,7 @@ agents_intro:
     claude_code: "@anthropic-ai/claude-code"
     codex: "@openai/codex"
     gemini: "@google/gemini-cli"
-  cli_versions:
-    claude_code: "2.1.289"
-    codex: "0.160.1"
-    gemini: "0.62.0"
+  # Each npm package's engines.node.
   node:
     claude_code: ">=22.0.0"
     codex: ">=16"
