@@ -18,6 +18,8 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
 | RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). Rebuilt 2026-10-05 from the commit that completed `references.qmd`. **Status `provisional`**: lecture 12 and possibly lectures 6–11 will still change; freeze them, rebuild if needed, and set `final` before any question is written |
 | RAG questions | 13, 15 | **Workshop RAG Questions v1**: 80 questions with evidence spans, written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people. Validator, tools and instructions committed |
+| Protein structure | 0 | **Ubiquitin, PDB 1UBQ**: 76 residues, 602 heavy atoms | CC0 1.0 (PDB data; license page read only through a search extract) | Fixed. Copy committed (`1ubq.pdb`) from a pinned mirror; RCSB stays canonical |
+| Customer purchases | 0 | **Workshop Purchases v1**: 48,953 synthetic invoice lines from 3,000 customers, built for this workshop | CC BY 4.0 (ours) | Fixed. Copy committed (`purchases_v1.csv.gz`). UCI Online Retail II is an optional real-data alternative, not committed |
 
 AG News, the original proposal for classification, was rejected. See [Why not AG News](#why-not-ag-news).
 
@@ -392,6 +394,73 @@ def load_lectures():
 **Until the file exists**, `tests/test_rag_questions.py` runs its schema, quote and overlap checks on `tests/fixtures/rag_questions_fixture.json`: six items **written by an AI agent for exercising code, not an evaluation set; no number from it is quoted anywhere.** Lab 13 never loads it: without the real file, the notebook says so and runs its evaluation code on *plumbing probes* (sentences copied from the snapshot, each its own evidence), labelled as measuring nothing about retrieval.
 
 **When it lands:** commit the file, add `datasets.rag_questions` to `_variables.yml` (`name`, `modules: [13, 15]`, `file`, `urls`, `sha256`, `bytes`, `license`, `license_url`, `splits: {dev: 30, test: 50}`, `corpus_sha256` equal to the lectures hash), set the hash in the `DATASETS["rag_questions"]` entry of `notebooks/13-rag.ipynb`, and report here: items written, dropped, alternatives added, and the evidence agreement rate before resolution (`python data/rag_questions_tools.py agreement ...`).
+
+## Module 0 sets: ubiquitin and purchases
+
+Module 0 (coding agents in the terminal) builds two small apps, each in Python and in R; the reference solutions are in [`agents-intro/`](../agents-intro/). They do not run in Colab and do not use the loading cell above, but they follow the same rules: canonical URL first, our copy second, each download checked against its hash (the Python references; base R has no SHA-256, so the R references check counts instead). In a clone, the RFM references read the local copy first; the protein references try RCSB first on purpose, because fetching from the archive is part of the exercise.
+
+### Ubiquitin, PDB 1UBQ (Module 0, protein app)
+
+| | |
+|---|---|
+| File | `1ubq.pdb`, 78,570 bytes, 970 lines, PDB format |
+| SHA-256 | `d4a6812d8951cf6594e6a0763f089e35f5a80b62acb3c117b2c5565228a7b161` |
+| Canonical URL | <https://files.rcsb.org/download/1UBQ.pdb> |
+| Fallback URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/1ubq.pdb> |
+| Source of our copy | <https://raw.githubusercontent.com/Lemkul-Lab/gmx_tutorials_jpcb/6c232808330cf79448711f3dada28ec6a43775f9/inputs/01_ubiquitin/1UBQ.pdb>, the input file of Justin Lemkul's GROMACS tutorials, pinned to a commit, downloaded 2026-10-05 |
+| Entry | "Structure of ubiquitin refined at 1.8 Angstroms resolution", Vijay-Kumar, Bugg & Cook (1987), *J. Mol. Biol.* 194:531 (JRNL record; DOI 10.1016/0022-2836(87)90679-6). X-ray, chain A, 76 residues `MQIFVKTLTG…LRLRGG` |
+| Contents | 602 `ATOM` records (heavy atoms only: 378 C, 105 N, 118 O, 1 S; no hydrogens, no alternate locations), 58 `HETATM` waters, 660 atoms in all (the `MASTER` record agrees) |
+| Revision | `REVDAT 6`, 14-FEB-24 (remark update). A search-engine extract of the wwPDB entry page (<https://www.wwpdb.org/pdb?id=1UBQ>, read 2026-10-05) gives 2024-02-14 as the latest revision |
+| License | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/): "Data files contained in the PDB archive are available under the CC0 1.0 Universal (CC0 1.0) Public Domain Dedication" |
+| License source | <https://www.wwpdb.org/about/usage-policies>. **Partly verified**: the sentence above is from a search-engine extract of that page on 2026-10-05; the page itself was blocked from the build container and has not been opened |
+
+**Why a mirror, and why we trust it.** `files.rcsb.org`, `www.rcsb.org`, `data.rcsb.org`, PDBe and `www.wwpdb.org` are all blocked from the build container, so the file could not be taken from the archive. Five independent GitHub repositories carry byte-identical copies of the current revision (SHA-256 above): `Lemkul-Lab/gmx_tutorials_jpcb`, `N283T/zsasa`, `HFooladi/pdbrust`, `mnrozhkov/serverless-cookbook` and `Open-Athena/binder-lab`. Older copies in other repositories carry revision 4 (2009) or 5 (2011) and differ only in `REVDAT` and `REMARK` lines. **Not verified**: that `files.rcsb.org` serves exactly these bytes today. If it serves a newer revision, the hash check rejects it and the Python reference falls back to our copy, so the measured numbers in `agents-intro/MEASURED.md` stay reproducible; re-check from a networked machine before delivery and update `sha256` and `bytes` here and in `_variables.yml` if the archive's file changed.
+
+### Workshop Purchases v1 (Module 0, RFM app)
+
+| | |
+|---|---|
+| File | `purchases_v1.csv.gz`, 393,024 bytes |
+| SHA-256 | `ac73eac9219793d280961ed0e60e1a1649ece3e8ab7c8624da4a4928629fa11b` |
+| Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/purchases_v1.csv.gz> |
+| Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/purchases_v1.csv.gz> |
+| Builder | [`build_purchases.py`](build_purchases.py): standard library only, seed 0, no network; `--check` rebuilds in memory and compares the decompressed text |
+| Columns | `invoice_id`, `invoice_date` (ISO date), `customer_id`, `country`, `stock_code`, `quantity`, `unit_price` |
+| Size | 48,953 invoice lines, 18,432 invoices, 3,000 customers, 2024-01-01 to 2025-12-31. RFM is computed as of 2026-01-01 |
+| License | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (ours). Synthetic: no real customer is in it |
+
+**How it is drawn.** Each customer belongs to one of six hidden archetypes (regular, loyal, occasional, wholesale, lapsed, new) that fix ranges for the purchase rate, the chance and timing of churn, the basket size and the quantity; within an archetype each customer draws an individual rate (log-normal), a first purchase date and, if they churn, an exponential lifetime. Invoices are a Poisson process; each line picks a product from a fixed catalog of 200 products, which fixes the unit price. The archetype is not in the file, and the archetypes overlap, so k-means finds groups but does not recover them exactly. There are no returns or cancellations (the UCI set has both).
+
+**Determinism, as checked (2026-10-05).** Two builds gave byte-identical files, and `--check` reported matching content and matching compressed bytes. Every random stream is seeded with a string (`random.Random(f"0:customer:{id}")`), which Python hashes with SHA-512, so the streams do not depend on the platform. `tests/test_agents_intro.py` rebuilds in memory and compares the decompressed text with the committed file, not the gzip bytes (those depend on the zlib build).
+
+**Loading.** In a notebook or script, after the loading cell of the [Loading contract](#loading-contract):
+
+```python
+def load_purchases():
+    """Workshop Purchases v1. Returns a list of dicts, one per invoice line."""
+    blob = fetch(
+        "purchases_v1.csv.gz",
+        [
+            "https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/purchases_v1.csv.gz",
+            "https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/purchases_v1.csv.gz",
+        ],
+        "ac73eac9219793d280961ed0e60e1a1649ece3e8ab7c8624da4a4928629fa11b",
+    )
+    return list(csv.DictReader(io.StringIO(gzip.decompress(blob).decode("ascii"))))
+```
+
+### UCI Online Retail II (optional alternative, not committed)
+
+The real-data alternative for the RFM app is the [UCI Online Retail II](https://archive.ics.uci.edu/dataset/502/online+retail+ii) set: the transactions of a UK-based online retailer between 2009-12-01 and 2011-12-09. It is not downloaded or committed, and the apps do not use it. What could be checked on 2026-10-05 (`archive.ics.uci.edu` is blocked from the build container, so only search-engine extracts of the dataset page were read):
+
+| Claim | Status |
+|---|---|
+| License CC BY 4.0 | **Unverified**: search-engine extract of the UCI page, page not opened |
+| 1,067,371 instances (invoice lines) | **Unverified**: same source |
+| One file, `online_retail_II.xlsx`, 43.5 MB | **Unverified**: same source |
+| Date range 2009-12-01 to 2011-12-09 | **Unverified**: same source |
+
+If a group uses it, expect to handle cancellations (invoice numbers starting with `C`, negative quantities) and lines without a customer ID before computing RFM; neither property was checked for this file. Read the license on the UCI page before using it in a published app.
 
 ## Measured baselines (`baselines.json`)
 

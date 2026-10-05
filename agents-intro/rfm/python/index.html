@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Customer Segments in 3D</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14171c;
+    --panel: #1e232b;
+    --text: #e8eaed;
+    --muted: #9aa3ad;
+    --line: #333a45;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: grid; grid-template-columns: 340px 1fr; height: 100%; }
+  aside { background: var(--panel); border-right: 1px solid var(--line); padding: 18px 18px 24px;
+    overflow-y: auto; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 22px 0 8px; }
+  p { margin: 0 0 8px; }
+  .muted { color: var(--muted); }
+  .segment { display: grid; grid-template-columns: 18px 1fr auto; gap: 4px 10px; align-items: center;
+    padding: 10px 8px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
+  .segment:hover { border-color: var(--line); }
+  .segment.off { opacity: .35; }
+  .swatch { width: 14px; height: 14px; border-radius: 50%; }
+  .segment .name { font-weight: 600; }
+  .segment .count { font-variant-numeric: tabular-nums; }
+  .segment .centroid { grid-column: 2 / 4; font-size: 12px; color: var(--muted);
+    font-variant-numeric: tabular-nums; }
+  #viewport { position: relative; }
+  #viewport canvas { display: block; }
+  #tooltip { position: absolute; pointer-events: none; background: rgba(20, 23, 28, .94);
+    border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font-size: 13px;
+    white-space: nowrap; display: none; font-variant-numeric: tabular-nums; }
+  #tooltip b { display: block; margin-bottom: 2px; }
+  #hint { position: absolute; right: 14px; bottom: 10px; color: var(--muted); font-size: 12px; }
+  #error { color: #ff8a80; }
+  table { border-collapse: collapse; font-size: 12px; }
+  td { padding: 1px 10px 1px 0; }
+</style>
+<!-- three.js, pinned (agents_intro.threejs in _variables.yml), loaded as ES modules from jsDelivr. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>Customer segments</h1>
+    <p class="muted" id="subtitle">Loading data.json…</p>
+    <p id="error"></p>
+    <p>Each point is a customer, placed by <b>recency</b> (days since the last purchase),
+      <b>frequency</b> (number of invoices) and <b>monetary</b> value (total spend).
+      Axes are log-scaled and standardized; tick labels show the original units.</p>
+
+    <h2>Segments</h2>
+    <p class="muted">Click a segment to hide or show it. Centroids are in original units.</p>
+    <div id="segments"></div>
+
+    <h2>Choosing k</h2>
+    <p class="muted" id="krule"></p>
+    <table id="silhouette"></table>
+  </aside>
+  <div id="viewport">
+    <div id="tooltip"></div>
+    <div id="hint">Hover a point for its numbers · drag to rotate · scroll to zoom</div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// The fields this page reads from data.json. tests/test_agents_intro.py checks that
+// both reference builds (Python and R) write every one of them.
+const REQUIRED = {"meta": ["n_customers", "k", "k_rule", "silhouette", "log_mean", "log_sd", "made_by"], "segments": ["id", "name", "color", "count", "centroid", "centroid_z"], "customers": ["id", "recency", "frequency", "monetary", "z", "segment"]};
+
+const SCALE = 8;            // scene units per standard deviation
+const TICKS = {             // tick values in original units, kept if inside the data
+  recency: [1, 7, 30, 90, 365, 730],
+  frequency: [1, 2, 5, 10, 25, 50, 100],
+  monetary: [10, 30, 100, 300, 1000, 3000, 10000],
+};
+const AXES = [
+  { key: "recency", label: "Recency (days)", dir: new THREE.Vector3(1, 0, 0) },
+  { key: "frequency", label: "Frequency (invoices)", dir: new THREE.Vector3(0, 1, 0) },
+  { key: "monetary", label: "Monetary (spend)", dir: new THREE.Vector3(0, 0, 1) },
+];
+
+const $ = (id) => document.getElementById(id);
+const fmt = (v, d = 0) => v.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const plural = (v, word) => `${fmt(v)} ${word}${v === 1 ? "" : "s"}`;
+
+function checkFields(data) {
+  const missing = [];
+  for (const key of Object.keys(REQUIRED)) {
+    if (!(key in data)) { missing.push(key); continue; }
+    const sample = Array.isArray(data[key]) ? data[key][0] : data[key];
+    for (const f of REQUIRED[key]) if (!(f in sample)) missing.push(`${key}.${f}`);
+  }
+  if (missing.length) throw new Error(`data.json is missing: ${missing.join(", ")}`);
+}
+
+function textSprite(text, color, height) {
+  const size = 48;  // canvas font size in pixels; `height` is the size in scene units
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  ctx.font = `${size}px system-ui, sans-serif`;
+  canvas.width = Math.ceil(ctx.measureText(text).width) + 8;
+  canvas.height = size + 10;
+  ctx.font = `${size}px system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 4, canvas.height / 2);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, depthWrite: false }));
+  sprite.scale.set(height * canvas.width / canvas.height, height, 1);
+  return sprite;
+}
+
+async function main() {
+  const response = await fetch("data.json");
+  if (!response.ok) throw new Error(`Could not load data.json (${response.status}). Run build first.`);
+  const data = await response.json();
+  checkFields(data);
+  const { meta, segments, customers } = data;
+  const n = customers.length;
+  $("subtitle").textContent =
+    `${fmt(meta.n_customers)} customers · k = ${meta.k} · built by the ${{ python: "Python", r: "R" }[meta.made_by] ?? meta.made_by} reference`;
+  $("krule").textContent = `Rule: ${meta.k_rule}.`;
+  $("silhouette").innerHTML = "<tr><td>k</td><td>mean silhouette</td></tr>" +
+    Object.entries(meta.silhouette).map(([k, s]) =>
+      `<tr><td>${k}${+k === meta.k ? " ←" : ""}</td><td>${s.toFixed(3)}</td></tr>`).join("");
+
+  // --- Scene -------------------------------------------------------------------
+  const viewport = $("viewport");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  viewport.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x14171c);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 2000);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 2.2));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(30, 50, 40);
+  scene.add(sun);
+
+  const positions = customers.map((c) => new THREE.Vector3(...c.z).multiplyScalar(SCALE));
+  const box = new THREE.Box3().setFromPoints(positions);
+  const center = box.getCenter(new THREE.Vector3());
+
+  // Points: one small sphere per customer, colored by segment.
+  const points = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.32, 1),
+    new THREE.MeshStandardMaterial({ roughness: 0.6 }), n);
+  const matrix = new THREE.Matrix4();
+  const hidden = new Set();
+  function placePoints() {
+    customers.forEach((c, k) => {
+      const s = hidden.has(c.segment) ? 0 : 1;
+      matrix.makeScale(s, s, s).setPosition(positions[k]);
+      points.setMatrixAt(k, matrix);
+    });
+    points.instanceMatrix.needsUpdate = true;
+    points.computeBoundingSphere();
+  }
+  customers.forEach((c, k) => points.setColorAt(k, new THREE.Color(segments[c.segment].color)));
+  placePoints();
+  scene.add(points);
+
+  // Centroids: larger wireframe markers.
+  for (const s of segments) {
+    const marker = new THREE.Mesh(new THREE.OctahedronGeometry(1.1),
+      new THREE.MeshBasicMaterial({ color: s.color, wireframe: true }));
+    marker.position.set(...s.centroid_z).multiplyScalar(SCALE);
+    marker.userData.segment = s.id;
+    scene.add(marker);
+    s.marker = marker;
+  }
+
+  // Axes from the minimum corner of the data, with ticks in original units.
+  const origin = box.min.clone().subScalar(1);
+  const axisMaterial = new THREE.LineBasicMaterial({ color: 0x6b7480 });
+  AXES.forEach((axis, a) => {
+    const end = origin.clone();
+    end.setComponent(a, box.max.getComponent(a) + 2);
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([origin, end]), axisMaterial));
+    const title = textSprite(axis.label, "#e8eaed", 1.8);
+    title.position.copy(end).addScaledVector(axis.dir, 4);
+    scene.add(title);
+    for (const value of TICKS[axis.key]) {
+      const z = (Math.log1p(value) - meta.log_mean[a]) / meta.log_sd[a] * SCALE;
+      if (z < box.min.getComponent(a) - 0.5 || z > box.max.getComponent(a) + 0.5) continue;
+      const tick = origin.clone();
+      tick.setComponent(a, z);
+      const label = textSprite(fmt(value), "#aab2bc", 1.5);
+      const offset = a === 1 ? new THREE.Vector3(-2.2, 0, -2.2) : new THREE.Vector3(0, -1.6, 0);
+      label.position.copy(tick).add(offset);
+      scene.add(label);
+      const mark = new THREE.Mesh(new THREE.SphereGeometry(0.12), new THREE.MeshBasicMaterial({ color: 0x9aa3ad }));
+      mark.position.copy(tick);
+      scene.add(mark);
+    }
+  });
+
+  // Ring around the hovered customer.
+  const ring = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }));
+  ring.visible = false;
+  scene.add(ring);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.target.copy(center);
+  const size = box.getSize(new THREE.Vector3()).length();
+  camera.position.copy(center).add(new THREE.Vector3(1.1, 0.6, 0.95).multiplyScalar(size * 0.8));
+  controls.update();
+
+  // --- Side panel --------------------------------------------------------------
+  $("segments").innerHTML = segments.map((s) => `
+    <div class="segment" data-id="${s.id}">
+      <span class="swatch" style="background:${s.color}"></span>
+      <span class="name">${s.name}</span>
+      <span class="count">${fmt(s.count)}</span>
+      <span class="centroid">${fmt(s.centroid.recency)} days · ${fmt(s.centroid.frequency, 1)} invoices ·
+        ${fmt(s.centroid.monetary)} spend</span>
+    </div>`).join("");
+  document.querySelectorAll(".segment").forEach((el) => el.addEventListener("click", () => {
+    const id = +el.dataset.id;
+    hidden.has(id) ? hidden.delete(id) : hidden.add(id);
+    el.classList.toggle("off", hidden.has(id));
+    segments[id].marker.visible = !hidden.has(id);
+    placePoints();
+  }));
+
+  // --- Hover -------------------------------------------------------------------
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const tooltip = $("tooltip");
+  let pending = null;
+  renderer.domElement.addEventListener("pointermove", (e) => { pending = e; });
+  renderer.domElement.addEventListener("pointerleave", () => { pending = null; hover(null); });
+
+  function hover(e) {
+    if (!e) { tooltip.style.display = "none"; ring.visible = false; return; }
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    const hit = raycaster.intersectObject(points)[0];
+    if (!hit) { hover(null); return; }
+    const c = customers[hit.instanceId];
+    const s = segments[c.segment];
+    ring.position.copy(positions[hit.instanceId]);
+    ring.visible = true;
+    tooltip.innerHTML = `<b>Customer ${c.id}</b>
+      <span style="color:${s.color}">●</span> ${s.name}<br>
+      Recency: ${plural(c.recency, "day")}<br>
+      Frequency: ${plural(c.frequency, "invoice")}<br>
+      Monetary: ${fmt(c.monetary, 2)} spend`;
+    tooltip.style.display = "block";
+    tooltip.style.left = `${e.clientX - rect.left + 14}px`;
+    tooltip.style.top = `${e.clientY - rect.top + 14}px`;
+  }
+
+  // --- Render loop -------------------------------------------------------------
+  function resize() {
+    const { clientWidth: w, clientHeight: h } = viewport;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize);
+  resize();
+  renderer.setAnimationLoop(() => {
+    if (pending) { hover(pending); pending = null; }
+    controls.update();
+    renderer.render(scene, camera);
+  });
+
+  // Hooks for the headless check (agents-intro/check_render.py).
+  function screenPoint(k) {
+    const v = positions[k].clone().project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    return { x: rect.left + (v.x + 1) / 2 * rect.width, y: rect.top + (1 - v.y) / 2 * rect.height };
+  }
+  window.__viewer = { kind: "rfm", screenPoint, n };
+  window.__ready = true;
+}
+
+main().catch((error) => {
+  $("error").textContent = error.message;
+  console.error(error);
+});
+</script>
+</body>
+</html>
