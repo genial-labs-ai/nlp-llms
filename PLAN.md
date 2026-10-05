@@ -401,9 +401,9 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found (verified against the published packages and the TypeSafe and LangChain repositories; `docs.typesafe.ai` was blocked and is still unread, see `briefs/jev-verification.md`; left unticked until the docs are read from a networked machine)
 - [x] Draft lecture 11: Calibration
 - [x] Draft lecture 12: RLCD and Jev (public facts and our illustration clearly separated; TypeSafe's own statements are a TODO for Romeo until docs.typesafe.ai is read)
-- [ ] Code `11-calibration.ipynb`
+- [ ] Code `11-calibration.ipynb` (written; classifier exercises run on the Lab 1 fallback; LLM part run on the labelled stub only; keyed, open-model and Lab 6 paths not run)
 - [ ] Code `12-rlcd-jev.ipynb`
-- [ ] Build and label the shared decision set used by Labs 11, 12 and 14 (spec in `briefs/11-calibration.md`: `data/build_decisions.py` generates the template items; Romeo and one instructor write and label the 80 hand-written items and audit 60 template items)
+- [ ] Build and label the shared decision set used by Labs 11, 12 and 14 (spec in `briefs/11-calibration.md`; template-only v1 built and committed, `data/decisions_v1.jsonl.gz`: `data/build_decisions.py` generates the template items; Romeo and one instructor write and label the 80 hand-written items and audit 60 template items)
 - [ ] Review: the RLCD honesty rule (AGENTS.md) holds in both the lecture and the lab
 
 ### Day 9 — Modules 13–15
