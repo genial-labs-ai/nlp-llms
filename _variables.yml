@@ -104,6 +104,25 @@ datasets:
     license: "CC BY-SA 3.0"
     license_url: https://huggingface.co/datasets/databricks/databricks-dolly-15k
     records: 15011
+  # Built by data/build_decisions.py (spec: briefs/11-calibration.md). Status
+  # "v1-template-only": the 80 hand-written slots hold template items until two
+  # people write and label them (data/decisions_v1_stats.json, hand_items: 0).
+  # Adding them changes sha256 and bytes below.
+  decisions:
+    name: "Workshop Desk Decisions v1"
+    modules: [11, 12, 14]
+    file: decisions_v1.jsonl.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/decisions_v1.jsonl.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/decisions_v1.jsonl.gz
+    sha256: "56ee7e8b4e7ef418e5da6a9f242f615b21dacd3c5d312c0e4635174847aa0df1"
+    bytes: 143499
+    license: "CC0 1.0"
+    license_url: https://creativecommons.org/publicdomain/zero/1.0/
+    families: [policy, route]
+    route_options: [retrieve, calculate, send_email, ask_user, escalate]
+    seed: 0
+    splits: {train: 2000, dev: 100, test: 300}
 
 # The daily clock. `module` slots take the day's modules in order.
 schedule:

@@ -1,0 +1,256 @@
+{
+ "name": "Workshop Desk Decisions v1",
+ "file": "decisions_v1.jsonl.gz",
+ "status": "v1-template-only",
+ "status_note": "0 of the 80 hand-written slots hold human items; the other 80 hold extra template items (listed in fill_in_ids) until people write and label them (data/decisions_hand_TEMPLATE.md)",
+ "hand_items": 0,
+ "hand_slots": {
+  "dev": 20,
+  "test": 60
+ },
+ "fill_in_ids": [
+  "dec-dev-0081",
+  "dec-dev-0082",
+  "dec-dev-0083",
+  "dec-dev-0084",
+  "dec-dev-0085",
+  "dec-dev-0086",
+  "dec-dev-0087",
+  "dec-dev-0088",
+  "dec-dev-0089",
+  "dec-dev-0090",
+  "dec-dev-0091",
+  "dec-dev-0092",
+  "dec-dev-0093",
+  "dec-dev-0094",
+  "dec-dev-0095",
+  "dec-dev-0096",
+  "dec-dev-0097",
+  "dec-dev-0098",
+  "dec-dev-0099",
+  "dec-dev-0100",
+  "dec-test-0241",
+  "dec-test-0242",
+  "dec-test-0243",
+  "dec-test-0244",
+  "dec-test-0245",
+  "dec-test-0246",
+  "dec-test-0247",
+  "dec-test-0248",
+  "dec-test-0249",
+  "dec-test-0250",
+  "dec-test-0251",
+  "dec-test-0252",
+  "dec-test-0253",
+  "dec-test-0254",
+  "dec-test-0255",
+  "dec-test-0256",
+  "dec-test-0257",
+  "dec-test-0258",
+  "dec-test-0259",
+  "dec-test-0260",
+  "dec-test-0261",
+  "dec-test-0262",
+  "dec-test-0263",
+  "dec-test-0264",
+  "dec-test-0265",
+  "dec-test-0266",
+  "dec-test-0267",
+  "dec-test-0268",
+  "dec-test-0269",
+  "dec-test-0270",
+  "dec-test-0271",
+  "dec-test-0272",
+  "dec-test-0273",
+  "dec-test-0274",
+  "dec-test-0275",
+  "dec-test-0276",
+  "dec-test-0277",
+  "dec-test-0278",
+  "dec-test-0279",
+  "dec-test-0280",
+  "dec-test-0281",
+  "dec-test-0282",
+  "dec-test-0283",
+  "dec-test-0284",
+  "dec-test-0285",
+  "dec-test-0286",
+  "dec-test-0287",
+  "dec-test-0288",
+  "dec-test-0289",
+  "dec-test-0290",
+  "dec-test-0291",
+  "dec-test-0292",
+  "dec-test-0293",
+  "dec-test-0294",
+  "dec-test-0295",
+  "dec-test-0296",
+  "dec-test-0297",
+  "dec-test-0298",
+  "dec-test-0299",
+  "dec-test-0300"
+ ],
+ "items": 2400,
+ "sha256": "56ee7e8b4e7ef418e5da6a9f242f615b21dacd3c5d312c0e4635174847aa0df1",
+ "bytes": 143499,
+ "uncompressed_sha256": "b6e212b1a119a51d64d9d6cfd2a87cf2fd6d562944c5b27dc9b392f9d632ca64",
+ "uncompressed_bytes": 1718074,
+ "policy_sha256": "f14f13a4e36a961aad3518257b0a21a2db2801e19af6f429fa404d9a44e36e61",
+ "policy_words": 499,
+ "seed": 0,
+ "splits": {
+  "train": {
+   "n": 2000,
+   "families": {
+    "policy": {
+     "n": 1000,
+     "labels": {
+      "no": 500,
+      "yes": 500
+     },
+     "difficulty": {
+      "plain": 400,
+      "boundary": 160,
+      "distractor": 120,
+      "conflict": 120,
+      "missing": 80,
+      "injection": 120
+     },
+     "sources": {
+      "template": 1000
+     },
+     "rules": {
+      "P1": 200,
+      "P2": 200,
+      "P3": 200,
+      "P4": 200,
+      "P5": 200
+     }
+    },
+    "route": {
+     "n": 1000,
+     "labels": {
+      "ask_user": 200,
+      "calculate": 200,
+      "escalate": 200,
+      "retrieve": 200,
+      "send_email": 200
+     },
+     "difficulty": {
+      "plain": 400,
+      "boundary": 100,
+      "distractor": 100,
+      "conflict": 100,
+      "missing": 200,
+      "injection": 100
+     },
+     "sources": {
+      "template": 1000
+     }
+    }
+   }
+  },
+  "dev": {
+   "n": 100,
+   "families": {
+    "policy": {
+     "n": 50,
+     "labels": {
+      "no": 25,
+      "yes": 25
+     },
+     "difficulty": {
+      "plain": 20,
+      "boundary": 8,
+      "distractor": 6,
+      "conflict": 6,
+      "missing": 4,
+      "injection": 6
+     },
+     "sources": {
+      "template": 50
+     },
+     "rules": {
+      "P1": 10,
+      "P2": 10,
+      "P3": 10,
+      "P4": 10,
+      "P5": 10
+     }
+    },
+    "route": {
+     "n": 50,
+     "labels": {
+      "ask_user": 10,
+      "calculate": 10,
+      "escalate": 10,
+      "retrieve": 10,
+      "send_email": 10
+     },
+     "difficulty": {
+      "plain": 20,
+      "boundary": 5,
+      "distractor": 5,
+      "conflict": 5,
+      "missing": 10,
+      "injection": 5
+     },
+     "sources": {
+      "template": 50
+     }
+    }
+   }
+  },
+  "test": {
+   "n": 300,
+   "families": {
+    "policy": {
+     "n": 150,
+     "labels": {
+      "no": 75,
+      "yes": 75
+     },
+     "difficulty": {
+      "plain": 60,
+      "boundary": 24,
+      "distractor": 19,
+      "conflict": 18,
+      "missing": 12,
+      "injection": 17
+     },
+     "sources": {
+      "template": 150
+     },
+     "rules": {
+      "P1": 30,
+      "P2": 30,
+      "P3": 30,
+      "P4": 30,
+      "P5": 30
+     }
+    },
+    "route": {
+     "n": 150,
+     "labels": {
+      "ask_user": 30,
+      "calculate": 30,
+      "escalate": 30,
+      "retrieve": 30,
+      "send_email": 30
+     },
+     "difficulty": {
+      "plain": 60,
+      "boundary": 15,
+      "distractor": 15,
+      "conflict": 15,
+      "missing": 30,
+      "injection": 15
+     },
+     "sources": {
+      "template": 150
+     }
+    }
+   }
+  }
+ }
+}
