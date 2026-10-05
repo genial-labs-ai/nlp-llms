@@ -256,10 +256,9 @@ Optional callouts in the lectures sit outside the 45 minutes. The stretch sectio
 | 58–65 | Exercise 2 (Brier score and log loss) | CP2 |
 | 65–75 | Exercise 3 (temperature scaling) | CP3 |
 | 75–87 | Exercise 4 (parse a stated confidence); start `ask_all` first | CP4 |
-| 87–95 | Exercise 5 (risk–coverage and the threshold) | CP5 |
-| (2) | Closing question: what would you let act alone? | |
+| 87–95 | Exercise 5 (risk–coverage and the threshold), ending with the closing question: what would you let act alone? | CP5 |
 
-**Timing issue:** the notebook's headings add up to 52 minutes even with Setup counted inside Exercise 0's 3 (55 as headed). Carry the closing question over the break and open Module 12 with it. **Behind at minute 75:** start `ask_all` before discussing Exercise 3's results.
+**Timing:** the closing question is now part of Exercise 5's 8 minutes. If the room is late, carry it over the break and open Module 12 with it. **Behind at minute 75:** start `ask_all` before discussing Exercise 3's results.
 
 ### Module 12 · {{< var modules.m12.title >}}
 

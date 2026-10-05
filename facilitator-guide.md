@@ -257,7 +257,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - Exercise 4: decide what `"85%"` and `85` mean; the solution accepts the string as 0.85 and rejects numbers above 1.
   - The binary Brier score of the language model is half the value Exercise 2's two-column `brier` returns; the notebook says which it prints.
 - **Start the slow cell early:** `ask_all` runs at the top of Exercise 4, while participants write the parser.
-- **Timing issue:** the notebook's headings sum to 52 minutes even with Setup counted inside Exercise 0. Ask the closing question ("what would you let act alone?") as the bridge into Module 12 after the break.
+- **Timing:** the closing question ("what would you let act alone?") sits inside Exercise 5's 8 minutes. If the room runs late, use it as the bridge into Module 12 after the break.
 - **If the clock slips:** drop the stretch (properness shown numerically). On a CPU open path, the evaluation uses 40 `dev` and 80 `test` items; the noise floor on 80 items is about 0.07, so warn against reading small differences.
 - **Lab 11 to Lab 12:** the export cell writes `lab11_decisions_<provider>.jsonl`. Colab runtimes do not persist, so participants who want the comparison panel in Lab 12 must download this file and upload it there.
 - **Cost (estimate):** under 1 USD per full run on Anthropic, under 25 cents on OpenAI.
