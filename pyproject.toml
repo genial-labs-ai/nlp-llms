@@ -17,19 +17,58 @@ site = ["pyyaml>=6.0", "nbformat>=5.10"]
 test = ["pyyaml>=6.0", "nbformat>=5.10"]
 lint = ["ruff>=0.6"]
 # Executing notebooks in CI.
-execute = ["nbclient>=0.10", "nbformat>=5.10", "ipykernel>=6.29", "pip"]
-# Running the labs locally. Grows as labs are written.
-notebooks = [
-    "jupyterlab>=4.2",
+execute = [
+    "nbclient>=0.10",
+    "nbformat>=5.10",
+    "ipykernel>=6.29",
+    "pip",
+    # What the labs import and Colab preinstalls.
     "numpy>=1.26",
     "matplotlib>=3.8",
     "scikit-learn>=1.5",
+    "scipy>=1.13",
     "torch>=2.3",
+    "transformers>=5.18",
+    "tokenizers>=0.23",
+    "datasets>=5.0",
+    "accelerate>=1.15",
+    "peft>=0.21",
+    "pydantic>=2.13",
+    "openai>=3.24",
+    "anthropic>=1.11",
+    # Labs 12-14 (pins in _variables.yml `packages`; the notebooks install exact versions).
+    "typesafe-sdk>=0.7.2",
+    "langchain-typesafe>=0.0.1a3",
+    "langgraph>=1.2.12",
+    "langchain-core>=1.6.6",
+    "langchain-text-splitters>=1.1.3",
+    "llama-index-core>=0.14.25",
+    "llama-index-retrievers-bm25>=0.8.0",
+    # Not listed on purpose: sentence-transformers (Lab 13 installs its pinned version
+    # only on the open-model path, so preinstalling it here would hide that install),
+    # system-one-adapter (Lab 12's keyed stretch installs it) and huggingface_hub
+    # (a dependency of transformers).
 ]
+# Running the labs locally: JupyterLab plus everything the CI execution needs.
+notebooks = ["jupyterlab>=4.2", { include-group = "execute" }]
+
+# CPU-only torch wheels on Linux (CI runners), so the execute job does not pull
+# the multi-gigabyte CUDA build. Other platforms resolve torch from PyPI.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.ruff.format]
+# Its constants are restated verbatim from the Lab 9 -> Lab 10 interface, aligned by hand.
+exclude = ["data/build_lab09_preferences.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

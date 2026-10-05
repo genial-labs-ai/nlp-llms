@@ -4,7 +4,7 @@
 
 Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb)
 
 ## Learning objectives
 

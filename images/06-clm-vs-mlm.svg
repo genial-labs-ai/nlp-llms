@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 392" width="720" height="392" role="img" aria-labelledby="t d">
+  <title id="t">Causal versus masked language modeling</title>
+  <desc id="d">Two panels over the sentence the cat sat on the. Left, causal LM (GPT): a transformer with a causal mask outputs, above every position, the next token: cat, sat, on, the, mat. Arcs below the tokens show that position 3, sat, reads only positions to its left. Caption: T targets per sequence. Right, masked LM (BERT): the input is the cat [MASK] on the; a transformer with no mask outputs a target only above the masked position, the original token sat, and the other positions are marked no loss. Arcs show that the masked position reads both sides. Caption: about 0.15 T targets per sequence.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="720" height="392" rx="8" fill="#ffffff"/>
+  <rect class="panel" x="16" y="40" width="336" height="340" rx="12"/>
+  <text x="184" y="28" text-anchor="middle" class="b">causal LM (GPT)</text>
+  <rect class="box" x="36" y="142" width="296" height="36" rx="6"/>
+  <text x="184" y="165" text-anchor="middle" style="font-size:14px">transformer, causal mask</text>
+  <rect class="op" x="46.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="64" y="268" text-anchor="middle" class="mono" style="font-size:13px">the</text>
+  <line class="ln" x1="64" y1="250" x2="64" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="64" y1="142" x2="64" y2="114" marker-end="url(#b)"/>
+  <text x="64" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">cat</text>
+  <rect class="op" x="106.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="124" y="268" text-anchor="middle" class="mono" style="font-size:13px">cat</text>
+  <line class="ln" x1="124" y1="250" x2="124" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="124" y1="142" x2="124" y2="114" marker-end="url(#b)"/>
+  <text x="124" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">sat</text>
+  <rect class="op" x="166.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="184" y="268" text-anchor="middle" class="mono" style="font-size:13px">sat</text>
+  <line class="ln" x1="184" y1="250" x2="184" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="184" y1="142" x2="184" y2="114" marker-end="url(#b)"/>
+  <text x="184" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">on</text>
+  <rect class="op" x="230.2" y="250" width="27.6" height="26" rx="4"/>
+  <text x="244" y="268" text-anchor="middle" class="mono" style="font-size:13px">on</text>
+  <line class="ln" x1="244" y1="250" x2="244" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="244" y1="142" x2="244" y2="114" marker-end="url(#b)"/>
+  <text x="244" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">the</text>
+  <rect class="op" x="286.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="304" y="268" text-anchor="middle" class="mono" style="font-size:13px">the</text>
+  <line class="ln" x1="304" y1="250" x2="304" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="304" y1="142" x2="304" y2="114" marker-end="url(#b)"/>
+  <text x="304" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">mat</text>
+  <path class="ln" d="M184,278 Q124.0,334 64,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <path class="ln" d="M184,278 Q154.0,312 124,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <text x="184" y="342" text-anchor="middle" class="note">position 3 (sat) reads the left only</text>
+  <text x="184" y="366" text-anchor="middle" class="m acc" style="font-size:14.5px"><tspan class="i">T</tspan><tspan class="s"> targets per sequence</tspan></text>
+  <rect class="panel" x="368" y="40" width="336" height="340" rx="12"/>
+  <text x="536" y="28" text-anchor="middle" class="b">masked LM (BERT)</text>
+  <rect class="box" x="388" y="142" width="296" height="36" rx="6"/>
+  <text x="536" y="165" text-anchor="middle" style="font-size:14px">transformer, no mask</text>
+  <rect class="op" x="398.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="416" y="268" text-anchor="middle" class="mono" style="font-size:13px">the</text>
+  <line class="ln" x1="416" y1="250" x2="416" y2="180" marker-end="url(#a)"/>
+  <text x="416" y="108" text-anchor="middle" class="note" style="font-size:12px">no loss</text>
+  <rect class="op" x="458.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="476" y="268" text-anchor="middle" class="mono" style="font-size:13px">cat</text>
+  <line class="ln" x1="476" y1="250" x2="476" y2="180" marker-end="url(#a)"/>
+  <text x="476" y="108" text-anchor="middle" class="note" style="font-size:12px">no loss</text>
+  <rect class="abox" x="506.6" y="250" width="58.8" height="26" rx="4"/>
+  <text x="536" y="268" text-anchor="middle" class="mono" style="font-size:13px">[MASK]</text>
+  <line class="ln" x1="536" y1="250" x2="536" y2="180" marker-end="url(#a)"/>
+  <line class="aln" x1="536" y1="142" x2="536" y2="114" marker-end="url(#b)"/>
+  <text x="536" y="104" text-anchor="middle" class="mono acc" style="font-size:14px">sat</text>
+  <rect class="op" x="582.2" y="250" width="27.6" height="26" rx="4"/>
+  <text x="596" y="268" text-anchor="middle" class="mono" style="font-size:13px">on</text>
+  <line class="ln" x1="596" y1="250" x2="596" y2="180" marker-end="url(#a)"/>
+  <text x="596" y="108" text-anchor="middle" class="note" style="font-size:12px">no loss</text>
+  <rect class="op" x="638.3" y="250" width="35.4" height="26" rx="4"/>
+  <text x="656" y="268" text-anchor="middle" class="mono" style="font-size:13px">the</text>
+  <line class="ln" x1="656" y1="250" x2="656" y2="180" marker-end="url(#a)"/>
+  <text x="656" y="108" text-anchor="middle" class="note" style="font-size:12px">no loss</text>
+  <path class="ln" d="M536,278 Q476.0,334 416,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <path class="ln" d="M536,278 Q506.0,312 476,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <path class="ln" d="M536,278 Q566.0,312 596,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <path class="ln" d="M536,278 Q596.0,334 656,280" marker-end="url(#c)" style="stroke:#52606d;stroke-width:1.2"/>
+  <text x="536" y="342" text-anchor="middle" class="note">position 3 ([MASK]) reads both sides</text>
+  <text x="536" y="366" text-anchor="middle" class="m acc" style="font-size:14.5px"><tspan class="s">about </tspan><tspan>0.15 </tspan><tspan class="i">T</tspan><tspan class="s"> targets per sequence</tspan></text>
+</svg>

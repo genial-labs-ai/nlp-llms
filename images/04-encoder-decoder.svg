@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 256" width="720" height="256" role="img" aria-labelledby="t d">
+  <title id="t">The encoder-decoder model</title>
+  <desc id="d">An encoder RNN is unrolled over the source, with states h_1 to h_S. A decoder RNN is unrolled over the target, with states s_1 to s_T. A single arrow, s_0 = h_S, joins them and is the only path from source to target. Decoder inputs are bos, y_1 and so on; decoder outputs are y_1, y_2 and finally eos.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .i { font-style: italic; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+  </defs>
+  <g transform="translate(0,-44)">
+  <rect class="box" x="23" y="135" width="54" height="40" rx="6"/>
+  <text x="50" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <line class="ln" x1="50" y1="216" x2="50" y2="177" marker-end="url(#a)"/>
+  <text x="50" y="240" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <rect class="box" x="108" y="135" width="54" height="40" rx="6"/>
+  <text x="135" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <line class="ln" x1="135" y1="216" x2="135" y2="177" marker-end="url(#a)"/>
+  <text x="135" y="240" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <rect class="box" x="228" y="135" width="54" height="40" rx="6"/>
+  <text x="255" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9" class="i">S</tspan></text>
+  <line class="ln" x1="255" y1="216" x2="255" y2="177" marker-end="url(#a)"/>
+  <text x="255" y="240" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan><tspan dy="4.6" font-size="12.9" class="i">S</tspan></text>
+  <rect class="box" x="443" y="135" width="54" height="40" rx="6"/>
+  <text x="470" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">s</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <line class="ln" x1="470" y1="216" x2="470" y2="177" marker-end="url(#a)"/>
+  <text x="470" y="238" text-anchor="middle" class="mono" style="font-size:14px">&lt;bos&gt;</text>
+  <line class="ln" x1="470" y1="135" x2="470" y2="94" marker-end="url(#a)"/>
+  <text x="470" y="82" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">y</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <rect class="box" x="528" y="135" width="54" height="40" rx="6"/>
+  <text x="555" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">s</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <line class="ln" x1="555" y1="216" x2="555" y2="177" marker-end="url(#a)"/>
+  <text x="555" y="240" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">y</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <line class="ln" x1="555" y1="135" x2="555" y2="94" marker-end="url(#a)"/>
+  <text x="555" y="82" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">y</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <rect class="box" x="648" y="135" width="54" height="40" rx="6"/>
+  <text x="675" y="161" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">s</tspan><tspan dy="4.6" font-size="12.9" class="i">T</tspan></text>
+  <line class="ln" x1="675" y1="216" x2="675" y2="177" marker-end="url(#a)"/>
+  <text x="675" y="240" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">y</tspan><tspan dy="4.6" font-size="12.9" class="i">T</tspan><tspan font-size="12.9">−1</tspan></text>
+  <line class="ln" x1="675" y1="135" x2="675" y2="94" marker-end="url(#a)"/>
+  <text x="675" y="80" text-anchor="middle" class="mono" style="font-size:14px">&lt;eos&gt;</text>
+  <line class="ln" x1="77" y1="155" x2="106" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="162" y1="155" x2="180" y2="155" marker-end="url(#a)"/>
+  <text x="195" y="160" text-anchor="middle" class="note" style="font-size:20px">…</text>
+  <line class="ln" x1="210" y1="155" x2="226" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="497" y1="155" x2="526" y2="155" marker-end="url(#a)"/>
+  <line class="ln" x1="582" y1="155" x2="600" y2="155" marker-end="url(#a)"/>
+  <text x="615" y="160" text-anchor="middle" class="note" style="font-size:20px">…</text>
+  <line class="ln" x1="630" y1="155" x2="646" y2="155" marker-end="url(#a)"/>
+  <line class="aln" x1="283" y1="155" x2="441" y2="155" marker-end="url(#b)"/>
+  <text x="362" y="143" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">s</tspan><tspan dy="4.3" font-size="12.2">0</tspan><tspan dy="-4.3"> = </tspan><tspan class="i">h</tspan><tspan dy="4.3" font-size="12.2" class="i">S</tspan></text>
+  <text x="362" y="88" text-anchor="middle" class="note acc">the only path from</text>
+  <text x="362" y="106" text-anchor="middle" class="note acc">source to target</text>
+  <path class="rule" d="M23,254 v8 H282 v-8"/>
+  <text x="152.5" y="284" text-anchor="middle" class="note">encoder (reads the source)</text>
+  <path class="rule" d="M443,254 v8 H702 v-8"/>
+  <text x="572.5" y="284" text-anchor="middle" class="note">decoder (writes the target)</text>
+  </g>
+</svg>

@@ -4,7 +4,7 @@
 
 Combine retrieval, an agent graph and calibrated control into one system, evaluate it, and explain the design.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/15-capstone.ipynb)
 
 ## Learning objectives
 

@@ -3,9 +3,11 @@ title: "Teach this workshop"
 subtitle: "Materials for instructors"
 ---
 
-::: {.callout-note appearance="simple"}
-The instructor kit is being written. The facilitator guide, pace sheet and assessments will be linked from this page.
-:::
+## The instructor kit
+
+- **[Facilitator guide](facilitator-guide.md):** what to set up, what to say in the first five minutes, where groups get stuck, what to cut when the clock slips and what to do when Colab, an API or the Hub fails, module by module. It opens with what has not yet been verified; read that first.
+- **[Pace sheet](instructor-pace.md):** a minute-by-minute plan for every module, with the checkpoint participants should have passed by each point.
+- **[Assessments](assessments.md):** an entry check on the prerequisites and an exit check with one or two questions per module objective, with answers.
 
 ## The shape of a module
 

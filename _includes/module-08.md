@@ -4,7 +4,7 @@
 
 OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb)
 
 ## Learning objectives
 

@@ -4,7 +4,7 @@
 
 Self-attention, multi-head attention and positional encodings, assembled into a small GPT.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/05-transformer-from-scratch.ipynb)
 
 ## Learning objectives
 

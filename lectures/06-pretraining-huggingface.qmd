@@ -4,6 +4,580 @@ title: "{{< var modules.m06.title >}}"
 
 {{< include /_includes/module-06.md >}}
 
+## Plan for the 45 minutes
+
+| Minutes | Section | Lab exercise it prepares |
+|---|---|---|
+| 0–4 | 1. What the from-scratch transformer leaves open | (motivation) |
+| 4–14 | 2. Subword tokenization: byte-pair encoding | Exercises 1 and 2 |
+| 14–18 | 3. Pretrain once, reuse many times | (the recipe) |
+| 18–24 | 4. Causal language modeling: GPT | Exercise 3 |
+| 24–32 | 5. Masked language modeling: BERT | Exercise 4 |
+| 32–37 | 6. The Hugging Face stack | Exercises 2 to 5 and the stretch |
+| 37–43 | 7. Fine-tuning an encoder for classification | Exercise 5 |
+| 43–45 | 8. What changes at scale, and what is still missing | (sets up Module 7) |
+
+Collapsed boxes marked **Optional** are outside the 45 minutes.
+
+Notation carried over from earlier modules: tokens $w_1, \dots, w_T$; vocabulary $V$ of size $|V|$; embedding $e_w \in \mathbb{R}^d$; logits $z$ and $\hat{y} = \mathrm{softmax}(z)$; parameters $\theta$; loss $\mathcal{L}$; perplexity $\mathrm{PPL}$; number of classes $C$. All logarithms are natural. New in this module:
+
+| Symbol | Meaning |
+|---|---|
+| $M$ | number of merges learned by byte-pair encoding |
+| `_` | end-of-word symbol used in the BPE examples |
+| $h_t \in \mathbb{R}^d$ | the transformer's output vector at position $t$ (its last layer), a *contextual embedding* |
+| $\theta_{\text{pre}}$ | parameters after pretraining |
+| $\mathcal{L}_{\text{CLM}}$, $\mathcal{L}_{\text{MLM}}$ | causal and masked language-modeling losses |
+| $\mathcal{S}$ | the set of positions selected for prediction in masked language modeling |
+| $\tilde{w}_1, \dots, \tilde{w}_T$ | the corrupted input sequence in masked language modeling |
+| `[CLS]`, `[SEP]`, `[MASK]`, `[PAD]` | BERT's special tokens: sequence start, separator, mask, padding |
+| $h_{\texttt{[CLS]}}$ | the output vector at the `[CLS]` position |
+| $\eta$ | learning rate |
+
+## 1. What the from-scratch transformer leaves open
+
+**Objective: name the two limits of Lab 5's model that this module removes.**
+
+In [Module 5](05-transformer-from-scratch.qmd) you trained a decoder-only transformer on one megabyte of Shakespeare and compared it with Lab 3's LSTM on the same test split. Whatever the margin, it is still a weak model of language, for two reasons that have nothing to do with the architecture.
+
+**The data is tiny.** One million characters is about 182,000 words (181,780 whitespace-separated words in the training split, measured). Everything the model knows about English, it learned from that. It has never seen the word *gradient*. Starting from random parameters, every new task would have to relearn the language from its own small dataset.
+
+**The token is the wrong size.** Module 1 offered two units and both are poor:
+
+| Unit | Vocabulary | Sequence length | Unknown tokens |
+|---|---|---|---|
+| Characters | tiny (65 in Lab 5) | long: 5.5 tokens per word on Tiny Shakespeare and 7.3 on the arXiv abstracts, counting the space (measured) | none |
+| Words | large, and never complete (Zipf's tail) | short | every new word becomes `<unk>` |
+
+Length matters more for a transformer than for an RNN, because self-attention compares every position with every other: cost grows as $T^2$. A character model also spends capacity learning to spell before it can learn anything else. A word model cannot represent *pretraining* if it only saw *train*.
+
+This module answers both. Section 2 builds a token between the character and the word. Sections 3 to 5 train the same transformer on billions of words *once*, with a loss that needs no labels, and reuse the result. Sections 6 and 7 do that reuse in practice, on the classification task you have carried since Lab 1.
+
+## 2. Subword tokenization: byte-pair encoding
+
+**Objective: state the BPE algorithm precisely enough to implement it, and say what its one hyperparameter trades.**
+
+**The idea.** Keep frequent words whole and split rare words into frequent pieces. Then the vocabulary has a fixed size that we choose, common words cost one token, and a word never seen before is still representable as a sequence of pieces. The pieces are called **subwords**.
+
+**Byte-pair encoding (BPE)** learns the pieces from data. Gage (1994) proposed it for data compression; Sennrich et al. (2016) applied it to words. Start from characters and repeatedly glue together the most frequent adjacent pair.
+
+### Learning the merges
+
+Input: a training corpus and the number of merges $M$.
+
+1. **Pre-tokenize.** Split the corpus into words (on whitespace, say) and count them. The algorithm runs on this table of word counts, so pairs never cross a word boundary.
+2. **Initialize.** Write each word as a sequence of single characters followed by an end-of-word symbol, which we write `_`. The initial vocabulary $V_0$ is the set of all symbols that appear.
+3. **Repeat $M$ times:**
+   a. **Count pairs.** For every pair of adjacent symbols $(a, b)$, add up the counts of the words it occurs in, once per occurrence.
+   b. **Pick** the pair with the highest count. Break ties by a fixed rule; ours is the pair that sorts first.
+   c. **Merge.** In every word, replace each occurrence of $a$ followed by $b$ with the single new symbol $ab$, scanning left to right.
+   d. **Record.** Add $ab$ to the vocabulary and append $(a, b)$ to the merge list.
+
+Output: the **ordered** merge list. The final vocabulary has
+
+$$
+|V| = |V_0| + M
+$$ {#eq-bpe-size}
+
+symbols, because each merge adds exactly one. $M$ is the only hyperparameter.
+
+As code, with the two functions you write in the lab left out:
+
+```python
+def train_bpe(word_freqs, num_merges):
+    # word_freqs: {"low": 5, ...}  ->  {("l", "o", "w", "_"): 5, ...}
+    words = {tuple(w) + ("_",): f for w, f in word_freqs.items()}
+    merges = []
+    for step in range(num_merges):
+        counts = pair_counts(words)                         # step 3a
+        if not counts:
+            break                                           # every word is one symbol
+        best = min(counts, key=lambda p: (-counts[p], p))   # step 3b, ties sort first
+        words = merge_pair(words, best)                     # step 3c
+        merges.append(best)                                 # step 3d
+    return merges
+```
+
+### A worked example
+
+A corpus of four words with their counts (the example of Sennrich et al.): `low` 5, `lower` 2, `newest` 6, `widest` 3. The initial vocabulary has 11 symbols: `d e i l n o r s t w _`.
+
+| Merge | Pair chosen | Count | The words afterwards |
+|---|---|---|---|
+| start | | | `l o w _` · `l o w e r _` · `n e w e s t _` · `w i d e s t _` |
+| 1 | `e` + `s` | 9 | `l o w _` · `l o w e r _` · `n e w es t _` · `w i d es t _` |
+| 2 | `es` + `t` | 9 | `l o w _` · `l o w e r _` · `n e w est _` · `w i d est _` |
+| 3 | `est` + `_` | 9 | `l o w _` · `l o w e r _` · `n e w est_` · `w i d est_` |
+| 4 | `l` + `o` | 7 | `lo w _` · `lo w e r _` · `n e w est_` · `w i d est_` |
+| 5 | `lo` + `w` | 7 | `low _` · `low e r _` · `n e w est_` · `w i d est_` |
+
+Check merge 1: the pair `e s` occurs in `newest` (6) and `widest` (3), so its count is $6 + 3 = 9$. The pairs `s t` and `t _` also have count 9; the tie rule picks `e s`. After five merges the vocabulary has $11 + 5 = 16$ symbols (@eq-bpe-size), and the algorithm has found a suffix, `est_`, and a stem, `low`, without being told what either is.
+
+![BPE on the toy corpus of the table above. After three merges the suffix `est_` is one symbol; after five, so is the stem `low`. Each merge adds one symbol to the vocabulary, so $|V|$ goes from 11 to 14 to 16 (@eq-bpe-size).](/images/06-bpe-merges.svg){#fig-bpe-merges fig-alt="Four words shown as rows of character boxes. After three merges the characters e, s, t and the end-of-word symbol are fused into one box, est_, in newest and widest. After five merges the characters l, o, w are fused into one box, low, in low and lower."}
+
+### Encoding a new word
+
+To tokenize a word, split it into characters plus `_`, then apply the merges **in the order they were learned**.
+
+`lowest` was not in the corpus:
+
+`l o w e s t _` → (1) `l o w es t _` → (2) `l o w est _` → (3) `l o w est_` → (4) `lo w est_` → (5) `low est_`
+
+Two known pieces, `low` and `est_`, and no unknown token. A word made only of rare pieces falls back toward characters: with these five merges, `newer` stays `n e w e r _`. That is the pricing rule: frequent words cost one token, rare words cost several.
+
+### What the hyperparameter trades
+
+- $M = 0$ is a character model. $M \to \infty$ merges every training word into one symbol: a word model.
+- In between, larger $M$ gives shorter sequences and a larger embedding table and output layer, each with $|V|$ rows.
+- Real models sit between these extremes. GPT (2018) used 40,000 merges. GPT-2 uses a vocabulary of 50,257. BERT's vocabulary has about 30,000 entries.
+
+### Three things that differ between real tokenizers
+
+1. **Where the word boundary is marked.** We put `_` at the end of a word. GPT-2 marks the *start* of a word by attaching the preceding space to it (shown as `Ġ` when you print tokens). BERT marks pieces that *continue* a word with a `##` prefix.
+2. **What the base symbols are.** GPT-2 uses **byte-level BPE**: the base vocabulary is the 256 possible byte values, so any string in any script can be encoded and there is no unknown token. Its 50,257 entries are 256 bytes, 50,000 merges and one end-of-text token.
+3. **How merges are chosen.** BERT uses **WordPiece**, which picks pairs by a different criterion (optional box below). The result looks similar.
+
+The same sentence under two pretrained tokenizers. These splits illustrate each tokenizer's conventions; they have **not** been reproduced in the workshop build, because the build machine cannot reach the Hugging Face Hub. Exercise 2 prints the real ones, and they may differ in detail.
+
+```text
+We fine-tune a pretrained transformer for multilingual summarization.
+
+BERT (WordPiece, lowercased):
+  we fine - tune a pre ##train ##ed transform ##er for multi ##ling ##ual sum ##mar ##ization .
+GPT-2 (byte-level BPE):
+  We Ġfine - t une Ġa Ġpret rained Ġtransformer Ġfor Ġmult ilingual Ġsummar ization .
+```
+
+Expect splits that do not follow the morphology a linguist would draw (in the illustration, `Ġpret` + `rained`); check this against the real output in Exercise 2. The pieces are frequent strings, not meanings. The model learns what to do with them.
+
+**A tokenizer belongs to its model.** The embedding matrix has one row per token ID. A model pretrained with one tokenizer and fed IDs from another receives the wrong rows, and nothing raises an error. Always load the tokenizer from the same checkpoint as the model.
+
+**Tokens are not words.** From here on, $T$ counts subword tokens. On the workshop's arXiv Topics set the median training text has 183 words (measured). The BPE tokenizer you train in Exercise 2, with $|V| = 4{,}000$ on the 4,800 training texts, needs **1.548 tokens per word** on the validation texts (measured), so at that rate a median text is roughly 280 tokens. Exercise 2 measures the same ratio for the two pretrained tokenizers; those values have not yet been measured for this page. Context limits, cost and truncation are all counted in tokens.
+
 ::: {.callout-note appearance="simple"}
-This lecture has not been drafted yet.
+**In the lab.** In **Exercise 1** you write `pair_counts(words)` (step 3a) and `merge_pair(words, pair)` (step 3c); the checkpoint is the table above (first merges `e`+`s`, `es`+`t`, `est`+`_`, `l`+`o`, `lo`+`w`), the encoding of `lowest` and $|V| = 11 + 5$. In **Exercise 2** you write `tokens_per_word(encode_fn, texts)`, train a BPE tokenizer on the arXiv training texts with the `tokenizers` library, and compare it with the two pretrained tokenizers above by tokens per word on the validation texts.
 :::
+
+::: {.callout-note collapse="true" title="Optional: WordPiece"}
+WordPiece (used by BERT and DistilBERT) also builds a vocabulary by merging pairs, bottom up. It differs from BPE in two places.
+
+**Choosing the pair.** Instead of the raw pair count, WordPiece scores a pair by its count relative to the counts of its parts:
+
+$$
+\mathrm{score}(a, b) = \frac{c(a, b)}{c(a)\, c(b)},
+$$
+
+where $c(a, b)$ is the count of the adjacent pair and $c(a)$, $c(b)$ the counts of the two symbols. A pair scores high when its parts occur together more often than their individual frequencies would suggest. BPE merges the pair that is most frequent; WordPiece merges the pair that is most *associated*. Google did not release its WordPiece training code; this description is the reconstruction given in the Hugging Face documentation and course (Readings, item 5).
+
+**Encoding a word.** WordPiece does not replay merges. It stores only the final vocabulary and tokenizes greedily: take the longest prefix of the word that is in the vocabulary, then the longest piece that continues from there, and so on. Pieces after the first carry the `##` prefix. If some part of the word cannot be matched, the whole word becomes `[UNK]`, so, unlike byte-level BPE, WordPiece can produce unknown tokens.
+
+A third family, **Unigram** (used by T5 through the SentencePiece library), starts from a large candidate vocabulary and prunes it. All three produce subword vocabularies of a chosen size; the differences rarely matter to a user of a pretrained model.
+:::
+
+## 3. Pretrain once, reuse many times
+
+**Objective: state the transfer-learning recipe and say which part of it you have already seen.**
+
+In Lab 2's stretch section, pretrained GloVe vectors replaced the embeddings you trained yourself. That was transfer of *one layer*: the embedding matrix $E$. Each word still had a single vector regardless of its sentence, and everything above $E$ started from random.
+
+A transformer turns the embeddings $e_{w_1}, \dots, e_{w_T}$ into output vectors $h_1, \dots, h_T$, where each $h_t \in \mathbb{R}^d$ depends on the whole input through self-attention. These are **contextual embeddings**: *bank* gets a different $h_t$ in *river bank* and *bank loan*. The proposal is to transfer the *whole network* that computes them.
+
+The recipe has two stages.
+
+1. **Pretraining.** Train the transformer on a very large corpus of plain text with a **self-supervised** objective: one whose targets are made from the text itself, so no human labels are needed. The result is a set of parameters $\theta_{\text{pre}}$. This is done once, at great cost, usually by someone else.
+2. **Fine-tuning.** Copy $\theta_{\text{pre}}$, add a small task-specific output layer, and continue training on the labeled data of the task. This is cheap: minutes on one GPU.
+
+![The transfer recipe. Pretraining on unlabeled text produces $\theta_{\text{pre}}$, once. Fine-tuning copies $\theta_{\text{pre}}$, adds a small new classifier layer, and trains the whole model on the labeled data of the task: here the 4,800 training abstracts of arXiv Topics.](/images/06-pretrain-finetune.svg){#fig-pretrain-finetune fig-alt="Two stages. In pretraining, a transformer is trained on a large unlabeled text corpus, giving parameters theta-pre. In fine-tuning, those parameters are copied, a small new classifier layer is added on top, and the whole model is trained on a small labeled dataset."}
+
+What should the self-supervised objective be? Two answers dominate, and they correspond to the two halves of the original transformer. Recall from Module 5 that a block with a **causal mask** lets position $t$ attend only to positions $\le t$, and a block without the mask lets every position attend to every other.
+
+| | Causal language modeling | Masked language modeling |
+|---|---|---|
+| Architecture | decoder-only (causal mask) | encoder-only (no mask) |
+| Each position sees | the left context | both sides |
+| Example | GPT (Radford et al., 2018) | BERT (Devlin et al., 2019) |
+| Natural use | generating text | classifying and tagging text |
+
+## 4. Causal language modeling: GPT
+
+**Objective: write the causal objective and recognize it as Module 1's.**
+
+You already know this objective. Module 1 factorized the probability of a text with the chain rule, with no approximation:
+
+$$
+P(w_1, \dots, w_T) = \prod_{t=1}^{T} P(w_t \mid w_{<t}).
+$$
+
+A **causal language model** (CLM) computes each factor with a decoder-only transformer. The output vector at position $t - 1$ passes through the output layer of Modules 3 and 5 to give logits over the vocabulary, $z_{t-1} = W_o h_{t-1} + b_o$, and $P_\theta(w_t \mid w_{<t})$ is entry $w_t$ of $\mathrm{softmax}(z_{t-1})$. The loss is the average negative log-probability of each token given the tokens before it:
+
+$$
+\mathcal{L}_{\text{CLM}}(\theta) = -\frac{1}{T} \sum_{t=1}^{T} \log P_\theta(w_t \mid w_{<t}),
+\qquad
+\mathrm{PPL} = \exp\bigl(\mathcal{L}_{\text{CLM}}\bigr).
+$$ {#eq-clm}
+
+This is the cross-entropy you minimized in Lab 5, and its exponential is the perplexity of Module 1. (The first token has no left context unless a start token is placed before it. The library's loss, and the lab, average over positions 2 to $T$.) GPT is the mini-GPT of Lab 5 with three changes, none of them to the equations:
+
+| | Lab 5 mini-GPT | GPT (2018) |
+|---|---|---|
+| Tokens | 65 characters | BPE, 40,000 merges |
+| Data | 1 MB of Shakespeare | BooksCorpus, over 7,000 books |
+| Model | a few layers | 12 layers, 768 dimensions, 12 heads |
+
+**Why it is efficient.** With the causal mask, one forward pass yields a prediction at every position, and every position has a target (the next token). A sequence of $T$ tokens gives $T$ training signals.
+
+**What it gives up.** $h_t$ summarizes only $w_1, \dots, w_t$. For generation that is exactly right. For understanding a whole sentence it is a handicap: the representation of *bank* in *bank of the river* is computed before the model has read *river*.
+
+**Perplexity across tokenizers.** Module 1 warned that perplexities are comparable only over the same tokens. GPT-2's perplexity is per BPE token and Lab 5's is per character, so the two numbers cannot be compared directly. The total negative log-probability of a text, $T \cdot \mathcal{L}_{\text{CLM}}$, does not depend on the unit. Divide it by the number of characters to get nats per character under either model.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 3** you write `lm_perplexity(text, model, tokenizer)`: take the logits of a pretrained causal LM (`{{< var models.causal_lm >}}`), shift them one position against the input IDs, and compute @eq-clm over tokens 2 to $T$. The checkpoint compares your value with `exp` of the loss the library returns (relative tolerance $10^{-3}$), and checks that a sentence scores a lower perplexity than the same words shuffled. A provided cell then converts the total to nats per character, as described above.
+:::
+
+## 5. Masked language modeling: BERT
+
+**Objective: write the masked objective, including the 80/10/10 rule, and say why each part is there.**
+
+**The problem.** We want $h_t$ to depend on both sides of position $t$, so we remove the causal mask. But then next-token prediction is trivial: position $t - 1$ can attend to $w_t$ and copy it. An encoder cannot be trained on @eq-clm.
+
+**The fix: hide some tokens and predict them.** This is a fill-in-the-blank test (a *cloze* task).
+
+*the cat `[MASK]` on the mat* → *sat*
+
+### The objective
+
+For each training sequence $w_1, \dots, w_T$:
+
+1. **Select.** Choose a set of positions $\mathcal{S} \subset \{1, \dots, T\}$ by including each position independently with probability 0.15. Special tokens are never selected.
+2. **Corrupt.** Build the input $\tilde{w}_1, \dots, \tilde{w}_T$. For $t \notin \mathcal{S}$, $\tilde{w}_t = w_t$. For each $t \in \mathcal{S}$, independently:
+   - with probability 0.8, $\tilde{w}_t =$ `[MASK]`;
+   - with probability 0.1, $\tilde{w}_t =$ a token drawn uniformly from $V$;
+   - with probability 0.1, $\tilde{w}_t = w_t$ (unchanged).
+3. **Predict.** Run the encoder on the corrupted sequence. At each selected position, the output layer gives a distribution over $V$, and the target is the *original* token:
+
+$$
+\mathcal{L}_{\text{MLM}}(\theta) = -\frac{1}{|\mathcal{S}|} \sum_{t \in \mathcal{S}} \log P_\theta\bigl(w_t \mid \tilde{w}_1, \dots, \tilde{w}_T\bigr).
+$$ {#eq-mlm}
+
+$|\mathcal{S}|$ is the number of selected positions. Positions outside $\mathcal{S}$ contribute nothing to the loss. In code, their target is set to the ignore value $-100$, which PyTorch's cross-entropy skips.
+
+Note what the conditioning says: the model sees the *whole* corrupted sequence, left and right of $t$. That is the point.
+
+![Causal and masked language modeling on the same sentence. Left: every position predicts the next token and reads only to its left, so a sequence gives about $T$ targets (@eq-clm). Right: only the selected positions are scored, about 15% of them, and each reads both sides (@eq-mlm). The arcs show what position 3 reads.](/images/06-clm-vs-mlm.svg){#fig-clm-vs-mlm fig-alt="Left: a causal language model predicts the next token at every position and each position attends only to earlier positions. Right: a masked language model receives a sentence with one token replaced by a mask symbol, attends in both directions, and predicts the original token only at the masked position."}
+
+### Why 80/10/10
+
+The obvious design replaces every selected token with `[MASK]`. It has two defects, and each of the other branches fixes one.
+
+- **`[MASK]` never appears after pretraining.** When we fine-tune on real text, no input contains it. A model that only ever produced useful outputs at `[MASK]` positions would be trained on one kind of input and used on another. With the **unchanged** branch, the model must also predict at positions that hold an ordinary token, as every position will in real use.
+- **If unchanged tokens were always correct, the model could copy.** With the **random** branch, a visible token is sometimes wrong, so the model cannot trust any single position and has to check each token against its context. It must keep a useful representation at *every* position, because it cannot tell which ones will be scored.
+
+The random branch touches only $0.15 \times 0.1 = 1.5\%$ of all tokens, which is too few to damage the model's reading of the rest.
+
+### What masked LM costs
+
+- **Fewer targets.** Only about 15% of positions are scored, against 100% for @eq-clm. BERT needs more passes over the data for the same number of training signals.
+- **It is not a language model in Module 1's sense.** @eq-mlm does not factorize $P(w_1, \dots, w_T)$. BERT cannot assign a probability to a sentence, has no perplexity comparable with @eq-clm, and cannot generate text left to right.
+
+The gain is that every $h_t$ is conditioned on the full input, which is what classification wants.
+
+BERT's inputs also carry two special tokens: `[CLS]` at the start and `[SEP]` at the end (and between two sentences when the input is a pair). The output vector at the first position, $h_{\texttt{[CLS]}}$, is used in Section 7 as the representation of the whole input.
+
+For scale: BERT-base has 12 layers, $d = 768$ and 110 million parameters, pretrained on 3.3 billion words (BooksCorpus and English Wikipedia).
+
+Probing a pretrained masked LM takes a few lines. The model fills the blank with a distribution, not a single word:
+
+```python
+import torch
+from transformers import AutoModelForMaskedLM, AutoTokenizer
+
+name = "{{< var models.encoder >}}"
+tokenizer = AutoTokenizer.from_pretrained(name)
+model = AutoModelForMaskedLM.from_pretrained(name).eval()
+
+text = f"We train a neural {tokenizer.mask_token} on a large corpus of text."
+inputs = tokenizer(text, return_tensors="pt")
+with torch.no_grad():
+    logits = model(**inputs).logits                 # (1, T, |V|)
+
+t = (inputs["input_ids"][0] == tokenizer.mask_token_id).nonzero().item()
+probs = logits[0, t].softmax(dim=-1)                # distribution over V at the masked position
+top = probs.topk(3)
+print([(tokenizer.convert_ids_to_tokens(i.item()), round(p.item(), 3))
+       for p, i in zip(top.values, top.indices)])
+# prints the three most likely tokens with their probabilities; run it in the lab
+```
+
+The probe's output is not quoted here: it has not been reproduced in the workshop build, which cannot reach the Hugging Face Hub. Read the distribution in the lab.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 4** you write `mask_tokens(input_ids, special_mask, mask_id, vocab_size, p=0.15)`, the select and corrupt steps above, and return the corrupted IDs and the targets with $-100$ outside $\mathcal{S}$. The checkpoint measures the selected share (between 0.13 and 0.17) and the split of the selected positions on a padded batch of 256 training texts. In the build, run on an offline stand-in tokenizer, the reference solution selected 0.148 of the real tokens; of those, 0.799 became `[MASK]`, 0.102 a random token and 0.099 stayed unchanged. With DistilBERT's tokenizer the token count differs, so your shares will differ slightly. A provided cell then computes @eq-mlm on 16 validation abstracts with the pretrained masked LM, checks it against a hand computation, and runs the fill-in-the-blank probe shown above. The masked LM is DistilBERT (`{{< var models.encoder >}}`) on every runtime, GPU or CPU.
+:::
+
+::: {.callout-note collapse="true" title="Optional: next-sentence prediction, and what later encoders changed"}
+BERT was pretrained with a second loss, **next-sentence prediction**: given two segments A and B, classify from $h_{\texttt{[CLS]}}$ whether B followed A in the corpus. Later work (RoBERTa; Liu et al., 2019) reported that removing it does not hurt, and most later encoders drop it. RoBERTa also draws a fresh mask each time a sequence is seen, where BERT fixed the masks in preprocessing.
+
+**DistilBERT** ([Sanh et al., 2019](https://arxiv.org/abs/1910.01108)), used in the lab, is a 6-layer model trained to reproduce the outputs of BERT-base, a technique called *knowledge distillation*. Its authors report a model 40% smaller and 60% faster that retains 97% of BERT's language-understanding performance. It has no next-sentence loss.
+:::
+
+::: {.callout-note collapse="true" title="Optional: T5 and the encoder-decoder option"}
+The third architecture of Module 5, the full encoder-decoder, can be pretrained too. **T5** ([Raffel et al., 2020](https://arxiv.org/abs/1910.10683)) casts every task as text in, text out: the input is a string such as `summarize: <article>` and the output is the answer as a string, so classification, translation and summarization share one model, one loss and one decoding procedure.
+
+Its pretraining objective is a variant of masking called **span corruption**: contiguous spans of the input are each replaced by one sentinel token, and the decoder generates the missing spans in order. The encoder reads in both directions, as BERT does, and the decoder generates left to right, as GPT does. T5 uses a Unigram subword vocabulary through SentencePiece.
+:::
+
+## 6. The Hugging Face stack
+
+**Objective: know which library does which job, and load a tokenizer and a model that match.**
+
+Pretraining is only useful if the result can be shared. The Hugging Face ecosystem is the common distribution channel.
+
+| Piece | What it is | You use it to |
+|---|---|---|
+| The **Hub** | a website hosting model checkpoints and datasets, each in a versioned repository | find a model by its ID, such as `{{< var models.encoder >}}` |
+| **Model card** | the README of a model repository | read the training data, intended use, limits and license *before* using the model |
+| `tokenizers` | fast tokenizer training and encoding | train your own BPE (Exercise 2) |
+| `transformers` | model architectures, pretrained weights, and a training loop | load, run and fine-tune models |
+| `datasets` | tables of examples with fast batched `map` | tokenize a dataset once and feed it to training |
+
+### Tokenizer and model, loaded by name
+
+A **checkpoint** is a saved set of parameters together with the configuration and tokenizer files that go with it. The `Auto` classes read the checkpoint's configuration and return the right class:
+
+```python
+from transformers import AutoModel, AutoTokenizer
+
+name = "{{< var models.encoder >}}"
+tokenizer = AutoTokenizer.from_pretrained(name)      # the tokenizer this model was pretrained with
+model = AutoModel.from_pretrained(name)              # the transformer body, no task head
+
+batch = tokenizer(
+    ["A short text.", "A second, somewhat longer text."],
+    padding=True, truncation=True, max_length=256, return_tensors="pt",
+)
+# batch["input_ids"]       (B, T) token IDs; each row starts with [CLS] and ends with [SEP], then [PAD]
+# batch["attention_mask"]  (B, T) 1 for real tokens, 0 for padding
+
+outputs = model(**batch)
+h = outputs.last_hidden_state                        # (B, T, d): one h_t per token; here d = 768
+```
+
+`B` is the batch size. The attention mask is the padding mask of Module 4: padded positions get a score of $-\infty$ before the attention softmax, so nothing reads from them. **Truncation** drops tokens beyond `max_length`. The model has a hard limit as well (512 positions for BERT-family models), because it has a learned vector for each position and no vector for position 513.
+
+### One body, several heads
+
+A **head** is the small output layer placed on the transformer body for one task. The suffix of the `Auto` class picks it:
+
+| Class | Head | Output | Section |
+|---|---|---|---|
+| `AutoModel` | none | $h_1, \dots, h_T$ | above |
+| `AutoModelForCausalLM` | $h_t \to$ logits over $V$ | next-token distribution at each position | 4 |
+| `AutoModelForMaskedLM` | $h_t \to$ logits over $V$ | token distribution at each position | 5 |
+| `AutoModelForSequenceClassification` | $h_{\texttt{[CLS]}} \to$ logits over $C$ classes | one distribution per input | 7 |
+
+Loading a pretrained checkpoint into a class whose head it does not contain gives a head with **random** parameters, and the library prints a report saying which parameters were newly initialized. That report is expected when you start fine-tuning. It is a bug if you see it when you meant to load a finished model.
+
+### Training your own tokenizer
+
+The `tokenizers` library runs the algorithm of Section 2 at full speed:
+
+```python
+from tokenizers import Tokenizer
+from tokenizers.models import BPE
+from tokenizers.pre_tokenizers import Whitespace
+from tokenizers.trainers import BpeTrainer
+
+bpe = Tokenizer(BPE(unk_token="[UNK]"))
+bpe.pre_tokenizer = Whitespace()                     # step 1: split into words and punctuation
+trainer = BpeTrainer(vocab_size=4000, special_tokens=["[UNK]", "[PAD]"])
+bpe.train_from_iterator(train_texts, trainer)        # steps 2 and 3
+
+encoding = bpe.encode("We fine-tune a pretrained transformer.")
+print(encoding.tokens, encoding.ids)
+```
+
+`vocab_size` is the final $|V|$ of @eq-bpe-size, special tokens included, so the trainer runs $M = |V| - |V_0|$ merges.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** Every exercise from 2 onward uses these calls. Exercise 2 uses the `tokenizers` block; Exercises 3 and 4 load `AutoModelForCausalLM` and `AutoModelForMaskedLM`; Exercise 5 uses `AutoModelForSequenceClassification`. Exercises 2 and 4 and the stretch use DistilBERT on every runtime; only Exercise 5 switches to a smaller encoder on a CPU runtime (Section 7). The stretch section loads `AutoModel` with `attn_implementation="eager"`, calls it with `output_attentions=True` and `output_hidden_states=True`, and reads the attention weights of Module 5 from a pretrained model; you write `attention_entropy(attn)`, the mean entropy of one head's attention rows.
+:::
+
+::: {.callout-warning appearance="simple"}
+**Attention weights need `attn_implementation="eager"`.** The default attention implementation computes attention in a fused kernel and returns no weights, so `output_attentions=True` alone gives you nothing to plot. Load the model with `AutoModel.from_pretrained(name, attn_implementation="eager")`, as the stretch does.
+:::
+
+## 7. Fine-tuning an encoder for classification
+
+**Objective: write the classification head and the fine-tuning loss, and say how fine-tuning differs from training from scratch.**
+
+The task is the one from Lab 1: an arXiv title and abstract in, one of $C = 4$ topics out.
+
+### The model
+
+Run the pretrained encoder on the tokenized text and take the output at the `[CLS]` position. Add one new linear layer, $W \in \mathbb{R}^{C \times d}$ and $b \in \mathbb{R}^{C}$:
+
+$$
+z = W\, h_{\texttt{[CLS]}} + b, \qquad \hat{y} = \mathrm{softmax}(z), \qquad \mathcal{L} = -\log \hat{y}_y ,
+$$ {#eq-head}
+
+where $y$ is the correct class. Compare with Module 1's logistic regression, $z = W x + b$: it is the same classifier and the same cross-entropy loss. Only the features have changed, three times now:
+
+| Lab | Features | Dimension | Learned from |
+|---|---|---|---|
+| 1 | TF-IDF vector $x$ | $|V|$, sparse | counts in the training set |
+| 2 | average of skip-gram word embeddings | $d = 100$ | the training texts, one layer |
+| 6 | $h_{\texttt{[CLS]}}$ from a pretrained encoder | $d = 768$ (DistilBERT; 256 for the CPU fallback) | billions of words, then adapted to the task |
+
+Why `[CLS]`? It is a position like any other, and through self-attention its output can draw on every token. During fine-tuning the loss reaches the encoder only through $h_{\texttt{[CLS]}}$, so the encoder learns to put there what the classifier needs. (Library heads differ in detail, and both differences sit between $h_{\texttt{[CLS]}}$ and $W$. DistilBERT's head inserts one extra hidden layer, $\mathbb{R}^{768} \to \mathbb{R}^{768}$, followed by a ReLU. BERT's, used by the CPU fallback, passes $h_{\texttt{[CLS]}}$ through the pretrained *pooler*, a linear layer followed by tanh. The lab's Checkpoint 5b recomputes the logits by hand for whichever head ran.)
+
+### The training
+
+Initialize the encoder from $\theta_{\text{pre}}$ and the head at random, then minimize @eq-head over the labeled training set by gradient descent on **all** parameters, encoder and head together. Three things differ from training from scratch:
+
+- **A small learning rate.** Typical values of $\eta$ for a BERT-sized model are $2 \times 10^{-5}$ to $5 \times 10^{-5}$, far below the values around $10^{-3}$ that are usual when training from scratch. The parameters start at a good point; large steps would destroy what pretraining learned. (The lab's CPU fallback, a much smaller encoder, uses $10^{-4}$.)
+- **Few epochs.** Two to four passes over the training set. More overfits a set of a few thousand examples.
+- **A random head on a trained body.** At step 0, $W$ is random, so the loss starts near $\log C$ (here $\log 4 \approx 1.39$), the value for a uniform guess.
+
+The gradient at the logits is still Module 1's: $\partial \mathcal{L} / \partial z = \hat{y} - \mathrm{onehot}(y)$. Backpropagation carries it through $W$ into every layer of the encoder.
+
+### In code
+
+`Trainer` is the training loop of Module 2 (batch, forward, loss, backward, step) with batching, evaluation and device placement handled for you. The two functions you write in Exercise 5 are `tokenize` and `compute_metrics`; the lab wraps the rest in one provided function, `finetune`, so that Module 11 can reuse it. Simplified from the lab (which also switches `fp16` and per-epoch evaluation on only when a GPU is present):
+
+```python
+import numpy as np
+from datasets import Dataset
+from sklearn.metrics import accuracy_score, f1_score
+from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
+                          DataCollatorWithPadding, Trainer, TrainingArguments)
+
+def tokenize(batch):                                 # Exercise 5
+    return ft_tokenizer(batch["text"], truncation=True, max_length=MAX_LENGTH)   # no padding
+
+def compute_metrics(eval_pred):                      # Exercise 5
+    logits, labels = eval_pred                       # NumPy arrays: (N, C) and (N,)
+    pred = np.argmax(logits, axis=-1)
+    return {"accuracy": accuracy_score(labels, pred),
+            "macro_f1": f1_score(labels, pred, average="macro")}
+
+def finetune(model_name, max_length, epochs, lr, seed, train_rows=None):          # provided
+    global ft_tokenizer, MAX_LENGTH                  # read by tokenize()
+    ft_tokenizer, MAX_LENGTH = AutoTokenizer.from_pretrained(model_name), max_length
+    n = len(train_texts) if train_rows is None else train_rows    # val and test stay whole
+    train_ds = Dataset.from_dict({"text": train_texts[:n], "label": train_labels[:n]})
+    val_ds = Dataset.from_dict({"text": val_texts, "label": val_labels})
+    test_ds = Dataset.from_dict({"text": test_texts, "label": test_labels})
+    train_ds, val_ds, test_ds = (d.map(tokenize, batched=True) for d in (train_ds, val_ds, test_ds))
+
+    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=4)  # new head
+    args = TrainingArguments(
+        output_dir="lab06", learning_rate=lr, num_train_epochs=epochs,
+        per_device_train_batch_size=32, per_device_eval_batch_size=64,
+        weight_decay=0.01, eval_strategy="epoch", save_strategy="no",
+        report_to="none", seed=seed,
+    )
+    trainer = Trainer(
+        model=model, args=args, train_dataset=train_ds, eval_dataset=val_ds,
+        data_collator=DataCollatorWithPadding(tokenizer=ft_tokenizer),  # pads to the batch's longest
+        compute_metrics=compute_metrics,
+    )
+    start_val_loss = trainer.evaluate()["eval_loss"] # random head: expect about log 4
+    trainer.train()
+    return {"val_logits": trainer.predict(val_ds).predictions,    # (600, 4)
+            "test_logits": trainer.predict(test_ds).predictions,  # (1600, 4)
+            "trainer": trainer, "start_val_loss": start_val_loss}
+
+result = finetune("{{< var models.encoder >}}", max_length=256, epochs=2, lr=5e-5, seed=0)
+```
+
+Two details. The texts are truncated to 256 tokens *inside the tokenizer call*, not in the dataset, so the model reads the title and the first part of each abstract. How many texts lose their end is printed by the lab just before Exercise 5; with the median text at 183 words, a fair share of abstracts are likely to be longer than 256 subword tokens, but that share has not yet been measured with the pretrained tokenizer. And the collator pads each batch only to its own longest text, which saves computation.
+
+### What to expect, honestly
+
+TF-IDF with logistic regression is a strong baseline on topic classification; Module 1 said to run it first. The two rows you already have, on the same 1,600 test papers (measured, recorded in `data/baselines.json`; the TF-IDF row is recomputed in Lab 6 and matches):
+
+| Model | Test accuracy | Test macro-F1 |
+|---|---|---|
+| TF-IDF + logistic regression (Lab 1) | 0.884 | 0.884 |
+| Averaged skip-gram embeddings + feed-forward network (Lab 2) | 0.867 | 0.867 |
+| Fine-tuned encoder (Lab 6) | you measure it | you measure it |
+
+Topic is mostly a matter of which words appear, and a bag of words captures that well. So expect the fine-tuned encoder to match that baseline or to beat it by a small margin, not to transform the result. A difference of half a point on 1,600 test examples is eight examples, which is within the variation between random seeds. You will measure it in the lab on the same test split, with the same two metrics, and report what you find, whichever way it falls.
+
+The stronger case for pretraining is elsewhere: the encoder gets there with no feature engineering, it often needs fewer labeled examples, and the same checkpoint serves tasks where word order decides the answer and bags of words fail. The price is compute: an expected few minutes on a GPU (not yet measured on a T4) against about a second on a CPU for TF-IDF.
+
+Keep the logits. A classifier's output $\hat{y}$ claims to be a probability. Whether a fine-tuned encoder's 0.99 means 99% is the question of [Module 11](11-calibration.qmd), which starts from this lab's validation logits (to fit) and test logits (to evaluate).
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 5** you write `tokenize(batch)` and `compute_metrics(eval_pred)`, predict the starting loss ($\log 4$) before running, and fine-tune with the provided `finetune`. The checkpoints assert that the validation loss before training is within 0.25 of $\log 4$, recompute @eq-head by hand from $h_{\texttt{[CLS]}}$ and check it against the model's logits, and print test accuracy and macro-F1 beside the TF-IDF baseline (recomputed in the notebook) and Lab 2's result (read from `data/baselines.json`).
+
+**Which encoder runs.** On a GPU runtime the lab fine-tunes DistilBERT (`{{< var models.encoder >}}`) on all 4,800 training texts: 2 epochs, $\eta = 5 \times 10^{-5}$. On a CPU runtime, to fit the time budget, it falls back to BERT-mini (`{{< var models.encoder_cpu >}}`: 4 layers, $d = 256$, the same vocabulary) trained on the first **800** training texts: 3 epochs, $\eta = 10^{-4}$. Validation and test are never reduced. The lab prints the model and the number of training rows beside every number it reports. A CPU-fallback row is not a fair comparison with TF-IDF trained on all 4,800 texts.
+:::
+
+## 8. What changes at scale, and what is still missing
+
+**Objective: say what larger models added, and what this module's models still cannot do.**
+
+Between 2018 and 2020 the recipe stayed the same while the numbers grew by orders of magnitude.
+
+| | Lab 5 mini-GPT | GPT (2018) | GPT-3 (2020) |
+|---|---|---|---|
+| Parameters | small enough to train in minutes | on the order of 100 million (the size BERT-base was built to match) | 175 billion |
+| Training text | 1 MB | over 7,000 books | web-scale text |
+| How a task is specified | train from scratch | fine-tune per task | describe it in the prompt |
+
+Three things changed with scale.
+
+- **Data.** From megabytes to web-scale text. No labels are needed, so the supply is not limited by annotation.
+- **Compute.** From minutes on one GPU to large clusters. Pretraining became something a few organizations do and everyone else reuses, which is why Section 6 matters.
+- **Abilities that were not trained for directly.** A large enough causal LM can do a task from a description and a few examples placed in its input, with no gradient update at all (Brown et al., 2020, called this *few-shot* learning; it is also called *in-context learning*). The objective is still @eq-clm. Why next-token prediction at scale produces this is an open research question; treat confident explanations with care.
+
+What is still missing. A pretrained causal LM *continues text*. Give it a question and it may answer, or it may continue with another question, because both are plausible continuations. It is not yet an assistant that follows instructions. And fine-tuning as done in Section 7 updates every parameter, which is affordable for 66 million and not for tens of billions. [Module 7](07-finetuning-lora.qmd) takes up both: instruction tuning, and LoRA, which adapts a large model by training a small number of new parameters.
+
+## Equation-to-lab map
+
+| Equation or algorithm | What it is | In Lab 6 |
+|---|---|---|
+| Section 2, step 3a | BPE pair counts | **Exercise 1**: `pair_counts(words)`; Checkpoint 1 asserts the count of `e s` is 9 |
+| Section 2, step 3c | BPE merge, left to right | **Exercise 1**: `merge_pair(words, pair)` |
+| Section 2, steps 3b and 3d; encoding a new word | BPE training loop and encoder | Provided: `train_bpe`, `bpe_encode`, built on Exercise 1; Checkpoint 1 tests the first five merges and `lowest` |
+| @eq-bpe-size | Vocabulary size $\lvert V_0 \rvert + M$ | Checkpoint 1 ($11 + 5$); after Exercise 2, an assertion that the trained tokenizer has exactly 4,000 entries |
+| Tokens per word | Sequence-length cost of a tokenizer | **Exercise 2**: `tokens_per_word(encode_fn, texts)`; ours measured 1.548 on val |
+| @eq-clm | Causal LM loss and perplexity | **Exercise 3**: `lm_perplexity(text, model, tokenizer)`, over tokens 2 to $T$; checked against the library's loss |
+| Section 5, steps 1 and 2 | Masked LM selection and 80/10/10 corruption | **Exercise 4**: `mask_tokens(input_ids, special_mask, mask_id, vocab_size, p=0.15)` |
+| @eq-mlm | Masked LM loss | Provided cell after Checkpoint 4: the library's loss, recomputed with `F.cross_entropy(..., ignore_index=-100)` |
+| @eq-head | Classification head and loss | Inside `AutoModelForSequenceClassification`; Checkpoint 5b recomputes the logits from $h_{\texttt{[CLS]}}$ (DistilBERT or BERT head) |
+| Fine-tuning; accuracy and macro-F1 (Module 1) | Training all parameters on labeled data | **Exercise 5**: `tokenize(batch)`, `compute_metrics(eval_pred)`; provided `finetune(model_name, max_length, epochs, lr, seed, train_rows=None)`, which returns a dict of logits |
+| Attention rows as distributions (Module 5) | Entropy of a head's attention | Stretch: `attention_entropy(attn)` |
+
+## Summary
+
+- A transformer trained from scratch on a small corpus is limited by its data and its tokens, not by its architecture.
+- BPE builds a subword vocabulary by merging the most frequent adjacent pair $M$ times. The vocabulary size is $|V_0| + M$ (@eq-bpe-size). Frequent words become one token; rare words become several; with byte-level BPE nothing is unknown.
+- A tokenizer and a model are a pair. Sequence length, context limits and cost are counted in tokens, not words.
+- Pretraining learns $\theta_{\text{pre}}$ from unlabeled text with a self-supervised loss. Fine-tuning copies $\theta_{\text{pre}}$, adds a small head, and trains briefly on labeled data.
+- Causal LM (@eq-clm) is Module 1's chain rule computed by a decoder-only transformer. Every position is a target. It generates text. Its loss is log-perplexity.
+- Masked LM (@eq-mlm) selects 15% of positions, corrupts them 80/10/10 (`[MASK]` / random / unchanged), and predicts the originals using both sides. It gives bidirectional representations and cannot generate or assign perplexity.
+- Hugging Face distributes checkpoints through the Hub. `AutoTokenizer` and `AutoModelFor...` load a matched tokenizer, body and head by name.
+- Fine-tuning for classification is logistic regression on $h_{\texttt{[CLS]}}$ (@eq-head), trained end to end with a small learning rate for a few epochs.
+- On a topic task with a strong TF-IDF baseline, expect the fine-tuned encoder to match the baseline or gain a little. Measure it.
+
+## Common misconceptions
+
+- **"A token is a word."** A token is a subword, and a word is often several. The 4,000-entry BPE of Exercise 2 needs 1.548 tokens per word on the arXiv validation abstracts (measured); the lab measures the pretrained tokenizers on the same texts. Limits and prices are in tokens.
+- **"BPE finds morphemes."** It finds frequent character sequences. Some coincide with stems and suffixes; many do not. Exercise 2 prints examples.
+- **"Any tokenizer works with any model."** Token IDs index rows of the model's embedding matrix. The wrong tokenizer gives wrong rows and no error message.
+- **"BERT is a language model like GPT."** BERT is trained to fill blanks, not to predict the next token. It defines no probability for a sentence, has no perplexity in Module 1's sense, and does not generate text.
+- **"Masked LM replaces 15% of tokens with `[MASK]`."** It *selects* 15%. Of those, 80% become `[MASK]`, 10% a random token and 10% stay as they are. All selected positions are predicted.
+- **"Fine-tuning trains only the new head."** Standard fine-tuning updates every parameter. Training only the head on frozen features is a different, cheaper method (sometimes called a linear probe) and usually scores lower.
+- **"A pretrained model always beats a classical baseline by a wide margin."** Not on tasks where word identity carries most of the signal. Run the baseline, then measure.
+- **"The warning about newly initialized weights means something is broken."** When you load a pretrained body into a classification class, the head has to be new. The message is a bug only if you expected a finished classifier.
+- **"A bigger pretrained model understands; a small one memorizes."** Both minimize the same loss on text. What scale buys is measured by evaluation on tasks, not settled by the word *understand*.
+
+## Readings
+
+1. Sennrich, R., Haddow, B. and Birch, A. (2016). [Neural Machine Translation of Rare Words with Subword Units](https://aclanthology.org/P16-1162/). *ACL*, 1715–1725. BPE for words. Section 3.2 and Algorithm 1 are the algorithm of Section 2, in 20 lines of Python.
+2. Radford, A., Narasimhan, K., Salimans, T. and Sutskever, I. (2018). [Improving Language Understanding by Generative Pre-Training](https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf). OpenAI technical report. GPT: causal pretraining of a 12-layer decoder, then fine-tuning. Read section 3.
+3. Devlin, J., Chang, M.-W., Lee, K. and Toutanova, K. (2019). [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://aclanthology.org/N19-1423/). *NAACL*, 4171–4186. Masked LM and the 80/10/10 rule are in section 3.1 and appendix A.1.
+4. Jurafsky, D. and Martin, J. H. [*Speech and Language Processing*](https://web.stanford.edu/~jurafsky/slp3/) (3rd edition draft). Chapters "Words and Tokens" (BPE), "Transformers and Pretraining" and "Masked Language Models" (chapters 2, 7 and 9 in the August 2026 draft; chapter numbers change between drafts, so go by title).
+5. Hugging Face. [LLM Course, chapter 6: the tokenizers library](https://huggingface.co/learn/llm-course/chapter6/1), and the Transformers documentation page [Tokenization algorithms](https://huggingface.co/docs/transformers/main/en/tokenizer_summary). BPE, WordPiece and Unigram side by side, with code. For the optional WordPiece box.

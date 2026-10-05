@@ -19,18 +19,145 @@ workshop:
   lecture_minutes: 45
   lab_minutes: 50
 
-# Model IDs and SDK pins. Pinned during the build (PLAN.md, build days 6 and 8),
-# after checking each provider's current documentation.
+# Model IDs. Checked against each provider's live documentation on 2026-10-04
+# (PLAN.md, build day 6). Re-check before each delivery: IDs retire.
+# Notebooks cannot read this file on Colab, so they repeat these IDs; a test
+# must fail if a notebook and this file disagree.
 models:
-  openai: "TBD"
-  anthropic: "TBD"
-  fallback: "TBD"
+  openai: "gpt-6-luna"
+  anthropic: "claude-haiku-4-5"
+  # Open chat model for the no-key path of the API labs (Apache 2.0).
+  fallback: "Qwen/Qwen2.5-0.5B-Instruct"
+  # Lab 6: masked LM probed (and fine-tuned on GPU), small encoder fine-tuned on
+  # a CPU runtime, and causal LM probed. Revisions not yet pinned: the Hub was
+  # unreachable from the build container on 2026-10-04.
+  encoder: "distilbert/distilbert-base-uncased"
+  encoder_cpu: "google/bert_uncased_L-4_H-256_A-4"
+  causal_lm: "distilbert/distilgpt2"
+  # Lab 13: dense retriever, reranker and faithfulness model (open path). IDs and
+  # licenses from model-card summaries only; confirm on the Hub and pin revisions.
+  embedding: "BAAI/bge-small-en-v1.5"
+  reranker: "cross-encoder/ms-marco-MiniLM-L6-v2"
+  nli: "cross-encoder/nli-deberta-v3-xsmall"
+  # Base (not instruction-tuned) causal LM fine-tuned in Lab 7 (Apache 2.0).
+  instruct_base: "HuggingFaceTB/SmolLM2-135M"
+  instruct_base_revision: "93efa2f097d58c2a74874c7e644dbc9b0cee75a2"
+  # Jev (TypeSafe System One) via typesafe-sdk. "jev-latest" is the SDK default;
+  # pin a concrete ID after listing /v1/models with a key.
+  jev: "jev-latest"
 
-# Colab Secrets names. The TypeSafe name is unverified until build day 8.
+# Package pins for the TypeSafe labs (12-15). Only these names are official:
+# lookalikes on PyPI (typesafe-ai, jev, llama-index-postprocessor-jev, ...) are
+# not TypeSafe's. Checked against PyPI and the source repositories.
+packages:
+  checked: "2026-10-05"
+  typesafe_sdk: "0.7.2"
+  langchain_typesafe: "0.0.1a3"
+  system_one_adapter: "0.2.1"
+  # Resolved together with the above for Python 3.12 (Lab 14 brief).
+  langgraph: "1.2.12"
+  langchain_core: "1.6.6"
+  # Lab 13 (read from installed source; docs unreachable from the build container).
+  llama_index_core: "0.14.25"
+  llama_index_retrievers_bm25: "0.8.0"
+  langchain_text_splitters: "1.1.3"
+
+# Colab Secrets names. TYPESAFE_API_KEY verified 2026-10-05 against typesafe-sdk 0.7.2
+# and langchain-typesafe 0.0.1a3 (briefs/jev-verification.md).
 secrets:
   openai: OPENAI_API_KEY
   anthropic: ANTHROPIC_API_KEY
   typesafe: TYPESAFE_API_KEY
+
+# Datasets of the running thread. data/README.md explains each choice and gives
+# the loading cell that notebooks paste; tests/test_data.py checks that the two
+# agree and that the committed copies match these hashes.
+# `urls` are tried in order: canonical first, fallback second. An entry with a
+# `file` has a copy under data/, served from `fallback_base`.
+datasets:
+  checked: "2026-10-04"   # date the licenses were read at license_url
+  fallback_base: https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data
+  topics:
+    name: "arXiv Topics v1"
+    modules: [1, 2, 6, 11]
+    file: arxiv_topics_v1.csv.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/arxiv_topics_v1.csv.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/arxiv_topics_v1.csv.gz
+    sha256: "49b51502fc6cf6ecff23fa266c5372594a88414dd96513579237792710246dc5"
+    bytes: 3172762
+    license: "CC0 1.0"
+    license_url: https://info.arxiv.org/help/api/tou.html
+    classes: [cs.CL, cs.CV, cs.LG, cs.RO]
+    class_names: ["Language", "Vision", "Machine learning", "Robotics"]
+    seed: 0
+    splits: {train: 4800, val: 600, test: 1600}
+  lm:
+    name: "Tiny Shakespeare"
+    modules: [1, 3, 5]
+    file: tinyshakespeare.txt
+    urls:
+      - https://raw.githubusercontent.com/karpathy/char-rnn/6f9487a6fe5b420b7ca9afb0d7c078e37c1d1b4e/data/tinyshakespeare/input.txt
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/tinyshakespeare.txt
+    sha256: "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed"
+    bytes: 1115394
+    license: "Public-domain text; MIT packaging"
+    license_url: https://github.com/karpathy/char-rnn
+    # Character offsets, [start, end).
+    splits: {train: [0, 1000000], val: [1000000, 1055000], test: [1055000, 1115394]}
+  instructions:
+    name: "Databricks Dolly 15k"
+    modules: [7]
+    # The full upstream file. Lab 7 fixes a subset and adds `file` if it commits one.
+    urls:
+      - https://huggingface.co/datasets/databricks/databricks-dolly-15k/resolve/bdd27f4d94b9c1f951818a7da7fd7aeea5dbff1a/databricks-dolly-15k.jsonl
+    sha256: "2df9083338b4abd6bceb5635764dab5d833b393b55759dffb0959b6fcbf794ec"
+    bytes: 13085339
+    license: "CC BY-SA 3.0"
+    license_url: https://huggingface.co/datasets/databricks/databricks-dolly-15k
+    records: 15011
+  # Built by data/build_decisions.py (spec: briefs/11-calibration.md). Status
+  # "v1-template-only": the 80 hand-written slots hold template items until two
+  # people write and label them (data/decisions_v1_stats.json, hand_items: 0).
+  # Adding them changes sha256 and bytes below.
+  decisions:
+    name: "Workshop Desk Decisions v1"
+    modules: [11, 12, 14]
+    file: decisions_v1.jsonl.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/decisions_v1.jsonl.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/decisions_v1.jsonl.gz
+    sha256: "56ee7e8b4e7ef418e5da6a9f242f615b21dacd3c5d312c0e4635174847aa0df1"
+    bytes: 143499
+    license: "CC0 1.0"
+    license_url: https://creativecommons.org/publicdomain/zero/1.0/
+    families: [policy, route]
+    route_options: [retrieve, calculate, send_email, ask_user, escalate]
+    seed: 0
+    splits: {train: 2000, dev: 100, test: 300}
+  # Built by data/build_lectures_corpus.py from lectures 01-12 and references.qmd at
+  # `source_commit` (spec: briefs/13-rag.md, decision (a)). references.qmd is complete
+  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12 has a
+  # TODO to quote TypeSafe's documentation and lectures 6-11 may change after their
+  # Colab T4 runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
+  # sha256, bytes, source_commit, characters) if any page changed; questions come after.
+  # tests/test_rag_questions.py fails if data/rag_questions_v1.jsonl exists while
+  # this status is provisional, and on any evidence quote a rebuild breaks.
+  lectures:
+    name: "Workshop Lectures v1"
+    modules: [13, 14, 15]
+    file: workshop_lectures_v1.jsonl.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz
+    sha256: "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395"
+    bytes: 189037
+    license: "CC BY 4.0"
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    source_commit: "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
+    status: "provisional"
+    documents: 13
+    characters: 544974
 
 # The daily clock. `module` slots take the day's modules in order.
 schedule:
@@ -229,7 +356,7 @@ modules:
     objectives:
       - "State how RLCD's objective differs from RLHF's, and what is and is not public about it"
       - "Call Jev for typed decisions"
-      - "Use its confidence to set action thresholds"
+      - "Turn its probabilities into act, ask and escalate thresholds from stated costs"
     stack: [PyTorch, TypeSafe SDK]
   m13:
     n: 13

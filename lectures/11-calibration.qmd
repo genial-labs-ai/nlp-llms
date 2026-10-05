@@ -4,6 +4,455 @@ title: "{{< var modules.m11.title >}}"
 
 {{< include /_includes/module-11.md >}}
 
-::: {.callout-note appearance="simple"}
-This lecture has not been drafted yet.
+## Timing
+
+| Section | Minutes |
+|---|---|
+| 1. What Day 3 has left open | 3 |
+| 2. What a probability should mean | 5 |
+| 3. Measuring calibration: reliability diagrams and ECE | 8 |
+| 4. Proper scoring rules | 8 |
+| 5. Why models are miscalibrated | 5 |
+| 6. Temperature scaling | 5 |
+| 7. Confidence from a language model behind an API | 5 |
+| 8. Selective prediction and the cost of a wrong action | 6 |
+| **Total** | **45** |
+
+The collapsed callouts are optional and sit outside the 45 minutes.
+
+## Notation for this module
+
+The workshop notation applies: parameters $\theta$, loss $\mathcal{L}$, natural logarithms, $\mathbf{1}[\cdot]$ equal to 1 when the condition holds and 0 otherwise. This module returns to the classifier of [Module 1](01-text-as-data.qmd) and [Module 6](06-pretraining-huggingface.qmd):
+
+| Symbol | Meaning |
+|---|---|
+| $x$, $y$ | an input and its correct class, $y \in \{1, \dots, C\}$ |
+| $C$ | the number of classes (4 for arXiv Topics) |
+| $z \in \mathbb{R}^C$ | the **logits**: $z = Wx + b$ in Module 1, $z = W h_{\texttt{[CLS]}} + b$ in Module 6 |
+| $\hat{y} = \mathrm{softmax}(z)$ | the predicted distribution over classes; $\hat{y}_c$ is its entry for class $c$ |
+| $\mathrm{onehot}(y)$ | the vector that is 1 at position $y$ and 0 elsewhere |
+| $(x^{(i)}, y^{(i)})$, $N$ | the $i$-th of $N$ evaluation examples |
+| $\tau > 0$ | a **temperature**: the logits are divided by it, as in Module 3's sampling (section 6) |
+
+New in this module:
+
+| Symbol | Meaning |
+|---|---|
+| $\hat{c} = \arg\max_c \hat{y}_c$ | the **predicted class** |
+| $\hat{p} = \max_c \hat{y}_c = \hat{y}_{\hat{c}}$ | the **confidence**: the probability the model gives its own prediction |
+| $o = \mathbf{1}[\hat{c} = y]$ | the **outcome** of one prediction: 1 if it was correct |
+| $B_1, \dots, B_M$ | $M$ **bins**: sets of example indices grouped by confidence (section 3) |
+| $\mathrm{acc}(B)$, $\mathrm{conf}(B)$ | mean outcome and mean confidence over the examples in bin $B$ |
+| $q \in \Delta^{C}$ | a reported distribution over the $C$ classes; $\Delta^{C}$ is the set of such distributions |
+| $p \in \Delta^{C}$ | the true distribution of the label, for the purpose of an argument (section 4) |
+| $S(q, y)$ | a **scoring rule**: the penalty for reporting $q$ when the label turns out to be $y$; lower is better |
+| $\lambda \in [0, 1]$ | an **abstention threshold**: act when $\hat{p} \ge \lambda$, defer otherwise (section 8) |
+| $\ell_{\text{wrong}}$, $\ell_{\text{defer}}$ | the **cost** of acting on a wrong prediction, and of deferring to a person |
+
+::: {.callout-important appearance="simple"}
+**Notation.** Three clashes, resolved for this module.
+
+- **$x$ and $y$** mean an input and its class label again, as in Modules 1 and 6, not the prompt and response of Modules 9 and 10.
+- **$\tau$** is the temperature of Module 3. Section 6 uses the same division of the logits; what is new is that $\tau$ is fitted, not chosen. It is not Module 9's label temperature $\tau_{\text{label}}$.
+- **$\lambda$** is a threshold here, not the Lagrange multiplier or interpolation weight of Module 1. **$p$** is a true distribution, not a perplexity.
 :::
+
+## 1. What Day 3 has left open
+
+**Objective for this section:** say why the models of Days 2 and 3 need a separate check on their confidence.
+
+Three earlier modules ended on the same gap.
+
+- [Module 6](06-pretraining-huggingface.qmd) fine-tuned an encoder whose output $\hat{y}$ claims to be a probability, and left the question open: when it says 0.99, is it right 99 times in 100?
+- [Module 8](08-llm-apis.qmd) showed that a response from an API carries text, a stop reason and token counts, and nothing that says how likely it is to be correct. A wrong city is written as fluently as a right one.
+- [Module 10](10-rlhf.qmd) trained a model on what raters prefer. Raters judge fluency and confidence easily and correctness with difficulty, so nothing in a preference comparison rewards a model for being uncertain when it should be.
+
+A system that acts on a model's output needs more than the output. It needs to know when to trust it: when to act, when to ask a person, when to stop. That decision needs a number that behaves like a probability.
+
+This module does four things:
+
+1. defines what it means for a confidence to be right (section 2) and measures it (sections 3 and 4);
+2. explains why trained models often get it wrong (section 5) and fixes the simplest case (section 6);
+3. applies the same measurements to a confidence that a language model states in words (section 7);
+4. turns a confidence into a decision with a stated cost (section 8), which [Module 12](12-rlcd-jev.qmd) extends to three actions.
+
+## 2. What a probability should mean
+
+**Objective for this section:** define calibration, and show that it is a different property from accuracy.
+
+**Calibration.** A classifier is **calibrated** if, among all the predictions it makes with confidence $\hat{p}$, a fraction $\hat{p}$ are correct:
+
+$$
+P\big(\hat{c} = y \;\big|\; \hat{p} = p\big) = p \qquad \text{for every } p \in [0, 1].
+$$ {#eq-calibration}
+
+The probability on the left is over examples drawn from the data distribution. Read it as a frequency: of the papers the classifier labels with confidence 0.8, eight in ten should carry that label. A forecaster who says "70% chance of rain" is calibrated if it rains on 70% of those days.
+
+@eq-calibration constrains only the top class, so it is called **top-label** calibration. A stronger condition asks the whole vector to be right, $P(y = c \mid \hat{y} = q) = q_c$ for every class $c$. Top-label calibration is what a decision to act on the prediction needs, and it is what the lab measures.
+
+**Calibration is not accuracy.** The two can move independently.
+
+- *Calibrated and useless.* On the four balanced classes of arXiv Topics, a model that ignores its input and outputs $\hat{y} = (0.25, 0.25, 0.25, 0.25)$ is right 25% of the time with confidence 0.25. It is perfectly calibrated and has learned nothing.
+- *Accurate and miscalibrated.* Three versions of the Lab 1 classifier (TF-IDF and logistic regression, on the same 1,600 test papers) differ only in the regularization constant `C`, where a larger `C` means a weaker penalty on the weights:
+
+| `C` | Test accuracy | Mean confidence | Reading |
+|---|---|---|---|
+| 1 | 0.888 | 0.723 | right more often than it claims: **underconfident** |
+| 10 (Lab 1's choice) | 0.884 | 0.862 | close |
+| 100 | 0.882 | 0.925 | right less often than it claims: **overconfident** |
+
+Measured in the build container on 2026-10-05 with Lab 1's pipeline (scikit-learn 1.9.1); the `C = 10` accuracy matches `lab01.tfidf_logreg` in `data/baselines.json`. Lab 11 recomputes all three.
+
+Accuracy moves by 0.6 points; mean confidence moves by 20 points. Matching mean confidence to accuracy is necessary for calibration but not sufficient: @eq-calibration asks for the match at every confidence level, which is what a reliability diagram checks (section 3).
+
+**Sharpness.** The useless model above shows that calibration alone is not the goal. We also want confidences far from the base rate, so that they separate the easy cases from the hard ones. Gneiting, Balabdaoui and Raftery (2007) put the aim as: maximize sharpness subject to calibration. The scores of section 4 reward both at once.
+
+## 3. Measuring calibration: reliability diagrams and ECE
+
+**Objective for this section:** estimate the gap in @eq-calibration from a finite test set, and say what can make the estimate misleading.
+
+@eq-calibration conditions on an exact confidence value, and no two test examples share one. So we group examples whose confidences are close.
+
+**Bins.** Split $[0, 1]$ into $M$ intervals of equal width, $\big(\frac{m-1}{M}, \frac{m}{M}\big]$, and let $B_m$ be the set of examples whose confidence falls in the $m$-th. For each bin compute the mean outcome and the mean confidence:
+
+$$
+\mathrm{acc}(B_m) = \frac{1}{\lvert B_m \rvert} \sum_{i \in B_m} o^{(i)}, \qquad
+\mathrm{conf}(B_m) = \frac{1}{\lvert B_m \rvert} \sum_{i \in B_m} \hat{p}^{(i)} .
+$$ {#eq-bin-stats}
+
+**Reliability diagram.** Plot $\mathrm{acc}(B_m)$ against $\mathrm{conf}(B_m)$ for every non-empty bin (DeGroot and Fienberg, 1983). A calibrated model lies on the diagonal. Points below it are overconfident bins (confidence exceeds accuracy); points above it are underconfident ones. Draw a histogram of the confidences underneath: it shows how many examples each point rests on, and how sharp the model is.
+
+<!-- FIGURE 11.1
+Spec: two reliability diagrams side by side, same axes. x-axis "confidence (mean per bin)", y-axis "accuracy (mean per bin)", both 0 to 1, with the diagonal dashed and labeled "perfect calibration". 15 equal-width bins; each non-empty bin drawn as a bar from the diagonal to its accuracy (gap shaded) or as a point, with the bin count as point size. Left panel: Lab 1 classifier, C = 1, before temperature scaling (points above the diagonal: underconfident). Right panel: the same model after temperature scaling (points on the diagonal). Under each panel, a histogram of the 1,600 test confidences. Panel titles carry ECE: "C = 1: ECE 0.164" and "after temperature scaling (tau = 0.47): ECE 0.009". Draw from measured data: Lab 11 writes the bin statistics; until then, from the build-container run of 2026-10-05 recorded in briefs/11-calibration.md.
+Target path: images/11-reliability.svg
+Alt text: Two reliability diagrams for the Lab 1 classifier. Before temperature scaling the bins lie above the diagonal, meaning the model is right more often than its confidence says; after temperature scaling they lie on the diagonal.
+-->
+
+**Expected calibration error.** Summarize the diagram by the gaps, weighted by how many examples each bin holds (Naeini, Cooper and Hauskrecht, 2015):
+
+$$
+\mathrm{ECE} = \sum_{m=1}^{M} \frac{\lvert B_m \rvert}{N}\, \big\lvert \mathrm{acc}(B_m) - \mathrm{conf}(B_m) \big\rvert .
+$$ {#eq-ece}
+
+ECE is 0 for a calibrated model in the limit of infinite data, and at most 1. Guo et al. (2017) used $M = 15$, and so do we. For the three classifiers of section 2 it is 0.164 (`C = 1`), 0.023 (`C = 10`) and 0.044 (`C = 100`).
+
+**Five pitfalls.** ECE is the most reported calibration number and one of the easiest to misread (Nixon et al., 2019).
+
+1. **It depends on $M$.** For the `C = 10` classifier on the same predictions: 0.022 with 5 bins, 0.023 with 15, 0.038 with 50, 0.055 with 100. Compare ECEs only at the same $M$, and report $M$.
+2. **It is positive for a perfectly calibrated model.** With few examples per bin, $\mathrm{acc}(B_m)$ is a noisy estimate and its absolute gap from $\mathrm{conf}(B_m)$ is positive on average. We simulated a forecaster that is calibrated by construction (outcomes drawn with probability equal to the confidences of the `C = 10` classifier). Its mean ECE at $M = 15$ was 0.074 on 100 examples, 0.043 on 300, and 0.019 on 1,600. So the `C = 10` classifier's 0.023 on 1,600 papers is within noise of perfect. **Report $N$, and compare against this noise floor.**
+3. **Equal-width bins crowd at the top.** An accurate model puts most predictions above 0.9, so a few bins carry nearly all the weight and the rest are empty or nearly so. **Equal-mass** (adaptive) bins, each holding $N/M$ examples, spread the estimate more evenly. The lab prints both.
+4. **Zero ECE does not mean a good model.** The input-blind model of section 2 has ECE exactly 0. ECE says nothing about sharpness, and it is not a proper scoring rule (section 4): a model can lower it without becoming more useful. Report it next to a proper score.
+5. **It sees only the top class.** Errors in how the remaining probability is spread over the other classes are invisible to it. The Brier score and the log loss of section 4 see the whole vector.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 1** you write `reliability_bins(conf, correct, n_bins=15, adaptive=False)`, which returns the counts, mean confidences and accuracies of @eq-bin-stats, and `ece(conf, correct, n_bins=15, adaptive=False)`, which is @eq-ece. Checkpoints: a hand-made ten-example case with a known answer; ECE 0 for the input-blind model; ECE near 0 for a large synthetic set that is calibrated by construction. You then draw the reliability diagram of the classifier and print its ECE beside the simulated noise floor for the same $N$.
+:::
+
+## 4. Proper scoring rules
+
+**Objective for this section:** define a proper scoring rule, prove that the Brier score is one, and say why accuracy is not.
+
+ECE measures one property. We would also like a single score that a model can only improve by being both calibrated and sharp, and that cannot be gamed. That is what a proper scoring rule is.
+
+**Scoring rules.** A scoring rule $S(q, y)$ assigns a penalty to a reported distribution $q$ once the label $y$ is known. Two are standard. The **Brier score** (Brier, 1950) is the squared distance between the reported distribution and the one-hot label:
+
+$$
+S_{\text{Brier}}(q, y) = \sum_{c=1}^{C} \big(q_c - \mathbf{1}[y = c]\big)^2 = \big\lVert q - \mathrm{onehot}(y) \big\rVert_2^2 .
+$$ {#eq-brier}
+
+It lies between 0 (all probability on the right class) and 2 (all on a wrong one). The **log loss** is the negative log-probability of the label:
+
+$$
+S_{\text{log}}(q, y) = -\log q_y .
+$$ {#eq-log-loss}
+
+You know it already: averaged over a dataset with $q = \hat{y}$, it is Module 1's cross-entropy loss, the quantity every classifier in this workshop was trained to minimize. Here we evaluate it on held-out data. In both cases the reported number is the average over the $N$ evaluation examples, with $q = \hat{y}^{(i)}$ and $y = y^{(i)}$.
+
+**Proper and strictly proper.** Suppose the label is really drawn from a distribution $p$. A forecaster who reports $q$ expects the penalty $\mathbb{E}_{y \sim p}[S(q, y)]$. The rule is **proper** if reporting the truth is never worse than any other report:
+
+$$
+\mathbb{E}_{y \sim p}\big[S(p, y)\big] \;\le\; \mathbb{E}_{y \sim p}\big[S(q, y)\big] \qquad \text{for all } p, q \in \Delta^{C},
+$$ {#eq-proper}
+
+and **strictly proper** if equality holds only at $q = p$ (Gneiting and Raftery, 2007). Under a strictly proper rule, the unique way to minimize your expected penalty is to report what you believe. Exaggerating or hedging always costs.
+
+**The Brier score is strictly proper: a proof sketch.** Write $p_c = P(y = c)$ and expand one term of @eq-brier. Since $\mathbf{1}[y = c]^2 = \mathbf{1}[y = c]$ and its expectation is $p_c$,
+
+$$
+\mathbb{E}_{y \sim p}\big[(q_c - \mathbf{1}[y = c])^2\big] = q_c^2 - 2 q_c p_c + p_c = (q_c - p_c)^2 + p_c (1 - p_c).
+$$
+
+Summing over $c$:
+
+$$
+\mathbb{E}_{y \sim p}\big[S_{\text{Brier}}(q, y)\big] = \underbrace{\sum_{c} (q_c - p_c)^2}_{\text{depends on the report}} \;+\; \underbrace{\sum_{c} p_c (1 - p_c)}_{\text{does not}} .
+$$ {#eq-brier-expected}
+
+The second term is fixed by the world. The first is a squared distance, zero exactly when $q = p$ and positive otherwise. So the expected Brier score is minimized by $q = p$ and by nothing else, which is @eq-proper with strict inequality.
+
+**The log loss is strictly proper too.** Its expectation is $-\sum_c p_c \log q_c$, the cross-entropy of $q$ on data from $p$. [Module 10](10-rlhf.qmd) used the identity that this equals the entropy of $p$ plus $\mathrm{KL}(p \,\Vert\, q)$. The entropy does not depend on $q$, and the KL divergence is zero only at $q = p$. The log loss punishes confident mistakes without limit ($-\log q_y \to \infty$ as $q_y \to 0$), so one overconfident error can dominate an average; the Brier score is bounded. Report both.
+
+**Accuracy is not strictly proper.** Treat accuracy as a penalty, $S_{\text{acc}}(q, y) = \mathbf{1}[\arg\max_c q_c \neq y]$. Its expectation is $1 - p_{\arg\max q}$: it depends on $q$ only through which class is largest. Reporting 0.51 or 0.99 for the same class earns exactly the same expected score. Accuracy is proper in the weak sense, because the truth is among the best reports, but it gives no reason to report the truth rather than any distribution with the same top class. A model selected by accuracy alone has no pressure to be calibrated.
+
+**Some plausible scores are improper.** The *linear* score, $S_{\text{lin}}(q, y) = -q_y$ ("reward the probability given to the right answer"), looks reasonable. Its expectation is $-\sum_c p_c q_c$, which is minimized by putting all the probability on the most likely class. It rewards overconfidence. If the true distribution is $(0.7, 0.3)$, the linear score prefers the report $(1, 0)$; the Brier score and the log loss prefer $(0.7, 0.3)$; accuracy cannot tell any report with $q_1 > 0.5$ from another.
+
+**Why this matters beyond evaluation.** Training a model is choosing a scoring rule to minimize. Cross-entropy is strictly proper, so at its optimum over all possible predictors, on the true data distribution, it gives calibrated probabilities. The words "over all predictors" and "on the true distribution" carry the weight: a real model minimizes it on a finite training set, with a restricted function class. Section 5 is about what happens in between. And training against something that is not a proper score, such as a preference between two answers (Module 10), gives no such guarantee at all.
+
+| Score | Range | Strictly proper | Sees the whole $\hat{y}$ | `C = 1` | `C = 10` | `C = 100` |
+|---|---|---|---|---|---|---|
+| ECE ($M = 15$) | 0 to 1 | no (not a scoring rule) | no | 0.164 | 0.023 | 0.044 |
+| Brier score, @eq-brier | 0 to 2 | yes | yes | 0.211 | 0.166 | 0.176 |
+| Log loss, @eq-log-loss | 0 to $\infty$ | yes | no, only $\hat{y}_y$ | 0.436 | 0.314 | 0.339 |
+| Error rate ($1 -$ accuracy) | 0 to 1 | no | no | 0.113 | 0.116 | 0.118 |
+
+Measured on the 1,600 test papers, as in section 2. The proper scores rank `C = 10` first; the error rate ranks it second.
+
+::: {.callout-tip collapse="true" title="Optional: the Brier score's three parts"}
+Murphy (1973) split the average Brier score into three terms. For one binary event (for example "the prediction is correct", with forecast $\hat{p}$), with forecasts grouped into bins $B_m$ and overall base rate $\bar{o}$:
+
+$$
+\frac{1}{N} \sum_{i} \big(\hat{p}^{(i)} - o^{(i)}\big)^2 \approx
+\underbrace{\sum_{m} \tfrac{\lvert B_m \rvert}{N} \big(\mathrm{conf}(B_m) - \mathrm{acc}(B_m)\big)^2}_{\text{reliability (miscalibration)}}
+- \underbrace{\sum_{m} \tfrac{\lvert B_m \rvert}{N} \big(\mathrm{acc}(B_m) - \bar{o}\big)^2}_{\text{resolution (sharpness that pays)}}
++ \underbrace{\bar{o}\,(1 - \bar{o})}_{\text{uncertainty}} .
+$$
+
+The approximation is exact when every forecast in a bin is the same. The first term is a squared version of ECE's gap; the second rewards bins whose accuracy differs from the base rate; the third is fixed by the data. One proper score contains the two goals of section 2: calibration and sharpness.
+:::
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 2** you write `brier(probs, labels)` (@eq-brier) and `nll(probs, labels)` (@eq-log-loss), each averaged over examples. Checkpoints: hand computations on three examples; the uniform four-class model scores exactly 0.75 and $\log 4$; `nll` agrees with `sklearn.metrics.log_loss`. A provided cell then prints the table above for your classifier and for the three Lab 1 models. The **stretch** section shows numerically that the expected Brier score is minimized by the true probability (@eq-brier-expected), that the linear score is not, and that accuracy is flat.
+:::
+
+## 5. Why models are miscalibrated
+
+**Objective for this section:** give the known reasons that trained networks and preference-tuned language models are often miscalibrated, and say which claims are settled.
+
+**Classifiers.** Guo et al. (2017) compared older and newer networks for image and text classification and found the newer, deeper and wider ones markedly overconfident, where older, smaller networks such as LeNet had been close to calibrated. Depth, width, batch normalization and weaker weight decay all moved models toward overconfidence. Their explanation is **overfitting in the log loss**. Once a network classifies almost every training example correctly, it can still lower its training cross-entropy by making every correct prediction more confident, which it does by growing the logits. On held-out data the classification error stays put while the confidence keeps rising; held-out log loss gets worse before held-out accuracy does.
+
+Our linear classifier shows the same lever on a small scale. In section 2, weakening the L2 penalty (larger `C`) let the weights, and so the logits, grow, and moved the model from underconfident to overconfident while its accuracy barely changed.
+
+Three qualifications, all from later measurements.
+
+- **Not every modern network.** Minderer et al. (2021) found that recent architectures that do not use convolutions, such as vision transformers, were among the best calibrated models they tested, and that architecture mattered more than model size or the amount of pretraining.
+- **Fine-tuned pretrained transformers in particular.** Desai and Durrett (2020) found BERT and RoBERTa, fine-tuned for language-understanding tasks, relatively well calibrated in-domain, with temperature scaling reducing the error further, and worse calibrated out of domain. So we do not know in advance which way the Lab 6 encoder will fall. You will measure it.
+- **Calibration does not survive a change of data.** Ovadia et al. (2019) found that calibration measured on in-distribution data, including after post-hoc fixes like the one in section 6, degraded under dataset shift. A model calibrated on 2024 arXiv abstracts is not thereby calibrated on 2027 ones.
+
+**Language models.** Two kinds of evidence point in the same direction for preference-tuned models.
+
+- **Pretrained models can be calibrated on the right format.** Kadavath et al. (2022) found that large pretrained language models were well calibrated on multiple-choice and true/false questions when the options were presented in a suitable format, reading the confidence from the probability given to each answer's letter.
+- **Post-training has reduced that calibration in reported cases.** The GPT-4 technical report (OpenAI, 2023) shows the pretrained model's answer probabilities on a subset of the MMLU benchmark lying close to the diagonal of a reliability diagram, and the model after post-training with PPO lying well off it. Tian et al. (2023) likewise found the token probabilities of several RLHF-tuned models (ChatGPT, GPT-4 and Claude among them) poorly calibrated on question-answering benchmarks.
+
+Why would preference training do this? Module 10 gives two reasons to expect it, neither of which is a measured mechanism: the reward compares whole answers and never rewards an appropriate hedge, and the optimum of the KL-regularized objective, $\pi^* \propto \pi_{\text{ref}}\, e^{r/\beta}$, moves probability toward the responses the reward rates highest, which sharpens the distribution over answers. What is established is the measured effect in the reported cases. How general it is, and which part of post-training causes it, are open questions.
+
+**The practical conclusion.** Never assume a model is calibrated, in either direction. Measure it, on data like the data it will see, and recheck when the data change.
+
+## 6. Temperature scaling
+
+**Objective for this section:** fit one number that recalibrates a classifier without changing its predictions, and say what it cannot fix.
+
+**The fix.** Divide the logits by a temperature $\tau > 0$ before the softmax:
+
+$$
+\hat{y}(\tau) = \mathrm{softmax}\big(z / \tau\big).
+$$ {#eq-temp-scaling}
+
+This is the operation of Module 3's temperature sampling, used for a different purpose. There, $\tau$ was chosen to make samples more or less varied. Here it is **fitted**, once, to make the probabilities honest. $\tau > 1$ flattens $\hat{y}$ and fixes overconfidence; $\tau < 1$ sharpens it and fixes underconfidence.
+
+**The fit.** Choose $\tau$ to minimize the log loss on the **validation** set, with the model's weights frozen:
+
+$$
+\tau^* = \arg\min_{\tau > 0}\; -\frac{1}{N_{\text{val}}} \sum_{i=1}^{N_{\text{val}}} \log \mathrm{softmax}\big(z^{(i)} / \tau\big)_{y^{(i)}} ,
+$$ {#eq-temp-fit}
+
+where $N_{\text{val}}$ is the number of validation examples. Then report every metric on the **test** set with $\tau^*$ fixed. Fitting on test would report a calibration that no deployed model could have.
+
+**Four properties.** Each one is a reason the method is the standard first step (Guo et al., 2017).
+
+1. **It does not change any prediction.** Dividing all logits by the same positive number keeps their order, so $\hat{c}$ is unchanged for every example, and accuracy is exactly the same. Module 3 said it: temperature changes the sharpness of a distribution, never its ranking.
+2. **It fits a proper score.** The objective is the log loss, which is strictly proper (section 4), smooth, and needs no bins. Fitting $\tau$ to ECE instead would inherit every pitfall of section 3.
+3. **It has one parameter.** One number cannot overfit 600 validation papers.
+4. **The fit is a one-dimensional convex problem.** Write $\beta = 1/\tau$. For one example the loss is $-\beta z_y + \log \sum_c e^{\beta z_c}$: a linear function of $\beta$ plus a log-sum-exp of linear functions of $\beta$, which is convex. Its derivative is $\sum_c \hat{y}_c(\tau)\, z_c - z_y$, the model's expected logit minus the logit of the correct class. A bracketing search over $\beta$, or Newton's method, finds the global minimum.
+
+```python
+from scipy.optimize import minimize_scalar
+from scipy.special import log_softmax
+
+def fit_temperature(val_logits, val_labels):
+    """val_logits: (N, C) raw logits; val_labels: (N,) ints. Returns tau > 0."""
+    rows = np.arange(len(val_labels))
+    def val_nll(log_tau):                         # search over log tau: tau stays positive
+        logp = log_softmax(val_logits / np.exp(log_tau), axis=1)
+        return -logp[rows, val_labels].mean()     # the log loss of eq-temp-fit
+    return float(np.exp(minimize_scalar(val_nll, bounds=(-3, 3), method="bounded").x))
+```
+
+**Measured, on the three Lab 1 classifiers** (fitted on the 600 validation papers, evaluated on the 1,600 test papers, build container, 2026-10-05):
+
+| `C` | $\tau^*$ | Accuracy before → after | ECE before → after | Log loss before → after | Brier before → after |
+|---|---|---|---|---|---|
+| 1 | 0.47 | 0.888 → 0.888 | 0.164 → 0.009 | 0.436 → 0.303 | 0.211 → 0.164 |
+| 10 | 0.79 | 0.884 → 0.884 | 0.023 → 0.018 | 0.314 → 0.307 | 0.166 → 0.165 |
+| 100 | 1.30 | 0.882 → 0.882 | 0.044 → 0.017 | 0.339 → 0.319 | 0.176 → 0.171 |
+
+The direction of $\tau^*$ matches the reading of section 2: below 1 for the underconfident model, above 1 for the overconfident one. After scaling, all three ECEs sit within the noise floor of section 3 for 1,600 examples. The `C = 10` model, already calibrated within noise, barely moves.
+
+**What it cannot fix.**
+
+- **Errors that differ across inputs.** One $\tau$ rescales every example alike. A model overconfident on robotics papers and underconfident on language papers keeps both errors in a different mix.
+- **A change of data.** $\tau^*$ is fitted to the validation distribution (section 5, Ovadia et al.).
+- **A model without logits.** The commercial models of Module 8 do not give you full logits over their answers, and a confidence written in words has none. Section 7 measures such a confidence instead, and other recalibration maps that need only a confidence and an outcome, listed below, still apply.
+
+::: {.callout-tip collapse="true" title="Optional: other post-hoc calibration maps"}
+All of these are fitted on validation data and leave the model's weights alone.
+
+- **Platt scaling** (Platt, 1999) fits a logistic regression from a binary classifier's score to the label. Temperature scaling is its one-parameter multiclass version: a single slope, no intercept, shared by all classes.
+- **Histogram binning** replaces each confidence by the validation accuracy of its bin; **isotonic regression** (Zadrozny and Elkan, 2002) fits the best non-decreasing map from confidence to accuracy. Both are more flexible than temperature scaling and need more validation data; neither is guaranteed to preserve the ranking of examples with tied outputs.
+- **Vector and matrix scaling** (Guo et al., 2017) fit a separate scale per class, or a full linear map of the logits. Guo et al. found that they overfit more easily and did not beat temperature scaling on most of their datasets.
+
+Niculescu-Mizil and Caruana (2005) compare Platt scaling and isotonic regression across many classical models.
+:::
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 3** you write `fit_temperature(val_logits, val_labels)` (@eq-temp-scaling, @eq-temp-fit). Checkpoints: on synthetic logits from a calibrated model multiplied by 3, it recovers $\tau \approx 3$; the validation log loss at $\tau^*$ is no higher than at $\tau = 1$; test accuracy is identical before and after. You then print the before-and-after table for your classifier and for the three Lab 1 models, and draw the reliability diagrams side by side.
+:::
+
+## 7. Confidence from a language model behind an API
+
+**Objective for this section:** obtain a confidence from a model you cannot inspect, and measure it with the tools of sections 3 and 4.
+
+A language model reached through an API returns text. Three sources of confidence are available, depending on access.
+
+| Source | How | Needs |
+|---|---|---|
+| **Answer-token probability** | the probability the model gives to the token of each allowed answer (`yes` or `no`, an option letter), renormalized over the options | the model's logits: a local model, or a provider that returns log-probabilities for your model |
+| **Verbalized confidence** | ask for the answer and "the probability, between 0 and 1, that your answer is correct" in the same structured reply | nothing beyond the API |
+| **Consistency** | sample several answers to the same question; the confidence is the share that agree with the most common one | several calls per question |
+
+**What is known about verbalized confidence.**
+
+- It can be learned. Lin, Hilton and Evans (2022) fine-tuned GPT-3 to state a confidence with its answer, and the stated confidences were well calibrated on arithmetic questions, including under some distribution shift.
+- For preference-tuned models it can beat the token probabilities. Tian et al. (2023) found that for several RLHF-tuned models, confidences stated as output tokens were often better calibrated than the models' own token probabilities, on TriviaQA, SciQ and TruthfulQA.
+- Out of the box it tends to be overconfident and coarse. Xiong et al. (2024) found stated confidences concentrated between 80% and 100%, mostly in multiples of 5, as people tend to state them, and found no elicitation method that was best across tasks.
+
+So a stated confidence is neither worthless nor trustworthy. It is one more output of the model, and like the extraction of Module 8 it has to be evaluated on labelled data. The measurements are the ones you have already: treat the stated number as $\hat{p}$, the answer as $\hat{c}$, and compute the reliability diagram, ECE, the Brier score and the log loss of the binary event "the answer is correct".
+
+**The protocol.** The lab reuses Module 8's machinery: the provider wrapper, the `PROVIDER` switch, and validate-and-retry against a schema with two fields, the answer (restricted to the item's options) and the confidence. The range $0 \le \hat{p} \le 1$ is checked by your validator, not by the provider: Module 8 noted that Anthropic's structured outputs do not support numeric ranges. Three things to keep in mind when reading the result:
+
+- **Coarse values make ties.** If every stated confidence is 0.9 or 0.95, most bins are empty, and the ranking of section 8 has large flat steps.
+- **The prompt is part of the measurement.** Asking for the answer before or after the confidence, or in words ("high", "low") rather than numbers, changes what comes back. The lab fixes one prompt and prints it; change it and you have a different measurement.
+- **Small evaluation sets are noisy.** On 300 questions, the noise floor of a perfectly calibrated forecaster's ECE is about 0.04 (section 3). A difference of 0.02 between two providers on that set is not a finding.
+
+**The decision set.** Calibration needs labels that are true, not preferred. The lab uses a small workshop-built set of **decisions** an assistant for a workshop's front desk must make: is a cancellation eligible for a full refund under the written policy, should a request be routed to a calculator, a document lookup, an email, a question back to the user, or a human. Every label follows from a written policy, so it can be checked. Labs 12 and 14 reuse the same set. The lab prints three items and the start and end of the policy prompt before you start; how the set was built and labelled is recorded with the data.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 4** you write `parse_decision(reply_text, options)`, which turns a reply into an answer and a confidence, or `None` if either is missing or out of range. The checkpoint runs it on recorded reply strings and is the same on every provider. A provided loop then asks the model selected by `PROVIDER` for an answer and a confidence on each item of the decision set, and your functions from Exercises 1 and 2 report its accuracy, ECE, Brier score and reliability diagram, with a histogram of the stated confidences. On the open model the lab also reads the answer-token probability and compares the two. **No model's calibration is asserted.** If no model can be reached, the lab runs on a stub that writes replies in the same format; it exercises your code, and its numbers are labeled as a test double and are not a measurement of anything.
+:::
+
+## 8. Selective prediction and the cost of a wrong action
+
+**Objective for this section:** turn a confidence into a decision to act or defer, and choose the threshold from a stated cost.
+
+**Selective prediction.** A system may **abstain**: decline to act on a prediction and pass the case to a person. With a threshold $\lambda$, it acts when $\hat{p} \ge \lambda$ and defers otherwise. Two numbers describe the result on a set of $N$ examples:
+
+$$
+\mathrm{coverage}(\lambda) = \frac{1}{N} \sum_{i=1}^{N} \mathbf{1}\big[\hat{p}^{(i)} \ge \lambda\big], \qquad
+\mathrm{risk}(\lambda) = \frac{\sum_{i} \mathbf{1}\big[\hat{p}^{(i)} \ge \lambda\big]\,\big(1 - o^{(i)}\big)}{\sum_{i} \mathbf{1}\big[\hat{p}^{(i)} \ge \lambda\big]} .
+$$ {#eq-risk-coverage}
+
+Coverage is the share of cases the system handles; **selective risk** is the error rate among them. Sweeping $\lambda$ from 1 down to 0 traces the **risk–coverage curve** (El-Yaniv and Wiener, 2010; Geifman and El-Yaniv, 2017), from "act on nothing" to "act on everything", where the risk is the plain error rate.
+
+<!-- FIGURE 11.2
+Spec: one plot. x-axis "coverage (share of cases acted on)", 0 to 1; y-axis "selective risk (error rate among them)", from 0. Curves: the Lab 1 classifier (C = 10), measured; a dotted "random abstention" horizontal line at the full-coverage error rate (0.116); a dashed "oracle" curve that is 0 up to coverage 0.884 and then rises linearly to 0.116 at coverage 1. Mark the point chosen in the worked example (lambda = 0.9: coverage 0.578, risk 0.022) with a dot and label "lambda* = 0.9 (l_wrong = 10, l_defer = 1)". Draw from measured data (Lab 11 writes the curve; until then the build-container run recorded in briefs/11-calibration.md).
+Target path: images/11-risk-coverage.svg
+Alt text: Risk–coverage curve of the Lab 1 classifier. Acting only on its most confident predictions lowers the error rate from 11.6 percent at full coverage to about 2 percent at 58 percent coverage, between the random-abstention line and the oracle.
+-->
+
+**Ranking, not calibration, sets the curve.** The curve depends only on the *order* of the confidences: which cases are handled first. Any increasing transformation of $\hat{p}$ leaves it unchanged. Temperature scaling is one for two classes, but not exactly for more: rescaling all the logits can reorder the top-class probabilities of two examples. In Lab 11's four-class classifier it swapped the order of 0.92% of test pairs and moved the area under the curve from 0.0274 to 0.0268, a small change. A good curve needs a confidence that ranks errors last. Calibration matters for the next step: choosing where on the curve to stand.
+
+**The threshold from a cost.** Let acting on a correct prediction cost nothing, acting on a wrong one cost $\ell_{\text{wrong}}$, and deferring cost $\ell_{\text{defer}}$ (a person's time), with $\ell_{\text{defer}} < \ell_{\text{wrong}}$. If the confidence is calibrated, a prediction with confidence $\hat{p}$ is wrong with probability $1 - \hat{p}$, so the expected cost of acting is $(1 - \hat{p})\, \ell_{\text{wrong}}$ and that of deferring is $\ell_{\text{defer}}$. Act when acting is cheaper:
+
+$$
+(1 - \hat{p})\, \ell_{\text{wrong}} < \ell_{\text{defer}}
+\quad\Longleftrightarrow\quad
+\hat{p} > \lambda^* = 1 - \frac{\ell_{\text{defer}}}{\ell_{\text{wrong}}} .
+$$ {#eq-threshold}
+
+(At $\hat{p} = \lambda^*$ the two costs are equal and either choice will do; the lab acts.) This is **Chow's rule** (Chow, 1970). A wrong action ten times as costly as a review gives $\lambda^* = 0.9$; twenty times, $0.95$. The threshold is set by the costs, not by a habit such as "0.5" or "0.8", and it is only as good as the calibration: an overconfident model passes the threshold on cases it gets wrong more often than $1 - \lambda^*$.
+
+**The threshold from data.** Without trusting calibration, choose $\lambda$ to minimize the average cost on the validation set directly:
+
+$$
+\widehat{\mathrm{cost}}(\lambda) = \frac{1}{N} \sum_{i=1}^{N} \Big( \mathbf{1}\big[\hat{p}^{(i)} \ge \lambda\big]\,\big(1 - o^{(i)}\big)\, \ell_{\text{wrong}} + \mathbf{1}\big[\hat{p}^{(i)} < \lambda\big]\, \ell_{\text{defer}} \Big)
+= \mathrm{coverage}(\lambda)\, \mathrm{risk}(\lambda)\, \ell_{\text{wrong}} + \big(1 - \mathrm{coverage}(\lambda)\big)\, \ell_{\text{defer}} ,
+$$ {#eq-selective-cost}
+
+with $N$ the number of validation examples here. Only values of $\lambda$ equal to an observed confidence (plus 0 and a value above the largest) need to be tried. Then report the cost, coverage and risk on the test set at the chosen $\lambda$. With a calibrated model the two thresholds agree; a gap between them is a measurement of miscalibration where it matters, near the threshold.
+
+**Worked example** (the `C = 10` Lab 1 classifier, $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$, test set, build container, 2026-10-05):
+
+| Policy | Coverage | Risk | Cost per case |
+|---|---|---|---|
+| act on everything ($\lambda = 0$) | 1.000 | 0.116 | 1.16 |
+| defer everything | 0 | – | 1.00 |
+| Chow's rule, $\lambda^* = 0.9$ (@eq-threshold) | 0.578 | 0.022 | 0.55 |
+| $\lambda$ chosen on validation (@eq-selective-cost): 0.84 | 0.676 | 0.029 | 0.52 |
+| Chow's rule after temperature scaling ($\tau^* = 0.79$) | 0.693 | 0.030 | 0.51 |
+
+Acting on everything costs more than sending everything to a person. Abstaining on the least confident 31 to 42% of cases halves the cost of either. Before temperature scaling this model is slightly underconfident at the top, so Chow's rule abstains more than it needs to; after scaling, the rule and the empirical choice land close together, as they should for a calibrated model.
+
+**Towards Module 12.** Two actions are rarely enough. An assistant might act, ask the user a clarifying question, or escalate to a person, each with its own cost; two thresholds then split the confidence range into three regions, and the same reasoning sets both. [Module 12](12-rlcd-jev.qmd) does this with a decision model that returns probabilities with every typed answer, using the decision set of this lab.
+
+::: {.callout-note appearance="simple"}
+**In the lab.** In **Exercise 5** you write `risk_coverage(conf, correct)`, which returns coverage and risk at every threshold (@eq-risk-coverage), and `choose_threshold(conf, correct, l_wrong, l_defer)`, which minimizes @eq-selective-cost. Checkpoints: a hand-made six-example case; risk at full coverage equals the error rate; the chosen threshold's validation cost is no higher than acting on everything or deferring everything. You then draw the risk–coverage curves of the classifier and of the language model, print the test cost at your threshold beside Chow's $\lambda^*$, and compare the classifier's curve before and after temperature scaling: unchanged for two classes (asserted), slightly changed for four (printed).
+:::
+
+## Equations and where you implement them
+
+| Equation | Lab 11 |
+|---|---|
+| Calibration (@eq-calibration) | read off every reliability diagram in Exercises 1, 3 and 4 |
+| Bin statistics and ECE (@eq-bin-stats, @eq-ece) | **Exercise 1**: `reliability_bins`, `ece`; the provided noise-floor simulation |
+| Brier score and log loss (@eq-brier, @eq-log-loss) | **Exercise 2**: `brier`, `nll` |
+| Proper scoring rules (@eq-proper, @eq-brier-expected) | **Stretch**: expected scores against the reported probability |
+| Temperature scaling and its fit (@eq-temp-scaling, @eq-temp-fit) | **Exercise 3**: `fit_temperature` |
+| Calibration of a verbalized confidence (section 7) | **Exercise 4**: `parse_decision`, then Exercises 1 and 2 on the decision set |
+| Coverage and selective risk (@eq-risk-coverage) | **Exercise 5**: `risk_coverage` |
+| Chow's threshold and the empirical cost (@eq-threshold, @eq-selective-cost) | **Exercise 5**: `choose_threshold`, with $\lambda^*$ printed beside it |
+| Murphy's decomposition (optional callout) | not implemented |
+
+## Summary
+
+- A confidence is calibrated when, among predictions made with confidence $p$, a fraction $p$ are right (@eq-calibration). Calibration and accuracy are different properties: an input-blind model is calibrated, and three classifiers within 0.6 points of each other in accuracy differ by 20 points in mean confidence.
+- Reliability diagrams and ECE estimate calibration from binned examples (@eq-bin-stats, @eq-ece). ECE depends on the number of bins, is positive for a perfectly calibrated model on finite data, crowds into the top bins, ignores sharpness and sees only the top class. Report $M$, $N$ and the noise floor.
+- A strictly proper scoring rule is minimized in expectation only by the true distribution (@eq-proper). The Brier score is strictly proper because its expectation is a squared distance to the truth plus a constant (@eq-brier-expected); the log loss is, because its expectation is entropy plus a KL divergence. Accuracy cannot tell 0.51 from 0.99, and the linear score rewards overconfidence.
+- Modern networks are often overconfident because they keep lowering the training log loss by growing their logits (Guo et al.), but not all are: architecture matters, fine-tuned pretrained transformers can be close to calibrated in-domain, and calibration degrades under shift. Preference-tuned language models have lost token-probability calibration in reported cases; the cause is not settled.
+- Temperature scaling divides the logits by one number fitted to the validation log loss (@eq-temp-scaling, @eq-temp-fit). It never changes a prediction, and it cannot fix errors that differ across inputs or survive a change of data.
+- A language model's stated confidence is an output to be measured like any other, with the same metrics, on labelled data. It is often coarse and overconfident, and sometimes better than the model's token probabilities.
+- The risk–coverage curve depends only on the ranking of confidences (@eq-risk-coverage). The threshold comes from the cost of a wrong action: $\lambda^* = 1 - \ell_{\text{defer}} / \ell_{\text{wrong}}$ for a calibrated model (@eq-threshold), or the minimizer of the validation cost otherwise (@eq-selective-cost).
+
+## Common misconceptions
+
+- **"A softmax output is a probability."** It is a vector of non-negative numbers that sum to 1. Whether it behaves like a probability is an empirical question about the model and the data, answered by measuring calibration.
+- **"A more accurate model is better calibrated."** The two move independently (section 2). The Lab 1 classifiers with the best and worst accuracy are the two worst calibrated.
+- **"Low ECE means a good model."** The input-blind model has ECE 0. ECE measures one property, depends on the binning and has a positive noise floor.
+- **"Training with cross-entropy guarantees calibration."** Only at the optimum over all predictors on the true distribution. A real network minimizes it on a finite training set, and can keep lowering it by growing confident (section 5).
+- **"Temperature scaling makes the model more accurate."** It cannot change a single prediction. It changes the confidences, and with them the scores that depend on confidence.
+- **"Temperature scaling improves the risk–coverage curve."** The curve depends only on the order of the confidences, which temperature scaling preserves. It changes where the cost-based threshold should sit.
+- **"If you ask a model how confident it is, it will tell you."** It will produce a number. Whether that number is calibrated is measured, not assumed, and out of the box stated confidences tend to be high and coarse.
+- **"Abstain when confidence is below 0.5."** The threshold follows from the costs (@eq-threshold). When a wrong action costs ten times a review, the threshold is 0.9.
+- **"A model calibrated on our test set is calibrated in production."** Only if production data look like the test set. Recheck after any change of data.
+
+## What Module 12 picks up
+
+You can now measure whether a confidence means what it says, repair a classifier's confidence with one parameter, and turn a calibrated confidence into an act-or-defer decision with a stated cost. All of it is applied after training. [Module 12](12-rlcd-jev.qmd) asks what changes if calibration is part of the training objective itself, and introduces RLCD, an approach from TypeSafe whose method is unpublished. That module separates what TypeSafe has stated publicly from our own illustration of the idea, which trains a toy model with a reward built from the proper scoring rules of section 4; nothing on this page describes TypeSafe's method. It then calls TypeSafe's decision model, Jev, on this lab's decision set, compares its reliability diagram with the language model's from this lab, and sets act, ask and escalate thresholds from the costs of section 8.
+
+## Readings
+
+1. Guo, C., Pleiss, G., Sun, Y. and Weinberger, K. Q. (2017). [On Calibration of Modern Neural Networks](https://proceedings.mlr.press/v70/guo17a). *ICML*. Reliability diagrams, ECE with 15 bins, the overconfidence of modern networks, and temperature scaling. Sections 2 to 4 cover this module.
+2. Gneiting, T. and Raftery, A. E. (2007). Strictly Proper Scoring Rules, Prediction, and Estimation. *Journal of the American Statistical Association*, 102(477), 359–378. The theory of section 4. Read sections 1 and 2; the rest generalizes beyond what we need.
+3. Nixon, J., Dusenberry, M. W., Zhang, L., Jerfel, G. and Tran, D. (2019). [Measuring Calibration in Deep Learning](https://openaccess.thecvf.com/content_CVPRW_2019/html/Uncertainty_and_Robustness_in_Deep_Visual_Learning/Nixon_Measuring_Calibration_in_Deep_Learning_CVPRW_2019_paper.html). *CVPR Workshops*. The pitfalls of ECE and adaptive binning.
+4. Tian, K., Mitchell, E., Zhou, A., Sharma, A., Rafailov, R., Yao, H., Finn, C. and Manning, C. D. (2023). [Just Ask for Calibration: Strategies for Eliciting Calibrated Confidence Scores from Language Models Fine-Tuned with Human Feedback](https://arxiv.org/abs/2305.14975). *EMNLP*. Verbalized confidence against token probabilities for RLHF-tuned models.
+5. Geifman, Y. and El-Yaniv, R. (2017). [Selective Classification for Deep Neural Networks](https://arxiv.org/abs/1705.08500). *NeurIPS*. Risk–coverage curves and choosing a threshold for a target risk.
+
+Also cited above: Brier, G. W. (1950), Verification of forecasts expressed in terms of probability, *Monthly Weather Review* 78(1); Chow, C. K. (1970), On optimum recognition error and reject tradeoff, *IEEE Transactions on Information Theory* 16(1); DeGroot, M. H. and Fienberg, S. E. (1983), The comparison and evaluation of forecasters, *The Statistician* 32; Desai, S. and Durrett, G. (2020), [Calibration of Pre-trained Transformers](https://arxiv.org/abs/2003.07892), *EMNLP*; El-Yaniv, R. and Wiener, Y. (2010), On the foundations of noise-free selective classification, *JMLR* 11; Gneiting, T., Balabdaoui, F. and Raftery, A. E. (2007), Probabilistic forecasts, calibration and sharpness, *Journal of the Royal Statistical Society B* 69(2); Kadavath, S. et al. (2022), [Language Models (Mostly) Know What They Know](https://arxiv.org/abs/2207.05221); Lin, S., Hilton, J. and Evans, O. (2022), [Teaching Models to Express Their Uncertainty in Words](https://arxiv.org/abs/2205.14334), *TMLR*; Minderer, M. et al. (2021), [Revisiting the Calibration of Modern Neural Networks](https://arxiv.org/abs/2106.07998), *NeurIPS*; Murphy, A. H. (1973), A new vector partition of the probability score, *Journal of Applied Meteorology* 12; Naeini, M. P., Cooper, G. F. and Hauskrecht, M. (2015), [Obtaining Well Calibrated Probabilities Using Bayesian Binning](https://ojs.aaai.org/index.php/AAAI/article/view/9602), *AAAI*; Niculescu-Mizil, A. and Caruana, R. (2005), Predicting good probabilities with supervised learning, *ICML*; OpenAI (2023), [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774); Ovadia, Y. et al. (2019), [Can You Trust Your Model's Uncertainty? Evaluating Predictive Uncertainty Under Dataset Shift](https://papers.nips.cc/paper/2019/hash/8558cb408c1d76621371888657d2eb1d-Abstract.html), *NeurIPS*; Platt, J. (1999), Probabilistic outputs for support vector machines and comparisons to regularized likelihood methods, in *Advances in Large Margin Classifiers*; Xiong, M. et al. (2024), [Can LLMs Express Their Uncertainty? An Empirical Evaluation of Confidence Elicitation in LLMs](https://arxiv.org/abs/2306.13063), *ICLR*; Zadrozny, B. and Elkan, C. (2002), Transforming classifier scores into accurate multiclass probability estimates, *KDD*.

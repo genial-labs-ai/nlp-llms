@@ -4,7 +4,7 @@
 
 Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb)
 
 ## Learning objectives
 
@@ -12,4 +12,4 @@ By the end of this module you can:
 
 - State how RLCD's objective differs from RLHF's, and what is and is not public about it
 - Call Jev for typed decisions
-- Use its confidence to set action thresholds
+- Turn its probabilities into act, ask and escalate thresholds from stated costs

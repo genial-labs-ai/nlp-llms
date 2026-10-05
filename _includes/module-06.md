@@ -4,7 +4,7 @@
 
 Subword tokenization, masked and causal pretraining, and using pretrained models through Hugging Face.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/06-pretraining-huggingface.ipynb)
 
 ## Learning objectives
 

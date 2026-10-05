@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 404" width="760" height="404" role="img" aria-labelledby="t d">
+  <title id="t">Self-attention for one position</title>
+  <desc id="d">Five positions, one per row, each with a vector h_1 to h_5. Each vector is projected to a key k_i (left) and a value v_i (right). Position 4 is the asker: h_4 is projected by W_Q to the query q_4. Lines from q_4 to the keys k_1 to k_4 carry the weights alpha_{4,1} to alpha_{4,4}, drawn thicker for larger weights; the line to k_3 is the thickest. The values v_1 to v_4 are combined with the same weights into the output v-bar_4, the sum over i of alpha_{4,i} v_i. Position 5 is grayed out: it is masked for the query of position 4, so no line runs to it.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="760" height="404" rx="8" fill="#ffffff"/>
+  <text x="80" y="26" text-anchor="middle" class="note b">query</text>
+  <text x="80" y="50" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">q</tspan><tspan dy="3.6" font-size="10.2">4</tspan><tspan dy="-3.6"> = </tspan><tspan class="i">W</tspan><tspan dy="3.6" font-size="10.2" class="i">Q</tspan><tspan dy="-9.0" font-size="10.2">⊤</tspan><tspan dy="5.4"> </tspan><tspan class="i">h</tspan><tspan dy="3.6" font-size="10.2">4</tspan></text>
+  <text x="270" y="26" text-anchor="middle" class="note b">keys</text>
+  <text x="270" y="50" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">k</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan><tspan dy="-3.6"> = </tspan><tspan class="i">W</tspan><tspan dy="3.6" font-size="10.2" class="i">K</tspan><tspan dy="-9.0" font-size="10.2">⊤</tspan><tspan dy="5.4"> </tspan><tspan class="i">h</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan></text>
+  <text x="400" y="26" text-anchor="middle" class="note b">vectors</text>
+  <text x="400" y="50" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">h</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan><tspan dy="-3.6" class="s"> of token </tspan><tspan class="i">w</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan></text>
+  <text x="530" y="26" text-anchor="middle" class="note b">values</text>
+  <text x="530" y="50" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">v</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan><tspan dy="-3.6"> = </tspan><tspan class="i">W</tspan><tspan dy="3.6" font-size="10.2" class="i">V</tspan><tspan dy="-9.0" font-size="10.2">⊤</tspan><tspan dy="5.4"> </tspan><tspan class="i">h</tspan><tspan dy="3.6" font-size="10.2" class="i">i</tspan></text>
+  <text x="665" y="26" text-anchor="middle" class="note b">output</text>
+  <line class="aln" x1="557" y1="96" x2="638" y2="186" style="stroke-width:2.00"/>
+  <line class="aln" x1="557" y1="156" x2="638" y2="186" style="stroke-width:3.00"/>
+  <line class="aln" x1="557" y1="216" x2="638" y2="186" style="stroke-width:6.50"/>
+  <line class="aln" x1="557" y1="276" x2="638" y2="186" style="stroke-width:2.50"/>
+  <line class="ln" x1="107" y1="276" x2="243" y2="96" style="stroke-width:2.00"/>
+  <line class="ln" x1="107" y1="276" x2="243" y2="156" style="stroke-width:3.00"/>
+  <line class="ln" x1="107" y1="276" x2="243" y2="216" style="stroke-width:6.50"/>
+  <line class="ln" x1="107" y1="276" x2="243" y2="276" style="stroke-width:2.50"/>
+  <rect x="178" y="148.5" width="40" height="22" rx="4" fill="#ffffff"/>
+  <text x="197" y="164.5" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">α</tspan><tspan dy="3.6" font-size="10.2">4,1</tspan></text>
+  <rect x="178" y="187.4" width="40" height="22" rx="4" fill="#ffffff"/>
+  <text x="197" y="203.4" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">α</tspan><tspan dy="3.6" font-size="10.2">4,2</tspan></text>
+  <rect x="178" y="226.2" width="40" height="22" rx="4" fill="#ffffff"/>
+  <text x="197" y="242.2" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">α</tspan><tspan dy="3.6" font-size="10.2">4,3</tspan></text>
+  <rect x="178" y="265" width="40" height="22" rx="4" fill="#ffffff"/>
+  <text x="197" y="281" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">α</tspan><tspan dy="3.6" font-size="10.2">4,4</tspan></text>
+  <line class="ln" x1="373" y1="96" x2="299" y2="96" marker-end="url(#a)"/>
+  <line class="ln" x1="427" y1="96" x2="501" y2="96" marker-end="url(#a)"/>
+  <rect class="box" x="243" y="79" width="54" height="34" rx="6"/>
+  <rect class="box" x="373" y="79" width="54" height="34" rx="6"/>
+  <rect class="box" x="503" y="79" width="54" height="34" rx="6"/>
+  <text x="270" y="102" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">k</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <text x="400" y="102" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <text x="530" y="102" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">v</tspan><tspan dy="4.6" font-size="12.9">1</tspan></text>
+  <line class="ln" x1="373" y1="156" x2="299" y2="156" marker-end="url(#a)"/>
+  <line class="ln" x1="427" y1="156" x2="501" y2="156" marker-end="url(#a)"/>
+  <rect class="box" x="243" y="139" width="54" height="34" rx="6"/>
+  <rect class="box" x="373" y="139" width="54" height="34" rx="6"/>
+  <rect class="box" x="503" y="139" width="54" height="34" rx="6"/>
+  <text x="270" y="162" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">k</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <text x="400" y="162" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <text x="530" y="162" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">v</tspan><tspan dy="4.6" font-size="12.9">2</tspan></text>
+  <line class="ln" x1="373" y1="216" x2="299" y2="216" marker-end="url(#a)"/>
+  <line class="ln" x1="427" y1="216" x2="501" y2="216" marker-end="url(#a)"/>
+  <rect class="box" x="243" y="199" width="54" height="34" rx="6"/>
+  <rect class="box" x="373" y="199" width="54" height="34" rx="6"/>
+  <rect class="box" x="503" y="199" width="54" height="34" rx="6"/>
+  <text x="270" y="222" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">k</tspan><tspan dy="4.6" font-size="12.9">3</tspan></text>
+  <text x="400" y="222" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">3</tspan></text>
+  <text x="530" y="222" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">v</tspan><tspan dy="4.6" font-size="12.9">3</tspan></text>
+  <line class="ln" x1="373" y1="276" x2="299" y2="276" marker-end="url(#a)"/>
+  <line class="ln" x1="427" y1="276" x2="501" y2="276" marker-end="url(#a)"/>
+  <rect class="box" x="243" y="259" width="54" height="34" rx="6"/>
+  <rect class="abox" x="373" y="259" width="54" height="34" rx="6"/>
+  <rect class="box" x="503" y="259" width="54" height="34" rx="6"/>
+  <text x="270" y="282" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">k</tspan><tspan dy="4.6" font-size="12.9">4</tspan></text>
+  <text x="400" y="282" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">4</tspan></text>
+  <text x="530" y="282" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">v</tspan><tspan dy="4.6" font-size="12.9">4</tspan></text>
+  <line class="dln" x1="373" y1="336" x2="299" y2="336" marker-end="url(#d)"/>
+  <line class="dln" x1="427" y1="336" x2="501" y2="336" marker-end="url(#d)"/>
+  <rect class="dim" x="243" y="319" width="54" height="34" rx="6"/>
+  <text x="270" y="342" text-anchor="middle" class="m note" style="font-size:19px"><tspan class="i">k</tspan><tspan dy="4.6" font-size="12.9">5</tspan></text>
+  <rect class="dim" x="373" y="319" width="54" height="34" rx="6"/>
+  <text x="400" y="342" text-anchor="middle" class="m note" style="font-size:19px"><tspan class="i">h</tspan><tspan dy="4.6" font-size="12.9">5</tspan></text>
+  <rect class="dim" x="503" y="319" width="54" height="34" rx="6"/>
+  <text x="530" y="342" text-anchor="middle" class="m note" style="font-size:19px"><tspan class="i">v</tspan><tspan dy="4.6" font-size="12.9">5</tspan></text>
+  <text x="243" y="376" text-anchor="start" class="note">position 5 is masked for the query of position 4 (section 3)</text>
+  <path class="ln" d="M400,293.0 V307 H80 V295.0" marker-end="url(#a)"/>
+  <rect class="op" x="150" y="296" width="42" height="22" rx="4"/>
+  <text x="171" y="312" text-anchor="middle" class="m" style="font-size:15px"><tspan class="i">W</tspan><tspan dy="3.6" font-size="10.2" class="i">Q</tspan></text>
+  <rect class="abox" x="53" y="259" width="54" height="34" rx="6"/>
+  <text x="80" y="282" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">q</tspan><tspan dy="4.6" font-size="12.9">4</tspan></text>
+  <rect class="abox" x="638" y="169" width="54" height="34" rx="6"/>
+  <text x="665" y="192" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">v̄</tspan><tspan dy="4.6" font-size="12.9">4</tspan></text>
+  <text x="630" y="232" text-anchor="start" class="m" style="font-size:16px"><tspan>= Σ</tspan><tspan dy="3.8" font-size="10.9" class="i">i</tspan><tspan font-size="10.9">≤4</tspan><tspan dy="-3.8"> </tspan><tspan class="i">α</tspan><tspan dy="3.8" font-size="10.9">4,</tspan><tspan font-size="10.9" class="i">i</tspan><tspan dy="-3.8"> </tspan><tspan class="i">v</tspan><tspan dy="3.8" font-size="10.9" class="i">i</tspan></text>
+  <text x="24" y="394" text-anchor="start" class="m note" style="font-size:13.5px"><tspan class="s">Line width grows with the weight </tspan><tspan class="i">α</tspan><tspan dy="3.2" font-size="9.2">4,</tspan><tspan font-size="9.2" class="i">i</tspan><tspan dy="-3.2" class="s">. The weights over </tspan><tspan class="i">i</tspan><tspan> ≤ 4</tspan><tspan class="s"> sum to 1; the values drawn are illustrative.</tspan></text>
+</svg>

@@ -1,0 +1,1056 @@
+{
+  "schema_version": 1,
+  "environment": {
+    "lab01": {
+      "machine": "Apple M1 Pro, macOS (arm64), CPU only; not run on Colab",
+      "python": "3.12.13",
+      "numpy": "2.5.3",
+      "scikit-learn": "1.9.1"
+    },
+    "lab02": {
+      "machine": "Linux x86_64 container, CPU only, 2 PyTorch threads on a 4-core machine shared with other jobs (load average 14 to 19); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "scikit-learn": "1.9.1"
+    },
+    "lab03": {
+      "machine": "Linux container, 4 vCPU, CPU only, 2 PyTorch threads on a machine shared with other training jobs; not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3"
+    },
+    "lab05": {
+      "machine": "Linux x86_64 container, 4 vCPU, CPU only, 2 PyTorch threads, shared with other agents' training jobs (load average 5 to 10); full (T4) configuration executed on CPU; not run on Colab or a GPU",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130"
+    },
+    "lab11": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with another agent, CPU only; not run on Colab",
+      "python": "3.12.3",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "scikit-learn": "1.9.1"
+    },
+    "lab12": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with other agents, CPU only; executed with nbclient (scripts/test_notebooks.py); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "typesafe-sdk": "0.7.2",
+      "path": "local (no TypeSafe key); no Jev call was made"
+    },
+    "lab14": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with other agents, CPU only; executed with nbclient (scripts/test_notebooks.py); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "langgraph": "1.2.12",
+      "langchain-core": "1.6.6",
+      "langchain-typesafe": "0.0.1a3",
+      "typesafe-sdk": "0.7.2",
+      "path": "local (no TypeSafe key); stub agent and stub guard (no Hub access); no Jev call and no language model was run"
+    }
+  },
+  "baselines": [
+    {
+      "id": "lab01.char_ngram.n2",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 2.4922,
+        "perplexity": 12.0882,
+        "bits_per_char": 3.5955
+      },
+      "val_metrics": {
+        "nats_per_char": 2.476
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 2,
+        "k": 0.1,
+        "best_n_up_to_5_on_val": false
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.char_ngram.n3",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 2.0859,
+        "perplexity": 8.0518,
+        "bits_per_char": 3.0093
+      },
+      "val_metrics": {
+        "nats_per_char": 2.0097
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 3,
+        "k": 0.1,
+        "best_n_up_to_5_on_val": false
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.char_ngram.n5",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.8326,
+        "perplexity": 6.2503,
+        "bits_per_char": 2.6439
+      },
+      "val_metrics": {
+        "nats_per_char": 1.7005
+      },
+      "settings": {
+        "model": "character n-gram, add-k smoothing",
+        "vocabulary": "the 65 characters of train",
+        "counts_from": "train",
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val, separately for each n",
+        "scored": "every character of the split; the n-1 characters of left context come from the text immediately before the split",
+        "n": 5,
+        "k": 0.01,
+        "best_n_up_to_5_on_val": true
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.word_ngram.n2",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "comparable_with_later_labs": false,
+      "metrics": {
+        "perplexity_per_word": 304.0
+      },
+      "settings": {
+        "model": "word n-gram, add-k smoothing",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "train words with count >= 2, plus <unk> and <s>: 6,463 entries",
+        "n": 2,
+        "k": 0.01,
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.word_ngram.n3",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "comparable_with_later_labs": false,
+      "metrics": {
+        "perplexity_per_word": 1437.1
+      },
+      "settings": {
+        "model": "word n-gram, add-k smoothing",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "train words with count >= 2, plus <unk> and <s>: 6,463 entries",
+        "n": 3,
+        "k": 0.01,
+        "k_grid": [
+          0.001,
+          0.01,
+          0.1,
+          0.5,
+          1.0
+        ],
+        "k_chosen_on": "val"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.tfidf_logreg",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8838,
+        "macro_f1": 0.8841,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8924,
+            "recall": 0.9125,
+            "f1": 0.9023
+          },
+          "cs.CV": {
+            "precision": 0.8976,
+            "recall": 0.8325,
+            "f1": 0.8638
+          },
+          "cs.LG": {
+            "precision": 0.8089,
+            "recall": 0.8675,
+            "f1": 0.8372
+          },
+          "cs.RO": {
+            "precision": 0.9437,
+            "recall": 0.9225,
+            "f1": 0.933
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8933,
+        "macro_f1": 0.8937
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vectorizer": "CountVectorizer(tokenizer=tokenize, lowercase=False, token_pattern=None, min_df=2), fitted on train",
+        "features": 12469,
+        "train_rows": 4800,
+        "tfidf": "TfidfTransformer() defaults: idf = log((1 + N) / (1 + df)) + 1, L2 row normalization, fitted on train",
+        "model": "LogisticRegression(C=C, max_iter=1000, random_state=0)",
+        "C_grid": [
+          0.1,
+          1.0,
+          10.0,
+          100.0
+        ],
+        "C_chosen_on": "val macro-F1; ties go to the smaller C",
+        "C": 10.0,
+        "seed": 0
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab01.counts_naive_bayes",
+      "notebook": "notebooks/01-text-as-data.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8844,
+        "macro_f1": 0.884,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8902,
+            "recall": 0.9325,
+            "f1": 0.9109
+          },
+          "cs.CV": {
+            "precision": 0.8928,
+            "recall": 0.8325,
+            "f1": 0.8616
+          },
+          "cs.LG": {
+            "precision": 0.8342,
+            "recall": 0.8425,
+            "f1": 0.8383
+          },
+          "cs.RO": {
+            "precision": 0.9208,
+            "recall": 0.93,
+            "f1": 0.9254
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8867,
+        "macro_f1": 0.8865
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vectorizer": "CountVectorizer(tokenizer=tokenize, lowercase=False, token_pattern=None, min_df=2), fitted on train",
+        "features": 12469,
+        "train_rows": 4800,
+        "model": "MultinomialNB(alpha=1.0) on the raw count matrix (no TF-IDF)"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab02.sgns_avg_ffn",
+      "notebook": "notebooks/02-word-vectors.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8669,
+        "macro_f1": 0.867,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.8851,
+            "recall": 0.905,
+            "f1": 0.8949
+          },
+          "cs.CV": {
+            "precision": 0.8867,
+            "recall": 0.8025,
+            "f1": 0.8425
+          },
+          "cs.LG": {
+            "precision": 0.7874,
+            "recall": 0.8425,
+            "f1": 0.814
+          },
+          "cs.RO": {
+            "precision": 0.9152,
+            "recall": 0.9175,
+            "f1": 0.9164
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.8833,
+        "macro_f1": 0.884
+      },
+      "embedding_checks": {
+        "neighbor_hit_rate": 0.7222,
+        "analogy_accuracy": 0.2,
+        "note": "Hand-written lists fixed before training: 18 probe words (hit = an expected word in the top 10) and 20 analogies (top-1, inputs excluded). Not a benchmark."
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "Lab 1's classifier vocabulary: tokens in >= 2 training documents (min_df=2), 12,469 words; out-of-vocabulary tokens dropped",
+        "document_vector": "mean of the embeddings of the in-vocabulary tokens, standardized with train mean and std",
+        "classifier": "FeedForwardClassifier: Linear(100, 256), ReLU, Linear(256, 4); Adam lr 1e-3, weight_decay 1e-4, batch 128, 30 epochs; the epoch with the best val macro-F1 is kept",
+        "embeddings_frozen": true,
+        "train_rows": 4800,
+        "seed": 0,
+        "embeddings": "skip-gram with negative sampling, trained in the notebook on the training-split text only (labels ignored)",
+        "embedding_corpus_tokens": 1091692,
+        "pairs_per_epoch": 4306741,
+        "d": 100,
+        "window": 5,
+        "dynamic_window": true,
+        "K": 5,
+        "noise": "unigram^0.75",
+        "subsampling_tau": 0.001,
+        "epochs": 3,
+        "batch": 16384,
+        "optimizer": "Adam lr 0.01",
+        "init": "E uniform(-0.5/d, 0.5/d), U zero",
+        "sgns_loss_first_step": 4.1589,
+        "sgns_loss_last_50_steps": 2.3416,
+        "sgns_seconds_cpu": 695.2,
+        "best_epoch": 22,
+        "seed_variation": "test accuracy 0.8638 to 0.8719 in three further CPU runs of the same procedure with other random streams; neighbor hit rate 0.72 to 0.83; analogy accuracy 0.20 to 0.30"
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab02.glove_avg_ffn",
+      "notebook": "notebooks/02-word-vectors.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.805,
+        "macro_f1": 0.805
+      },
+      "embedding_checks": {
+        "neighbor_hit_rate": 0.6111,
+        "analogy_accuracy": 0.5789,
+        "analogies_scored": 19,
+        "note": "Same lists as lab02.sgns_avg_ffn, neighbors searched within the lab vocabulary; one analogy dropped because GloVe lacks one of its words."
+      },
+      "settings": {
+        "input": "title + \"\\n\" + abstract, as load_topics returns it",
+        "tokenizer": "re.findall(r\"[a-z0-9']+|[^a-z0-9'\\s]\", text.lower())",
+        "vocabulary": "Lab 1's classifier vocabulary: tokens in >= 2 training documents (min_df=2), 12,469 words; out-of-vocabulary tokens dropped",
+        "document_vector": "mean of the embeddings of the in-vocabulary tokens, standardized with train mean and std",
+        "classifier": "FeedForwardClassifier: Linear(100, 256), ReLU, Linear(256, 4); Adam lr 1e-3, weight_decay 1e-4, batch 128, 30 epochs; the epoch with the best val macro-F1 is kept",
+        "embeddings_frozen": true,
+        "train_rows": 4800,
+        "seed": 0,
+        "embeddings": "pretrained GloVe 6B 100d (Wikipedia 2014 + Gigaword 5), gensim-data release glove-wiki-gigaword-100, sha256 4934d4708bf3d65f28fc984dbbfa18af9cbd2505d166a7258a1a957808559b43, license PDDL 1.0; restricted to the lab vocabulary",
+        "vocabulary_coverage": 0.9194,
+        "missing_words": "dropped from the averages, like out-of-vocabulary tokens",
+        "stretch_section": true
+      },
+      "date": "2026-10-04"
+    },
+    {
+      "id": "lab03.rnn_lm",
+      "notebook": "notebooks/03-sequence-models.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.6959,
+        "perplexity": 5.4515,
+        "bits_per_char": 2.4467
+      },
+      "val_metrics": {
+        "nats_per_char": 1.6275
+      },
+      "settings": {
+        "model": "character RNN LM, tanh, hand-written cell (rnn_cell_step) in a Python loop",
+        "steps": 1000,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train: random chunks of 128 characters, sampled with replacement from all of train",
+        "d": 64,
+        "d_h": 256,
+        "layers": 1,
+        "chunk_T": 128,
+        "batch_size": 64,
+        "optimizer": "Adam, lr 0.002",
+        "gradient_clipping_kappa": 1.0,
+        "loss": "lm_loss_and_ppl (mean cross-entropy, nats)",
+        "scored": "every character of the split; state carried across 1,000-character chunks; warm-up on the 1,000 characters before the split, not scored",
+        "seed": 0,
+        "device": "cpu",
+        "tuned_on_test": false
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab03.lstm_lm",
+      "notebook": "notebooks/03-sequence-models.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.6114,
+        "perplexity": 5.0098,
+        "bits_per_char": 2.3247
+      },
+      "val_metrics": {
+        "nats_per_char": 1.5316
+      },
+      "settings": {
+        "model": "character LSTM LM, nn.LSTM, forget-gate bias initialized to 1",
+        "steps": 2000,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train: random chunks of 128 characters, sampled with replacement from all of train",
+        "d": 64,
+        "d_h": 256,
+        "layers": 1,
+        "chunk_T": 128,
+        "batch_size": 64,
+        "optimizer": "Adam, lr 0.002",
+        "gradient_clipping_kappa": 1.0,
+        "loss": "lm_loss_and_ppl (mean cross-entropy, nats)",
+        "scored": "every character of the split; state carried across 1,000-character chunks; warm-up on the 1,000 characters before the split, not scored",
+        "seed": 0,
+        "device": "cpu",
+        "tuned_on_test": false
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab05.mini_gpt",
+      "notebook": "notebooks/05-transformer-from-scratch.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.5481,
+        "perplexity": 4.7023,
+        "bits_per_char": 2.2334,
+        "scored_characters": 60394
+      },
+      "val_metrics": {
+        "nats_per_char": 1.4004
+      },
+      "settings": {
+        "model": "pre-norm decoder-only transformer: token embedding + learned positions, n_l blocks (causal multi-head self-attention, GELU FFN), final LayerNorm, output layer; dropout on embeddings and sublayer outputs; GPT-2 init (normal 0.02)",
+        "d": 128,
+        "n_h": 4,
+        "n_l": 4,
+        "T_max": 128,
+        "d_ff": 512,
+        "dropout": 0.1,
+        "parameters": 824897,
+        "steps": 3000,
+        "peak_lr": 0.005,
+        "evaluation": "overlapping windows of T_max = 128 with stride 64; only the second half of each window is scored, so every character has 65 to 128 characters of context",
+        "train_seconds": 3921.0,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train (1,000,000 characters), random windows of 128 characters",
+        "scored": "every character of the split (60,394 on test), each once; context from the text immediately before the split",
+        "train_loop": "AdamW(betas=(0.9, 0.99), weight_decay=0.01), linear warm-up over 100 steps, cosine decay to 10% of the peak, gradient-norm clipping at 1.0, cross-entropy (teacher forcing)",
+        "batch_size": 64,
+        "seed": 0,
+        "mode": "full (the configuration designed for a T4), executed on CPU",
+        "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab05.lstm",
+      "notebook": "notebooks/05-transformer-from-scratch.ipynb",
+      "dataset": "lm",
+      "split": "test",
+      "metrics": {
+        "nats_per_char": 1.5727,
+        "perplexity": 4.8198,
+        "bits_per_char": 2.269,
+        "scored_characters": 60394
+      },
+      "val_metrics": {
+        "nats_per_char": 1.4308
+      },
+      "settings": {
+        "model": "Lab 3's LSTM language model as specified in briefs/03-sequence-models.md (embedding d = 64, one nn.LSTM layer d_h = 256, output layer), retrained in Lab 5; NOT Lab 3's own run",
+        "d": 64,
+        "d_h": 256,
+        "parameters": 350593,
+        "steps": 3000,
+        "peak_lr": 0.008,
+        "evaluation": "state carried through the whole split in chunks of 2,048 (the committed notebook uses 1,000: the same in exact arithmetic, not re-measured), after a warm-up on the 1,000 characters before it; no character scored from a cold state",
+        "train_seconds": 347.9,
+        "vocabulary": "the 65 characters of train",
+        "trained_on": "train (1,000,000 characters), random windows of 128 characters",
+        "scored": "every character of the split (60,394 on test), each once; context from the text immediately before the split",
+        "train_loop": "AdamW(betas=(0.9, 0.99), weight_decay=0.01), linear warm-up over 100 steps, cosine decay to 10% of the peak, gradient-norm clipping at 1.0, cross-entropy (teacher forcing)",
+        "batch_size": 64,
+        "seed": 0,
+        "mode": "full (the configuration designed for a T4), executed on CPU",
+        "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C1",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8875,
+        "mean_confidence": 0.7234,
+        "ece_15": 0.1641,
+        "ece_15_equal_mass": 0.1641,
+        "brier": 0.2111,
+        "log_loss": 0.4356,
+        "tau_star": 0.4685,
+        "ece_15_after": 0.0094,
+        "brier_after": 0.1637,
+        "log_loss_after": 0.3033
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 1, recomputed in Lab 11",
+        "C": 1.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C10",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8838,
+        "mean_confidence": 0.8617,
+        "ece_15": 0.0231,
+        "ece_15_equal_mass": 0.0247,
+        "brier": 0.1662,
+        "log_loss": 0.3142,
+        "tau_star": 0.7895,
+        "ece_15_after": 0.018,
+        "brier_after": 0.1645,
+        "log_loss_after": 0.3065,
+        "ece_by_bins": {
+          "5": 0.022,
+          "15": 0.0231,
+          "50": 0.0379,
+          "100": 0.0548
+        },
+        "ece_15_noise_floor": 0.0193,
+        "selective_l_wrong_10_l_defer_1": {
+          "act on everything": {
+            "lambda": 0.0,
+            "coverage": 1.0,
+            "risk": 0.1163,
+            "cost/case": 1.1625
+          },
+          "defer everything": {
+            "lambda": null,
+            "coverage": 0.0,
+            "risk": null,
+            "cost/case": 1.0
+          },
+          "Chow, lambda* = 0.9": {
+            "lambda": 0.9,
+            "coverage": 0.5781,
+            "risk": 0.0216,
+            "cost/case": 0.5469
+          },
+          "lambda chosen on val": {
+            "lambda": 0.8422,
+            "coverage": 0.6762,
+            "risk": 0.0287,
+            "cost/case": 0.5175
+          },
+          "Chow after temperature scaling": {
+            "lambda": 0.9,
+            "coverage": 0.6931,
+            "risk": 0.0298,
+            "cost/case": 0.5131
+          }
+        }
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 10, recomputed in Lab 11",
+        "C": 10.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab11.tfidf_logreg.C100",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "topics",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.8819,
+        "mean_confidence": 0.9245,
+        "ece_15": 0.0435,
+        "ece_15_equal_mass": 0.0434,
+        "brier": 0.1755,
+        "log_loss": 0.3387,
+        "tau_star": 1.3017,
+        "ece_15_after": 0.0173,
+        "brier_after": 0.171,
+        "log_loss_after": 0.3187
+      },
+      "settings": {
+        "model": "Lab 1 pipeline (lab01.tfidf_logreg settings) with C = 100, recomputed in Lab 11",
+        "C": 100.0,
+        "confidence": "max softmax of LogisticRegression.decision_function",
+        "bins": "15 equal-width right-closed bins ((m-1)/M, m/M], 0 in the first; equal-mass for ece_15_equal_mass",
+        "brier": "multiclass, sum over the 4 classes, mean over examples (range 0 to 2)",
+        "temperature": "tau fitted on val (600) by minimizing log loss over log tau in [-3, 3] (scipy minimize_scalar, bounded); *_after metrics on test at tau_star",
+        "noise_floor": "mean ECE over 2,000 draws of outcomes ~ Bernoulli(test confidences), seed 0",
+        "selective": "act when confidence >= lambda; Chow lambda* = 1 - l_defer / l_wrong; val-chosen lambda minimizes the empirical cost on val, smallest on ties; risk null when nothing is acted on",
+        "seed": 0
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.toy.accuracy_reward",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy_policy": 0.7267,
+        "mean_p_hat_policy": 0.9894,
+        "ece_policy": 0.2627,
+        "brier_policy": 0.2621,
+        "ece_noise_floor_policy": 0.01,
+        "n_policy": 150,
+        "accuracy_route": 0.6267,
+        "mean_p_hat_route": 0.9809,
+        "ece_route": 0.3543,
+        "brier_route": 0.3496,
+        "ece_noise_floor_route": 0.0214,
+        "n_route": 150,
+        "accuracy": 0.6767,
+        "mean_p_hat": 0.9852,
+        "ece": 0.3085,
+        "brier": 0.3058,
+        "ece_noise_floor": 0.0137,
+        "n": 300
+      },
+      "val_metrics": {
+        "accuracy_policy": 0.82,
+        "mean_p_hat_policy": 0.9665,
+        "ece_policy": 0.1963,
+        "brier_policy": 0.1768,
+        "ece_noise_floor_policy": 0.0388,
+        "n_policy": 50,
+        "accuracy_route": 0.66,
+        "mean_p_hat_route": 0.9865,
+        "ece_route": 0.334,
+        "brier_route": 0.3268,
+        "ece_noise_floor_route": 0.0213,
+        "n_route": 50,
+        "accuracy": 0.74,
+        "mean_p_hat": 0.9765,
+        "ece": 0.2651,
+        "brier": 0.2518,
+        "ece_noise_floor": 0.0285,
+        "n": 100
+      },
+      "train_metrics": {
+        "accuracy_policy": 0.831,
+        "mean_p_hat_policy": 0.99,
+        "ece_policy": 0.1655,
+        "brier_policy": 0.1682,
+        "ece_noise_floor_policy": 0.0059,
+        "n_policy": 1000,
+        "accuracy_route": 0.898,
+        "mean_p_hat_route": 0.9964,
+        "ece_route": 0.1024,
+        "brier_route": 0.102,
+        "ece_noise_floor_route": 0.0036,
+        "n_route": 1000,
+        "accuracy": 0.8645,
+        "mean_p_hat": 0.9932,
+        "ece": 0.1334,
+        "brier": 0.1351,
+        "ece_noise_floor": 0.0033,
+        "n": 2000
+      },
+      "test_metrics_after_temperature": {
+        "accuracy_policy": 0.7267,
+        "mean_p_hat_policy": 0.7442,
+        "ece_policy": 0.1462,
+        "brier_policy": 0.2103,
+        "ece_noise_floor_policy": 0.0733,
+        "n_policy": 150,
+        "accuracy_route": 0.6267,
+        "mean_p_hat_route": 0.6463,
+        "ece_route": 0.2115,
+        "brier_route": 0.2623,
+        "ece_noise_floor_route": 0.0896,
+        "n_route": 150,
+        "accuracy": 0.6767,
+        "mean_p_hat": 0.6952,
+        "ece": 0.1549,
+        "brier": 0.2363,
+        "ece_noise_floor": 0.0614,
+        "n": 300
+      },
+      "settings": {
+        "label": "toy model (our illustration), not Jev and not TypeSafe's method",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)",
+        "model": "ToyDecider: two linear heads (policy yes/no, route 5 options) over the 31 features of featurize; 224 parameters; standardized numeric and interaction columns (train mean and sd)",
+        "train_loop": "train_toy: full batch, Adam lr 0.05, 3,000 steps, no weight penalty, CPU",
+        "seed": 0,
+        "ece_bins": 15,
+        "brier": "binary Brier score of the event 'the chosen answer is right'",
+        "noise_floor": "mean ECE of a forecaster calibrated by construction with the same confidences, 1,000 repetitions",
+        "temperature": "one temperature per head, fitted on dev by bounded search over log tau in [-3, 6]",
+        "reward": "reward_accuracy: probs[i, label] (lecture eq-acc-reward)",
+        "tau_star_dev": {
+          "policy": 28.877,
+          "route": 8.058
+        },
+        "weight_norm_by_step": {
+          "0": 1.54,
+          "500": 44.55,
+          "1000": 59.38,
+          "1500": 71.94,
+          "2000": 84.92,
+          "2500": 97.82,
+          "3000": 110.61
+        },
+        "seed_check": {
+          "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "test_ece_pooled": [
+            0.308,
+            0.31,
+            0.31,
+            0.309,
+            0.309
+          ],
+          "test_accuracy_pooled": [
+            0.677,
+            0.68,
+            0.683,
+            0.683,
+            0.677
+          ],
+          "train_ece_pooled": [
+            0.133,
+            0.132,
+            0.129,
+            0.129,
+            0.133
+          ],
+          "weight_norm_step_3000": [
+            110.6,
+            112.1,
+            116.1,
+            112.5,
+            113.4
+          ],
+          "tau_star_dev_policy": [
+            28.877,
+            28.909,
+            29.997,
+            29.104,
+            30.355
+          ],
+          "note": "measured with a scratch restatement of the notebook's code in the build container, not by executing the notebook; seed 0 agrees with the notebook to the third decimal"
+        }
+      },
+      "val_split_name": "dev",
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.toy.brier_reward",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy_policy": 0.74,
+        "mean_p_hat_policy": 0.8699,
+        "ece_policy": 0.1857,
+        "brier_policy": 0.2197,
+        "ece_noise_floor_policy": 0.0551,
+        "n_policy": 150,
+        "accuracy_route": 0.6333,
+        "mean_p_hat_route": 0.9122,
+        "ece_route": 0.3304,
+        "brier_route": 0.3417,
+        "ece_noise_floor_route": 0.0386,
+        "n_route": 150,
+        "accuracy": 0.6867,
+        "mean_p_hat": 0.8911,
+        "ece": 0.2581,
+        "brier": 0.2807,
+        "ece_noise_floor": 0.0346,
+        "n": 300
+      },
+      "val_metrics": {
+        "accuracy_policy": 0.82,
+        "mean_p_hat_policy": 0.9062,
+        "ece_policy": 0.2002,
+        "brier_policy": 0.1761,
+        "ece_noise_floor_policy": 0.0828,
+        "n_policy": 50,
+        "accuracy_route": 0.66,
+        "mean_p_hat_route": 0.9116,
+        "ece_route": 0.3288,
+        "brier_route": 0.296,
+        "ece_noise_floor_route": 0.0839,
+        "n_route": 50,
+        "accuracy": 0.74,
+        "mean_p_hat": 0.9089,
+        "ece": 0.2274,
+        "brier": 0.236,
+        "ece_noise_floor": 0.0582,
+        "n": 100
+      },
+      "train_metrics": {
+        "accuracy_policy": 0.842,
+        "mean_p_hat_policy": 0.8395,
+        "ece_policy": 0.0704,
+        "brier_policy": 0.1316,
+        "ece_noise_floor_policy": 0.0233,
+        "n_policy": 1000,
+        "accuracy_route": 0.905,
+        "mean_p_hat_route": 0.9119,
+        "ece_route": 0.0239,
+        "brier_route": 0.0534,
+        "ece_noise_floor_route": 0.016,
+        "n_route": 1000,
+        "accuracy": 0.8735,
+        "mean_p_hat": 0.8757,
+        "ece": 0.0267,
+        "brier": 0.0925,
+        "ece_noise_floor": 0.0141,
+        "n": 2000
+      },
+      "test_metrics_after_temperature": {
+        "accuracy_policy": 0.74,
+        "mean_p_hat_policy": 0.739,
+        "ece_policy": 0.1076,
+        "brier_policy": 0.1988,
+        "ece_noise_floor_policy": 0.0711,
+        "n_policy": 150,
+        "accuracy_route": 0.6333,
+        "mean_p_hat_route": 0.5426,
+        "ece_route": 0.278,
+        "brier_route": 0.2827,
+        "ece_noise_floor_route": 0.0916,
+        "n_route": 150,
+        "accuracy": 0.6867,
+        "mean_p_hat": 0.6408,
+        "ece": 0.1776,
+        "brier": 0.2408,
+        "ece_noise_floor": 0.0627,
+        "n": 300
+      },
+      "settings": {
+        "label": "toy model (our illustration), not Jev and not TypeSafe's method",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)",
+        "model": "ToyDecider: two linear heads (policy yes/no, route 5 options) over the 31 features of featurize; 224 parameters; standardized numeric and interaction columns (train mean and sd)",
+        "train_loop": "train_toy: full batch, Adam lr 0.05, 3,000 steps, no weight penalty, CPU",
+        "seed": 0,
+        "ece_bins": 15,
+        "brier": "binary Brier score of the event 'the chosen answer is right'",
+        "noise_floor": "mean ECE of a forecaster calibrated by construction with the same confidences, 1,000 repetitions",
+        "temperature": "one temperature per head, fitted on dev by bounded search over log tau in [-3, 6]",
+        "reward": "reward_brier: minus the multiclass Brier score (lecture eq-brier-reward)",
+        "tau_star_dev": {
+          "policy": 3.115,
+          "route": 7.426
+        },
+        "weight_norm_by_step": {
+          "0": 1.54,
+          "500": 29.79,
+          "1000": 40.49,
+          "1500": 50.24,
+          "2000": 58.96,
+          "2500": 67.06,
+          "3000": 74.68
+        },
+        "seed_check": {
+          "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "test_ece_pooled": [
+            0.258,
+            0.254,
+            0.259,
+            0.258,
+            0.257
+          ],
+          "test_accuracy_pooled": [
+            0.687,
+            0.693,
+            0.7,
+            0.697,
+            0.687
+          ],
+          "train_ece_pooled": [
+            0.027,
+            0.027,
+            0.03,
+            0.027,
+            0.029
+          ],
+          "weight_norm_step_3000": [
+            74.7,
+            74.2,
+            78.9,
+            72.0,
+            79.3
+          ],
+          "tau_star_dev_policy": [
+            3.115,
+            3.294,
+            3.117,
+            2.94,
+            3.305
+          ],
+          "note": "measured with a scratch restatement of the notebook's code in the build container, not by executing the notebook; seed 0 agrees with the notebook to the third decimal"
+        }
+      },
+      "val_split_name": "dev",
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.local_thresholds",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "cost_per_case_analytic": 4.3017,
+        "cost_per_case_chosen_on_dev": 1.8,
+        "cost_per_case_act_all": 6.2667,
+        "cost_per_case_ask_all": 1.7533,
+        "cost_per_case_escalate_all": 3.0,
+        "cost_per_case_chow": 5.5167,
+        "accuracy": 0.6867,
+        "ece": 0.2581,
+        "brier": 0.2807
+      },
+      "settings": {
+        "label": "local toy decider (not Jev): TOY_REF (Brier reward, seed 0) behind LocalDecider",
+        "costs": {
+          "wrong": 20,
+          "ask": 0.5,
+          "miss": 4,
+          "esc": 3
+        },
+        "analytic": [
+          0.375,
+          0.9688
+        ],
+        "chosen_on_dev": [
+          0.0,
+          1.0
+        ],
+        "chosen_on_dev_note": "tau_act is the 11th-largest dev probability, 0.9999993 (float32 softmax; five dev answers have p = 1.0): act on the 11 most confident dev answers (all right), ask about the other 89, never escalate; on test it asks about 88% and acts on 12%",
+        "rule": "escalate below tau_esc, ask in between, act at or above tau_act (lecture eq-three-empirical)",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab14.local_router",
+      "notebook": "notebooks/14-agents.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.6333,
+        "followed": 0.8067,
+        "accuracy_when_followed": 0.6116,
+        "n": 150,
+        "n_followed": 121
+      },
+      "val_metrics": {
+        "accuracy": 0.66,
+        "followed": 0.84,
+        "accuracy_when_followed": 0.6905,
+        "n": 50,
+        "n_followed": 42
+      },
+      "settings": {
+        "label": "local toy decider (not Jev): TOY_REF (Lab 12, Brier reward, seed 0) behind LocalDecider, wrapped as a RunnableLambda returning langchain-typesafe's ClassifierResponse",
+        "question": "route Choice over retrieve, calculate, send_email, ask_user, escalate with ROUTE_DESCRIPTIONS as criteria",
+        "threshold": "follow the chosen route when p_route >= tau_route = 0.75 (Chow's rule from ROUTER_COSTS wrong 4, esc 1); invalid answers count as wrong",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); route items of dev (50, val_metrics) and test (150)",
+        "note": "accuracy equals lab12.toy.brier_reward accuracy_route: the same model on the same items and question"
+      },
+      "date": "2026-10-05"
+    }
+  ]
+}

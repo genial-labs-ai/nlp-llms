@@ -29,6 +29,10 @@ Never paste a key into a notebook cell. Colab Secrets keeps keys out of the note
 
 Each API lab states its approximate cost for one full run.
 
+::: {.callout-warning appearance="simple"}
+Install TypeSafe's SDK only under its official name, `typesafe-sdk`; the labs install it for you. Several lookalike packages on PyPI, such as `typesafe-ai` and `jev`, are not published by TypeSafe.
+:::
+
 ## 3. Check the prerequisites
 
 The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyTorch is rusty, the official [60-minute blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) covers what you need.

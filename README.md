@@ -17,21 +17,21 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 <!-- BEGIN modules -->
 | # | Day | Module | Lab |
 |---|---|---|---|
-| 1 | 1 | [Text as data](https://project-delphi.github.io/nlp-llms/lectures/01-text-as-data.html) | In preparation |
-| 2 | 1 | [Word vectors and neural networks](https://project-delphi.github.io/nlp-llms/lectures/02-word-vectors.html) | In preparation |
-| 3 | 1 | [Sequence models](https://project-delphi.github.io/nlp-llms/lectures/03-sequence-models.html) | In preparation |
-| 4 | 1 | [Seq2seq and attention](https://project-delphi.github.io/nlp-llms/lectures/04-seq2seq-attention.html) | In preparation |
-| 5 | 2 | [The transformer](https://project-delphi.github.io/nlp-llms/lectures/05-transformer-from-scratch.html) | In preparation |
-| 6 | 2 | [Pretraining and the Hugging Face stack](https://project-delphi.github.io/nlp-llms/lectures/06-pretraining-huggingface.html) | In preparation |
-| 7 | 2 | [Fine-tuning and LoRA](https://project-delphi.github.io/nlp-llms/lectures/07-finetuning-lora.html) | In preparation |
-| 8 | 2 | [LLMs through APIs](https://project-delphi.github.io/nlp-llms/lectures/08-llm-apis.html) | In preparation |
-| 9 | 3 | [Reinforcement and preference learning](https://project-delphi.github.io/nlp-llms/lectures/09-preference-learning.html) | In preparation |
-| 10 | 3 | [RLHF](https://project-delphi.github.io/nlp-llms/lectures/10-rlhf.html) | In preparation |
-| 11 | 3 | [Calibration](https://project-delphi.github.io/nlp-llms/lectures/11-calibration.html) | In preparation |
-| 12 | 3 | [RLCD and Jev](https://project-delphi.github.io/nlp-llms/lectures/12-rlcd-jev.html) | In preparation |
-| 13 | 4 | [Retrieval-augmented generation](https://project-delphi.github.io/nlp-llms/lectures/13-rag.html) | In preparation |
-| 14 | 4 | [Agents](https://project-delphi.github.io/nlp-llms/lectures/14-agents.html) | In preparation |
-| 15 | 4 | [Capstone](https://project-delphi.github.io/nlp-llms/lectures/15-capstone.html) | In preparation |
+| 1 | 1 | [Text as data](https://project-delphi.github.io/nlp-llms/lectures/01-text-as-data.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb) |
+| 2 | 1 | [Word vectors and neural networks](https://project-delphi.github.io/nlp-llms/lectures/02-word-vectors.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb) |
+| 3 | 1 | [Sequence models](https://project-delphi.github.io/nlp-llms/lectures/03-sequence-models.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/03-sequence-models.ipynb) |
+| 4 | 1 | [Seq2seq and attention](https://project-delphi.github.io/nlp-llms/lectures/04-seq2seq-attention.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/04-seq2seq-attention.ipynb) |
+| 5 | 2 | [The transformer](https://project-delphi.github.io/nlp-llms/lectures/05-transformer-from-scratch.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/05-transformer-from-scratch.ipynb) |
+| 6 | 2 | [Pretraining and the Hugging Face stack](https://project-delphi.github.io/nlp-llms/lectures/06-pretraining-huggingface.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/06-pretraining-huggingface.ipynb) |
+| 7 | 2 | [Fine-tuning and LoRA](https://project-delphi.github.io/nlp-llms/lectures/07-finetuning-lora.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/07-finetuning-lora.ipynb) |
+| 8 | 2 | [LLMs through APIs](https://project-delphi.github.io/nlp-llms/lectures/08-llm-apis.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb) |
+| 9 | 3 | [Reinforcement and preference learning](https://project-delphi.github.io/nlp-llms/lectures/09-preference-learning.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb) |
+| 10 | 3 | [RLHF](https://project-delphi.github.io/nlp-llms/lectures/10-rlhf.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb) |
+| 11 | 3 | [Calibration](https://project-delphi.github.io/nlp-llms/lectures/11-calibration.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb) |
+| 12 | 3 | [RLCD and Jev](https://project-delphi.github.io/nlp-llms/lectures/12-rlcd-jev.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb) |
+| 13 | 4 | [Retrieval-augmented generation](https://project-delphi.github.io/nlp-llms/lectures/13-rag.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb) |
+| 14 | 4 | [Agents](https://project-delphi.github.io/nlp-llms/lectures/14-agents.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb) |
+| 15 | 4 | [Capstone](https://project-delphi.github.io/nlp-llms/lectures/15-capstone.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/15-capstone.ipynb) |
 <!-- END modules -->
 
 | Day | Theme |
@@ -63,7 +63,7 @@ uv run --group site python scripts/gen_notebooks.py   # notebook header and foot
 Checks:
 
 ```bash
-uv run --group lint ruff check scripts tests
+uv run --group lint ruff check scripts tests data
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py   # run every notebook
 quarto render && uv run --group site python scripts/check_links.py

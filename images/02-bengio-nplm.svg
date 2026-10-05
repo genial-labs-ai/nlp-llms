@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" width="680" height="300" role="img" aria-labelledby="t d">
+  <title id="t">Bengio&#x27;s neural probabilistic language model</title>
+  <desc id="d">Left to right: three context words are each looked up in the same embedding matrix E; the three embeddings are concatenated into x; a tanh hidden layer gives h; a softmax over the vocabulary gives the next-word distribution.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .i { font-style: italic; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+  </defs>
+  <rect x="100" y="52" width="60" height="186" rx="10" fill="none" stroke="#b3541e" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="130" y="26" text-anchor="middle" class="note acc">one shared</text>
+  <text x="130" y="43" text-anchor="middle" class="note acc">matrix <tspan class="m i" font-size="16">E</tspan></text>
+  <text x="45" y="43" text-anchor="middle" class="note">context</text>
+  <rect class="box" x="10" y="77" width="70" height="36" rx="6"/>
+  <text x="45" y="101" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">−3</tspan></text>
+  <line class="ln" x1="80" y1="95" x2="108" y2="95" marker-end="url(#a)"/>
+  <rect class="abox" x="110" y="77" width="40" height="36" rx="6"/>
+  <text x="130" y="101" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">E</tspan></text>
+  <line class="ln" x1="150" y1="95" x2="183" y2="95" marker-end="url(#a)"/>
+  <rect class="box" x="185" y="87" width="14" height="16" rx="0"/>
+  <rect class="box" x="199" y="87" width="14" height="16" rx="0"/>
+  <rect class="box" x="213" y="87" width="14" height="16" rx="0"/>
+  <rect class="box" x="227" y="87" width="14" height="16" rx="0"/>
+  <text x="213" y="76" text-anchor="middle" class="m " style="font-size:17px"><tspan class="i">e</tspan><tspan dy="4.1" font-size="11.6" class="i">w</tspan><tspan dy="2.7" font-size="9.5" class="i">t</tspan><tspan font-size="9.5">−3</tspan></text>
+  <line class="ln" x1="241" y1="95" x2="276" y2="95" marker-end="url(#a)"/>
+  <rect class="box" x="10" y="132" width="70" height="36" rx="6"/>
+  <text x="45" y="156" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">−2</tspan></text>
+  <line class="ln" x1="80" y1="150" x2="108" y2="150" marker-end="url(#a)"/>
+  <rect class="abox" x="110" y="132" width="40" height="36" rx="6"/>
+  <text x="130" y="156" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">E</tspan></text>
+  <line class="ln" x1="150" y1="150" x2="183" y2="150" marker-end="url(#a)"/>
+  <rect class="box" x="185" y="142" width="14" height="16" rx="0"/>
+  <rect class="box" x="199" y="142" width="14" height="16" rx="0"/>
+  <rect class="box" x="213" y="142" width="14" height="16" rx="0"/>
+  <rect class="box" x="227" y="142" width="14" height="16" rx="0"/>
+  <text x="213" y="131" text-anchor="middle" class="m " style="font-size:17px"><tspan class="i">e</tspan><tspan dy="4.1" font-size="11.6" class="i">w</tspan><tspan dy="2.7" font-size="9.5" class="i">t</tspan><tspan font-size="9.5">−2</tspan></text>
+  <line class="ln" x1="241" y1="150" x2="276" y2="150" marker-end="url(#a)"/>
+  <rect class="box" x="10" y="187" width="70" height="36" rx="6"/>
+  <text x="45" y="211" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">w</tspan><tspan dy="4.3" font-size="12.2" class="i">t</tspan><tspan font-size="12.2">−1</tspan></text>
+  <line class="ln" x1="80" y1="205" x2="108" y2="205" marker-end="url(#a)"/>
+  <rect class="abox" x="110" y="187" width="40" height="36" rx="6"/>
+  <text x="130" y="211" text-anchor="middle" class="m " style="font-size:18px"><tspan class="i">E</tspan></text>
+  <line class="ln" x1="150" y1="205" x2="183" y2="205" marker-end="url(#a)"/>
+  <rect class="box" x="185" y="197" width="14" height="16" rx="0"/>
+  <rect class="box" x="199" y="197" width="14" height="16" rx="0"/>
+  <rect class="box" x="213" y="197" width="14" height="16" rx="0"/>
+  <rect class="box" x="227" y="197" width="14" height="16" rx="0"/>
+  <text x="213" y="186" text-anchor="middle" class="m " style="font-size:17px"><tspan class="i">e</tspan><tspan dy="4.1" font-size="11.6" class="i">w</tspan><tspan dy="2.7" font-size="9.5" class="i">t</tspan><tspan font-size="9.5">−1</tspan></text>
+  <line class="ln" x1="241" y1="205" x2="276" y2="205" marker-end="url(#a)"/>
+  <rect class="box" x="278" y="67.5" width="18" height="55" rx="0"/>
+  <rect class="box" x="278" y="122.5" width="18" height="55" rx="0"/>
+  <rect class="box" x="278" y="177.5" width="18" height="55" rx="0"/>
+  <text x="287" y="56" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">x</tspan></text>
+  <text x="287" y="254" text-anchor="middle" class="note">concatenate</text>
+  <text x="287" y="274" text-anchor="middle" class="m " style="font-size:15px"><tspan>(</tspan><tspan class="i">n</tspan><tspan>−1)</tspan><tspan class="i">d</tspan></text>
+  <line class="ln" x1="296" y1="150" x2="338" y2="150" marker-end="url(#a)"/>
+  <text x="316" y="141" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9">1</tspan></text>
+  <rect class="box" x="340" y="110" width="76" height="80" rx="6"/>
+  <text x="378" y="155" text-anchor="middle">tanh</text>
+  <text x="378" y="100" text-anchor="middle" class="m " style="font-size:19px"><tspan class="i">h</tspan></text>
+  <line class="ln" x1="416" y1="150" x2="458" y2="150" marker-end="url(#a)"/>
+  <text x="436" y="141" text-anchor="middle" class="m " style="font-size:16px"><tspan class="i">W</tspan><tspan dy="3.8" font-size="10.9">2</tspan></text>
+  <rect class="box" x="460" y="110" width="84" height="80" rx="6"/>
+  <text x="502" y="155" text-anchor="middle">softmax</text>
+  <line class="ln" x1="544" y1="150" x2="572" y2="150" marker-end="url(#a)"/>
+  <rect x="578" y="176" width="10" height="14" fill="#16324f"/>
+  <rect x="592" y="160" width="10" height="30" fill="#16324f"/>
+  <rect x="606" y="181" width="10" height="9" fill="#16324f"/>
+  <rect x="620" y="128" width="10" height="62" fill="#b3541e"/>
+  <rect x="634" y="170" width="10" height="20" fill="#16324f"/>
+  <rect x="648" y="178" width="10" height="12" fill="#16324f"/>
+  <rect x="662" y="164" width="10" height="26" fill="#16324f"/>
+  <path class="ln" d="M574,190 H676"/>
+  <text x="625" y="112" text-anchor="middle" class="m " style="font-size:17px"><tspan class="i">P</tspan><tspan>(</tspan><tspan class="i">w</tspan><tspan dy="4.1" font-size="11.6" class="i">t</tspan><tspan dy="-4.1"> | …)</tspan></text>
+  <text x="625" y="212" text-anchor="middle" class="note">next word,</text>
+  <text x="625" y="230" text-anchor="middle" class="note">|V| outcomes</text>
+</svg>

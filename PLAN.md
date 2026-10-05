@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status:** scaffold built (build Days 1–2). Lectures and labs are not yet written. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-05):** All 15 lectures and lab briefs drafted; all 16 notebooks written. Labs 01–05 run end to end on CPU; Labs 06–15 run only on their offline paths (stand-ins, stubs, the local toy decider), because the build container has no Hub access and no API keys. Human work outstanding: the decision-set hand items and audit, Lab 13's 80 questions and the capstone's 45 (after the corpus snapshot is frozen), and TypeSafe's own statements in lecture 12. Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -136,7 +136,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** tokenise text and justify the choices; build and evaluate an n-gram language model; train a linear text classifier and read its errors.
 - **Lecture:** what makes language hard (ambiguity, sparsity, compositionality); tokenisation and normalisation; Zipf's law; n-gram language models, smoothing, perplexity; bag-of-words and TF-IDF; naive Bayes and logistic regression; evaluation (precision, recall, F1); where count-based methods stop working.
-- **Lab `01-text-as-data.ipynb`:** build a tokeniser and vocabulary; implement a bigram and trigram LM with add-k smoothing and compute perplexity; sample text from it; TF-IDF + logistic regression classifier on a news-topic subset; error analysis.
+- **Lab `01-text-as-data.ipynb`:** build a tokeniser and vocabulary; implement a bigram and trigram LM with add-k smoothing and compute perplexity; sample text from it; TF-IDF + logistic regression classifier on the topic-classification set (arXiv Topics v1, see `data/README.md`); error analysis.
 - **Stretch:** BM25 scoring (reused in Module 13).
 - **Stack:** NumPy, scikit-learn.
 - **Readings:** Jurafsky & Martin, *Speech and Language Processing* (3rd ed.), chapters on n-gram LMs and classification.
@@ -154,7 +154,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** implement an RNN and an LSTM language model; explain vanishing gradients and how gating addresses them; compare perplexity against the n-gram baseline.
 - **Lecture:** recurrent networks and backpropagation through time; vanishing and exploding gradients, gradient clipping; LSTM and GRU gates; neural language modelling, teacher forcing; sampling strategies (greedy, temperature, top-k, nucleus).
-- **Lab `03-sequence-models.ipynb`:** write an RNN cell by hand, then use `nn.LSTM`; train a character-level LM on a small corpus; measure perplexity against Lab 1's n-gram model; inspect gradient norms with and without clipping; generate text at several temperatures.
+- **Lab `03-sequence-models.ipynb`:** write an RNN cell by hand, then use `nn.LSTM`; train a character-level LM on a small corpus; measure perplexity against Lab 1's n-gram method at character level, on the same split; inspect gradient norms with and without clipping; generate text at several temperatures.
 - **Stretch:** implement top-k and nucleus sampling.
 - **Stack:** PyTorch.
 - **Readings:** Hochreiter & Schmidhuber 1997 (LSTM); Karpathy, "The Unreasonable Effectiveness of RNNs".
@@ -212,7 +212,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** frame text generation as a reinforcement-learning problem; derive and implement the policy gradient; train a reward model from pairwise preferences.
 - **Lecture:** why supervised fine-tuning is not enough: no label for "better"; the minimum RL needed: policy, reward, return, the policy-gradient theorem, REINFORCE, baselines and variance; generation as sequential decisions; preference data: why comparisons instead of scores; the Bradley–Terry model; training a reward model.
-- **Lab `09-preference-learning.ipynb`:** REINFORCE on a small sequence task where the optimal policy is known; add a baseline and watch variance fall; build a synthetic pairwise-preference dataset with a known hidden preference; train a reward model and check it recovers the hidden preference.
+- **Lab `09-preference-learning.ipynb`:** REINFORCE on a small sequence task where the optimal policy is known; add a baseline and watch variance fall; load a synthetic pairwise-preference dataset with a known hidden preference, sampled from Lab 10's reference policy (the small GPT-2 of Lab 6) and labeled through the Bradley–Terry model; train a reward model and check it recovers the hidden preference.
 - **Stretch:** measure how reward-model accuracy degrades with noisy raters.
 - **Stack:** PyTorch, Hugging Face.
 - **Readings:** Sutton & Barto, chapter 13 (policy gradients); Christiano et al. 2017.
@@ -221,7 +221,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** describe the three-stage RLHF pipeline; optimise a small LM against a reward model with a KL constraint; apply DPO; name RLHF's failure modes and observe one.
 - **Lecture:** the InstructGPT pipeline: supervised fine-tuning, reward model, policy optimisation; PPO in outline; KL regularisation toward the reference policy and why it matters; DPO as preference optimisation without an RL loop; failure modes: reward hacking, sycophancy, mode collapse, and optimising for what raters prefer rather than what is true.
-- **Lab `10-rlhf.ipynb`:** fine-tune a small GPT-2 against the Lab 9 reward model with a KL-penalised policy-gradient step (a pre-trained reward model checkpoint is provided); measure reward gain and drift from the reference model; remove the KL penalty and observe reward hacking; train the same preference data with a DPO loss and compare.
+- **Lab `10-rlhf.ipynb`:** fine-tune the small GPT-2 of Lab 6 (`models.causal_lm`) against the Lab 9 reward model with a KL-penalised policy-gradient step (a pre-trained reward model checkpoint is provided); measure reward gain and drift from the reference model; remove the KL penalty and observe reward hacking; train the same preference data with a DPO loss and compare.
 - **Stretch:** vary the KL coefficient and plot the reward–drift trade-off.
 - **Stack:** PyTorch, Hugging Face.
 - **Readings:** Ouyang et al. 2022 (InstructGPT); Schulman et al. 2017 (PPO); Rafailov et al. 2023 (DPO).
@@ -230,7 +230,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** say what a probability should mean; measure calibration; explain proper scoring rules; use confidence to decide when to abstain.
 - **Lecture:** calibration versus accuracy; reliability diagrams, ECE and its pitfalls, Brier score, log loss; proper scoring rules and why they reward honest probabilities; why modern neural nets and preference-tuned LLMs are often miscalibrated; post-hoc fixes (temperature scaling); verbalised confidence from LLMs; selective prediction: risk–coverage curves and the cost of a wrong action.
-- **Lab `11-calibration.ipynb`:** plot a reliability diagram and compute ECE and Brier score for the Lab 6 classifier; apply temperature scaling; ask an LLM for verbalised confidence on a labelled decision set and measure its calibration; draw a risk–coverage curve and choose an abstention threshold.
+- **Lab `11-calibration.ipynb`:** plot a reliability diagram and compute ECE and Brier score for the Lab 6 classifier (falling back to the Lab 1 classifier, recomputed in the notebook, until the Lab 6 logits are committed); apply temperature scaling; ask an LLM for verbalised confidence on the shared decision set (`data/decisions_v1.jsonl.gz`, specified in `briefs/11-calibration.md`) and measure its calibration; draw a risk–coverage curve and choose an abstention threshold.
 - **Stretch:** show numerically that the Brier score is proper and that accuracy is not.
 - **Stack:** PyTorch, scikit-learn, OpenAI/Claude (fallback: local model).
 - **Readings:** Guo et al. 2017 (calibration of modern neural networks); Gneiting & Raftery 2007 (proper scoring rules).
@@ -245,7 +245,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
   3. Plot Jev's reliability diagram beside the LLM's from Lab 11.
   4. Choose act / ask / escalate thresholds from a stated cost of error.
 - **Stretch:** compare cost and latency of Jev against an LLM on the same decisions.
-- **Stack:** PyTorch, `typesafe-sdk-python` (fallback: the toy model from step 1).
+- **Stack:** PyTorch, `typesafe-sdk` (fallback: the toy model from step 1).
 - **Readings:** TypeSafe's public RLCD and Jev announcement and API documentation; Kahneman on System 1 and System 2 for the framing.
 
 ### Day 4 — RAG, agents and capstone
@@ -254,7 +254,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** build a RAG pipeline; choose chunking, embedding and reranking settings from measurements; evaluate retrieval and answer quality separately.
 - **Lecture:** why retrieval (freshness, grounding, cost); the pipeline: load, chunk, embed, index, retrieve, rerank, generate; dense, sparse (BM25, linking back to Module 1) and hybrid retrieval; rerankers; evaluation: recall@k, MRR, faithfulness, answer relevance; common failures; LlamaIndex and LangChain: what each abstracts and where they overlap.
-- **Lab `13-rag.ipynb`:** index a small document set with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set; build the same retriever as a LangChain runnable; add a reranking step (Jev through `llama-index-jev`, with a cross-encoder fallback); score faithfulness.
+- **Lab `13-rag.ipynb`:** index a small document set (Workshop Lectures v1: a frozen snapshot of our own lectures, `data/workshop_lectures_v1.jsonl.gz`) with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set (`data/rag_questions_v1.jsonl`, 80 questions written and checked by people, spec in `briefs/13-rag.md`); build the same retriever as a LangChain runnable; add a reranking step (a Jev reranker written in the notebook on `typesafe-sdk`, since no official LlamaIndex integration exists; a cross-encoder is the fallback and the CI path); score faithfulness.
 - **Stretch:** hybrid retrieval with BM25.
 - **Stack:** LlamaIndex, LangChain, Jev, OpenAI/Claude (fallback: local embedding model and small local LLM).
 - **Readings:** Lewis et al. 2020 (RAG); LlamaIndex and LangChain documentation.
@@ -263,7 +263,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** build a tool-using agent as an explicit graph; add state, memory and human-in-the-loop interrupts; use a calibrated decision model for routing and tool-call approval.
 - **Lecture:** from the hand-written tool loop of Module 8 to agents; ReAct; LangChain tools and runnables; LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts; where agents fail (loops, wrong tool, unsafe action, prompt injection); using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12.
-- **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a confidence score; gate the risky tool: act above the threshold, ask the human below it; replay from a checkpoint; test against a prompt-injection document.
+- **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a probability; gate the risky tool with an act / ask / escalate guard from Module 12's thresholds (a simulated human answers interrupts in unattended runs); replay from a checkpoint; test against a prompt-injection document.
 - **Stretch:** add a verification node that checks the final answer against the retrieved sources.
 - **Stack:** LangChain, LangGraph, Jev, OpenAI/Claude (fallback: local model and the Module 12 toy decision model).
 - **Readings:** Yao et al. 2022 (ReAct); LangGraph documentation.
@@ -303,13 +303,25 @@ Every notebook must meet all of these.
 | Item | Risk | Mitigation |
 |---|---|---|
 | RLCD is unpublished | No paper, reward function or reliability data from TypeSafe; teaching it as fact would be speculation | Module 11 teaches calibration theory on its own footing; Module 12 states what is public and labels the toy lab as our own illustration |
-| Jev package names and API surface | `typesafe-sdk-python`, `langchain-typesafe` (`TypeSafeClassifier`) and `llama-index-jev` come from secondary sources and the product launched in September 2026 | Verify against `docs.typesafe.ai` before writing Labs 12–15; keep the toy-model fallback |
+| Jev package names and API surface | Checked 2026-10-05 against the published packages and TypeSafe's and LangChain's GitHub repositories (details and sources in `briefs/jev-verification.md`). `docs.typesafe.ai` was blocked from the build container and has not been read. **SDK:** PyPI `typesafe-sdk` 0.7.2 (MIT, by TypeSafe AI), import `typesafe_sdk`; `typesafe-sdk-python` is only the repository name and is not on PyPI. `TypeSafeClient` / `AsyncTypeSafeClient`, key from `TYPESAFE_API_KEY`; `system_one(state, questions)` sends `POST /v1/systemone` with `Noul` / `Choice` / `Score` questions. `Choice` and `Score` answers carry `probabilities` and `confidence`; `Noul` carries only a probability, with no confidence field. There is no batch endpoint. **LangChain:** `langchain-typesafe` 0.0.1a3 (alpha; the class is `@beta`), `TypeSafeClassifier` confirmed; it does not depend on `typesafe-sdk`. **LlamaIndex:** there is no official integration: `llama-index-jev` does not exist, and `llama_index` main has no TypeSafe code | Use `typesafe-sdk==0.7.2` and `langchain-typesafe==0.0.1a3`. Write the Module 13 reranker in the notebook on the SDK, with a cross-encoder fallback. With no key, a local backend returns the same `SystemOneResponse` type. Re-read `docs.typesafe.ai` (confidence, limits, pricing) from a networked machine before delivery. Section 4 still names `typesafe-sdk-python` and `llama-index-jev`; the Academic Director should correct both |
+| Lookalike Jev packages on PyPI | Unaffiliated packages sit on names participants may guess: `typesafe-ai` (a shim by a private individual), `jev` (no author), `typesafe-client` (a placeholder), `typesafe` (unrelated, 2010) and `llama-index-postprocessor-jev` (an individual's reranker). The names `typesafe-sdk-python` and `llama-index-jev` are unregistered and could be taken by anyone | Print only `typesafe-sdk` and `langchain-typesafe`, with exact pins; warn participants in `setup.qmd`; add a test that fails if a notebook or page installs any other TypeSafe-like name |
+| Jev confidence semantics | `confidence` measures how concentrated the distribution is, not the probability of the chosen label. Jev's formula is unpublished. A recorded live response had probabilities rounded to 0.01 | Lab 12 draws reliability diagrams from `noul` and `probabilities[choice]`, never from `confidence`, and says why. Thresholds are explicit numbers derived from a stated cost of error |
+| Jev experimental LangChain middleware | `AutoModeMiddleware` blocks risky tool calls at a hard-coded p ≥ 0.5 and never asks a human. It works only with `create_agent`, and omitting `criteria` silently drops its default criteria | Lab 14 writes its own act / ask / escalate guard node with `interrupt()` and explicit thresholds, and quotes the middleware's instructions only as an example |
+| RLCD primary sources | The TypeSafe material read so far (SDK, `skills`, `system-one-adapter`, `WorkflowEvals`) never names RLCD. Its only training claim is "System One models are trained for calibrated decisions" (`typesafe-ai/skills`, `SKILL.md`). The RLCD details in circulation come from third-party articles | Lecture 12 cites TypeSafe's announcement directly once someone reads it from a networked machine; until then it states only the sentence above and labels everything else as our illustration |
 | Jev access | Participants may not have keys | Fallback path; ask TypeSafe about workshop credits |
 | Model IDs change | Hard-coded IDs go stale | IDs live only in `_variables.yml`; pinned during the build |
 | Colab dependency drift | Preinstalled versions change and break labs | Pinned installs; scheduled `health.yml` run |
 | Four consecutive days | Fatigue by Day 4; harder for working practitioners to attend | Day 4 afternoon is hands-on pair work; each day stands alone well enough to be offered as 2 + 2 days |
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
+| Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| Capstone questions need human authors | The capstone evaluation set is Lab 13's 80 questions plus 45 new human-written ones (about 30% unanswerable, including memory-bait items) | Romeo and one instructor write and blind-check them after Lab 13's set (about 3 and 2 hours) |
+| Corpus snapshot ordering | `data/workshop_lectures_v1.jsonl.gz` freezes the lectures and `references.qmd`; questions quote it verbatim | Finish `references.qmd` (Modules 1–12) and rebuild the snapshot before anyone writes questions |
+| RAG questions need human authors | Model-written questions copy passage wording (inflating BM25) and model relevance labels are circular with the judge Lab 13 teaches people to check | Romeo and one instructor write and blind-check 80 questions (about 4 and 3 hours); a first batch of 40 unblocks the notebook |
+| Lab 11 depends on the Lab 6 logits | `lab06_logits.npz` needs a T4 run with Hub access; without it Lab 11 analyzes the Lab 1 classifier, which is close to calibrated, so the encoder half of lecture 11's section 5 is unmeasured | Lab 11 falls back automatically; an always-on regularization sweep shows temperature scaling in both directions; commit the file after Lab 6's T4 run |
+| Decision set labels need two human annotators | An agent can build the generator but cannot provide independent human labels or write the hand items (the spec forbids model-written items) | Romeo and one instructor write and label 80 hand items and audit 60 template items (estimated 2–3 hours each) |
+| Labs 9 and 10 depend on GPT-2 | They need the Hub (and Lab 10 a GPU); the build container has neither | Build Lab 9's data files and run Lab 10's seed protocol on a Colab T4 |
+| Build container network | The cloud build environment blocks huggingface.co, so Labs 6–8's model paths and the Lab 6/7 data files cannot be produced there | Allow huggingface.co in the environment's network settings, or run those steps on Colab |
 
 ---
 
@@ -327,7 +339,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Add `CONTRIBUTING.md` and `CHANGELOG.md`
 - [x] Convert the four AGENTS.md personas into `.claude/agents/*.md` subagents
 - [x] Draft `_variables.yml` with all 15 modules (`n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`)
-- [ ] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents). Proposals are in `data/README.md`; licenses still to confirm
+- [x] Choose and record the datasets for the running thread (classification set, LM corpus, date transduction, instruction set, preference set, decision set, RAG documents). Decisions and licenses are in `data/README.md`: arXiv Topics v1 replaces AG News (license), Tiny Shakespeare, Dolly 15k. The repo-hosted fallback URLs work only once the repository is public and `data/` is on `main`
 
 ### Day 2 — Quarto initialisation
 
@@ -345,65 +357,66 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 3 — Modules 1–2
 
-- [ ] Draft lecture 1: Text as data
-- [ ] Draft lecture 2: Word vectors and neural networks
-- [ ] Code `01-text-as-data.ipynb`
-- [ ] Code `02-word-vectors.ipynb`
-- [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget
+- [x] Draft lecture 1: Text as data
+- [x] Draft lecture 2: Word vectors and neural networks
+- [x] Code `01-text-as-data.ipynb`
+- [x] Code `02-word-vectors.ipynb` (run on CPU, not Colab)
+- [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget (equation-to-lab half done for Modules 1 and 2; Colab half open)
 
 ### Day 4 — Modules 3–4
 
-- [ ] Draft lecture 3: Sequence models
-- [ ] Draft lecture 4: Seq2seq and attention
-- [ ] Code `03-sequence-models.ipynb`
-- [ ] Code `04-seq2seq-attention.ipynb`
-- [ ] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment)
-- [ ] Review: Day 1 reads as one thread; Lab 3 perplexity is compared with Lab 1
+- [x] Draft lecture 3: Sequence models
+- [x] Draft lecture 4: Seq2seq and attention
+- [x] Code `03-sequence-models.ipynb` (run on CPU, not Colab)
+- [x] Code `04-seq2seq-attention.ipynb` (run on CPU, not Colab)
+- [x] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment; the alignment map is now drawn from Lab 4's measured weights)
+- [ ] Review: Day 1 reads as one thread; Lab 3 perplexity is compared with Lab 1 (the Lab 3 comparison is done; the cross-module read of Day 1 is open)
 
 ### Day 5 — Modules 5–6
 
-- [ ] Draft lecture 5: The transformer
-- [ ] Draft lecture 6: Pretraining and the Hugging Face stack
-- [ ] Code `05-transformer-from-scratch.ipynb`
-- [ ] Code `06-pretraining-huggingface.ipynb`
-- [ ] Review: Labs 3 → 5 and 1 → 2 → 6 comparisons report consistent metrics on the same data
+- [x] Draft lecture 5: The transformer
+- [x] Draft lecture 6: Pretraining and the Hugging Face stack
+- [x] Code `05-transformer-from-scratch.ipynb` (run on CPU, not Colab)
+- [ ] Code `06-pretraining-huggingface.ipynb` (written; offline parts run; pretrained path not run: Hub blocked)
+- [ ] Review: Labs 3 → 5 and 1 → 2 → 6 comparisons report consistent metrics on the same data (3 → 5 and 1 → 2 done; 6 waits on its pretrained run)
 
 ### Day 6 — Modules 7–8
 
-- [ ] Draft lecture 7: Fine-tuning and LoRA
-- [ ] Draft lecture 8: LLMs through APIs
-- [ ] Code `07-finetuning-lora.ipynb`
-- [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path
-- [ ] Pin OpenAI and Claude model IDs in `_variables.yml`
-- [ ] Add repository secrets and make CI skip keyed paths when they are absent
-- [ ] Review: Lab 8 completes with no keys set
+- [x] Draft lecture 7: Fine-tuning and LoRA
+- [x] Draft lecture 8: LLMs through APIs
+- [ ] Code `07-finetuning-lora.ipynb` (written; LoRA layer and offline parts run; SmolLM2 + Dolly path not run: Hub blocked)
+- [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path (written; runs end to end on an offline stub; OpenAI, Claude and Qwen paths not run)
+- [x] Pin OpenAI and Claude model IDs in `_variables.yml`
+- [ ] Add repository secrets and make CI skip keyed paths when they are absent (labs read keys from Colab Secrets or the environment and take their no-key path when absent; `health.yml`'s keyed leg uses the secrets; Romeo to add them)
+- [ ] Review: Lab 8 completes with no keys set (holds on the stub only; the Qwen fallback has not run)
 
 ### Day 7 — Modules 9–10
 
-- [ ] Draft lecture 9: Reinforcement and preference learning
-- [ ] Draft lecture 10: RLHF
-- [ ] Code `09-preference-learning.ipynb`
-- [ ] Code `10-rlhf.ipynb`, including the pre-trained reward model checkpoint
-- [ ] Review: the reward-hacking demonstration is reliable across seeds
+- [x] Draft lecture 9: Reinforcement and preference learning
+- [x] Draft lecture 10: RLHF
+- [ ] Code `09-preference-learning.ipynb` (written; Part A run on CPU with seed-based thresholds; Part B on an offline stand-in only, waiting for the data files)
+- [ ] Code `10-rlhf.ipynb`, including the pre-trained reward model checkpoint (written, with `scripts/lab10_seed_protocol.py`; unit checks run; GPT-2/T4 path and the checkpoint wait on the Lab 9 data)
+- [ ] Build the Lab 9 data files (`data/build_lab09_preferences.py`) on a machine with Hub access and record their statistics; they will exceed the 6 MB cap in `tests/test_data.py` (about 4.5–7 MB more, estimated), so raise the cap or trim the reward model's vocabulary when they land
+- [ ] Review: the reward-hacking demonstration is reliable across seeds (protocol in `briefs/10-rlhf.md`; needs a Colab T4)
 
 ### Day 8 — Modules 11–12
 
-- [ ] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found
-- [ ] Draft lecture 11: Calibration
-- [ ] Draft lecture 12: RLCD and Jev (public facts and our illustration clearly separated)
-- [ ] Code `11-calibration.ipynb`
-- [ ] Code `12-rlcd-jev.ipynb`
-- [ ] Build and label the shared decision set used by Labs 11, 12 and 14
+- [ ] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found (verified against the published packages and the TypeSafe and LangChain repositories; `docs.typesafe.ai` was blocked and is still unread, see `briefs/jev-verification.md`; left unticked until the docs are read from a networked machine)
+- [x] Draft lecture 11: Calibration
+- [x] Draft lecture 12: RLCD and Jev (public facts and our illustration clearly separated; TypeSafe's own statements are a TODO for Romeo until docs.typesafe.ai is read)
+- [ ] Code `11-calibration.ipynb` (written; classifier exercises run on the Lab 1 fallback; LLM part run on the labelled stub only; keyed, open-model and Lab 6 paths not run)
+- [ ] Code `12-rlcd-jev.ipynb` (written; local toy-decider path run on the decision set and reviewed against lecture 12; keyed Jev and the stretch not run)
+- [ ] Build and label the shared decision set used by Labs 11, 12 and 14 (spec in `briefs/11-calibration.md`; template-only v1 built and committed, `data/decisions_v1.jsonl.gz`: `data/build_decisions.py` generates the template items; Romeo and one instructor write and label the 80 hand-written items and audit 60 template items)
 - [ ] Review: the RLCD honesty rule (AGENTS.md) holds in both the lecture and the lab
 
 ### Day 9 — Modules 13–15
 
-- [ ] Draft lecture 13: Retrieval-augmented generation
-- [ ] Draft lecture 14: Agents
-- [ ] Draft the Module 15 capstone brief and wrap-up
-- [ ] Code `13-rag.ipynb`
-- [ ] Code `14-agents.ipynb`
-- [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set
+- [x] Draft lecture 13: Retrieval-augmented generation
+- [x] Draft lecture 14: Agents
+- [x] Draft the Module 15 capstone brief and wrap-up
+- [ ] Code `13-rag.ipynb` (written; offline BM25 path run on plumbing probes; corpus snapshot v1 built, provisional until `references.qmd` is finished; neural, keyed and Jev paths not run; no retrieval numbers until the human questions exist)
+- [ ] Code `14-agents.ipynb` (written; stub agent + toy router + stub guard path run, with Lab 13's BM25 retriever restated; keyed, Jev and Qwen paths not run)
+- [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set (written; stub path run on plumbing probes, self-test 14/14; scoring script, collector and manifest builder tested; keyed, open and Jev paths not run; blocked on the 125 human questions and the frozen snapshot)
 - [ ] Smoke-test every keyed path (OpenAI, Claude, Jev) and every fallback path
 
 ### Day 10 — Final review and release
@@ -411,11 +424,11 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Run all 16 notebooks on a fresh free-tier Colab runtime; record run time and API cost per lab
 - [ ] Timing dry-run of each module against the 45 + 50 minute budget; move overflow into stretch sections
 - [ ] Pedagogical review of all 15 lectures: objectives met, notation consistent, prerequisites honoured
-- [ ] Write `facilitator-guide.md`, `instructor-pace.md` and `assessments.md` (entry and exit checks)
-- [ ] Complete `references.qmd` and check every citation
+- [x] Write `facilitator-guide.md`, `instructor-pace.md` and `assessments.md` (entry and exit checks)
+- [ ] Complete `references.qmd` and check every citation (complete for all 15 modules, 135 entries; 45 checked against primary records, 85 against search summaries only because the proxy blocks arXiv, ACL Anthology and most publishers; recheck those from a networked machine)
 - [ ] Link check, spelling pass, accessibility pass (alt text, heading order, contrast)
 - [ ] Licence and attribution check for datasets, figures and borrowed code
-- [ ] Add `health.yml` (scheduled notebook run)
+- [ ] Add `health.yml` (scheduled notebook run) (written: weekly offline, Hub and manual keyed legs; validated with actionlint; not yet run on GitHub)
 - [ ] Final `README.md` with badges and the generated module table
 - [ ] Tag `v1.0.0`, update `CHANGELOG.md`, confirm the deployed site
 

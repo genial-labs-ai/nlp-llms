@@ -6,7 +6,7 @@ toc: false
 
 **{{< var days.d3.question >}}**
 
-Day 3 is about what these models are trained to do. RLHF optimizes for what people prefer; calibration asks whether a model's confidence can be trusted; RLCD, as TypeSafe describes it, makes calibration the training objective.
+Day 3 is about what these models are trained to do. RLHF optimizes for what people prefer; calibration asks whether a model's confidence can be trusted; Module 12 asks what changes when calibration itself is the training objective, the idea third parties describe as RLCD, and keeps what TypeSafe has stated apart from those reports and from our own illustration.
 
 {{< include /_includes/day-3.md >}}
 

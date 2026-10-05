@@ -4,7 +4,7 @@
 
 Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb)
 
 ## Learning objectives
 

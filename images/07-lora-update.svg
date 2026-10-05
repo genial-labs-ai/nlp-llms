@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 456" width="680" height="456" role="img" aria-labelledby="t d">
+  <title id="t">A LoRA layer</title>
+  <desc id="d">The input x, with d_in numbers, enters at the bottom and splits into two paths. Left: a large square block W_0 of size d_out by d_in, frozen. Right: a trapezoid A of size r by d_in, randomly initialized, narrows the input to r numbers, A x; a second trapezoid B of size d_out by r, initialized to zero, widens it back to d_out; the result is scaled by alpha over r. The two paths meet at a plus sign, giving the output h with d_out numbers: h = W_0 x + (alpha / r) B A x. Only A and B are trained.</desc>
+  <style>
+    text { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; fill: #1f2933; }
+    .m { font-family: "Source Serif 4", Georgia, "Times New Roman", serif; }
+    .s { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    .i { font-style: italic; }
+    .b { font-weight: 600; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    .note { font-size: 13.5px; fill: #52606d; }
+    .acc { fill: #b3541e; }
+    .box { fill: #eef2f6; stroke: #16324f; stroke-width: 1.5; }
+    .abox { fill: #f8e9de; stroke: #b3541e; stroke-width: 1.5; }
+    .dim { fill: #f4f6f9; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .ln { fill: none; stroke: #16324f; stroke-width: 1.5; }
+    .aln { fill: none; stroke: #b3541e; stroke-width: 2.5; }
+    .dln { fill: none; stroke: #9aa5b1; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    .rule { fill: none; stroke: #c5ced8; stroke-width: 1.5; }
+    .op { fill: #ffffff; stroke: #16324f; stroke-width: 1.5; }
+    .panel { fill: #fafbfc; stroke: #c5ced8; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#16324f"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b3541e"/></marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#52606d"/></marker>
+    <marker id="d" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9aa5b1"/></marker>
+  </defs>
+  <rect width="680" height="456" rx="8" fill="#ffffff"/>
+  <text x="24" y="34" text-anchor="start" class="m" style="font-size:17px"><tspan class="i">h</tspan><tspan> = </tspan><tspan class="i">W</tspan><tspan dy="4.1" font-size="11.6">0</tspan><tspan dy="-4.1"> </tspan><tspan class="i">x</tspan><tspan> + (</tspan><tspan class="i">α</tspan><tspan> / </tspan><tspan class="i">r</tspan><tspan>) </tspan><tspan class="i">B</tspan><tspan> </tspan><tspan class="i">A</tspan><tspan> </tspan><tspan class="i">x</tspan></text>
+  <text x="330" y="440" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">x</tspan></text>
+  <text x="344" y="440" text-anchor="start" class="m note" style="font-size:14px"><tspan class="s">(</tspan><tspan class="i">d</tspan><tspan dy="3.4" font-size="9.5">in</tspan><tspan dy="-3.4" class="s"> numbers)</tspan></text>
+  <line class="ln" x1="330" y1="422" x2="330" y2="394"/>
+  <circle cx="330" cy="394" r="3.6" fill="#16324f"/>
+  <path class="ln" d="M330,394 H200 V354" marker-end="url(#a)"/>
+  <path class="ln" d="M330,394 H460 V354" marker-end="url(#a)"/>
+  <rect class="box" x="120" y="194" width="160" height="158" rx="4"/>
+  <text x="200" y="262" text-anchor="middle" class="m" style="font-size:24px"><tspan class="i">W</tspan><tspan dy="5.8" font-size="16.3">0</tspan></text>
+  <text x="200" y="290" text-anchor="middle" class="note">frozen</text>
+  <text x="200" y="314" text-anchor="middle" class="m note" style="font-size:15px"><tspan class="i">d</tspan><tspan dy="3.6" font-size="10.2">out</tspan><tspan dy="-3.6"> × </tspan><tspan class="i">d</tspan><tspan dy="3.6" font-size="10.2">in</tspan></text>
+  <polygon class="abox" points="380,352 540,352 472,284 448,284"/>
+  <text x="460" y="336" text-anchor="middle" class="m" style="font-size:20px"><tspan class="i">A</tspan></text>
+  <line class="aln" x1="460" y1="284" x2="460" y2="266" style="stroke-width:1.5"/>
+  <polygon class="abox" points="448,264 472,264 540,194 380,194"/>
+  <text x="460" y="222" text-anchor="middle" class="m" style="font-size:20px"><tspan class="i">B</tspan></text>
+  <text x="552" y="318" text-anchor="start" class="m" style="font-size:15px"><tspan class="i">A</tspan><tspan>: </tspan><tspan class="i">r</tspan><tspan> × </tspan><tspan class="i">d</tspan><tspan dy="3.6" font-size="10.2">in</tspan></text>
+  <text x="552" y="338" text-anchor="start" class="note">random init</text>
+  <text x="552" y="220" text-anchor="start" class="m" style="font-size:15px"><tspan class="i">B</tspan><tspan>: </tspan><tspan class="i">d</tspan><tspan dy="3.6" font-size="10.2">out</tspan><tspan dy="-3.6"> × </tspan><tspan class="i">r</tspan></text>
+  <text x="552" y="240" text-anchor="start" class="note">zero init</text>
+  <text x="478" y="280" text-anchor="start" class="m note" style="font-size:14px"><tspan class="i">A</tspan><tspan> </tspan><tspan class="i">x</tspan><tspan class="s">: </tspan><tspan class="i">r</tspan><tspan class="s"> numbers</tspan></text>
+  <line class="ln" x1="460" y1="194" x2="460" y2="174" marker-end="url(#a)"/>
+  <rect class="op" x="428" y="148" width="64" height="24" rx="12"/>
+  <text x="460" y="166" text-anchor="middle" class="m" style="font-size:15px"><tspan>× </tspan><tspan class="i">α</tspan><tspan> / </tspan><tspan class="i">r</tspan></text>
+  <path class="ln" d="M460,148 V100 H344" marker-end="url(#a)"/>
+  <path class="ln" d="M200,194 V100 H316" marker-end="url(#a)"/>
+  <circle class="op" cx="330" cy="100" r="12"/><path class="ln" d="M324,100 H336 M330,94 V106"/>
+  <line class="ln" x1="330" y1="88" x2="330" y2="62" marker-end="url(#a)"/>
+  <text x="330" y="50" text-anchor="middle" class="m" style="font-size:19px"><tspan class="i">h</tspan></text>
+  <text x="344" y="50" text-anchor="start" class="m note" style="font-size:14px"><tspan class="s">(</tspan><tspan class="i">d</tspan><tspan dy="3.4" font-size="9.5">out</tspan><tspan dy="-3.4" class="s"> numbers)</tspan></text>
+  <rect class="box" x="24" y="400" width="22" height="16" rx="3"/>
+  <text x="52" y="413" text-anchor="start" class="note">frozen: no gradient</text>
+  <rect class="abox" x="24" y="424" width="22" height="16" rx="3"/>
+  <text x="52" y="437" text-anchor="start" class="note">trained</text>
+</svg>

@@ -4,7 +4,7 @@
 
 Tokenization, n-gram language models, TF-IDF and linear classifiers: the count-based baseline everything else is measured against.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb)
 
 ## Learning objectives
 
