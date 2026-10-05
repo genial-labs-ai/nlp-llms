@@ -353,7 +353,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Write `scripts/test_notebooks.py` and `scripts/check_links.py`
 - [x] Add `.github/workflows/publish.yml` (generate, drift gate, lint, test, render, link check, notebook run, opt-in deploy)
 - [x] Confirm `quarto render` is clean
-- [ ] Enable GitHub Pages (set Pages to deploy from GitHub Actions) and confirm the site deploys to <https://project-delphi.github.io/nlp-llms/>
+- [x] Enable GitHub Pages (set Pages to deploy from GitHub Actions) and confirm the site deploys to <https://project-delphi.github.io/nlp-llms/>
 
 ### Day 3 — Modules 1–2
 
