@@ -4,7 +4,7 @@
 
 The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb)
 
 ## Learning objectives
 
