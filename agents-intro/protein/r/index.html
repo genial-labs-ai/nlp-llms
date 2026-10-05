@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ubiquitin in 3D</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #14171c;
+    --panel: #1e232b;
+    --text: #e8eaed;
+    --muted: #9aa3ad;
+    --accent: #f0b429;
+    --line: #333a45;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: grid; grid-template-columns: 320px 1fr; height: 100%; }
+  aside { background: var(--panel); border-right: 1px solid var(--line); padding: 18px 18px 24px;
+    overflow-y: auto; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+    margin: 22px 0 8px; }
+  p { margin: 0 0 8px; }
+  .muted { color: var(--muted); }
+  label { display: block; margin-bottom: 6px; }
+  select { width: 100%; padding: 6px 8px; background: var(--bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 4px; font: inherit; }
+  .legend { height: 12px; border-radius: 3px; margin-top: 10px; }
+  .legend-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; }
+  td { padding: 3px 0; vertical-align: top; }
+  td:first-child { color: var(--muted); width: 58%; padding-right: 8px; }
+  #seq { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; word-break: break-all;
+    line-height: 1.7; }
+  #seq span { cursor: pointer; padding: 0 1px; border-radius: 2px; }
+  #seq span.sel { background: var(--accent); color: #000; }
+  #viewport { position: relative; }
+  #viewport canvas { display: block; }
+  #hint { position: absolute; right: 14px; bottom: 10px; color: var(--muted); font-size: 12px; }
+  #error { color: #ff8a80; }
+</style>
+<!-- three.js, pinned (agents_intro.threejs in _variables.yml), loaded as ES modules from jsDelivr. -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <h1>Ubiquitin (PDB 1UBQ)</h1>
+    <p class="muted" id="subtitle">Loading data.json…</p>
+    <p id="error"></p>
+
+    <h2>Color by</h2>
+    <label for="colorBy" class="muted">Property shown on the backbone</label>
+    <select id="colorBy">
+      <option value="hydrophobicity">Hydrophobicity (Kyte–Doolittle)</option>
+      <option value="contacts">Contacts per residue</option>
+      <option value="bfactor">B-factor (CA atom)</option>
+    </select>
+    <div class="legend" id="legend"></div>
+    <div class="legend-labels"><span id="legendMin"></span><span id="legendMid"></span><span id="legendMax"></span></div>
+
+    <h2>Structure</h2>
+    <table id="stats"></table>
+
+    <h2>Selected residue</h2>
+    <p class="muted" id="pickHint">Click a sphere (or a letter below) to see its details and contacts.</p>
+    <table id="details"></table>
+
+    <h2>Sequence</h2>
+    <div id="seq"></div>
+  </aside>
+  <div id="viewport"><div id="hint">Drag to rotate · scroll to zoom · right-drag to pan</div></div>
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// The fields this page reads from data.json. tests/test_agents_intro.py checks that
+// both reference builds (Python and R) write every one of them.
+const REQUIRED = {"meta": ["pdb_id", "n_residues", "n_heavy_atoms", "contact_cutoff_angstrom", "contact_min_seq_sep", "n_contacts", "rg_ca_angstrom", "rg_heavy_angstrom", "made_by"], "residues": ["index", "res_seq", "res_name", "code", "x", "y", "z", "hydrophobicity", "contacts", "bfactor"], "contacts": []};
+
+// Color scales: [value position 0..1, hex color] stops.
+const SCALES = {
+  hydrophobicity: { stops: [[0, "#2166ac"], [0.5, "#f2f2f2"], [1, "#d6604d"]], fixed: [-4.5, 4.5],
+                    labels: ["hydrophilic −4.5", "0", "+4.5 hydrophobic"] },
+  contacts: { stops: [[0, "#3b528b"], [0.5, "#21918c"], [1, "#fde725"]] },  // more contacts = brighter
+  bfactor: { stops: [[0, "#6a3d9a"], [0.5, "#d6456c"], [1, "#fcd225"]] },  // more mobile = brighter
+};
+
+const $ = (id) => document.getElementById(id);
+
+function checkFields(data) {
+  const missing = [];
+  for (const key of Object.keys(REQUIRED)) {
+    if (!(key in data)) { missing.push(key); continue; }
+    const sample = key === "residues" ? data.residues[0] : data[key];
+    for (const f of REQUIRED[key]) if (!(f in sample)) missing.push(`${key}.${f}`);
+  }
+  if (missing.length) throw new Error(`data.json is missing: ${missing.join(", ")}`);
+}
+
+function colorAt(scale, t) {
+  const stops = scale.stops;
+  t = Math.min(1, Math.max(0, t));
+  for (let k = 1; k < stops.length; k++) {
+    if (t <= stops[k][0]) {
+      const [t0, c0] = stops[k - 1], [t1, c1] = stops[k];
+      return new THREE.Color(c0).lerp(new THREE.Color(c1), (t - t0) / (t1 - t0));
+    }
+  }
+  return new THREE.Color(stops[stops.length - 1][1]);
+}
+
+function rangeOf(prop, residues) {
+  const scale = SCALES[prop];
+  if (scale.fixed) return scale.fixed;
+  const values = residues.map((r) => r[prop]);
+  return [Math.min(...values), Math.max(...values)];
+}
+
+async function main() {
+  const response = await fetch("data.json");
+  if (!response.ok) throw new Error(`Could not load data.json (${response.status}). Run build first.`);
+  const data = await response.json();
+  checkFields(data);
+  const { meta, residues, contacts } = data;
+  const n = residues.length;
+
+  $("subtitle").textContent = `${n} residues · built by the ${{ python: "Python", r: "R" }[meta.made_by] ?? meta.made_by} reference`;
+  $("stats").innerHTML = [
+    ["Residues", n],
+    ["Heavy atoms", meta.n_heavy_atoms],
+    ["Radius of gyration (CA)", `${meta.rg_ca_angstrom.toFixed(2)} Å`],
+    ["Radius of gyration (heavy atoms)", `${meta.rg_heavy_angstrom.toFixed(2)} Å`],
+    [`Contacts (CA–CA ≤ ${meta.contact_cutoff_angstrom} Å, |i−j| ≥ ${meta.contact_min_seq_sep})`, meta.n_contacts],
+  ].map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join("");
+
+  // Partners of each residue, for the details panel and the contact lines.
+  const partners = residues.map(() => []);
+  for (const [i, j] of contacts) { partners[i].push(j); partners[j].push(i); }
+
+  // --- Scene -------------------------------------------------------------------
+  const viewport = $("viewport");
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  viewport.prepend(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x14171c);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+  sun.position.set(30, 40, 50);
+  scene.add(sun);
+
+  // Center the molecule at the origin.
+  const points = residues.map((r) => new THREE.Vector3(r.x, r.y, r.z));
+  const center = new THREE.Box3().setFromPoints(points).getCenter(new THREE.Vector3());
+  points.forEach((p) => p.sub(center));
+  const radius = Math.max(...points.map((p) => p.length()));
+
+  // Backbone tube through the CA atoms, colored per vertex.
+  const curve = new THREE.CatmullRomCurve3(points);
+  const segmentsPerResidue = 8;
+  const tubeGeometry = new THREE.TubeGeometry(curve, (n - 1) * segmentsPerResidue, 0.45, 10, false);
+  const ringSize = 10 + 1; // radialSegments + 1 vertices per ring
+  const tubeColors = new Float32Array(tubeGeometry.attributes.position.count * 3);
+  tubeGeometry.setAttribute("color", new THREE.BufferAttribute(tubeColors, 3));
+  const tube = new THREE.Mesh(tubeGeometry,
+    new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.55 }));
+  scene.add(tube);
+
+  // One sphere per CA atom, for picking.
+  const spheres = new THREE.InstancedMesh(new THREE.SphereGeometry(0.85, 20, 14),
+    new THREE.MeshStandardMaterial({ roughness: 0.4 }), n);
+  const matrix = new THREE.Matrix4();
+  points.forEach((p, k) => { matrix.makeTranslation(p.x, p.y, p.z); spheres.setMatrixAt(k, matrix); });
+  scene.add(spheres);
+
+  // Contact lines of the selected residue.
+  const contactLines = new THREE.LineSegments(new THREE.BufferGeometry(),
+    new THREE.LineBasicMaterial({ color: 0xffffff }));
+  scene.add(contactLines);
+  const ring = new THREE.Mesh(new THREE.SphereGeometry(1.25, 24, 16),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }));
+  ring.visible = false;
+  scene.add(ring);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  camera.position.set(0, 0, radius * 2.4);
+  controls.update();
+
+  // --- Coloring ----------------------------------------------------------------
+  function recolor(prop) {
+    const scale = SCALES[prop];
+    const [lo, hi] = rangeOf(prop, residues);
+    const colors = residues.map((r) => colorAt(scale, (r[prop] - lo) / (hi - lo || 1)));
+    colors.forEach((c, k) => spheres.setColorAt(k, c));
+    spheres.instanceColor.needsUpdate = true;
+    const rings = tubeGeometry.attributes.position.count / ringSize;
+    for (let ringIndex = 0; ringIndex < rings; ringIndex++) {
+      const k = Math.round((ringIndex / (rings - 1)) * (n - 1));
+      for (let v = 0; v < ringSize; v++) colors[k].toArray(tubeColors, (ringIndex * ringSize + v) * 3);
+    }
+    tubeGeometry.attributes.color.needsUpdate = true;
+    const gradient = scale.stops.map(([t, c]) => `${c} ${t * 100}%`).join(", ");
+    $("legend").style.background = `linear-gradient(to right, ${gradient})`;
+    const labels = scale.labels || [lo.toFixed(1), ((lo + hi) / 2).toFixed(1), hi.toFixed(1)];
+    [$("legendMin").textContent, $("legendMid").textContent, $("legendMax").textContent] = labels;
+  }
+  $("colorBy").addEventListener("change", (e) => recolor(e.target.value));
+  recolor($("colorBy").value);
+
+  // --- Selection ---------------------------------------------------------------
+  $("seq").innerHTML = residues.map((r) =>
+    `<span data-k="${r.index}" title="${r.res_name} ${r.res_seq}">${r.code}</span>`).join("");
+  $("seq").addEventListener("click", (e) => { if (e.target.dataset.k) select(+e.target.dataset.k); });
+
+  function select(k) {
+    const r = residues[k];
+    ring.position.copy(points[k]);
+    ring.visible = true;
+    const linePoints = partners[k].flatMap((j) => [points[k], points[j]]);
+    contactLines.geometry.dispose();
+    contactLines.geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+    const names = partners[k].sort((a, b) => a - b)
+      .map((j) => `${residues[j].res_name} ${residues[j].res_seq}`).join(", ") || "none";
+    $("pickHint").style.display = "none";
+    $("details").innerHTML = [
+      ["Residue", `${r.res_name} ${r.res_seq} (${r.code})`],
+      ["Hydrophobicity", r.hydrophobicity.toFixed(1)],
+      ["Contacts", r.contacts],
+      ["B-factor (CA)", r.bfactor.toFixed(2)],
+      ["Contact partners", names],
+    ].map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join("");
+    document.querySelectorAll("#seq span").forEach((s) => s.classList.toggle("sel", +s.dataset.k === k));
+    window.__selected = k;
+  }
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let downAt = null;
+  renderer.domElement.addEventListener("pointerdown", (e) => { downAt = [e.clientX, e.clientY]; });
+  renderer.domElement.addEventListener("pointerup", (e) => {
+    // A click, not the end of a drag.
+    if (!downAt || Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return;
+    const rect = renderer.domElement.getBoundingClientRect();
+    pointer.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    raycaster.setFromCamera(pointer, camera);
+    const hit = raycaster.intersectObject(spheres)[0];
+    if (hit) select(hit.instanceId);
+  });
+
+  // --- Render loop -------------------------------------------------------------
+  function resize() {
+    const { clientWidth: w, clientHeight: h } = viewport;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener("resize", resize);
+  resize();
+  renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+
+  // Hooks for the headless check (agents-intro/check_render.py).
+  function screenPoint(k) {
+    const v = points[k].clone().project(camera);
+    const rect = renderer.domElement.getBoundingClientRect();
+    return { x: rect.left + (v.x + 1) / 2 * rect.width, y: rect.top + (1 - v.y) / 2 * rect.height };
+  }
+  window.__viewer = { kind: "protein", select, recolor, screenPoint, n };
+  window.__ready = true;
+}
+
+main().catch((error) => {
+  $("error").textContent = error.message;
+  console.error(error);
+});
+</script>
+</body>
+</html>

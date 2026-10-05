@@ -168,6 +168,44 @@ datasets:
     status: "provisional"
     documents: 13
     characters: 544974
+  # Module 0 (agents-intro/protein). RCSB is canonical; the repo copy came from a mirror
+  # (`source`) because RCSB is blocked from the build container, and five independent
+  # GitHub copies agree byte for byte. Revision 6 (2024-02-14), the latest per wwPDB
+  # (read 2026-10-05). License read 2026-10-05 from a search-engine extract of
+  # `license_url`; the page itself was blocked (data/README.md).
+  ubiquitin:
+    name: "Ubiquitin, PDB 1UBQ"
+    modules: [0]
+    file: 1ubq.pdb
+    urls:
+      - https://files.rcsb.org/download/1UBQ.pdb
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/1ubq.pdb
+    sha256: "d4a6812d8951cf6594e6a0763f089e35f5a80b62acb3c117b2c5565228a7b161"
+    bytes: 78570
+    license: "CC0 1.0"
+    license_url: https://www.wwpdb.org/about/usage-policies
+    source: https://raw.githubusercontent.com/Lemkul-Lab/gmx_tutorials_jpcb/6c232808330cf79448711f3dada28ec6a43775f9/inputs/01_ubiquitin/1UBQ.pdb
+    residues: 76
+    heavy_atoms: 602
+    waters: 58
+  # Module 0 (agents-intro/rfm). Synthetic, built by data/build_purchases.py (seed 0);
+  # ours, so this repository is its canonical host.
+  purchases:
+    name: "Workshop Purchases v1"
+    modules: [0]
+    file: purchases_v1.csv.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/purchases_v1.csv.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/purchases_v1.csv.gz
+    sha256: "ac73eac9219793d280961ed0e60e1a1649ece3e8ab7c8624da4a4928629fa11b"
+    bytes: 393024
+    license: "CC BY 4.0"
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    seed: 0
+    snapshot: "2026-01-01"
+    customers: 3000
+    invoices: 18432
+    lines: 48953
 
 # The daily clock. `module` slots take the day's modules in order. The
 # `self_serve` slot is optional and unstaffed: it shows a day's `self_serve`
