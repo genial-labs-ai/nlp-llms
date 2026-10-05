@@ -4,6 +4,10 @@ title: "{{< var modules.m13.title >}}"
 
 {{< include /_includes/module-13.md >}}
 
+::: {.recap}
+[Module 12](12-rlcd-jev.qmd) ended with a decision model that answers typed questions about a state, and with thresholds that turn its probabilities into actions. A decision, like a generated answer, is only as good as the text in front of the model, and nothing so far chooses that text. This module answers two questions: how do we put the right passages in front of a model, and when an answer is wrong, how do we tell whether the passages or the model failed?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -22,6 +26,8 @@ title: "{{< var modules.m13.title >}}"
 | **Total** | **45** |
 
 The collapsed callouts are optional and sit outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ::: {.callout-important appearance="simple"}
 **Frameworks change; the pipeline does not.** The LlamaIndex and LangChain names on this page were checked on 2026-10-05 against the installed source of the versions the lab pins: `llama-index-core` 0.14.25, `llama-index-retrievers-bm25` 0.8.0, `langchain-core` 1.6.6 and `langchain-text-splitters` 1.1.3. The documentation sites (`docs.llamaindex.ai`, `docs.langchain.com`) could not be reached from the build environment, so nothing here rests on them. The Jev names were checked against `typesafe-sdk` 0.7.2, as in Module 12. Class names will drift. The seven stages of section 2, the two ways of scoring a passage (section 4 and section 6) and the separation of retrieval metrics from answer metrics (sections 8 and 9) will not.
@@ -57,7 +63,7 @@ The workshop notation applies: vectors in bold, natural logarithms, $\mathbf{1}[
 
 **Objective for this section:** say what retrieval adds to a language model, in terms of freshness, grounding and cost.
 
-Module 12 ended with a decision model that answers typed questions about a **state**, and with thresholds that turn its probabilities into actions. Both the decision model and the language models of Modules 8 and 11 can only be as good as what is in front of them. Module 8 showed that a fluent answer carries no confidence signal; it also carries no source. This module is about putting the right text in front of the model.
+Module 8 showed that a fluent answer carries no confidence signal. It also carries no source, and the model that wrote it can draw only on its weights and its prompt.
 
 A language model has two memories (Lewis et al., 2020):
 
@@ -82,6 +88,14 @@ $$
 The passages are a latent variable, and the gradient of $\log p(y \mid x)$ reaches the query encoder. What is called RAG today is usually simpler: a frozen retriever, a frozen language model and a prompt that contains the retrieved passages. The lab builds that simpler system; this equation is not implemented.
 :::
 
+::: {.self-check}
+**Check yourself.** A colleague has a model with a context window large enough for the whole snapshot and proposes to drop retrieval. Using this section's numbers, what do 1,000 questions cost each way in input tokens at \$1 per million, and what is the second argument against the proposal?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Sending the snapshot costs $147{,}738 \times 1{,}000 / 10^6 \approx \$148$. Sending about 1,500 tokens of retrieved chunks and prompt costs $1{,}500 \times 1{,}000 / 10^6 = \$1.50$, about a hundred times less. The second argument does not depend on price: models use the middle of a long context worse than its ends (Liu et al., 2024), so the passage that holds the answer may be present and still go unused. Retrieval keeps the context short and puts the best passages first. A third point follows from grounding: with five numbered passages a reader can check a citation, and with 147,738 tokens nobody will.
+:::
+:::
+
 ## 2. The pipeline
 
 **Objective for this section:** name the seven stages of a RAG pipeline and say which happen once and which happen per query.
@@ -103,6 +117,14 @@ Alt text: A RAG pipeline in two lanes. Offline, documents are loaded, chunked, e
 | **Generate** | per query | prompt a language model with $q$ and the $k$ passages | Exercise 5 |
 
 Every stage has settings, and every setting changes what the generator sees. The module's second objective is to choose them from measurements, which needs a labelled question set (section 8). Without one, a RAG pipeline is tuned by looking at a few answers, which is how most of the failures in section 10 go unnoticed.
+
+::: {.self-check}
+**Check yourself.** You change the chunk size from 256 to 128 tokens. Which of the seven stages must run again before the next query can be answered? And why do the gold evidence labels of section 8 not need to be redone?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Chunk, embed and index must run again: the chunks are different texts, so their vectors and the index built from them are stale. Load does not, because the documents have not changed. Retrieve, rerank and generate run per query in any case, now over the new chunks. The labels survive because they are spans of the source text, located by character offsets, and not chunk IDs. Whether a chunk covers a span is recomputed for any chunking. Labels tied to chunk IDs would have to be rewritten for every setting in a sweep.
+:::
+:::
 
 ## 3. Chunking
 
@@ -130,6 +152,14 @@ Three ways chunking fails without an error:
 2. **The encoder truncates.** Every encoder has a maximum input length, and text beyond it is dropped without a warning. The encoder the lab proposes accepts 512 tokens (model card, not checked on the Hub; the Hub was unreachable from the build environment); some popular small encoders accept 256 or fewer. A chunk longer than that is embedded from its beginning only.
 3. **Metadata is embedded too.** By default LlamaIndex prepends each node's metadata to the text it embeds (`slug: 01-text-as-data` followed by the chunk), and its BM25 retriever indexes the same text. That can help (a title is informative) or hurt (a file name is not), but it means two frameworks given the same chunks and the same encoder rank them differently. We measured this: with the metadata embedded, LlamaIndex and LangChain agreed on the top 5 for 3 of 6 test queries; with it excluded, on 6 of 6, with identical scores (build environment, stand-in encoder, 2026-10-05). The lab's Exercise 3 turns on it.
 
+::: {.self-check}
+**Check yourself.** Suppose a sweep reports recall@5 of 0.80 with $L = 512$ and 0.62 with $L = 128$ (invented numbers). A colleague concludes that 512-token chunks retrieve better. What is unfair about the comparison, and which run would make it fair? Separately: the colleague's LangChain splitter was set to `chunk_size=128`. What chunk size did it really use?
+
+::: {.callout-tip collapse="true" title="Answer"}
+By @eq-budget, five chunks of 512 tokens put $n_{\text{ctx}} = 2{,}560$ tokens in front of the generator, and five of 128 put 640. The larger chunks were given four times the text, so they had four times the chance to contain the evidence. The fair comparison holds $n_{\text{ctx}}$ fixed: $L = 512$ at $k = 5$ against $L = 128$ at $k = 20$. On the second question: that splitter counts characters by default, so its chunks were 128 characters, roughly a quarter of 128 tokens. The number in the configuration is not the chunk size until you know its unit.
+:::
+:::
+
 ## 4. Dense retrieval
 
 **Objective for this section:** say how a bi-encoder scores a chunk, why its vectors can be computed ahead of time, and how it is trained.
@@ -156,7 +186,25 @@ $$ {#eq-contrastive}
 
 The other passages in the batch, relevant to other queries, serve as negatives for free. Compare Module 2's negative-sampling loss: it scored each negative with a separate sigmoid; here the negatives compete with the positive in one softmax, as in Module 1's cross-entropy with the passages as classes. The temperature $\tau$ (typically 0.01 to 0.05) sharpens the softmax, as Module 11's temperature does with logits.
 
+::: {.worked-example}
+**Worked example: one query, three chunks.** Take $d = 2$ and unit vectors $\mathbf{h}_q = (0.6, 0.8)$, $\mathbf{h}_{c_1} = (1, 0)$, $\mathbf{h}_{c_2} = (0, 1)$ and $\mathbf{h}_{c_3} = (0.8, 0.6)$.
+
+- *Scores* (@eq-dense): $s_{\text{dense}}(q, c_1) = 0.60$, $s_{\text{dense}}(q, c_2) = 0.80$ and $s_{\text{dense}}(q, c_3) = 0.48 + 0.48 = 0.96$.
+- *Top-2 list* (@eq-topk): $R_2(q) = (c_3, c_2)$.
+- *Training loss* (@eq-contrastive), with the three chunks as the batch and $c_3$ as the relevant passage $c^+$. At $\tau = 0.05$ the scores become the logits $12$, $16$ and $19.2$, and $\mathcal{L}_{\text{con}} = -\log \dfrac{e^{19.2}}{e^{12} + e^{16} + e^{19.2}} = 0.041$. At $\tau = 1$ the logits are the scores themselves, and the loss is $0.936$.
+
+The ranking is the same at both temperatures. What changes is how much of the softmax's probability the positive receives: a margin of 0.16 in cosine is a margin of 3.2 in the logits at $\tau = 0.05$. Cosines live in $[-1, 1]$, so without a small $\tau$ the loss could never get close to zero, however well the encoder ranked.
+:::
+
 What the loss implies for use: the encoder knows the kinds of similarity its training pairs taught it. A model trained on web questions and answers matches paraphrases well ("why is attention scaled?" finds "the dot products grow with the dimension") and may match an exact identifier, a number or a rare symbol poorly. That is what sparse retrieval is good at.
+
+::: {.self-check}
+**Check yourself.** In the worked example, suppose the relevant passage is $c_1$ and not $c_3$. What is the contrastive loss at $\tau = 0.05$? In which direction does a gradient step move $\mathbf{h}_q$? And which of the four vectors would have to be recomputed at query time for a new question?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The logits are still 12, 16 and 19.2, but the positive is now the smallest: $\mathcal{L}_{\text{con}} = -\log \dfrac{e^{12}}{e^{12} + e^{16} + e^{19.2}} = 7.24$, about 180 times the loss when $c_3$ was the positive. Minimizing it raises $s_{\text{dense}}(q, c_1)$ and lowers the scores of the in-batch negatives, most strongly $c_3$, which holds nearly all the softmax's probability. The encoder's weights move so that $\mathbf{h}_q$ turns toward $\mathbf{h}_{c_1}$ and away from $\mathbf{h}_{c_3}$. At query time only $\mathbf{h}_q$ is computed. The three chunk vectors were stored at indexing time, which is the property that makes a bi-encoder fast.
+:::
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you write `build_index(docs, chunk_size, overlap, embed_model)`: a `SentenceSplitter` with deterministic node IDs and the metadata excluded from embedding, then a `VectorStoreIndex`, whose retriever computes @eq-dense and @eq-topk. A provided cell sweeps $L \in \{128, 256, 512\}$ and $k$ from 1 to 10 on the `dev` questions and plots recall against $n_{\text{ctx}}$ (@eq-budget). @eq-contrastive is not implemented: the encoder comes pretrained with a loss of this family (see its model card).
@@ -190,6 +238,14 @@ s_{\text{RRF}}(q, c) = \sum_{r \in \{\text{dense},\, \text{BM25}\}} \frac{1}{r_0
 $$ {#eq-rrf}
 
 where a chunk missing from a ranker's list contributes nothing for that ranker. The constant $r_0$ damps the advantage of the very top ranks; Cormack et al. fixed it at 60 in a pilot and did not tune it further. *Worked example:* a chunk ranked 1st by the dense retriever and 10th by BM25 scores $1/61 + 1/70 = 0.0307$; a chunk ranked 3rd by both scores $2/63 = 0.0317$ and comes first. RRF rewards agreement.
+
+::: {.self-check}
+**Check yourself.** Chunk A is ranked 1st by the dense retriever and does not appear in BM25's list. Chunk B is ranked 5th by both. Which has the higher RRF score (@eq-rrf, $r_0 = 60$)? How far down both lists could B sit and still beat A?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A scores $1/61 = 0.0164$, with nothing from BM25. B scores $2/65 = 0.0308$, nearly twice as much. In general a chunk at rank $r$ in both lists beats A when $2/(60 + r) > 1/61$, that is when $r < 62$: even 61st place in both lists ($2/121 = 0.0165$) edges out a single first place. With $r_0 = 60$, RRF values agreement between the rankers far above one ranker's enthusiasm. That is a design choice to know about: a chunk that only the dense retriever can find, such as a pure paraphrase, is pushed down by hybrid fusion.
+:::
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The **stretch** section builds BM25 with `BM25Retriever` over the same chunks (metadata excluded, stemming off for the check), confirms that its scores equal Lab 1's `bm25_scores` divided by $k_1 + 1$ (@eq-bm25-recall), and asks you to write `rrf(rankings, r0=60)` (@eq-rrf). You then compare dense, BM25 and hybrid recall@$k$ on `test`, broken down by question kind. LlamaIndex has a fusion retriever too, but it calls a language model by default even when it does not need one (section 11).
@@ -230,6 +286,14 @@ Everything in that sentence is the interface: one `system_one(state, questions)`
 
 We do not know how Jev was trained or how it represents a passage. TypeSafe states that its models are "trained for calibrated decisions; validate their performance in the target domain" (Module 12, section 2). Whether its relevance judgments help on our corpus is what the lab's labelled questions measure, against a cross-encoder, on the same candidates. Nothing about Jev's ranking quality is assumed on this page.
 
+::: {.self-check}
+**Check yourself.** (1) A first stage has recall@5 of 0.60 and recall@20 of 0.85 (invented numbers). You rerank its 20 candidates and keep 5. What is the highest recall@5 the reranker can reach, and how many pair evaluations do 80 questions cost? (2) For one query, passage X gets rubric probabilities $\pi = (0.1, 0.2, 0.3, 0.4)$ over levels 0 to 3, and passage Y gets $(0.45, 0, 0, 0.55)$. Which ranks first under @eq-expected-level? Which has the higher probability of being a full answer?
+
+::: {.callout-tip collapse="true" title="Answer"}
+(1) At most 0.85. A reranker reorders the $k_0 = 20$ candidates and cannot add a chunk that the first stage missed, so its ceiling is the first stage's recall@20. The cost is $80 \times 20 = 1{,}600$ pair evaluations. (2) $\bar{\ell}(X) = 0.2 + 0.6 + 1.2 = 2.0$ and $\bar{\ell}(Y) = 3 \times 0.55 = 1.65$, so X ranks first, although Y is more likely to be a full answer (0.55 against 0.40). The expected level counts Y's 0.45 chance of being off-topic against it. Y's distribution is also the more concentrated of the two, which is one more reason not to sort by a number that measures concentration.
+:::
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you write `relevance_question(query)`, which returns the `Score` question with the four-level rubric, and `rerank_by_scores(nodes, scores, top_n)`, which sorts candidates by a score, keeps the first stage's order among ties, and keeps the top $n$. Two provided postprocessors call them: `JevRerank` (with a `TYPESAFE_API_KEY`; @eq-expected-level) and `CrossEncoderRerank` (otherwise; @eq-cross). Checkpoints run on a fake client that returns real `typesafe_sdk` response objects, including a failure that must fall back to retrieval order. A provided cell prints recall@$k$ and MRR before and after reranking, latency per query and, with a key, the measured Jev tokens and cost.
 :::
@@ -245,6 +309,14 @@ The generator is Module 8's provider wrapper, with a prompt that does three thin
 3. **Defines abstention exactly.** If the sources do not contain the answer, the model must reply with one fixed sentence, "I cannot answer from the provided sources." A fixed string can be detected by a program; "I'm not sure, but..." cannot. Module 8's rule applies: design the output so that a programmatic check exists.
 
 The passages are data, not instructions. Retrieved text can contain instructions: lecture 8's section on prompt injection quotes one, so a question about prompt injection retrieves it. The prompt says that the sources are quotations to be used as evidence, which reduces the risk without removing it (Module 8, section 8). An attack that arrives through retrieved content rather than through the user is called **indirect prompt injection** (Greshake et al., 2023). [Module 14](14-agents.qmd) tests it on an agent with a tool that can act.
+
+::: {.self-check}
+**Check yourself.** For a question whose answer is not in the sources, the generator replies: "I could not find this in the provided sources, but I believe the value is 0.9." How does a program that follows this section's contract classify the reply, and why is that the right design?
+
+::: {.callout-tip collapse="true" title="Answer"}
+As an answer, not an abstention: it is not the fixed sentence. It is then an answer whose claim cites no source, and section 9's faithfulness judge will find nothing in the passages to support "the value is 0.9". That is the right outcome. The reply states a fact from the model's parametric memory while sounding cautious, and a reader cannot check it. Had the contract accepted any hedged wording as an abstention, the program would need a model to decide which replies count, and the abstention rate would depend on that judge. A fixed string needs only a comparison.
+:::
+:::
 
 ## 8. Evaluating retrieval
 
@@ -271,7 +343,9 @@ $$ {#eq-mrr}
 
 where $\mathrm{rank}_1(q)$ is the position of the first chunk that covers any span of any group, and the term is 0 if no chunk in the list does. Recall@$k$ says whether the evidence reached the generator; MRR says whether it arrived near the top, which matters because the generator reads the top best (section 1).
 
-*Worked example.* Question A has one group, covered first at rank 3. Question B needs two groups; within the top 5, only one is covered, at rank 1. Question C's evidence is not in the top 10. Then Recall@5 $= (1 + \tfrac12 + 0)/3 = 0.5$ and MRR $= (\tfrac13 + 1 + 0)/3 = 0.444$.
+::: {.worked-example}
+**Worked example: recall@5 and MRR on three questions.** Question A has one group, covered first at rank 3. Question B needs two groups; within the top 5, only one is covered, at rank 1. Question C's evidence is not in the top 10. Then Recall@5 $= (1 + \tfrac12 + 0)/3 = 0.5$ and MRR $= (\tfrac13 + 1 + 0)/3 = 0.444$.
+:::
 
 **Using the numbers to choose.** Three rules, each from earlier modules.
 
@@ -279,7 +353,49 @@ where $\mathrm{rank}_1(q)$ is the position of the first chunk that covers any sp
 - **Choose on `dev`, report on `test`.** Chunk size, $k$ and the reranker are hyperparameters. Choosing them on the same questions you report makes the report optimistic, as with Module 11's temperature and Module 12's thresholds.
 - **Read differences with their noise.** With $N = 50$ questions and a recall near 0.8, Module 8's standard error is $\sqrt{0.8 \times 0.2 / 50} \approx 0.06$. Two settings measured on the same questions are better compared **pairwise**: count the questions one setting gets and the other misses, in both directions. Seven gained and two lost is suggestive but not significant (two-sided sign test, $p \approx 0.18$); eight and one would be ($p \approx 0.04$); four and three is noise.
 
+::: {#demo-recall-budget .demo}
+**Demo: equal $k$ or equal budget?** The toy data are invented for this demo and are not measurements from Lab 13: for 12 questions with one evidence group each, the rank at which the evidence is first covered, at three chunk sizes. The left panel plots recall@$k$ (@eq-recall) against $k$; the right panel plots the same curves against $n_{\text{ctx}} = kL$ (@eq-budget). **Predict first.** At $k = 5$ the 512-token chunks have the highest recall. Will they still be ahead when all three sizes get the same 2,560 tokens?
+
+```{ojs}
+//| echo: false
+viewof budget13 = Inputs.range([512, 2560], {value: 2560, step: 128, label: "context budget n_ctx (tokens)"})
+```
+
+```{ojs}
+//| echo: false
+{
+  // Rank of the first chunk that covers each question's evidence (Infinity: never retrieved). Invented.
+  const ranks = {128: [1, 2, 3, 4, 5, 6, 8, 9, 12, 15, 18, Infinity], 256: [1, 1, 2, 3, 3, 4, 5, 6, 8, 10, 14, Infinity],
+                 512: [1, 1, 2, 2, 3, 3, 4, 5, 7, 9, Infinity, Infinity]};
+  const recall = (L, k) => ranks[L].filter(r => r <= k).length / ranks[L].length;    // eq-recall with one group each
+  const sizes = [128, 256, 512], name = L => `L = ${L}`;
+  const color = {domain: sizes.map(name), range: ["#b3541e", "#6b7280", "#1d5f8a"], legend: true};
+  const curve = sizes.flatMap(L => Array.from({length: 20}, (_, i) => ({L: name(L), k: i + 1, n: (i + 1) * L, r: recall(L, i + 1)})));
+  const at = sizes.map(L => { const k = Math.floor(budget13 / L); return {L: name(L), k, n: k * L, r: recall(L, k)}; });
+  const panel = (x, label, domain, extra) => Plot.plot({width: 360, height: 320, grid: true, color,
+    x: {label, domain}, y: {domain: [0, 1], label: "recall@k"},
+    marks: [Plot.line(curve, {x, y: "r", stroke: "L", curve: "step-after", clip: true}), ...extra,
+            Plot.dot(at, {x, y: "r", fill: "L", r: 5})]});
+  const left = panel("k", "number of chunks k", [1, 20], []);
+  const right = panel("n", "context tokens n_ctx = k · L", [0, 2700],
+    [Plot.ruleX([budget13], {stroke: "currentColor", strokeDasharray: "2 3"})]);
+  return html`<div style="display:flex;gap:1rem;flex-wrap:wrap">${left}${right}</div>
+    <p><strong>Budget ${budget13} tokens</strong>: ${at.map(d => `${d.L} reads k = ${d.k} chunks, recall@k ${d.r.toFixed(2)}`).join("; ")}.</p>`;
+}
+```
+
+*What it shows.* The dots mark what each chunk size retrieves within the budget, $k = \lfloor n_{\text{ctx}} / L \rfloor$ chunks. In the left panel the dots sit at different $k$, and reading across at one $k$ favors the large chunks: at $k = 5$, recall is 0.67 for $L = 512$ and 0.42 for $L = 128$. In the right panel the dots line up near the budget line, and the order is reversed: at 2,560 tokens, 0.67 for five 512-token chunks against 0.92 for twenty 128-token chunks. Nothing about the retriever changed between the panels, only the axis. Which chunk size wins at equal budget on a real corpus is an empirical question, and the sweep after Lab 13's Exercise 2 is how you answer it.
+:::
+
 **Who labels.** The questions and their evidence are written and checked by people, not generated by a model. A model asked to write questions from a passage tends to reuse the passage's words, which flatters BM25 and any encoder that matches surface form, and a model that judges relevance is the kind of judge section 9 asks you to check, not to trust. The lab's question set follows the rule of the Module 11 decision set: no item written or labelled by a language model.
+
+::: {.self-check}
+**Check yourself.** Question D needs two evidence groups: $g_1 = \{e_1, e_2\}$ (either span will do) and $g_2 = \{e_3\}$. Its ranked list covers nothing at rank 1, $e_2$ at rank 2, $e_1$ at rank 3, nothing at rank 4 and $e_3$ at rank 5. Compute D's recall@3, recall@5 and reciprocal rank. Then add D to the worked example's three questions and recompute Recall@5 and MRR over all four.
+
+::: {.callout-tip collapse="true" title="Answer"}
+At $k = 3$ only $g_1$ is covered, so D's recall@3 is $1/2$. The spans $e_1$ and $e_2$ are alternatives within one group: finding both does not count twice. At $k = 5$ both groups are covered, so recall@5 is 1. The first chunk that covers any span is at rank 2, so the reciprocal rank is $1/2$. Over the four questions, Recall@5 $= (1 + \tfrac12 + 0 + 1)/4 = 0.625$ and MRR $= (\tfrac13 + 1 + 0 + \tfrac12)/4 = 0.458$. D illustrates why both metrics are reported. Its reciprocal rank is good, and yet a generator given only the top 3 would see half the evidence.
+:::
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 1** you write `recall_at_k(ranked, groups, k)` (@eq-recall) and `reciprocal_rank(ranked, groups)` (one term of @eq-mrr), with `covers` provided. Checkpoint: the worked example above, plus edge cases (a question with no gold groups raises an error; a span split exactly in half by a chunk boundary counts as covered). Exercises 2, 3 and 4 then report both metrics, on `dev` to choose and on `test` to report, with $N$ and the pairwise gained/lost counts.
@@ -320,6 +436,14 @@ The table tells you which half of the pipeline to work on. It is the reason the 
 - **A natural-language-inference (NLI) model** (a cross-encoder trained to label a premise and a hypothesis as entailment, contradiction or neutral) is the lab's open judge: $J$ is the largest entailment probability of the sentence over the passages. It is small and deterministic, but it was trained on short everyday sentences, and lecture pages full of notation and equations are far from that.
 - **Faithfulness is only as good as its agreement with people.** Before trusting a judge, compare its verdicts with human labels on a sample and report the agreement (Module 8). Until the lab's audit set exists, its faithfulness numbers are printed as unvalidated.
 
+::: {.self-check}
+**Check yourself.** An answer has four sentences, and the judge gives them support probabilities 0.9, 0.55, 0.4 and 0.8. (1) What is its faithfulness (@eq-faith)? (2) The 0.4 sentence states a fact that is true but appears in none of the retrieved passages, and it is the sentence that answers the question; the question's gold evidence was not retrieved. In which cell of the two-by-two table does this question fall, and is it a success?
+
+::: {.callout-tip collapse="true" title="Answer"}
+(1) Three of the four sentences reach the threshold of $\tfrac12$, so $\mathrm{Faith} = 3/4 = 0.75$. (2) The answer is correct and the evidence was not retrieved: the lower-left cell, "answered from parametric memory, or luck: not grounded". It is not a success of the pipeline. Retrieval failed on this question, and the correct sentence is the unfaithful one, so a reader cannot check it against a source. Correctness alone would have scored the question as a win and hidden a retrieval failure. Faithfulness alone would have flagged the one sentence that was right. This is why the two are measured separately and then crossed.
+:::
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 5** you write `faithfulness(answer, sources, judge, threshold=0.5)` (@eq-faith), returning the score and the per-sentence verdicts, with `None` for an abstention. Checkpoint: a fake judge with known verdicts, citations stripped before judging, abstention handled. A provided cell generates answers for the `test` questions through the `PROVIDER` switch, scores faithfulness with the selected judge, checks correctness against the recorded answer forms, prints abstention on unanswerable questions, and fills the two-by-two table above. No answer metric is asserted.
 :::
@@ -341,6 +465,14 @@ The table tells you which half of the pipeline to work on. It is the reason the 
 | Instructions inside retrieved text | the answer follows the passage, not the user | an injection item (Module 14) |
 | A stale index | answers about a page as it used to be | a version or date in each chunk's metadata |
 | Questions written from the chunks | high recall that does not survive real questions | a human-written question set with paraphrase |
+
+::: {.self-check}
+**Check yourself.** Your pipeline answers correctly with $k = 10$ and wrongly with $k = 5$ on many questions, and its MRR is low. A teammate proposes to ship with $k = 10$. Name the failure, give one cost of the proposal, and name the alternative that this module would have you measure against it.
+
+::: {.callout-tip collapse="true" title="Answer"}
+The failure is "evidence ranked just below $k$": the first stage finds the evidence but ranks it low, which is what a low MRR says. Shipping $k = 10$ doubles $n_{\text{ctx}}$ (@eq-budget) and with it the input cost of every query, and it places the useful passage in the middle of a longer context, where models use it worst. The alternative is a reranker over the same candidates: keep $k_0 = 10$ or 20 for retrieval, rerank, and pass $k = 5$. Measure both on `dev`, record the context tokens each uses, and count the questions each gains and loses before choosing.
+:::
+:::
 
 ## 11. LlamaIndex and LangChain
 

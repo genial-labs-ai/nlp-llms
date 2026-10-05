@@ -4,6 +4,10 @@ title: "{{< var modules.m15.title >}}"
 
 {{< include /_includes/module-15.md >}}
 
+::: {.recap}
+[Module 14](14-agents.qmd) built an agent as a graph and measured its parts one at a time: the router, the guard, the injection test. No module has yet measured a whole system on a fixed task, or tried to improve one and checked whether the improvement was real. This afternoon answers one question: when you change one component of a system, how do you know that the system got better?
+:::
+
 ## Timing
 
 The capstone takes the whole Day 4 afternoon. Unlike Modules 1 to 14, it has no 45-minute lecture. There are two short talks: the brief at the start and the wrap-up at the end. The time between is pair work.
@@ -18,6 +22,8 @@ The capstone takes the whole Day 4 afternoon. Unlike Modules 1 to 14, it has no 
 | | **Total** | **190** |
 
 The brief covers sections 1 to 4 in 10 minutes, so it is a talk through the tables, not a derivation. Every equation it uses comes from an earlier module. The wrap-up spends about 10 minutes on section 7, 8 on section 8, 7 on section 9 and 5 on section 10. Collapsed callouts are optional reading.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 190 minutes; an instructor may use one as a pause.
 
 ::: {.callout-warning appearance="simple"}
 **Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe's only statement we have found in a TypeSafe source is that its System One models "are trained for calibrated decisions"; the method is unpublished. Section 7 keeps that statement apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
@@ -69,6 +75,14 @@ The documents are *Workshop Lectures v1*, the frozen snapshot of lecture pages 1
 2. **The abstention sentence**, exactly: "I cannot answer from the provided sources."
 
 The contract has a consequence that surprises people. If the documents do not contain the answer, the right output is the abstention sentence, **even when the model knows the answer from elsewhere**. A research assistant that answers from memory cannot show its sources, and its users cannot tell its recalled facts from its invented ones. The evaluation set includes questions of exactly this kind (section 3).
+
+::: {.self-check}
+**Check yourself.** Two outputs, for two questions whose answers are not in the documents. (1) The model knows the fact from its training data and states it, correctly, with no citation. (2) The model replies: "I can't answer that from the sources I was given." Which of them keeps the contract?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Neither. (1) is an answer from memory. It happens to be right, but no source supports it, and the user cannot tell it from an invented fact, so on an unanswerable question it is scored as a wrong answer. (2) means the right thing and says it in the wrong words. The contract fixes the abstention sentence exactly, "I cannot answer from the provided sources.", so that a program can detect it by comparison; the scoring code ignores only extra spaces and the final period. A paraphrase is classified as an answer, and an answer to an unanswerable question is wrong. Both failures are cheap to fix in a prompt, and both are invisible until an evaluation set contains unanswerable questions.
+:::
+:::
 
 ## 2. The starter system
 
@@ -131,6 +145,14 @@ These are the costs of Lab 14's stretch, and the scoring of section 3 uses the s
 
 The open model is not a calibrated decision model. It is there so that the system runs without a key, and its numbers describe it, not Jev.
 
+::: {.self-check}
+**Check yourself.** A draft comes back from the verifier with $p_{\text{sup}} = 0.85$ on the first attempt. (1) What does @eq-verify-rule do? (2) A pair decides that a wrong answer should cost 10 inside their system, with abstention still at 1. What is their $\tau_{\text{verify}}$, and what happens to the same draft? Follow the run to its end if the second attempt gets $p_{\text{sup}} = 0.88$.
+
+::: {.callout-tip collapse="true" title="Answer"}
+(1) $0.85 \ge 0.8$: deliver. (2) $\tau_{\text{verify}} = 1 - 1/10 = 0.9$. Now $0.85 < 0.9$ and no retry has been used ($r = 0 < R_{\max} = 1$), so the graph retrieves again with $2k$ chunks and the generator writes a second draft. That draft's $0.88$ is still below 0.9 and the retry is spent, so the system abstains, and the withheld draft stays in the record. The run used two generator calls, inside the budget of four. Whether the stricter threshold is an improvement is not decided by this trace. It will abstain on some drafts that were right. The score still charges 5 for a wrong answer, whatever the pair assumed inside the system, so the change has to be judged by $\bar{\ell}$ on `dev`.
+:::
+:::
+
 ## 3. The evaluation set and the scoring
 
 **Objective for this section:** define the five numbers every pair reports, each with its denominator, and the single cost that combines accuracy and abstention.
@@ -183,7 +205,8 @@ $$ {#eq-cap-cost}
 
 A correct answer costs 0. A wrong answer costs 5, and so does any answer to an unanswerable question. Abstaining costs 1 on an answerable question and 0 on an unanswerable one. An `error` counts as a wrong answer, following Module 8's rule; otherwise a system could abstain for free by crashing. Answerable questions without recorded key facts cannot be scored by a program, so they are left out of @eq-cap-cost and @eq-cap-acc and reported separately.
 
-*Worked example* (illustrative counts, not measurements). Take 40 auto-checkable answerable questions and 25 unanswerable ones.
+::: {.worked-example}
+**Worked example: the capstone cost of three systems** (illustrative counts, not measurements). Take 40 auto-checkable answerable questions and 25 unanswerable ones.
 
 | System | Cost per question $\bar{\ell}$ |
 |---|---|
@@ -192,6 +215,7 @@ A correct answer costs 0. A wrong answer costs 5, and so does any answer to an u
 | Answer 30 of $\mathcal{A}$ (24 correct), abstain on the other 10; abstain on 15 of $\mathcal{U}$ and answer 10 | $(5 \times 16 + 10) / 65 = 1.38$ |
 
 With $\ell_{\text{wrong}} = 5$, answering pays only when the answer is right more than $1 - 1/5 = 80\%$ of the time: Chow's rule again. A system that cannot tell its right answers from its wrong ones does better by abstaining. That is the role of the verifier, and the question every pair's change has to answer.
+:::
 
 **Comparing with the baseline.** Every pair's change is measured on the same questions as the baseline, so read the difference **pairwise**, as in Module 13. A question is **gained** if its cost under @eq-cap-cost fell and **lost** if it rose. If the change made no difference, each changed question would be equally likely to be a gain or a loss. The **sign test** asks how surprising the observed split is under that assumption:
 
@@ -202,6 +226,14 @@ $$ {#eq-sign-test}
 With 8 gained and 1 lost, $p = 0.039$. With 7 and 2 it is $0.18$, and with 4 and 3 it is 1. Nine questions that change are not many, and on 80 questions a real improvement of a few points will often fail to reach 0.05. Report $g$, $l$ and $p$ together, and treat a large $p$ as "not shown", not as "no effect".
 
 **The run-to-run floor.** A keyed system is not deterministic: two runs of the same baseline can disagree on a few questions. Each pair therefore compares two baseline runs, its own and the instructor's recorded one, and the notebook prints how many questions flipped between them. A change whose $g + l$ is not clearly larger than that count has not shown anything.
+
+::: {.self-check}
+**Check yourself.** On the worked example's 65 questions, a fourth system answers 35 of the 40 answerable questions (26 correctly) and abstains on 5. It abstains on 20 of the 25 unanswerable questions and answers 5. (1) Compute its $\bar{\ell}$, $\mathrm{Acc}$, both abstention rates and its accuracy on the questions it answered. Is it better than the worked example's third system? (2) Against that system it gains 6 questions and loses 1. Is the difference shown?
+
+::: {.callout-tip collapse="true" title="Answer"}
+(1) Wrong answers: 9 on $\mathcal{A}$ and 5 on $\mathcal{U}$, 14 in all, at cost 5; abstentions on $\mathcal{A}$: 5, at cost 1. So $\bar{\ell} = (70 + 5)/65 = 1.15$, against 1.38. $\mathrm{Acc} = 26/40 = 0.65$ (against $24/40 = 0.60$), $\mathrm{Abs}_{\mathcal{U}} = 20/25 = 0.80$ (against 0.60) and $\mathrm{Abs}_{\mathcal{A}} = 5/40 = 0.125$ (against 0.25). Every one of the reported numbers is better. Its accuracy on answered questions is $26/35 = 0.74$, lower than the third system's $24/30 = 0.80$: the one number that looks worse is the one this page says never to report alone, because it rewards abstaining. (2) By @eq-sign-test, $p = 2 \times (7 + 1)/2^7 = 0.125$. Not shown at 0.05. Report $g = 6$, $l = 1$ and $p = 0.125$, and compare $g + l = 7$ with the run-to-run flip count before saying anything more.
+:::
+:::
 
 ## 4. The rules of the afternoon
 
@@ -223,6 +255,14 @@ With 8 gained and 1 lost, $p = 0.039$. With 7 and 2 it is $0.18$, and with 4 and
 **Label every number.** Each result carries the names of the generator, decision model, retriever and judge that produced it. Results from the offline test run are under a banner, "These numbers measure the notebook's code, not any model", and the instructor's table does not rank them. A number from the open model is never reported as Jev's.
 
 **What a pair submits** is one file, written by the notebook's last cell: the path and model names, the change and the hypothesis card, the baseline and final scores on `dev` and `test`, the gained and lost counts with the sign test, the run-to-run flip count, the cost and latency, the number of `test` runs, and the scoring hash. The same cell prints a **share card**: the five numbers before and after, and three sentences (what you changed, what you predicted, what happened). That card is your two-minute talk.
+
+::: {.self-check}
+**Check yourself.** A pair runs `test` after each of five changes and submits the best of the five scores. Every one of the five runs followed the scoring rules. What is wrong with the number they report, and where will the instructor see it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The reported score is the largest of five noisy measurements. Even if none of the five changes had any real effect, the best of five runs would often beat the baseline, because run-to-run flips and a small question set move each score a little and the pair kept the luckiest. The test set has been used to choose, which makes it a development set, and no untouched questions remain to say what the chosen system really scores. The submission file records the number of `test` runs, so the count of 6 (the baseline and five more) is in front of the instructor. The remedy costs nothing: iterate on `dev`, freeze, and run `test` once.
+:::
+:::
 
 ## Part II. Build
 
@@ -290,6 +330,14 @@ Two changes are **not** allowed in the scored run: adding documents to the corpu
 - **Small $N$.** About 25 unanswerable test questions give a standard error near 0.09 on $\mathrm{Abs}_{\mathcal{U}}$ (Module 8, eq. `se`).
 - **One domain.** These are questions about one workshop's pages. A result here is a hypothesis for another corpus, not a finding about it.
 
+::: {.self-check}
+**Check yourself.** Fifteen pairs each compare their change with the baseline and test at the 0.05 level. Suppose that none of the fifteen changes has any real effect. How many "significant" results should the room expect, and how likely is at least one? What should the room do about it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Each test has a 5% chance of a false alarm, so the expected number is $15 \times 0.05 = 0.75$, and the chance of at least one is $1 - 0.95^{15} = 0.54$ if the tests are independent. A single $p < 0.05$ in the combined table is therefore about as likely as not to appear when nothing works. Read the table as a set of hypotheses. A change that several pairs made independently, with gains in the same direction, is worth more than one small $p$-value. A result that matters should be run again on questions that nobody has used.
+:::
+:::
+
 ## Part IV. Wrap-up
 
 16:30 to 17:00, the whole room. Sections 7 to 10.
@@ -344,6 +392,14 @@ Each item names the module where you met it.
 12. **Count the human's work.** Every interrupt costs a person's time, and a simulated human who never misses anything is optimistic (12, 14).
 13. **Label every number with the system that produced it.** A stand-in's number must never travel as a result (8, 11–15).
 14. **Version everything that can change a number:** model IDs, package pins, prompts, the corpus and the evaluation set. Re-run when any of them changes (all).
+
+::: {.self-check}
+**Check yourself.** Item 4 says that ten steps which each succeed 95% of the time, independently, give a run that succeeds about 60% of the time. Under the same assumption, how reliable must each of ten steps be for the run to succeed 90% of the time? What does the answer say about where to spend effort in a long pipeline?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Each step must succeed with probability $0.9^{1/10} = 0.9895$, about 99%: the failure rate per step has to fall from 5% to about 1%, a factor of five, to move the run from 60% to 90%. Check: $0.99^{10} = 0.904$. Two things follow. Shortening the pipeline helps as much as improving a step, since each step removed takes one factor out of the product. And a step that can detect its own likely failures and abstain, ask or escalate, as the verifier and the guard do, turns a silent error into a visible and cheaper one, which the product of success rates does not show. Real steps are not independent, so treat the arithmetic as a warning and measure the whole run.
+:::
+:::
 
 ## 9. Open problems
 
