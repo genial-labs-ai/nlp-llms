@@ -4,6 +4,10 @@ title: "{{< var modules.m09.title >}}"
 
 {{< include /_includes/module-09.md >}}
 
+::: {.recap}
+**Where we are.** Day 2 trained models to make a given text more likely: pretraining, fine-tuning, instruction tuning. [Module 8](08-llm-apis.qmd) ended on what that leaves out: nothing in a response says how good it is. This module answers one question: how do we train a model toward "better" when all we have is a score for a finished response, or only a person's choice between two responses?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -19,6 +23,8 @@ title: "{{< var modules.m09.title >}}"
 | **Total** | **45** |
 
 The collapsed callouts are optional and sit outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## 1. No label for "better"
 
@@ -123,6 +129,14 @@ So the language model you trained in Modules 5 to 7 already *is* a policy. What 
 **In the lab.** The first half of Lab 9 uses a toy environment whose optimum you know. The policy writes $T = 6$ symbols from a vocabulary of 8, conditioned on its position and the previous symbol (a bigram policy, as in Module 1). The reward is the fraction of positions that match a hidden target string $y^\star$. The optimal policy writes $y^\star$ with probability 1 and earns $J = 1$; the uniform policy, where training starts, earns $J = 1/8$. The provided `token_logprobs(logits, actions)` returns the per-step terms of @eq-seq-logprob for a batch, shape $(N, T)$.
 :::
 
+::: {.self-check}
+**Check yourself.** In the lab's toy task ($T = 6$ symbols from a vocabulary of 8) the policy starts uniform. What is $\log \pi_\theta(y \mid x)$ for any response $y$? With what probability does the policy write the target $y^\star$ exactly? If the reward were 1 for an exact match and 0 otherwise, what would training see in a batch of 64 samples?
+
+::: {.callout-tip collapse="true" title="Answer"}
+By @eq-seq-logprob, $\log \pi_\theta(y \mid x) = 6 \log \tfrac{1}{8} \approx -12.48$ for every response. An exact match has probability $(1/8)^6 = 1/262{,}144$, about $3.8 \times 10^{-6}$. With an all-or-nothing reward, almost every batch of 64 would contain only zeros, and a zero reward carries no information about which direction is better. The lab's reward is the *fraction* of matching positions, which is $1/8$ on average at the start and differs from sample to sample, so there is a signal to follow from the first step. How a reward is shaped decides whether the policy gradient has anything to work with.
+:::
+:::
+
 ## 3. The policy gradient and REINFORCE
 
 **Objective for this section:** derive the gradient of the expected reward, and turn it into a loss that autograd can use.
@@ -181,8 +195,27 @@ where the weights $R_i - b$ are treated as constants: in code, detached from the
 
 Compare @eq-pg-loss with the SFT loss of Module 7. SFT minimizes $-\log \pi_\theta(y \mid x)$ for a *reference* response written by a person. REINFORCE minimizes the same negative log-likelihood for the model's *own* samples, each weighted by how good it was. With a reward in $\{0, 1\}$ and $b = 0$, REINFORCE is SFT on the model's own successes.
 
+::: {.worked-example}
+**Worked example: one REINFORCE step.** A policy chooses between two actions. It picks action 1 with probability $p = \sigma(\theta)$ and action 2 otherwise. Action 1 pays reward 1 and action 2 pays 0, so $J = p$. Start at $\theta = 0$, where $p = 0.5$, and take $N = 1$, $b = 0$ and learning rate $\eta = 1$.
+
+- **Score function.** $\frac{d}{d\theta} \log p = 1 - p = 0.5$ for action 1, and $\frac{d}{d\theta} \log (1 - p) = -p = -0.5$ for action 2.
+- **If action 1 is sampled:** $\hat{g} = 1 \times 0.5 = 0.5$ (@eq-reinforce). The step gives $\theta = 0 + 1 \times 0.5 = 0.5$ and $p = \sigma(0.5) \approx 0.62$. The rewarded action became more likely.
+- **If action 2 is sampled:** $\hat{g} = 0 \times (-0.5) = 0$. Nothing moves. With $b = 0$, a sample with reward zero teaches nothing.
+- **On average:** $0.5 \times 0.5 + 0.5 \times 0 = 0.25$, which equals the true gradient $\frac{dJ}{d\theta} = p\,(1 - p) = 0.25$.
+
+No single estimate equals 0.25: it is either 0.5 or 0. The estimator is right only on average, and how far a single estimate can be from the average is the subject of section 4.
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 1** you write `returns_to_go(rewards)` (@eq-return) and `reinforce_loss(logp, returns, baseline=0.0)` (@eq-pg-loss, in the per-token form of section 5). The toy problem is small enough ($8^6 = 262{,}144$ responses) that the provided `exact_gradient(theta)` computes @eq-objective and its true gradient by enumeration. The checkpoint averages your estimate @eq-reinforce over many batches and compares it with the exact gradient. Then the provided loop trains the policy, and you watch $J$ rise from $1/8$ toward its known optimum of 1.
+:::
+
+::: {.self-check}
+**Check yourself.** Commit to an answer before reading section 4. In the worked example above, add 100 to both rewards, so that the actions pay 101 and 100. Does the true gradient $dJ/d\theta$ at $p = 0.5$ change? What are the two possible one-sample estimates $\hat{g}$ now, with $b = 0$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The true gradient does not change. $J = 101p + 100(1 - p) = 100 + p$, so $dJ/d\theta = p(1 - p) = 0.25$ as before: a constant added to every reward does not change which action is better. The estimates change a great deal: $101 \times 0.5 = 50.5$ if action 1 is sampled and $100 \times (-0.5) = -50$ if action 2 is. Their mean is still $0.25$, but each one is about 200 times the size of the quantity it estimates, and its sign depends on which action happened to be drawn. The level of the reward is pure noise for REINFORCE, and section 4 removes it.
+:::
 :::
 
 ## 4. Baselines and variance
@@ -221,6 +254,57 @@ $$ {#eq-baseline}
 
 So replacing $R$ by $R - b$ in @eq-reinforce changes the variance of $\hat{g}$, never its mean. The baseline may depend on the prompt $x$, on the parameters, and on other samples, but not on the response it is subtracted from. The difference $R - b$ is an estimate of the **advantage**: how much better this response was than what the policy typically gets.
 
+::: {#demo-baseline .demo}
+**Demo: a baseline moves the noise, not the mean.** This is the two-action example above, with rewards 11 and 10: an illustration, not lab data.
+
+**Predict first.** Before you move the baseline $b$: of the two possible estimates, their mean and their standard deviation, which will not move?
+
+```{ojs}
+//| echo: false
+viewof p09 = Inputs.range([0.05, 0.95], {label: "Probability of action 1, p = σ(θ)", step: 0.05, value: 0.5})
+viewof b09 = Inputs.range([0, 15], {label: "Baseline b", step: 0.1, value: 0})
+```
+
+```{ojs}
+//| echo: false
+names09 = ["estimate if action 1 is sampled", "estimate if action 2 is sampled", "mean of the estimate (the true gradient)"]
+stats09 = {
+  const g1 = (11 - b09) * (1 - p09), g2 = (10 - b09) * (-p09);   // (R - b) times the score function
+  const mean = p09 * g1 + (1 - p09) * g2;
+  const sd = Math.sqrt(p09 * (g1 - mean) ** 2 + (1 - p09) * (g2 - mean) ** 2);
+  return {g1, g2, mean, sd, cross: (1 - p09) * 11 + p09 * 10};
+}
+lines09 = Array.from({length: 151}, (_, i) => i / 10).flatMap(b => [
+  {b, g: (11 - b) * (1 - p09), which: names09[0]},
+  {b, g: (10 - b) * (-p09), which: names09[1]},
+  {b, g: p09 * (1 - p09), which: names09[2]}
+])
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 720, height: 340, marginLeft: 60, grid: true,
+  x: {label: "baseline b"},
+  y: {label: "one-sample gradient estimate", domain: [-10, 11]},
+  color: {legend: true, domain: names09, range: ["#1d5f8a", "#b3541e", "#2e7d4f"]},
+  marks: [
+    Plot.ruleY([0], {stroke: "#bbb"}),
+    Plot.line(lines09, {x: "b", y: "g", stroke: "which", strokeWidth: 2}),
+    Plot.ruleX([b09], {stroke: "#888", strokeDasharray: "4 3"}),
+    Plot.dot([{b: b09, g: stats09.g1, which: names09[0]}, {b: b09, g: stats09.g2, which: names09[1]}], {x: "b", y: "g", fill: "which", r: 5})
+  ]
+})
+```
+
+```{ojs}
+//| echo: false
+html`<p>At b = ${b09.toFixed(1)}: the estimate is <strong>${stats09.g1.toFixed(2)}</strong> if action 1 is sampled and <strong>${stats09.g2.toFixed(2)}</strong> if action 2 is. Mean <strong>${stats09.mean.toFixed(4)}</strong>, standard deviation <strong>${stats09.sd.toFixed(2)}</strong>. The two lines cross at b = ${stats09.cross.toFixed(2)}.</p>`
+```
+
+The two sloped lines are $(R - b)$ times the score function for each action, and the flat line is their probability-weighted mean, $p(1 - p)$. The demo shows @eq-baseline: the baseline slides both estimates but never their mean, and the standard deviation is the gap between the lines. At $p = 0.5$ the lines cross at the mean reward, 10.5, where every estimate equals the true gradient. For other $p$ they cross at $(1 - p) \times 11 + p \times 10$, which is the variance-minimizing baseline of the optional box below; the mean reward is close to it, and close is enough.
+:::
+
 **Which baseline.** A good baseline is close to the expected reward $\mathbb{E}[R]$. With $N \ge 2$ samples for the same prompt, two choices cost nothing:
 
 - **Leave-one-out.** Use the mean reward of the *other* samples:
@@ -255,6 +339,14 @@ For a single parameter, the variance of $(R - b)\, g$ with $g = \partial_\theta 
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you write `loo_baseline(returns)` (@eq-loo); `batch_mean_baseline` is provided beside it. The checkpoint has two parts. Unbiasedness (@eq-baseline): averaged over many batches at the uniform starting policy, the estimate with your baseline matches the exact gradient, as the one without a baseline does; and on every batch, the batch-mean estimate equals $(1 - 1/N)$ times yours. Variance: the provided cell measures the total variance of $\hat{g}$ over those batches, without a baseline, with yours, and with the token-level rewards of section 5. Predict the ranking first. A last cell trains several seeds with and without the baseline and prints the steps each needs to reach $J \ge 0.9$.
+:::
+
+::: {.self-check}
+**Check yourself.** A batch of $N = 4$ responses has rewards $(3, 1, 0, 0)$. Compute the leave-one-out baseline $b^{(i)}$ and the weight $R_i - b^{(i)}$ for each sample. Then compute $R_i - \bar{R}$ with the batch mean, and check the factor the text claims. Which response is made more likely by the update, and which is left alone?
+
+::: {.callout-tip collapse="true" title="Answer"}
+By @eq-loo the baselines are the means of the other three rewards: $(1/3,\ 1,\ 4/3,\ 4/3)$. The weights are $(8/3,\ 0,\ -4/3,\ -4/3)$. The batch mean is $\bar{R} = 1$, which gives $(2,\ 0,\ -1,\ -1)$: each is $3/4 = 1 - 1/N$ of the leave-one-out weight, as claimed. The first response is pushed up and the last two are pushed down. The second, with reward 1, is left alone: it did exactly as well as the others did on average, so it carries no evidence either way. With $b = 0$ it would have been pushed up, simply for having a positive reward.
+:::
 :::
 
 ## 5. Generation as sequential decisions
@@ -305,6 +397,14 @@ Many RL texts weight later rewards by $\gamma^{t'-t}$ with a **discount factor**
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The toy task has a natural per-token decomposition, $r_t = \mathbf{1}[y_t = y^\star_t] / T$, whose sum is the sequence-level reward. The provided third row of the variance table in **Exercise 2** feeds these token-level rewards through your `returns_to_go` (@eq-reward-to-go), so you compare sequence-level credit with token-level credit on the same samples.
+:::
+
+::: {.self-check}
+**Check yourself.** In the toy task, a sampled response matches the target at positions 1, 3 and 6 and misses at 2, 4 and 5. Write the token-level rewards $r_t$ and the returns $G_t$ (@eq-return). What weight does each token get under the sequence-level reward? The token at position 5 was wrong: which scheme gives it less weight, and why is its weight not zero?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With $r_t = \mathbf{1}[y_t = y^\star_t] / 6$, the rewards are $(\tfrac16, 0, \tfrac16, 0, 0, \tfrac16)$ and the returns, summing from the right, are $G = (\tfrac12, \tfrac13, \tfrac13, \tfrac16, \tfrac16, \tfrac16)$. The sequence-level reward is $R = \tfrac12$, and it gives every token the weight $\tfrac12$. Token 5 gets $\tfrac16$ under token-level credit against $\tfrac12$ under sequence-level credit: it is no longer credited with the matches at positions 1 and 3, which were decided before it was drawn. Its weight is not zero because $G_5 = r_5 + r_6$ includes the match at position 6. The reward-to-go credits a token with everything from its own step onward, and in this task the policy at position 6 conditions on the symbol written at position 5. Its own miss is counted too: had token 5 matched, $G_5$ would be $\tfrac13$.
+:::
 :::
 
 ## 6. Why comparisons instead of scores
@@ -361,6 +461,14 @@ $$ {#eq-oracle}
 **In the lab.** The second half of Lab 9 uses a synthetic rater whose rule you know, so that you can check what the reward model learns. Prompts are eight-word openings of everyday sentences, such as "My sister opened the old letter and felt", from a fixed list written for the workshop. The two responses of each pair are 24-token continuations sampled from the small pretrained GPT-2 that you probed in Lab 6 (`{{< var models.causal_lm >}}`), the model that Lab 10 will fine-tune. The **gold score** $g(y)$ rewards distinct words from a short list of positive words (counting at most three), subtracts one for each word from a list of negative words, and subtracts a penalty when the response is crowded with words from the two lists. The rater labels each pair with @eq-bt-rater, with $u = g$ and a fixed $\tau_{\text{label}}$. The pairs come with the lab as a data file that stores GPT-2's token ids and the text of every response, and both gold scores. In **Exercise 3** you write `bt_prob(g_a, g_b, tau_label)`; the checkpoint compares your probabilities with the label frequencies in the file, and a provided cell prints $\mathrm{Acc}^\star$ (@eq-oracle) for the held-out pairs: the ceiling for Exercise 4.
 :::
 
+::: {.self-check}
+**Check yourself.** A held-out set has three pairs, with quality gaps $u_a - u_b$ of 0, 1 and 2, labeled by a rater with $\tau_{\text{label}} = 0.5$. Compute $\mathrm{Acc}^\star$. A reward model reaches 0.79 on a large held-out set with the same mix of gaps. A colleague calls that mediocre and wants a bigger model. What do you say?
+
+::: {.callout-tip collapse="true" title="Answer"}
+By @eq-bt-rater the label probabilities are $\sigma(0) = 0.5$, $\sigma(2) \approx 0.881$ and $\sigma(4) \approx 0.982$. Each is already the larger of $p$ and $1 - p$, so by @eq-oracle $\mathrm{Acc}^\star = (0.5 + 0.881 + 0.982) / 3 \approx 0.788$. A reward model at 0.79 is at the ceiling: it predicts the labels as well as the true quality $u$ would. The missing 21 points are rater noise and ties, which no model can predict. A bigger model cannot honestly go higher. If it did, by a clear margin on a large set, the first things to check would be overfitting and leaked labels.
+:::
+:::
+
 ## 8. Training a reward model
 
 **Objective for this section:** write the reward-model loss, connect it to logistic regression, and say what held-out accuracy does and does not tell you.
@@ -381,6 +489,16 @@ def bt_loss(reward_w, reward_l):           # (n,) each: r_phi(x, y_w) and r_phi(
 ```
 
 `F.logsigmoid` computes $\log \sigma$ without forming $\sigma$ first, so it neither underflows nor returns $\log 0$ when the difference is large and negative. Module 10's DPO loss calls this same function with a different reward.
+
+::: {.worked-example}
+**Worked example: one pair through the loss.** For one triple, the reward model gives the preferred response $r_\phi(x, y_w) = 1.0$ and the other $r_\phi(x, y_l) = 0.2$. Write $\Delta = r_\phi(x, y_w) - r_\phi(x, y_l)$ for the gap.
+
+- **Probability** (@eq-bt): $\Delta = 0.8$, so the model says the observed preference had probability $\sigma(0.8) \approx 0.690$.
+- **Loss** (@eq-rm-loss, one pair): $-\log 0.690 \approx 0.371$.
+- **Gradient.** Since $\frac{d}{d\Delta}\big[-\log \sigma(\Delta)\big] = -\sigma(-\Delta)$, the derivative of the loss is $-\sigma(-0.8) \approx -0.310$ with respect to $r_\phi(x, y_w)$ and $+0.310$ with respect to $r_\phi(x, y_l)$. A gradient-descent step raises the winner's score and lowers the loser's by the same amount. The two derivatives sum to zero: the loss pulls scores apart and never moves their common level, which is the "only differences" property of section 7.
+- **The same pair, ranked the wrong way.** With the scores exchanged, $\Delta = -0.8$: the loss is $-\log \sigma(-0.8) \approx 1.171$ and the derivatives have size $\sigma(0.8) \approx 0.690$. A misranked pair is pushed more than twice as hard as a correctly ranked one.
+- **Before training.** If every score is equal, $\Delta = 0$ and the loss is $\log 2 \approx 0.693$ for every pair. A reward model whose loss stays near 0.693 has learned nothing.
+:::
 
 **It is logistic regression.** @eq-rm-loss is the binary cross-entropy of Module 1 with the label "the first response wins" and the logit $r_\phi(x, y_w) - r_\phi(x, y_l)$. If the reward were linear in fixed features, $r_\phi(x, y) = \phi^\top f(x, y)$, the logit would be $\phi^\top \big(f(x, y_w) - f(x, y_l)\big)$, and training the reward model would *be* logistic regression on feature differences, with a convex loss. There is no constant term: a bias cancels in the difference, which is the "only differences" property of section 7 again. A neural reward model is the same loss with learned features.
 
@@ -411,6 +529,14 @@ The shift changes nothing in the comparisons. It matters downstream: the policy 
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you write `bt_loss(reward_w, reward_l)` (@eq-rm-loss); the checkpoint compares it with hand values and with PyTorch's binary cross-entropy, and checks that adding a constant to both scores leaves it unchanged. The provided reward model is a small transformer built from the block of Lab 5. It reads GPT-2's token ids for the prompt and the response together and outputs one number at the last position. Unlike the reward models described at the start of this section, it does not start from a pretrained language model: it is trained from scratch, which keeps Lab 9 on a CPU with no download. One consequence matters in Module 10: it has an embedding only for tokens that occur at least twice in its training pairs, and every other token looks the same to it. After training, three numbers on held-out pairs: pairwise accuracy beside $\mathrm{Acc}^\star$, accuracy against the ordering by $g$, and the rank correlation between $r_\phi$ and $g$. A provided cell then scores a few hand-written responses that the reference model rarely writes, such as one positive word repeated many times or a response made only of positive words, and prints $r_\phi$ beside $g$: a preview of Module 10. In **Exercise 5** you write `fit_normalizer(raw_scores)` (@eq-normalize) on the held-out responses and save the reward model, normalization included, to the file that Lab 10 loads. The **stretch** section raises $\tau_{\text{label}}$ and measures how the reward model's accuracy degrades as the raters get noisier.
+:::
+
+::: {.self-check}
+**Check yourself.** Three reward models score the same pair, preferred response first: model A gives $(5.0,\ 3.0)$, model B gives $(105,\ 103)$ and model C gives $(2.5,\ 1.5)$. All three rank the pair correctly. Which have the same loss on it? Why is C's loss higher, and is C a worse reward model? What does @eq-normalize do to the difference between A and B?
+
+::: {.callout-tip collapse="true" title="Answer"}
+A and B have the same gap, 2, so the same loss: $-\log \sigma(2) \approx 0.127$. The level, 5 or 105, never enters @eq-rm-loss. C has a gap of 1 and a loss of $-\log \sigma(1) \approx 0.313$. C is A at half the scale, and by section 7 scale is tangled with rater noise: C describes the same ranking as A with less confident preferences. Which of the two fits better depends on how consistent the raters were, so C is not worse on this evidence. On this pair their pairwise accuracy is identical. Normalization subtracts each model's own mean on a reference set, which removes an offset such as the 100 between A and B, and divides by each model's own standard deviation, which removes a factor such as the 2 between A and C. If B were A plus 100 and C were A halved on every response, all three would hand the optimizer exactly the same reward after @eq-normalize.
+:::
 :::
 
 ## Summary
