@@ -63,7 +63,7 @@ uv run --group site python scripts/gen_notebooks.py   # notebook header and foot
 Checks:
 
 ```bash
-uv run --group lint ruff check scripts tests
+uv run --group lint ruff check scripts tests data
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py   # run every notebook
 quarto render && uv run --group site python scripts/check_links.py

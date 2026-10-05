@@ -387,7 +387,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Code `07-finetuning-lora.ipynb` (written; LoRA layer and offline parts run; SmolLM2 + Dolly path not run: Hub blocked)
 - [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path (written; runs end to end on an offline stub; OpenAI, Claude and Qwen paths not run)
 - [x] Pin OpenAI and Claude model IDs in `_variables.yml`
-- [ ] Add repository secrets and make CI skip keyed paths when they are absent
+- [ ] Add repository secrets and make CI skip keyed paths when they are absent (labs read keys from Colab Secrets or the environment and take their no-key path when absent; `health.yml`'s keyed leg uses the secrets; Romeo to add them)
 - [ ] Review: Lab 8 completes with no keys set (holds on the stub only; the Qwen fallback has not run)
 
 ### Day 7 — Modules 9–10
@@ -428,7 +428,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Complete `references.qmd` and check every citation (complete for all 15 modules, 135 entries; 45 checked against primary records, 85 against search summaries only because the proxy blocks arXiv, ACL Anthology and most publishers; recheck those from a networked machine)
 - [ ] Link check, spelling pass, accessibility pass (alt text, heading order, contrast)
 - [ ] Licence and attribution check for datasets, figures and borrowed code
-- [ ] Add `health.yml` (scheduled notebook run)
+- [ ] Add `health.yml` (scheduled notebook run) (written: weekly offline, Hub and manual keyed legs; validated with actionlint; not yet run on GitHub)
 - [ ] Final `README.md` with badges and the generated module table
 - [ ] Tag `v1.0.0`, update `CHANGELOG.md`, confirm the deployed site
 
