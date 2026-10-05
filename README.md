@@ -1,10 +1,13 @@
 # From Traditional NLP to Modern LLMs
 
 [![Publish](https://github.com/project-delphi/nlp-llms/actions/workflows/publish.yml/badge.svg)](https://github.com/project-delphi/nlp-llms/actions/workflows/publish.yml)
+[![Site](https://img.shields.io/badge/site-project--delphi.github.io%2Fnlp--llms-0a7d5a)](https://project-delphi.github.io/nlp-llms/)
 [![Quarto](https://img.shields.io/badge/built%20with-Quarto-447099)](https://quarto.org)
 [![License: CC BY 4.0 / MIT](https://img.shields.io/badge/license-CC%20BY%204.0%20%2F%20MIT-blue)](LICENSE)
 
 A four-day workshop by Genial Labs on the path from traditional NLP to modern LLMs: n-grams, word vectors, attention, transformers, RLHF, RLCD and agents. Every module is a short lecture followed by a hands-on lab in Google Colab.
+
+**Workshop site: <https://project-delphi.github.io/nlp-llms/>** · [Schedule](https://project-delphi.github.io/nlp-llms/schedule.html) · [Notebooks](https://project-delphi.github.io/nlp-llms/notebooks.html) · [References](https://project-delphi.github.io/nlp-llms/references.html)
 
 > **Status: in development.** The curriculum, site and notebook pipeline are in place. Lectures and labs are being written module by module. See [PLAN.md](PLAN.md).
 
@@ -77,7 +80,7 @@ uv run --group site python scripts/new_notebook.py m03        # add --api for AP
 
 ## How it deploys
 
-`.github/workflows/publish.yml` regenerates the derived files, fails if they differ from what is committed, lints, tests, renders the site and checks its links. On a push to `main` it deploys to GitHub Pages, once the repository variable `DEPLOY_PAGES` is set to `true` and Pages is set to deploy from GitHub Actions.
+`.github/workflows/publish.yml` regenerates the derived files, fails if they differ from what is committed, lints, tests, renders the site and checks its links. On a push to `main`, or a manual run on `main`, it deploys the site to GitHub Pages at <https://project-delphi.github.io/nlp-llms/>. Pages must be set to deploy from GitHub Actions (Settings → Pages → Source). Forks skip the deploy job.
 
 ## Repository layout
 

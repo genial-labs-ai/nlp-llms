@@ -125,9 +125,11 @@ jobs:
 
   deploy:
     needs: render
-    # Opt-in: set the repository variable DEPLOY_PAGES to "true" and set
-    # Pages to deploy from GitHub Actions. The site is public once deployed.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_PAGES == 'true'
+    # Needs Pages set to deploy from GitHub Actions (Settings > Pages > Source).
+    # Runs on main only, for a push or a manual run, and never in a fork.
+    if: >-
+      github.repository == 'project-delphi/nlp-llms' && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       pages: write
