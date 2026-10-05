@@ -4,6 +4,10 @@ title: "{{< var modules.m01.title >}}"
 
 {{< include /_includes/module-01.md >}}
 
+::: {.recap}
+**Where we start.** You can already fit a logistic regression to a table of numbers and read its loss. What you have not done yet is turn a string into those numbers. The four days run from counting words (today) to learned vectors and attention, then to transformers and pretrained models (Day 2), to what those models are trained to prefer and how far their confidence can be trusted (Day 3), and to systems built out of them (Day 4). This module asks one question: how far does counting alone get us, and where exactly does it stop?
+:::
+
 ## Plan for the 45 minutes
 
 | Minutes | Section | Lab exercise it prepares |
@@ -16,7 +20,7 @@ title: "{{< var modules.m01.title >}}"
 | 38–42 | 6. Evaluation: precision, recall, F1 | Exercise 6 |
 | 42–45 | 7. Where count-based methods stop working | (sets up Module 2) |
 
-Collapsed boxes marked **Optional** are outside the 45 minutes.
+Collapsed boxes marked **Optional** are outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 Notation used on every lecture page: a text is a sequence of tokens $w_1, \dots, w_T$ of length $T$; the vocabulary is $V$, with size $|V|$; $c(\cdot)$ is a count in the training data; $x$ is an input vector, $y$ a label, $C$ the number of classes; $\theta$ are parameters and $\mathcal{L}$ is a loss. All logarithms are natural.
 
@@ -38,6 +42,14 @@ People resolve these with context and world knowledge, usually without noticing.
 **Compositionality.** The meaning of a sentence depends on its words *and* on how they are arranged. *Dog bites man* and *man bites dog* use the same words. A representation that throws away order cannot tell them apart.
 
 Keep these three in view. Each later module is a response to one of them: word vectors (Module 2) to sparsity, sequence models and attention (Modules 3 to 5) to compositionality, and large-scale pretraining (Module 6) to the amount of context needed to resolve ambiguity.
+
+::: {.self-check}
+**Check yourself.** Keep $|V| = 10^4$ and the corpus of $10^6$ tokens. What is the largest share of the possible *two*-word sequences that the corpus can contain? Does shortening the sequence from three words to two remove the sparsity problem?
+
+::: {.callout-tip collapse="true" title="Answer"}
+There are $|V|^2 = 10^8$ possible pairs, and a corpus of $10^6$ tokens contains at most $10^6$ distinct ones: at most 1%. So at least 99% of the pairs still have a count of zero. Each word removed from the sequence divides the number of possibilities by $|V|$, which helps, but it does not remove the problem, and it is paid for in context: a model that looks at one previous word knows less about what comes next.
+:::
+:::
 
 ## 2. Tokens, vocabularies and Zipf's law
 
@@ -72,6 +84,14 @@ def tokenize(text):
 
 **Lab 1, Exercise 1** asks you to write `tokenize` and `build_vocab`. A provided cell then measures how much of the held-out text the vocabulary covers. On the Shakespeare training split, keeping every word gives 11,908 entries and covers 96.1% of validation tokens; dropping words seen once (`min_count = 2`) nearly halves the vocabulary, to 6,463 entries, and still covers 94.0%.
 
+::: {.self-check}
+**Check yourself.** Apply `tokenize` by hand to the string `The U.S. isn't us.` How many tokens come out, and how many distinct vocabulary entries? Which information did the tokenizer keep, and which did it destroy?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Eight tokens: `the`, `u`, `.`, `s`, `.`, `isn't`, `us`, `.`, of which six are distinct (the period occurs three times). The apostrophe is inside the character class, so `isn't` stays whole. A period is not, so the abbreviation is split into `u . s .`, and its periods are now the same token as the one that ends the sentence. A model reading these IDs can no longer tell an abbreviation from a sentence boundary. That is a cost of this tokenizer, accepted because the lab's tasks do not depend on it.
+:::
+:::
+
 ### Zipf's law
 
 Sort the vocabulary by frequency. Let $r$ be the rank of a word (1 for the most frequent) and $f(r)$ its count. **Zipf's law** is the empirical observation that
@@ -82,7 +102,7 @@ $$ {#eq-zipf}
 
 where $A$ is a constant that depends on the corpus size and $s$ is the exponent. Taking logs gives $\log f(r) \approx \log A - s \log r$: a straight line with slope $-s$ on a log–log plot.
 
-![Word frequency against rank in the training split of the Shakespeare corpus, on log–log axes, with a reference line of slope $-1$. Punctuation tokens are left out. Measured with the Lab 1 tokenizer.](/images/01-zipf.svg){#fig-zipf fig-alt="Log-log plot of word count against rank for Tiny Shakespeare. The observed curve falls roughly along a dashed reference line of slope minus one. The top three words are annotated: the (5,703), and (5,041), to (4,439). A label on the flat tail at count 1 reads: 5,444 of 11,897 distinct words (46%) occur once."}
+![Word frequency against rank in the training split of the Shakespeare corpus, on log–log axes, with a reference line of slope $-1$. Punctuation tokens are left out. Measured with the Lab 1 tokenizer.](/images/01-zipf.svg){#fig-zipf fig-alt="Log-log plot of word count against rank for Tiny Shakespeare. The observed curve falls roughly along a dashed reference line of slope minus one. The top three words are annotated: the (5,703), and (5,041), to (4,439). A label on the flat tail at count 1 reads: 5,444 of 11,897 distinct words (46 percent) occur once."}
 
 What this means in practice:
 
@@ -91,6 +111,14 @@ What this means in practice:
 - Adding more data does not remove the tail. New rare words keep arriving.
 
 So any estimate that depends on the count of a specific word, or worse, a specific word sequence, is unreliable for most of the vocabulary. That is the sparsity problem of Section 1 in quantitative form. Exercise 1 plots this curve for the lab corpus.
+
+::: {.self-check}
+**Check yourself.** In the lab corpus the most frequent word, *the*, occurs 5,703 times. If @eq-zipf held exactly with $s = 1$, about how often would the word of rank 100 occur? The word of rank 1,000? What does the second number mean for a bigram model that must estimate what follows that word?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Rank 1 gives $A = f(1) = 5{,}703$, so $f(100) \approx 5{,}703 / 100 \approx 57$ and $f(1{,}000) \approx 5{,}703 / 1{,}000 \approx 6$. A word seen six times has at most six observed continuations, out of roughly 12,000 possible next words. Its next-word distribution is estimated from six draws, and almost every entry is zero. Most of the vocabulary sits at rank 1,000 or beyond, so this is the normal case, not the exception. (The measured curve only roughly follows the line, so treat 57 and 6 as orders of magnitude.)
+:::
+:::
 
 ## 3. N-gram language models
 
@@ -181,6 +209,28 @@ In this lecture $k$ always means this smoothing constant. (From Module 4 on, $k_
 
 **Lab 1, Exercise 2** implements @eq-addk as `prob(w, context, counts, k, vocab_size)`; its checkpoint is the sum-to-one identity above. A provided cell after Exercise 3 shows the zero problem directly: with $k = 0$, 20.2% of the validation tokens get probability zero under a word-level bigram model.
 
+::: {.worked-example}
+**Worked example: a bigram model on nine tokens.** The training text, read as one stream, is *the cat sat the dog sat the cat ran*. The vocabulary is {*the*, *cat*, *dog*, *sat*, *ran*}, so $|V| = 5$. Take the context *the*. It occurs three times and is followed by *cat* twice and by *dog* once, so $c(\textit{the}) = 3$, $c(\textit{the}, \textit{cat}) = 2$ and $c(\textit{the}, \textit{dog}) = 1$.
+
+| Next token $w$ | $c(\textit{the}, w)$ | MLE (@eq-mle) | Add-k with $k = 0.5$ (@eq-addk) |
+|---|---|---|---|
+| *cat* | 2 | $2/3 = 0.667$ | $2.5 / 5.5 = 0.455$ |
+| *dog* | 1 | $1/3 = 0.333$ | $1.5 / 5.5 = 0.273$ |
+| *sat*, *ran*, *the* (each) | 0 | $0$ | $0.5 / 5.5 = 0.091$ |
+
+The add-k denominator is $c(\textit{the}) + k|V| = 3 + 0.5 \times 5 = 5.5$. The three unseen tokens now hold $3 \times 0.091 = 0.273$ of the probability between them, all of it taken from *cat* and *dog*, and the column still sums to one: $(2.5 + 1.5 + 3 \times 0.5) / 5.5 = 1$.
+
+Now take the context *ran*. It is the last training token, so nothing ever followed it and every count is zero. @eq-addk gives each token $0.5 / (0 + 2.5) = 0.2 = 1/|V|$: the uniform distribution.
+:::
+
+::: {.self-check}
+**Check yourself.** A context occurs three times in training and was followed by the same word every time. The vocabulary has $|V| = 10{,}000$ words. What probability does add-k give that word with $k = 1$ (Laplace)? With $k = 0.01$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With $k = 1$: $(3 + 1) / (3 + 10{,}000) \approx 0.0004$. With $k = 0.01$: $(3 + 0.01) / (3 + 100) \approx 0.029$. Under Laplace smoothing, 99.96% of the probability goes to words that never followed this context, although every observation pointed to one word. By Zipf's law most contexts are this rare, so this is the typical case. That is why $k = 1$ is usually too large for language models, and why $k$ is chosen on validation data and not by convention.
+:::
+:::
+
 ::: {.callout-note collapse="true"}
 ## Optional: better smoothing (interpolation, backoff, Kneser–Ney)
 
@@ -223,7 +273,92 @@ One detail matters for comparisons. The training, validation and test splits are
 
 **Lab 1, Exercise 3** implements @eq-ppl and checks it against the uniform model.
 
+::: {.worked-example}
+**Worked example, continued: perplexity.** Score the held-out text *the cat sat* with the nine-token bigram model above and $k = 0.5$. The held-out text follows the training text, so the history is the last training token, *ran*. There are $T = 3$ predictions:
+
+| Prediction | Counts | Probability |
+|---|---|---|
+| $P(\textit{the} \mid \textit{ran})$ | context never seen | $0.5 / 2.5 = 0.200$ |
+| $P(\textit{cat} \mid \textit{the})$ | $c(\textit{the}, \textit{cat}) = 2$, $c(\textit{the}) = 3$ | $2.5 / 5.5 = 0.455$ |
+| $P(\textit{sat} \mid \textit{cat})$ | $c(\textit{cat}, \textit{sat}) = 1$, $c(\textit{cat}) = 2$ | $1.5 / 4.5 = 0.333$ |
+
+The cross-entropy is $-\tfrac{1}{3}(\log 0.200 + \log 0.455 + \log 0.333) = 1.166$ nats per token, and @eq-ppl gives $\mathrm{PPL} = e^{1.166} = 3.21$. The uniform model over five tokens would score 5. On this text the counts are worth a reduction from five equally likely choices to about three.
+:::
+
 Perplexities are comparable only when the two models predict the **same tokens of the same text with the same vocabulary**. A character-level perplexity and a word-level perplexity are different quantities. Mapping more words to `<unk>` lowers word-level perplexity without making the model better. In this workshop the number carried forward to Modules 3 and 5 is the character-level perplexity on the test split of the Shakespeare corpus.
+
+::: {.self-check}
+**Check yourself.** With the same nine-token model and $k = 0.5$, score the held-out text *the dog ran* instead (history *ran* again). Is the model better or worse than uniform on this text? What happens with $k = 0$?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The three probabilities are $P(\textit{the} \mid \textit{ran}) = 0.200$, $P(\textit{dog} \mid \textit{the}) = 1.5 / 5.5 = 0.273$ and $P(\textit{ran} \mid \textit{dog}) = 0.5 / (1 + 2.5) = 0.143$, because *dog ran* never occurred. The perplexity is $\exp\bigl(-\tfrac13(\log 0.200 + \log 0.273 + \log 0.143)\bigr) = 5.04$, slightly worse than the uniform model's 5: one unseen bigram cost more than the seen one gained. With $k = 0$ the third probability is $0/1 = 0$, so the perplexity is infinite, and the first is $0/0$: the unsmoothed estimate is not even defined after a context that was never seen.
+:::
+:::
+
+::: {#demo-smoothing .demo}
+**Try it: how much to smooth.** A word-level bigram model is trained on 20 tokens (*the cat sat on the mat . the dog sat on the rug . the cat saw the dog .*, $|V| = 9$) and scored on 13 held-out tokens (*the dog saw the cat . the cat sat on the rug .*). Two of the held-out bigrams, *dog saw* and *cat .*, never occur in training.
+
+**Predict first.** As $k$ grows from 0.001 to 10, does the held-out perplexity fall, rise, or do both? What value does it approach at the right-hand end?
+
+```{ojs}
+//| echo: false
+viewof k = Inputs.range([0.001, 10], {value: 0.5, step: 0.001, transform: Math.log, label: "Smoothing constant k"})
+viewof context = Inputs.select(["the", "cat", "dog", "sat", "mat"], {value: "the", label: "Context word"})
+```
+
+```{ojs}
+//| echo: false
+toy = {
+  const train = "the cat sat on the mat . the dog sat on the rug . the cat saw the dog .".split(" ");
+  const held = "the dog saw the cat . the cat sat on the rug .".split(" ");
+  const vocab = [...new Set(train)];
+  const grams = new Map(), contexts = new Map();
+  const add = (m, key) => m.set(key, (m.get(key) ?? 0) + 1);
+  for (let t = 1; t < train.length; t++) {
+    add(grams, train[t - 1] + " " + train[t]);     // c(context, w)
+    add(contexts, train[t - 1]);                   // c(context)
+  }
+  const count = (c, w) => grams.get(c + " " + w) ?? 0;
+  const prob = (w, c, k) => (count(c, w) + k) / ((contexts.get(c) ?? 0) + k * vocab.length);  // add-k
+  const ppl = (k) => {
+    let total = 0, prev = train[train.length - 1];  // history: the last training token
+    for (const w of held) { total -= Math.log(prob(w, prev, k)); prev = w; }
+    return Math.exp(total / held.length);
+  };
+  return {vocab, count, prob, ppl};
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const V = toy.vocab.length;
+  const rows = toy.vocab.map((w) => ({w, p: toy.prob(w, context, k), kind: toy.count(context, w) > 0 ? "seen after this context" : "never seen after it"}));
+  const unseen = rows.filter((d) => d.kind !== "seen after this context").reduce((a, d) => a + d.p, 0);
+  const curve = Array.from({length: 81}, (_, i) => 10 ** (-3 + i / 20)).map((kk) => ({k: kk, ppl: toy.ppl(kk)}));
+  const bars = Plot.plot({
+    width: 360, height: 240, marginBottom: 40,
+    x: {label: "next token w", domain: toy.vocab}, y: {label: "P(w | context)", domain: [0, 1]},
+    color: {legend: true, domain: ["seen after this context", "never seen after it"], range: ["#1d5f8a", "#b9c2cc"]},
+    marks: [Plot.barY(rows, {x: "w", y: "p", fill: "kind"}), Plot.ruleY([1 / V], {strokeDasharray: "4 3"}), Plot.ruleY([0])]
+  });
+  const line = Plot.plot({
+    width: 360, height: 240, marginBottom: 40,
+    x: {type: "log", label: "k", ticks: [0.001, 0.01, 0.1, 1, 10], tickFormat: (d) => String(d)}, y: {label: "held-out perplexity", domain: [0, 10]},
+    marks: [
+      Plot.ruleY([V], {strokeDasharray: "4 3"}),
+      Plot.text([{k: 0.0012, ppl: V}], {x: "k", y: "ppl", text: () => "uniform: |V| = 9", dy: -8, textAnchor: "start"}),
+      Plot.line(curve, {x: "k", y: "ppl", stroke: "#1d5f8a", strokeWidth: 2}),
+      Plot.dot([{k, ppl: toy.ppl(k)}], {x: "k", y: "ppl", r: 6, fill: "#b3541e"})
+    ]
+  });
+  return html`<div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end">${bars}${line}</div>
+  <p>At k = ${k.toPrecision(3)}: tokens never seen after <em>${context}</em> hold ${(100 * unseen).toFixed(1)}% of the probability; held-out perplexity is ${toy.ppl(k).toFixed(2)}.</p>`;
+}
+```
+
+The bar chart is the add-k distribution of @eq-addk after the chosen context; the dashed line is the uniform value $1/|V|$. The curve is the held-out perplexity of @eq-ppl as a function of $k$, with a dot at the current setting. It is a U. With very small $k$ the two unseen bigrams get almost no probability and dominate the average. With large $k$ every distribution flattens toward uniform and the perplexity climbs toward $|V| = 9$. The best $k$ lies between, and you find it by measuring on held-out text, which is what the lab's validation split is for.
+:::
 
 ### Sampling
 
@@ -233,9 +368,17 @@ Raising $n$ further exposes the weakness of add-k. Most long contexts were seen 
 
 @fig-ngram-sparsity measures the sparsity behind both effects at the word level.
 
-![Share of word n-grams in the test split of the Shakespeare corpus that never occur in the training split, for $n = 1$ to $5$. Raw words, no `<unk>` mapping. Measured with the Lab 1 tokenizer.](/images/01-ngram-sparsity.svg){#fig-ngram-sparsity fig-alt="Bar chart of the share of test n-grams unseen in training against n-gram order. n = 1: 5%. n = 2: 36%. n = 3: 77%. n = 4: 95%. n = 5: 99%."}
+![Share of word n-grams in the test split of the Shakespeare corpus that never occur in the training split, for $n = 1$ to $5$. Raw words, no `<unk>` mapping. Measured with the Lab 1 tokenizer.](/images/01-ngram-sparsity.svg){#fig-ngram-sparsity fig-alt="Bar chart of the share of test n-grams unseen in training against n-gram order. n = 1: 5 percent. n = 2: 36 percent. n = 3: 77 percent. n = 4: 95 percent. n = 5: 99 percent."}
 
 At $n = 3$, 77% of the test trigrams never occur in training. That is why, in the lab, the word-level trigram model has a higher test perplexity than the bigram model (1,437 against 304).
+
+::: {.self-check}
+**Check yourself.** A colleague raises the `<unk>` threshold so that more rare words map to `<unk>`, retrains the word-level bigram model, and reports a test perplexity well below 304. Is the new model better? Push the threshold to its extreme to decide.
+
+::: {.callout-tip collapse="true" title="Answer"}
+You cannot tell from the two numbers, because they are not comparable: the models predict different token sequences over different vocabularies. Predicting `<unk>` is easy, since it is now one of the most frequent tokens. At the extreme, every word is `<unk>`, the model predicts it with probability close to 1, and the perplexity approaches 1, the best possible value, for a model that says nothing about the text. Perplexity can only compare models that predict the same tokens of the same text with the same vocabulary.
+:::
+:::
 
 ## 4. Bag-of-words and TF-IDF
 
@@ -268,6 +411,14 @@ $$ {#eq-tfidf-sklearn}
 followed by scaling each document vector to unit Euclidean length, $x \leftarrow x / \lVert x \rVert_2$. The added ones avoid division by zero and keep words that occur in every document from disappearing entirely. The length scaling stops long documents from having larger vectors than short ones.
 
 **Lab 1, Exercise 5** implements @eq-tfidf-sklearn in two functions, `idf_weights` and `tfidf`, and checks the result against `TfidfTransformer`. The bag-of-words counts (@eq-bow) come from a provided `CountVectorizer` that uses your Exercise 1 tokenizer.
+
+::: {.self-check}
+**Check yourself.** There are $N = 1{,}000$ training documents. The word *the* occurs in all of them and 20 times in document $D$. The word *lidar* occurs in 10 of them and once in $D$. Compute both entries of $x$ under the textbook form @eq-tfidf and under the scikit-learn form @eq-tfidf-sklearn (before the length scaling). Which word has the larger entry in each case?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Textbook: $\mathrm{idf}(\textit{the}) = \log(1000/1000) = 0$, so the entry is $20 \times 0 = 0$; $\mathrm{idf}(\textit{lidar}) = \log(1000/10) = 4.61$, so the entry is $4.61$. *lidar* wins and *the* is gone. scikit-learn: $\mathrm{idf}(\textit{the}) = \log(1001/1001) + 1 = 1$, entry $20$; $\mathrm{idf}(\textit{lidar}) = \log(1001/11) + 1 = 5.51$, entry $5.51$. Here *the* still has the larger entry. The added one keeps a word found everywhere from vanishing, so TF-IDF in this form narrows the gap between frequent and rare words (from 20 to 1 down to about 3.6 to 1) but does not close it. The rest is left to the classifier, which is free to give *the* a weight near zero.
+:::
+:::
 
 ::: {.callout-note collapse="true"}
 ## Optional: BM25 (the lab's stretch section, used again in Module 13)
@@ -359,6 +510,14 @@ There is no closed-form solution, so $\theta$ is found iteratively. The loss is 
 
 In **Lab 1, Exercise 5** scikit-learn fits $W$ and $b$; a provided cell named "softmax by hand" recomputes @eq-softmax in NumPy from the fitted `coef_` and `intercept_` and checks it against `predict_proba`. You do not implement @eq-grad in this lab; in Lab 2 a provided cell checks PyTorch's automatic gradient against it.
 
+::: {.self-check}
+**Check yourself.** A three-class model outputs the logits $z = (2, 1, 0)$ for an example whose correct class is the second. Compute $\hat{y}$ and the gradient $\partial \mathcal{L} / \partial z$. What do the three entries of the gradient sum to, and why must they?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$e^2 = 7.39$, $e^1 = 2.72$, $e^0 = 1$, with sum $11.11$, so $\hat{y} = (0.665, 0.245, 0.090)$. By @eq-grad the gradient is $\hat{y} - \mathrm{onehot}(y) = (0.665, -0.755, 0.090)$. Gradient descent lowers the first logit (a confident wrong answer), raises the second (the correct class) and barely touches the third. The entries sum to zero because $\hat{y}$ sums to one and so does the one-hot target. This has to be so: adding the same constant to every logit leaves the softmax unchanged, so the loss cannot change along the direction $(1, 1, 1)$.
+:::
+:::
+
 ### Which one?
 
 | | Naive Bayes | Logistic regression |
@@ -369,6 +528,14 @@ In **Lab 1, Exercise 5** scikit-learn fits $W$ and $b$; a provided cell named "s
 | Tends to win | With very little training data | With more data |
 
 On the lab's 4,800 training abstracts the two tie: 0.884 test accuracy each (Section 7 has the full numbers). Both give probabilities. Whether those probabilities deserve to be trusted is the subject of Module 11.
+
+::: {.self-check}
+**Check yourself.** A trained naive Bayes classifier with two equally likely classes gives a test document $P(y = 1 \mid x) = 0.88$. Someone pastes the document's text into itself, so every count doubles: $x \to 2x$. No new information was added. What does naive Bayes output now?
+
+::: {.callout-tip collapse="true" title="Answer"}
+About 0.98. With equal priors, the log-odds between the two classes are $\sum_w x_w \bigl(\log P(w \mid 1) - \log P(w \mid 2)\bigr)$, which is linear in $x$. $P = 0.88$ means log-odds of $\log(0.88/0.12) \approx 2$; doubling $x$ doubles them to 4, and $\sigma(4) = 0.982$. The predicted class is the same; the confidence rose without any new evidence. This is the "double-counts correlated features" row of the table in its purest form: a repeated word is a perfectly correlated feature, and the independence assumption treats each copy as fresh evidence. It is why naive Bayes probabilities are overconfident on long documents.
+:::
+:::
 
 ## 6. Evaluation: precision, recall and F1
 
@@ -403,6 +570,14 @@ Numbers tell you *that* the model fails. **Error analysis** tells you why. The r
 
 Protocol for the whole workshop: fit on the **training** split, choose hyperparameters on the **validation** split, report once on the **test** split.
 
+::: {.self-check}
+**Check yourself.** A test set has 1,000 examples: 950 of class A and 50 of class B. A classifier predicts A for every example. Compute its accuracy, the F1 of each class, and the macro-F1.
+
+::: {.callout-tip collapse="true" title="Answer"}
+Accuracy is $950/1000 = 0.95$. Class A: $\mathrm{TP} = 950$, $\mathrm{FP} = 50$, $\mathrm{FN} = 0$, so precision $0.95$, recall $1$, and $\mathrm{F1} = 2(0.95)(1)/1.95 = 0.974$. Class B: $\mathrm{TP} = 0$, so recall is $0$; precision is $0/0$, which is taken as 0 by convention, and $\mathrm{F1} = 0$. Macro-F1 is $(0.974 + 0)/2 = 0.487$. Accuracy says 95% and hides that one class is never found; macro-F1 says 0.49 and shows it. The lab's four classes are balanced, which is why its accuracy and macro-F1 nearly coincide.
+:::
+:::
+
 ## 7. Where count-based methods stop working
 
 **Objective: name the limits that the rest of Day 1 addresses.**
@@ -415,6 +590,14 @@ These baselines are strong. TF-IDF with logistic regression is hard to beat on t
 4. **Bag-of-words discards order.** *Dog bites man* and *man bites dog* map to the same vector, and *not good* contains *good*.
 
 Limits 1 and 2 have the same root: the model has no notion of similarity between words, so it cannot generalize from what it saw to what it did not. [Module 2](02-word-vectors.qmd) replaces the atomic symbol with a learned dense vector $e_w \in \mathbb{R}^d$ in which similar words are close, and shows how a neural language model uses those vectors to share statistical strength across n-grams. Limits 3 and 4 are about order and long context; [Module 3](03-sequence-models.qmd) and [Module 4](04-seq2seq-attention.qmd) take them up.
+
+::: {.self-check}
+**Check yourself.** A word-level trigram model with add-k smoothing saw *the cat sat* many times in training. It saw the context *the dog* ten times, never followed by *sat* and never followed by *banana*. How do $P(\textit{sat} \mid \textit{the dog})$ and $P(\textit{banana} \mid \textit{the dog})$ compare? Which of the four limits is this?
+
+::: {.callout-tip collapse="true" title="Answer"}
+They are equal: both are $(0 + k) / (10 + k|V|)$ by @eq-addk. The model has no way to prefer the plausible continuation, because nothing it learned about *cat* transfers to *dog*: the two are unrelated symbols (limit 1), and smoothing hands every unseen n-gram the same share whatever its content (limit 2). To rank *sat* above *banana* here, the model must know that *dog* behaves like *cat*. A representation in which that similarity can be learned is where Module 2 starts.
+:::
+:::
 
 The numbers from this module's lab are the baseline for those claims: the n-gram perplexity is compared with the LSTM in Lab 3 and the transformer in Lab 5, and the classifier's accuracy and macro-F1 with Labs 2 and 6. These are the values measured by Lab 1 and recorded in `data/baselines.json`; your run reproduces them.
 

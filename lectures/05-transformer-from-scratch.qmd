@@ -4,6 +4,10 @@ title: "{{< var modules.m05.title >}}"
 
 {{< include /_includes/module-05.md >}}
 
+::: {.recap}
+**Where we are.** Day 1 ended with attention connecting any two positions in a single step, but attached to two recurrent networks that still read tokens one after another and still pass gradients along long chains. This module asks one question: if a sequence attends to itself and the recurrence is removed, what has to be added back (a mask, a sense of order, depth) to get a language model that trains in parallel?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -18,7 +22,7 @@ title: "{{< var modules.m05.title >}}"
 | 8. Cost and parallelism | 4 |
 | **Total** | **45** |
 
-The collapsed callouts are optional and sit outside the 45 minutes.
+The collapsed callouts are optional and sit outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## 1. From attention over an encoder to self-attention
 
@@ -62,6 +66,14 @@ The output $\bar{v}_t \in \mathbb{R}^{d_k}$ is a weighted average of values. The
 | output | context vector $\bar{h}_t$ | $\bar{v}_t$ |
 
 ![Self-attention for one position. Position 4 asks: its query $q_4 = W_Q^\top h_4$ is scored against the keys $k_1, \dots, k_4$, and the output $\bar{v}_4 = \sum_i \alpha_{4,i} v_i$ is the weighted average of the values. Line width grows with the weight $\alpha_{4,i}$; the weights drawn are illustrative. Position 5 is masked for this query (section 3).](/images/05-self-attention.svg){#fig-self-attention fig-alt="Self-attention for one position: its query is compared with the keys of the positions up to and including itself, and the output is the weighted average of their values."}
+
+::: {.self-check}
+**Check yourself.** To save parameters, someone ties the two projections: $W_K = W_Q$. With the dot-product score $q_t^\top k_i$, compare the score of position $t$ reading position $i$ with the score of position $i$ reading position $t$. What kind of relation between two tokens can this layer no longer express?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The two scores are equal. With $W_K = W_Q = W$, the score is $q_t^\top k_i = h_t^\top W W^\top h_i$, and $W W^\top$ is a symmetric matrix, so swapping $t$ and $i$ changes nothing. The layer can then express only mutual relevance. It cannot express a one-way relation, such as "a verb looks for its subject, but the subject is not looking for the verb". The score of a position with itself, $\lVert W^\top h_t \rVert^2$, is also never negative, so each position tends to read itself. Separate matrices for the query and the key remove both limits: what a position asks for is no longer tied to what it advertises.
+:::
+:::
 
 ## 2. Scaled dot-product attention
 
@@ -127,6 +139,75 @@ Note what the argument does and does not say. It is a statement about initializa
 **In the lab.** **Exercise 1** is `scaled_dot_product_attention`: @eq-score and @eq-sdpa. A provided cell then measures the standard deviation of the scores with and without the scaling for $d_k = 16, 64, 256$ on random unit-variance queries and keys, which is @eq-variance made visible; you predict the numbers first. Measured at seed 0: unscaled 4.006, 7.997 and 15.873 (against $\sqrt{d_k} = 4, 8, 16$); scaled 1.001, 1.000 and 0.992.
 :::
 
+::: {.worked-example}
+**Worked example: one query and two keys, with and without the scaling.** Take $d_k = 4$, a query $q = (1, 1, 1, 1)$ and keys $k_1 = (1, 1, 1, 1)$, $k_2 = (1, -1, 1, -1)$. The dot products are $q^\top k_1 = 4$ and $q^\top k_2 = 0$.
+
+| | Scores | Weights $(\alpha_1, \alpha_2)$ | $\partial \alpha_1 / \partial\, \mathrm{score}_1 = \alpha_1 (1 - \alpha_1)$ |
+|---|---|---|---|
+| Without scaling | $(4, 0)$ | $(0.982,\ 0.018)$ | $0.018$ |
+| With $1/\sqrt{d_k} = 1/2$ (@eq-score) | $(2, 0)$ | $(0.881,\ 0.119)$ | $0.105$ |
+
+The scaling halves the gap between the scores. The row of weights is less extreme, and the derivative that carries the training signal back to the scores is about six times larger. At $d_k = 4$ the effect is mild. The gap between two typical unscaled scores grows as $\sqrt{d_k}$, so at $d_k = 64$ or $256$ the unscaled row is close to one-hot for most random queries and keys, and its derivative is close to zero. The demo below shows this.
+:::
+
+::: {#demo-scaling .demo}
+**Try it: one row of attention at initialization.** A query and the keys of ten positions are drawn at random, every coordinate independent with mean 0 and variance 1, as in the derivation above. The two panels show the same row of $A$ computed from the same scores: on the left $\mathrm{softmax}(q^\top k_i)$, on the right $\mathrm{softmax}(q^\top k_i / \sqrt{d_k})$ as in @eq-sdpa.
+
+**Predict first.** At $d_k = 4$ the two rows look similar. Raise $d_k$ to 256. What happens to the largest weight in each row?
+
+```{ojs}
+//| echo: false
+viewof dk = Inputs.select([4, 16, 64, 256, 1024], {value: 64, label: "Dimension dₖ"})
+viewof draw = Inputs.range([1, 20], {value: 1, step: 1, label: "Random draw"})
+```
+
+```{ojs}
+//| echo: false
+{
+  let state = 1000 * dk + draw;                          // seeded generator, so each setting is reproducible
+  const uniform = () => {
+    state = (state + 0x6D2B79F5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const normal = () => Math.sqrt(-2 * Math.log(1 - uniform())) * Math.cos(2 * Math.PI * uniform());
+  const vector = () => Array.from({length: dk}, normal);
+  const q = vector();
+  const scores = Array.from({length: 200}, () => vector().reduce((s, kj, j) => s + q[j] * kj, 0));   // q^T k_i
+  const softmax = (z) => {
+    const top = Math.max(...z), e = z.map((v) => Math.exp(v - top)), total = e.reduce((a, b) => a + b, 0);
+    return e.map((v) => v / total);
+  };
+  const sd = (z) => {
+    const mean = z.reduce((a, b) => a + b, 0) / z.length;
+    return Math.sqrt(z.reduce((a, b) => a + (b - mean) ** 2, 0) / z.length);
+  };
+  const row = scores.slice(0, 10), plain = "without scaling", scaled = "with 1/√dₖ";
+  const a = softmax(row), b = softmax(row.map((s) => s / Math.sqrt(dk)));
+  const rows = [...a.map((alpha, i) => ({i: i + 1, alpha, kind: plain})), ...b.map((alpha, i) => ({i: i + 1, alpha, kind: scaled}))];
+  const chart = Plot.plot({
+    width: 680, height: 280, marginBottom: 40,
+    fx: {label: null, domain: [plain, scaled]}, x: {label: "position i"}, y: {label: "attention weight α", domain: [0, 1]},
+    color: {domain: [plain, scaled], range: ["#b3541e", "#1d5f8a"]},
+    marks: [Plot.barY(rows, {fx: "kind", x: "i", y: "alpha", fill: "kind"}), Plot.ruleY([0])]
+  });
+  return html`${chart}<p>Standard deviation of 200 scores for this query: ${sd(scores).toFixed(2)} without scaling (√dₖ = ${Math.sqrt(dk)}), ${(sd(scores) / Math.sqrt(dk)).toFixed(2)} with it.
+  Largest of the ten weights: ${Math.max(...a).toFixed(3)} without scaling, ${Math.max(...b).toFixed(3)} with it.</p>`;
+}
+```
+
+Without the scaling, the spread of the scores grows as $\sqrt{d_k}$ (@eq-variance), and the row collapses onto a single position as $d_k$ grows: by $d_k = 256$ the largest weight is close to 1 on most draws. With the scaling the scores have a spread of about 1 at every $d_k$, and the row keeps the same moderate shape. The vectors here are random, so this is a picture of the first training step only. It says nothing about what a trained model's attention looks like.
+:::
+
+::: {.self-check}
+**Check yourself.** A colleague misremembers the formula and divides the scores by $d_k$ instead of $\sqrt{d_k}$. Under the assumptions of the derivation, what is the standard deviation of the scores at $d_k = 64$? What does a row of $A$ look like at initialization, and is that a problem?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Dividing by $d_k$ divides the variance by $d_k^2$: $\mathrm{Var} = d_k / d_k^2 = 1/d_k$, so the standard deviation is $1/\sqrt{64} = 0.125$. The scores are almost equal, so every row of $A$ is almost uniform, and each $\bar{v}_t$ is close to the plain average of the values it may read. This is the opposite failure from the unscaled one. The softmax is not saturated, so gradients do flow, but the layer starts out as an averaging machine that barely distinguishes one position from another, and the larger $d_k$ is, the closer to uniform it starts. The exponent $1/2$ is the only one for which the starting spread of the scores does not depend on $d_k$ at all.
+:::
+:::
+
 ## 3. The causal mask
 
 **Objective for this section:** explain why a language model must not read ahead, and write the mask that prevents it.
@@ -157,6 +238,14 @@ The property is testable, and the test is the most useful one in the lab: **chan
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you build the mask of @eq-mask and pass it to your attention function. The checkpoint is the leak test: weights above the diagonal are exactly zero, and changing a later token leaves all earlier outputs unchanged. The same test is then run on the logits of the whole model twice: on the untrained model at the end of Exercise 3, as soon as the model is complete, and on the trained model after training (Checkpoint 4b). Both run in evaluation mode, with dropout off. In the measured run the logits before the changed position moved by exactly 0.0 both times.
+:::
+
+::: {.self-check}
+**Check yourself.** Row $t = 2$ of the scaled scores for a four-token sequence is $(1, 1, 5, 3)$. What is row 2 of $A$ under @eq-mask? Now a buggy implementation applies the softmax to all four scores *first* and then sets the weights of positions 3 and 4 to zero, without renormalizing. What does it return, and does it leak the future?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Correct: the scores become $(1, 1, -\infty, -\infty)$ and the row is $(0.5, 0.5, 0, 0)$. Buggy: the softmax of $(1, 1, 5, 3)$ is $(0.016, 0.016, 0.853, 0.115)$, and zeroing the last two leaves $(0.016, 0.016, 0, 0)$, a row that sums to 0.03. It does leak. The weights above the diagonal are zero, so a check of the triangle passes, but the surviving weights were divided by a sum that includes the future scores. Change the later tokens so that the scores are $(1, 1, 0, 0)$ and the same code returns $(0.366, 0.366, 0, 0)$: the output at position 2 moved when only the future changed. This is why the lab's leak test changes a later token and compares earlier *outputs*, and does not stop at inspecting the triangle. (Renormalizing after zeroing gives $(0.5, 0.5, 0, 0)$ again, which equals masking first.)
+:::
 :::
 
 ## 4. Multi-head attention
@@ -197,6 +286,14 @@ out = self.proj(V_bar)                                    # (B, T, d): W_proj, b
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The multi-head layer (@eq-mha) is provided in the core path and calls *your* attention function with the head as a batch dimension, which is why Exercise 1 must accept leading dimensions. In **Exercise 5** you summarize every head of the trained model by its mean attention distance (16 heads: 4 layers of 4) and plot $A^{(r)}$ for every head of the first and the last layer. Writing the split yourself is the **stretch** section (`MyMultiHeadAttention`).
+:::
+
+::: {.self-check}
+**Check yourself.** The lab's model has $d = 128$ and $n_h = 4$. How many weights do $W_Q$, $W_K$ and $W_V$ hold across all heads of one layer? Change to $n_h = 16$ and count again. What did change, and what did you trade?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With $n_h = 4$: $d_k = 128/4 = 32$, and $3 \cdot n_h \cdot d \cdot d_k = 3 \times 4 \times 128 \times 32 = 49{,}152 = 3 d^2$. With $n_h = 16$: $d_k = 8$, and $3 \times 16 \times 128 \times 8 = 49{,}152$ again. The parameter count is the same. What changed is the shape of the computation: sixteen rows of weights per position instead of four, each from a score computed in an 8-dimensional space instead of a 32-dimensional one. You trade the precision of each lookup for the number of separate things a position can read at once. Push it to $d_k = 1$ and each head compares two numbers, which can say little about which position to read.
+:::
 :::
 
 ## 5. Positional encodings
@@ -241,6 +338,14 @@ Not covered in the lab.
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 3** you write the input step of the model, @eq-pos with a learned position table: `embed_with_positions(idx, tok_emb, pos_emb)`. Before you do, a checkpoint on a single attention layer shows the problem: with positions left out, shuffling the earlier tokens leaves the last position's output unchanged. Sinusoidal encodings (@eq-sinusoid) are not implemented in the lab.
+:::
+
+::: {.self-check}
+**Check yourself.** Leave out the positional encodings but keep the causal mask. Feed a single attention layer *dog bites man* and then *bites dog man*. Is the output at position 3 the same? Now stack a second attention layer on top. Is the output at position 3 still the same?
+
+::: {.callout-tip collapse="true" title="Answer"}
+One layer: the same. In both orders position 3 holds *man* and reads the set {*dog*, *bites*, *man*}, and @eq-self-attn depends only on the contents. Two layers: in general, different. The first layer's outputs at positions 1 and 2 are not the same in the two orders. In *dog bites man*, position 1 is *dog* having read only itself and position 2 is *bites* having read {*dog*, *bites*}. In *bites dog man*, position 1 is *bites* alone and position 2 is *dog* having read both. The second layer at position 3 reads these vectors, so it receives a different set. The causal mask therefore lets some order information in, because how much a position may read depends on where it is. That signal is weak and indirect, which is why the model is still given @eq-pos.
+:::
 :::
 
 ## 6. The transformer block
@@ -301,6 +406,14 @@ The difference is what lies on the residual path. In post-norm every block passe
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The block (@eq-block), with @eq-ffn and @eq-ln inside it, is provided in the core path; you read it and find your attention function in it. Writing the full block yourself is the **stretch** section.
+:::
+
+::: {.self-check}
+**Check yourself.** Let $h = (1, 2, 3, 6)$, with $\gamma$ all ones, $\beta$ all zeros and $\epsilon$ negligible. Compute $\mathrm{LN}(h)$ from @eq-ln. Without further arithmetic, what is $\mathrm{LN}(10h + 5)$? What does that mean for a sublayer in a pre-norm block when the residual stream grows from layer to layer?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The mean is 3 and the variance is $(4 + 1 + 0 + 9)/4 = 3.5$, with square root $1.871$, so $\mathrm{LN}(h) = (-1.07,\ -0.53,\ 0,\ 1.60)$. $\mathrm{LN}(10h + 5)$ is the same vector: adding 5 to every coordinate is removed by subtracting the mean, and the factor 10 is removed by dividing by the standard deviation. Layer normalization keeps the pattern across coordinates and discards the overall scale and offset. In a pre-norm block each sublayer reads $\mathrm{LN}$ of the residual stream, so its input has the same scale whether the stream has accumulated one correction or twenty. The stream itself is never rescaled along the way, which is why one final $\mathrm{LN}$ is needed before the output layer.
+:::
 :::
 
 ## 7. A decoder-only language model, and the other two variants
@@ -368,6 +481,14 @@ A decoder-only model handles a transduction task by writing source and target as
 **In the lab.** The assembled model (@eq-gpt) and the training loop are provided. Before training, a checkpoint confirms that the untrained model predicts almost uniformly: measured loss 4.1909 nats against $\ln 65 = 4.1744$. In **Exercise 4** you train it on the Shakespeare corpus of Lab 3 and score it with Lab 3's loss and perplexity (@eq-loss) on the same 60,394 test characters, beside the character n-gram baselines and two LSTM rows.
 :::
 
+::: {.self-check}
+**Check yourself.** The lab's model has $d = 128$, $n_\ell = 4$ and $T_{\max} = 128$, with learned positions. You double the context length to $T_{\max} = 256$. Which parameters of @eq-gpt grow, and by how many? What happens to the cost of the attention step on a full-length sequence? And with $T_{\max} = 128$, which characters of a 300-character text can influence the prediction of character 301?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Only the position table grows: it needs a vector $p_t \in \mathbb{R}^{128}$ for each of 128 new positions, $128 \times 128 = 16{,}384$ parameters on top of 824,897. No block changes, because attention, the feed-forward layer and layer normalization have no parameter that depends on the sequence length. The computation is another matter: the attention step costs $O(T^2 d)$ per layer (section 8), so a full window of 256 costs four times as much as one of 128, and stores four times as many attention weights. With $T_{\max} = 128$, the prediction of character 301 depends on characters 173 to 300 and on nothing earlier. Unlike the LSTM's fading memory, the cutoff is exact.
+:::
+:::
+
 ::: {.callout-tip collapse="true" title="After the lab: what Lab 5 measured"}
 Open this after Exercise 4, so that it does not answer the lab's prediction for you. These are the values recorded in `data/baselines.json` (Lab 5 at its full settings, seed 0, executed on a CPU; not yet run on a Colab T4). Every row scores the same 60,394 test characters with the same function, in nats per character.
 
@@ -420,6 +541,14 @@ None of this says that a small transformer beats a small LSTM on a small corpus 
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The results table of Exercise 4 prints the parameter count, the number of steps and the training time beside test perplexity for every model, so the comparison is at a stated budget. The notebook deliberately asserts nothing about GPT against LSTM.
+:::
+
+::: {.self-check}
+**Check yourself.** For the lab's sizes, $T = 128$ and $d = 128$, compare $T^2 d$ with $T d^2$. Then keep $d = 128$ and lengthen the sequence to $T = 1{,}024$: what is the ratio now? Finally, the lab's sampler generates 300 characters. How many forward passes does that take, and how much of the transformer's parallelism does it use?
+
+::: {.callout-tip collapse="true" title="Answer"}
+At $T = d = 128$ the two are equal: $128^3 = 2{,}097{,}152$ multiplications each. The ratio $T^2 d / (T d^2)$ is $T/d$, so at $T = 1{,}024$ self-attention costs 8 times the recurrent layer, and each further doubling of $T$ doubles the ratio. Generation takes 300 forward passes, one per character, because character $t + 1$ must be sampled before position $t + 1$ exists. The passes cannot run at the same time. Within one pass the positions are still computed in parallel, but only the last position's output is used. The parallelism that changed the field is a property of training, where all $T$ targets are known in advance.
+:::
 :::
 
 ## Summary
