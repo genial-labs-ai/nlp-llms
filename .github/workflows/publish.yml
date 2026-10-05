@@ -77,7 +77,7 @@ jobs:
           enable-cache: false
 
       # No API keys are passed: this runs the open-model path of every lab.
-      # NLP_LLMS_QUICK shortens the from-scratch training runs (Labs 3 and 4)
+      # NLP_LLMS_QUICK shortens the from-scratch training runs (Labs 3, 4 and 5)
       # on this CPU runner; Labs 6 and 7 switch to their CPU paths by themselves.
       - name: Execute notebooks
         env:
