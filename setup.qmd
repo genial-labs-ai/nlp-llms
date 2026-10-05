@@ -41,9 +41,6 @@ The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyT
 
 [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is a self-serve hour, 08:00–09:00 on Day 1, or at home beforehand. Unlike the labs it runs on your own laptop, not in Colab: you install a terminal coding agent, git and the GitHub CLI, so you need permission to install software and a GitHub account. Its page walks you through the installs. Nothing later in the workshop depends on it.
 
-## Coding assistants (optional)
-
-If you want an AI coding agent in your terminal, [Coding assistants in the terminal](coding-assistants.qmd) shows how to install Codex, Claude Code, Gemini CLI or Kimi Code and gives each one a short, checkable task. None of them is needed for the labs.
 
 ## Running locally (optional)
 

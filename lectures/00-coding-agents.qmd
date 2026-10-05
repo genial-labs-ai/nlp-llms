@@ -25,13 +25,21 @@ Build both apps in **one** language, Python or R. Pick it in any Python | R tab 
 | 35–55 | [4. App 2: customer segmentation](#rfm) | `rfm/` committed |
 | 55–60 | [5. Publish](#publish) | Two live URLs |
 
-**You need:** a laptop or desktop with macOS, Linux or Windows 10/11; a GitHub account; an account for one agent (each tab below says which, and what it costs); and Python 3.10 or later, or a recent R 4.x. On Windows, use **WSL 2** (the Windows Subsystem for Linux) for the whole module, so that every command on this page works as written. The Windows troubleshooting box in section 1 shows how to install it.
+**You need:** a laptop or desktop with macOS, Linux or Windows 10/11; a GitHub account; an account for one agent (each tab below says which, and what it costs); and Python 3.10 or later, or a recent R 4.x. On Windows, use **WSL 2** (the Windows Subsystem for Linux) with Ubuntu for the whole module. This page gives no native Windows or PowerShell instructions: inside WSL 2 you follow the Linux steps, and every command works as written.
+
+::: {.callout-important appearance="simple"}
+## Windows: set up WSL 2 first (5 minutes, once)
+
+1. Open **Command Prompt** as administrator (Start menu, type `cmd`, right-click, *Run as administrator*) and run `wsl --install`. Restart when it asks. New installations get WSL 2 with Ubuntu.
+2. Open **Ubuntu** from the Start menu, choose a Linux user name and password, and run `sudo apt update`.
+3. Do the rest of this module in that Ubuntu window, in your Linux home folder (`~`), and follow the **Linux** instructions wherever a step differs by system.
+:::
 
 The habit this module teaches is more durable than any one tool: **plan, act, check the work yourself, then commit.** An agent is fast and often right. It is also confidently wrong in ways you will only notice if you check one number by hand.
 
 ## 1. Install a coding agent (10 min) {#install}
 
-Pick one tab. The choice stays selected for the rest of the page. Commands were checked on {{< var assistants.checked >}} against the sources named at the end of each tab; the versions current that day were Claude Code {{< var assistants.claude_code >}}, Codex {{< var assistants.codex >}} and Gemini CLI {{< var assistants.gemini_cli >}}. These tools change weekly: if a command fails, check the tool's own page. The optional page [Coding assistants in the terminal](../coding-assistants.qmd) uses the same install and sign-in commands, adds Kimi Code, and gives each tool a short checkable task of its own.
+Pick one tab. The choice stays selected for the rest of the page. Commands were checked on {{< var assistants.checked >}} against the sources named at the end of each tab; the versions current that day were Claude Code {{< var assistants.claude_code >}}, Codex {{< var assistants.codex >}} and Gemini CLI {{< var assistants.gemini_cli >}}. These tools change weekly: if a command fails, check the tool's own page.
 
 Make an empty folder for the sanity check first:
 
@@ -49,13 +57,12 @@ mkdir -p ~/agent-test && cd ~/agent-test
 
 **Install.**
 
-- macOS, Linux and WSL:
+- macOS, Linux and Windows (inside WSL 2):
 
   ```bash
   curl -fsSL https://claude.ai/install.sh | bash
   ```
 
-- Native Windows is supported too, from PowerShell (`irm https://claude.ai/install.ps1 | iex`) or with `winget install Anthropic.ClaudeCode`. On this page we use WSL.
 - Alternatives: `brew install --cask claude-code` (Homebrew; does not auto-update).
 
 Open a **new** terminal, then check:
@@ -105,7 +112,7 @@ Each prompt shows the exact command or file edit and offers *Yes*, *Yes, and don
   ```
 
 - Alternatives: `npm install -g {{< var agents_intro.clis.codex >}}` or `brew install --cask codex`.
-- Windows: the README gives a PowerShell installer (`powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"`), but the repository's system requirements still list Windows 11 **via WSL2**. Use WSL.
+- Windows: inside WSL 2, as on Linux. Codex's own system requirements list Windows 11 via WSL 2.
 
 Open a new terminal, then check with `codex --version`.
 
@@ -147,7 +154,7 @@ This is the "Default" preset: Codex reads, edits and runs commands inside the pr
   ```
 
 - Alternatives: `brew install gemini-cli` (macOS and Linux), or try it without installing: `npx {{< var agents_intro.clis.gemini >}}`.
-- Windows: Windows 11 24H2 or later is supported natively with PowerShell. On this page we use WSL.
+- Windows: inside WSL 2, as on Linux.
 
 Check with `gemini --version`.
 
@@ -199,10 +206,10 @@ gemini --approval-mode default
 ::: {.callout-tip collapse="true"}
 ## Troubleshooting: Windows and WSL
 
-- **Install WSL 2.** Open PowerShell as administrator ("Run as administrator"), run `wsl --install`, and restart. New installations default to WSL 2 with Ubuntu. Then open "Ubuntu" from the Start menu and run every command on this page there.
+- **Install WSL 2.** See the box at the top of the page: Command Prompt as administrator, `wsl --install`, restart, then open "Ubuntu" from the Start menu and run every command on this page there.
 - **Work in the Linux home folder** (`~`), not under `/mnt/c/`. Microsoft recommends keeping files in the Linux file system when you work from a Linux command line; it is much faster.
 - **`exec: node: not found`, or npm reports the wrong platform.** WSL is picking up the Windows copy of Node.js (`which node` prints a path starting with `/mnt/c/`). Install Node.js inside WSL with nvm, as in the Linux box.
-- **`Exec format error`** when running `claude`: you are on WSL 1. Convert with `wsl --set-version Ubuntu 2` in PowerShell.
+- **`Exec format error`** when running `claude`: you are on WSL 1. Convert with `wsl --set-version Ubuntu 2` in Command Prompt (as administrator).
 - **Browser sign-in does not come back to the terminal.** Use the fallback each tool offers: paste the code (Claude Code), `codex login --device-auth` (Codex), or copy the printed URL into your Windows browser.
 - **Local web pages.** A server started in WSL (section 3, step 7) opens from your Windows browser at `http://localhost:8000`.
 :::
@@ -238,7 +245,7 @@ GitHub Pages publishes a website from a GitHub repository, so your apps need a r
   ```
 
 - Linux (Fedora, DNF5): `sudo dnf install git dnf5-plugins`, `sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo`, `sudo dnf install gh`.
-- Native Windows, if you are not using WSL: `winget install --id Git.Git -e --source winget` and `winget install --id GitHub.cli --source winget`, then open a new terminal window.
+- Windows: inside WSL 2, use the Ubuntu commands above.
 
 **Sign in and create the repository.**
 

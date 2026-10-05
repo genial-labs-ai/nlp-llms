@@ -75,7 +75,6 @@ nlp-llms/
 ├── _includes/               GENERATED tables (schedule, notebook index, dependencies)
 ├── index.qmd                landing page: hero, prerequisites, resource cards
 ├── setup.qmd                Colab, API keys via Colab Secrets, open-model fallback
-├── coding-assistants.qmd    optional: Codex, Claude Code, Gemini CLI, Kimi Code in the terminal
 ├── schedule.qmd             four-day timetable (generated table)
 ├── day-1.qmd … day-4.qmd    day index pages
 ├── lectures/                one page per module: 00-coding-agents.qmd … 15-capstone.qmd
@@ -453,13 +452,12 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Data files for the two apps, with `datasets` entries in `_variables.yml` (`data/1ubq.pdb` from a pinned mirror, CC0 partly verified; `data/purchases_v1.csv.gz`, synthetic; UCI Online Retail II license unverified)
 - [x] Wiring: `modules.m00` (`notebook: false`), the `self_serve` slot and `days.d1.self_serve`, `agents_intro` versions; generators, tests, navbar, day, schedule, setup, index and teach pages; facilitator guide and pace sheet sections; `agents-intro` in the ruff paths 
 - [ ] Verify every install command (the three agents, git, `gh`) against each tool's current documentation, and refresh `agents_intro`, before each delivery
-- [ ] Run Module 0 end to end on a fresh laptop per OS (macOS, Windows native and WSL 2, Linux); record the times and replace the provisional rows in `instructor-pace.md`
+- [ ] Run Module 0 end to end on a fresh laptop per OS (macOS, Windows with WSL 2, Linux); record the times and replace the provisional rows in `instructor-pace.md`
 
 ### Ongoing review (after v1.0)
 
 - [ ] Pilot one day with a small group; record where the clock slipped and which checkpoints confused people
 - [ ] Revise module objectives and stretch sections from pilot feedback
 - [ ] Re-verify Jev, LangChain, LangGraph and LlamaIndex APIs and pins monthly
-- [ ] Re-check the install commands and flags on `coding-assistants.qmd` before each delivery (versions in `_variables.yml` under `assistants`)
 - [ ] Revisit Module 12 whenever TypeSafe publishes more about RLCD
 - [ ] Decide on the v1 exclusions: slide decks, quizzes, Spanish translation
