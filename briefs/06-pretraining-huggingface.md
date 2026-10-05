@@ -98,10 +98,28 @@ Checked on 2026-10-04 against the Transformers documentation `main` branch (the 
 - `tokenizers`: `Tokenizer(BPE(unk_token=...))`, `Whitespace`, `BpeTrainer(vocab_size=..., special_tokens=...)`, `train_from_iterator`, `encode(...).tokens/.ids`, `encode_batch`: ran on 0.23.2 and match the quicktour.
 - `DataCollatorForLanguageModeling` exists with `mlm_probability=0.15`, `mask_replace_prob=0.8`, `random_replace_prob=0.1`. Use it only as a cross-reference in the "why this works" note; participants write `mask_tokens` themselves.
 
+## As built (Director review, 2026-10-05)
+
+The notebook departs from this brief in these ways. All are accepted; the lecture now matches the notebook.
+
+- Exercise 3: `lm_perplexity(text, model, tokenizer)`, not `lm_perplexity(text)`. The shuffled-sentence assertion is skipped only in the offline test mode.
+- Exercise 5: `finetune(model_name, max_length, epochs, lr, seed, train_rows=None)` returns a dict (`val_logits`, `val_labels`, `test_logits`, `test_labels`, `trainer`, `start_val_loss`, `train_seconds`), not four arrays. `train_rows` is the CPU subset.
+- CPU fallback: BERT-mini (`models.encoder_cpu`) fine-tuned on the first **800** training texts (`CPU_TRAIN_ROWS`), 3 epochs, lr 1e-4, with per-epoch evaluation off; validation and test are complete. The results table prints the model and the number of training rows beside the number. The accuracy floors (0.85 on GPU, 0.60 on CPU) are provisional until three seeds are measured on Colab.
+- The masked LM is always DistilBERT (`models.encoder`), on CPU as on GPU: Exercises 2 and 4 and the stretch use it; only Exercise 5 switches encoders.
+- Stretch: loads `AutoModel` with `attn_implementation="eager"`; participants write `attention_entropy(attn)`; the scaffold plots the entropy per layer and head and the two extreme heads, and compares *bank* across three sentences layer by layer.
+- Setup is labeled 3 minutes in the notebook, so Setup plus Exercises 1 to 5 sum to 50 (3 + 10 + 7 + 8 + 10 + 12).
+- A test-only switch, `NLP_LLMS_OFFLINE_TINY=1`, replaces the three checkpoints with tiny random models so the repository's offline machine can execute every cell. It is off on Colab.
+
+Fixed in this review (notebook): the Lab 2 row was looked up by the prefix `lab02.` and the first `topics` entry, which happened to be `lab02.sgns_avg_ffn` but would have picked the GloVe stretch row (`lab02.glove_avg_ffn`, 0.805) if the file's order changed. It now reads the exact id `lab02.sgns_avg_ffn` (0.8669 accuracy, 0.8670 macro-F1). The comment in Checkpoint 5c no longer presents the 0.899 and 0.886 reference accuracies as verified.
+
+**Measured in the repository build (2026-10-05, offline, Linux CPU).** Hand BPE first merges `e+s`, `es+t`, `est+_`, `l+o`, `lo+w`. Our BPE (4,000 entries, 4,800 training texts): 1.548 tokens per word on val. TF-IDF + logistic regression recomputed: 0.8838 accuracy, 0.8841 macro-F1, equal to Lab 1. Masking shares from the reference `mask_tokens`: 0.148 selected; of those 0.799 `[MASK]`, 0.099 unchanged, 0.102 random. These shares were measured on the offline stand-in WordPiece tokenizer, not DistilBERT's, so the real token counts differ. Median training text: 183 words. Every model cell ran only on tiny random stand-ins; their numbers mean nothing.
+
+**Not reproduced in the repository build, so treated as unverified.** Every pretrained-model number above marked *measured* (the 258-token median and 51% truncation share, 1.40 and 1.38 tokens per word, 107.8 and 2,632 perplexities, 0.798/0.100 shares with DistilBERT, the 2.58-nat masked-LM loss, the 0.897/0.899 and 0.892/0.886 accuracies, the training times) and the fill-in-the-blank output once quoted in the lecture. The build machine cannot reach the Hugging Face Hub. The lecture no longer quotes any of them as measured; replace them from a Colab run.
+
 ## Not verified
 
 - **Anything on Colab or a T4**: run time, memory, preinstalled versions, `fp16` behavior.
 - **The fine-tuned accuracy beyond one seed.** The two reference rows above are single runs on a laptop GPU. Seed variance, the 384-token setting, `fp16` and other learning rates were not tried.
 - **The `tokenizers` documentation is in flux.** The live quicktour and the trainers reference carry notices that a release candidate ("rc0 bindings") does not yet expose building or training tokenizers. Training works on 0.23.2, which is what `transformers` 5.18.0 requires. Keep the pin, and re-check before any upgrade.
-- **The Lab 2 row** of the results table: Lab 2 is not built, and the location of the recorded baselines is a proposal.
+- ~~**The Lab 2 row** of the results table: Lab 2 is not built, and the location of the recorded baselines is a proposal.~~ Resolved: Lab 2 is built and `data/baselines.json` holds `lab02.sgns_avg_ffn`.
 - **Lab 5's notation and plotting helper**: the lecture was drafted in parallel with Lecture 5.
