@@ -31,7 +31,7 @@ The habit this module teaches is more durable than any one tool: **plan, act, ch
 
 ## 1. Install a coding agent (10 min) {#install}
 
-Pick one tab. The choice stays selected for the rest of the page. Commands were checked on {{< var agents_intro.checked >}} against the sources named at the end of each tab; the versions current that day were Claude Code {{< var agents_intro.cli_versions.claude_code >}}, Codex {{< var agents_intro.cli_versions.codex >}} and Gemini CLI {{< var agents_intro.cli_versions.gemini >}}. These tools change weekly: if a command fails, check the tool's own page.
+Pick one tab. The choice stays selected for the rest of the page. Commands were checked on {{< var assistants.checked >}} against the sources named at the end of each tab; the versions current that day were Claude Code {{< var assistants.claude_code >}}, Codex {{< var assistants.codex >}} and Gemini CLI {{< var assistants.gemini_cli >}}. These tools change weekly: if a command fails, check the tool's own page. The optional page [Coding assistants in the terminal](../coding-assistants.qmd) uses the same install and sign-in commands, adds Kimi Code, and gives each tool a short checkable task of its own.
 
 Make an empty folder for the sanity check first:
 
@@ -67,7 +67,7 @@ claude doctor
 
 **Sign in.** Run `claude` and follow the browser prompt. If the browser does not open, press `c` to copy the login URL. In WSL the browser may show a code instead of returning to the terminal: paste it at the `Paste code here if prompted` prompt. To switch accounts later, type `/login` inside a session.
 
-**Account and cost.** Claude Code needs a Claude Pro, Max, Team or Enterprise plan, or a Claude Console account (pay per token with prepaid credits). The free Claude plan does not include it. On {{< var agents_intro.checked >}}, [claude.com/pricing](https://claude.com/pricing) listed Pro at $20 a month ($17 a month billed annually) and Max from $100 a month. This module fits comfortably in a Pro plan.
+**Account and cost.** Claude Code needs a Claude Pro, Max, Team or Enterprise plan, or a Claude Console account (pay per token with prepaid credits). The free Claude plan does not include it. On {{< var assistants.checked >}}, [claude.com/pricing](https://claude.com/pricing) listed Pro at $20 a month ($17 a month billed annually) and Max from $100 a month. This module fits comfortably in a Pro plan.
 
 **Sanity prompt.** Start `claude` in `~/agent-test` and type:
 
@@ -88,7 +88,7 @@ Each prompt shows the exact command or file edit and offers *Yes*, *Yes, and don
 
 **Quit and resume.** Quit with `/exit` or `Ctrl+D` twice. Resume the last conversation in this folder with `claude --continue`, or pick one with `claude --resume` (or `/resume` inside a session). `/diff` shows the changes in your working tree.
 
-*Sources, checked {{< var agents_intro.checked >}}:* [code.claude.com/docs/en/setup](https://code.claude.com/docs/en/setup), [quickstart](https://code.claude.com/docs/en/quickstart), [authentication](https://code.claude.com/docs/en/authentication), [permission-modes](https://code.claude.com/docs/en/permission-modes), [sessions](https://code.claude.com/docs/en/sessions), [interactive-mode](https://code.claude.com/docs/en/interactive-mode), [claude.com/pricing](https://claude.com/pricing).
+*Sources, checked {{< var assistants.checked >}}:* [code.claude.com/docs/en/setup](https://code.claude.com/docs/en/setup), [quickstart](https://code.claude.com/docs/en/quickstart), [authentication](https://code.claude.com/docs/en/authentication), [permission-modes](https://code.claude.com/docs/en/permission-modes), [sessions](https://code.claude.com/docs/en/sessions), [interactive-mode](https://code.claude.com/docs/en/interactive-mode), [claude.com/pricing](https://claude.com/pricing).
 
 ### Codex
 
@@ -111,7 +111,7 @@ Open a new terminal, then check with `codex --version`.
 
 **Sign in.** Run `codex` and choose **Sign in with ChatGPT**. If the browser cannot reach the terminal (common in WSL), run `codex login --device-auth` instead. `codex login status` shows who is signed in. To use an API key: `printenv OPENAI_API_KEY | codex login --with-api-key`.
 
-**Account and cost.** The README recommends signing in with a ChatGPT Plus, Pro, Business, Edu or Enterprise plan; an OpenAI API key (billed per token) also works. We could not verify plan prices from an official page on {{< var agents_intro.checked >}}: see [chatgpt.com/pricing](https://chatgpt.com/pricing) and OpenAI's [Codex in ChatGPT](https://help.openai.com/en/articles/11369540-codex-in-chatgpt) article.
+**Account and cost.** The README recommends signing in with a ChatGPT Plus, Pro, Business, Edu or Enterprise plan; an OpenAI API key (billed per token) also works. We could not verify plan prices from an official page on {{< var assistants.checked >}}: see [chatgpt.com/pricing](https://chatgpt.com/pricing) and OpenAI's [Codex in ChatGPT](https://help.openai.com/en/articles/11369540-codex-in-chatgpt) article.
 
 **Sanity prompt.** Start `codex` in `~/agent-test` and type:
 
@@ -130,7 +130,7 @@ This is the "Default" preset: Codex reads, edits and runs commands inside the pr
 
 **Quit and resume.** Quit with `/quit` or `/exit`. Resume with `codex resume` (a picker) or `codex resume --last`.
 
-*Sources, checked {{< var agents_intro.checked >}}:* [openai/codex README](https://github.com/openai/codex/blob/main/README.md) and [docs/install.md](https://github.com/openai/codex/blob/main/docs/install.md) (read through raw.githubusercontent.com), the CLI's own flag and slash-command definitions in `codex-rs/` at the same commit, and the npm registry entry for `{{< var agents_intro.clis.codex >}}`. The official site, developers.openai.com/codex, was not reachable from the build machine.
+*Sources, checked {{< var assistants.checked >}}:* [openai/codex README](https://github.com/openai/codex/blob/main/README.md) and [docs/install.md](https://github.com/openai/codex/blob/main/docs/install.md) (read through raw.githubusercontent.com), the CLI's own flag and slash-command definitions in `codex-rs/` at the same commit, and the npm registry entry for `{{< var agents_intro.clis.codex >}}`. The official site, developers.openai.com/codex, was not reachable from the build machine.
 
 ### Gemini CLI
 
@@ -172,7 +172,7 @@ gemini --approval-mode default
 
 **Quit and resume.** Quit with `/quit` (or `/exit`), or `Ctrl+C` on an empty prompt. Resume the latest session with `gemini --resume`, or open the session browser with `/resume`.
 
-*Sources, checked {{< var agents_intro.checked >}}:* [google-gemini/gemini-cli README](https://github.com/google-gemini/gemini-cli/blob/main/README.md) and its `docs/` folder (get-started/installation, get-started/authentication, cli/cli-reference, cli/session-management, reference/commands, reference/keyboard-shortcuts, resources/quota-and-pricing), read through a clone of the repository; npm registry entry for `{{< var agents_intro.clis.gemini >}}`. The official site, geminicli.com, was not reachable from the build machine.
+*Sources, checked {{< var assistants.checked >}}:* [google-gemini/gemini-cli README](https://github.com/google-gemini/gemini-cli/blob/main/README.md) and its `docs/` folder (get-started/installation, get-started/authentication, cli/cli-reference, cli/session-management, reference/commands, reference/keyboard-shortcuts, resources/quota-and-pricing), read through a clone of the repository; npm registry entry for `{{< var agents_intro.clis.gemini >}}`. The official site, geminicli.com, was not reachable from the build machine.
 
 :::
 
@@ -573,7 +573,7 @@ gzip -dc rfm/purchases_v1.csv.gz | awk -F, -v c=CUSTOMER_ID '
 
 Replace `CUSTOMER_ID` with the number. Then work out recency by hand: the number of days from that last purchase date to **2026-01-01**, the day after the data end (a purchase on 2025-12-31 has recency 1).
 
-*What you should see:* invoices and spend match the agent's F and M. Recency does not: the agent's value is larger by the number of days between 2026-01-01 and the day you ran the script. It measured from the clock, as the prompt told it to. For a historical dataset that is wrong: every customer looks long gone, and because the scores are log-transformed, the shift also changes the clusters.
+*What you should see:* invoices and spend match the agent's F and M. Recency does not: the agent's value is larger by the number of days between 2026-01-01 and the day you ran the script. It measured from the clock, as the prompt told it to. For a historical dataset that is wrong: every customer looks long gone, and because the scores are log-transformed, the shift also changes the clusters. (If recency does match, your agent quietly ignored "as of today". Run step 5 anyway: an agent that departs from your spec without saying so is a finding too.)
 
 **5. Make the agent find and fix its mistake.**
 
