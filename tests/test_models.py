@@ -21,6 +21,7 @@ USES = {
     "08-llm-apis": ["openai", "anthropic", "fallback", "instruct_base_revision"],
     "09-preference-learning": ["causal_lm"],
     "10-rlhf": ["causal_lm"],
+    "12-rlcd-jev": ["jev", "openai", "anthropic"],
 }
 
 # Commercial model IDs: any such literal in a notebook must be a pinned value.

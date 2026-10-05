@@ -24,6 +24,15 @@
       "machine": "Linux x86_64 container, 4 vCPU, CPU only, 2 PyTorch threads, shared with other agents' training jobs (load average 5 to 10); full (T4) configuration executed on CPU; not run on Colab or a GPU",
       "python": "3.12.3",
       "torch": "2.14.1+cu130"
+    },
+    "lab12": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with other agents, CPU only; executed with nbclient (scripts/test_notebooks.py); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "typesafe-sdk": "0.7.2",
+      "path": "local (no TypeSafe key); no Jev call was made"
     }
   },
   "baselines": [
@@ -511,6 +520,360 @@
         "seed": 0,
         "mode": "full (the configuration designed for a T4), executed on CPU",
         "train_seconds_note": "measured on the CPU named in environment.lab05, under contention; not a T4 time"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.toy.accuracy_reward",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy_policy": 0.7267,
+        "mean_p_hat_policy": 0.9894,
+        "ece_policy": 0.2627,
+        "brier_policy": 0.2621,
+        "ece_noise_floor_policy": 0.01,
+        "n_policy": 150,
+        "accuracy_route": 0.6267,
+        "mean_p_hat_route": 0.9809,
+        "ece_route": 0.3543,
+        "brier_route": 0.3496,
+        "ece_noise_floor_route": 0.0214,
+        "n_route": 150,
+        "accuracy": 0.6767,
+        "mean_p_hat": 0.9852,
+        "ece": 0.3085,
+        "brier": 0.3058,
+        "ece_noise_floor": 0.0137,
+        "n": 300
+      },
+      "val_metrics": {
+        "accuracy_policy": 0.82,
+        "mean_p_hat_policy": 0.9665,
+        "ece_policy": 0.1963,
+        "brier_policy": 0.1768,
+        "ece_noise_floor_policy": 0.0388,
+        "n_policy": 50,
+        "accuracy_route": 0.66,
+        "mean_p_hat_route": 0.9865,
+        "ece_route": 0.334,
+        "brier_route": 0.3268,
+        "ece_noise_floor_route": 0.0213,
+        "n_route": 50,
+        "accuracy": 0.74,
+        "mean_p_hat": 0.9765,
+        "ece": 0.2651,
+        "brier": 0.2518,
+        "ece_noise_floor": 0.0285,
+        "n": 100
+      },
+      "train_metrics": {
+        "accuracy_policy": 0.831,
+        "mean_p_hat_policy": 0.99,
+        "ece_policy": 0.1655,
+        "brier_policy": 0.1682,
+        "ece_noise_floor_policy": 0.0059,
+        "n_policy": 1000,
+        "accuracy_route": 0.898,
+        "mean_p_hat_route": 0.9964,
+        "ece_route": 0.1024,
+        "brier_route": 0.102,
+        "ece_noise_floor_route": 0.0036,
+        "n_route": 1000,
+        "accuracy": 0.8645,
+        "mean_p_hat": 0.9932,
+        "ece": 0.1334,
+        "brier": 0.1351,
+        "ece_noise_floor": 0.0033,
+        "n": 2000
+      },
+      "test_metrics_after_temperature": {
+        "accuracy_policy": 0.7267,
+        "mean_p_hat_policy": 0.7442,
+        "ece_policy": 0.1462,
+        "brier_policy": 0.2103,
+        "ece_noise_floor_policy": 0.0733,
+        "n_policy": 150,
+        "accuracy_route": 0.6267,
+        "mean_p_hat_route": 0.6463,
+        "ece_route": 0.2115,
+        "brier_route": 0.2623,
+        "ece_noise_floor_route": 0.0896,
+        "n_route": 150,
+        "accuracy": 0.6767,
+        "mean_p_hat": 0.6952,
+        "ece": 0.1549,
+        "brier": 0.2363,
+        "ece_noise_floor": 0.0614,
+        "n": 300
+      },
+      "settings": {
+        "label": "toy model (our illustration), not Jev and not TypeSafe's method",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)",
+        "model": "ToyDecider: two linear heads (policy yes/no, route 5 options) over the 31 features of featurize; 224 parameters; standardized numeric and interaction columns (train mean and sd)",
+        "train_loop": "train_toy: full batch, Adam lr 0.05, 3,000 steps, no weight penalty, CPU",
+        "seed": 0,
+        "ece_bins": 15,
+        "brier": "binary Brier score of the event 'the chosen answer is right'",
+        "noise_floor": "mean ECE of a forecaster calibrated by construction with the same confidences, 1,000 repetitions",
+        "temperature": "one temperature per head, fitted on dev by bounded search over log tau in [-3, 6]",
+        "reward": "reward_accuracy: probs[i, label] (lecture eq-acc-reward)",
+        "tau_star_dev": {
+          "policy": 28.877,
+          "route": 8.058
+        },
+        "weight_norm_by_step": {
+          "0": 1.54,
+          "500": 44.55,
+          "1000": 59.38,
+          "1500": 71.94,
+          "2000": 84.92,
+          "2500": 97.82,
+          "3000": 110.61
+        },
+        "seed_check": {
+          "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "test_ece_pooled": [
+            0.308,
+            0.31,
+            0.31,
+            0.309,
+            0.309
+          ],
+          "test_accuracy_pooled": [
+            0.677,
+            0.68,
+            0.683,
+            0.683,
+            0.677
+          ],
+          "train_ece_pooled": [
+            0.133,
+            0.132,
+            0.129,
+            0.129,
+            0.133
+          ],
+          "weight_norm_step_3000": [
+            110.6,
+            112.1,
+            116.1,
+            112.5,
+            113.4
+          ],
+          "tau_star_dev_policy": [
+            28.877,
+            28.909,
+            29.997,
+            29.104,
+            30.355
+          ],
+          "note": "measured with a scratch restatement of the notebook's code in the build container, not by executing the notebook; seed 0 agrees with the notebook to the third decimal"
+        }
+      },
+      "val_split_name": "dev",
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.toy.brier_reward",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy_policy": 0.74,
+        "mean_p_hat_policy": 0.8699,
+        "ece_policy": 0.1857,
+        "brier_policy": 0.2197,
+        "ece_noise_floor_policy": 0.0551,
+        "n_policy": 150,
+        "accuracy_route": 0.6333,
+        "mean_p_hat_route": 0.9122,
+        "ece_route": 0.3304,
+        "brier_route": 0.3417,
+        "ece_noise_floor_route": 0.0386,
+        "n_route": 150,
+        "accuracy": 0.6867,
+        "mean_p_hat": 0.8911,
+        "ece": 0.2581,
+        "brier": 0.2807,
+        "ece_noise_floor": 0.0346,
+        "n": 300
+      },
+      "val_metrics": {
+        "accuracy_policy": 0.82,
+        "mean_p_hat_policy": 0.9062,
+        "ece_policy": 0.2002,
+        "brier_policy": 0.1761,
+        "ece_noise_floor_policy": 0.0828,
+        "n_policy": 50,
+        "accuracy_route": 0.66,
+        "mean_p_hat_route": 0.9116,
+        "ece_route": 0.3288,
+        "brier_route": 0.296,
+        "ece_noise_floor_route": 0.0839,
+        "n_route": 50,
+        "accuracy": 0.74,
+        "mean_p_hat": 0.9089,
+        "ece": 0.2274,
+        "brier": 0.236,
+        "ece_noise_floor": 0.0582,
+        "n": 100
+      },
+      "train_metrics": {
+        "accuracy_policy": 0.842,
+        "mean_p_hat_policy": 0.8395,
+        "ece_policy": 0.0704,
+        "brier_policy": 0.1316,
+        "ece_noise_floor_policy": 0.0233,
+        "n_policy": 1000,
+        "accuracy_route": 0.905,
+        "mean_p_hat_route": 0.9119,
+        "ece_route": 0.0239,
+        "brier_route": 0.0534,
+        "ece_noise_floor_route": 0.016,
+        "n_route": 1000,
+        "accuracy": 0.8735,
+        "mean_p_hat": 0.8757,
+        "ece": 0.0267,
+        "brier": 0.0925,
+        "ece_noise_floor": 0.0141,
+        "n": 2000
+      },
+      "test_metrics_after_temperature": {
+        "accuracy_policy": 0.74,
+        "mean_p_hat_policy": 0.739,
+        "ece_policy": 0.1076,
+        "brier_policy": 0.1988,
+        "ece_noise_floor_policy": 0.0711,
+        "n_policy": 150,
+        "accuracy_route": 0.6333,
+        "mean_p_hat_route": 0.5426,
+        "ece_route": 0.278,
+        "brier_route": 0.2827,
+        "ece_noise_floor_route": 0.0916,
+        "n_route": 150,
+        "accuracy": 0.6867,
+        "mean_p_hat": 0.6408,
+        "ece": 0.1776,
+        "brier": 0.2408,
+        "ece_noise_floor": 0.0627,
+        "n": 300
+      },
+      "settings": {
+        "label": "toy model (our illustration), not Jev and not TypeSafe's method",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)",
+        "model": "ToyDecider: two linear heads (policy yes/no, route 5 options) over the 31 features of featurize; 224 parameters; standardized numeric and interaction columns (train mean and sd)",
+        "train_loop": "train_toy: full batch, Adam lr 0.05, 3,000 steps, no weight penalty, CPU",
+        "seed": 0,
+        "ece_bins": 15,
+        "brier": "binary Brier score of the event 'the chosen answer is right'",
+        "noise_floor": "mean ECE of a forecaster calibrated by construction with the same confidences, 1,000 repetitions",
+        "temperature": "one temperature per head, fitted on dev by bounded search over log tau in [-3, 6]",
+        "reward": "reward_brier: minus the multiclass Brier score (lecture eq-brier-reward)",
+        "tau_star_dev": {
+          "policy": 3.115,
+          "route": 7.426
+        },
+        "weight_norm_by_step": {
+          "0": 1.54,
+          "500": 29.79,
+          "1000": 40.49,
+          "1500": 50.24,
+          "2000": 58.96,
+          "2500": 67.06,
+          "3000": 74.68
+        },
+        "seed_check": {
+          "seeds": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "test_ece_pooled": [
+            0.258,
+            0.254,
+            0.259,
+            0.258,
+            0.257
+          ],
+          "test_accuracy_pooled": [
+            0.687,
+            0.693,
+            0.7,
+            0.697,
+            0.687
+          ],
+          "train_ece_pooled": [
+            0.027,
+            0.027,
+            0.03,
+            0.027,
+            0.029
+          ],
+          "weight_norm_step_3000": [
+            74.7,
+            74.2,
+            78.9,
+            72.0,
+            79.3
+          ],
+          "tau_star_dev_policy": [
+            3.115,
+            3.294,
+            3.117,
+            2.94,
+            3.305
+          ],
+          "note": "measured with a scratch restatement of the notebook's code in the build container, not by executing the notebook; seed 0 agrees with the notebook to the third decimal"
+        }
+      },
+      "val_split_name": "dev",
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab12.local_thresholds",
+      "notebook": "notebooks/12-rlcd-jev.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "cost_per_case_analytic": 4.3017,
+        "cost_per_case_chosen_on_dev": 1.8,
+        "cost_per_case_act_all": 6.2667,
+        "cost_per_case_ask_all": 1.7533,
+        "cost_per_case_escalate_all": 3.0,
+        "cost_per_case_chow": 5.5167,
+        "accuracy": 0.6867,
+        "ece": 0.2581,
+        "brier": 0.2807
+      },
+      "settings": {
+        "label": "local toy decider (not Jev): TOY_REF (Brier reward, seed 0) behind LocalDecider",
+        "costs": {
+          "wrong": 20,
+          "ask": 0.5,
+          "miss": 4,
+          "esc": 3
+        },
+        "analytic": [
+          0.375,
+          0.9688
+        ],
+        "chosen_on_dev": [
+          0.0,
+          1.0
+        ],
+        "chosen_on_dev_note": "tau_act is the largest dev probability, 0.9999993 (float32): ask about almost everything",
+        "rule": "escalate below tau_esc, ask in between, act at or above tau_act (lecture eq-three-empirical)",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)"
       },
       "date": "2026-10-05"
     }

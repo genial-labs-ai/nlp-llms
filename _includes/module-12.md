@@ -4,7 +4,7 @@
 
 Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb)
 
 ## Learning objectives
 

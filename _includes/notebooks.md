@@ -14,7 +14,7 @@
 | 9 | [Reinforcement and preference learning](lectures/09-preference-learning.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb) |
 | 10 | [RLHF](lectures/10-rlhf.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb) |
 | 11 | [Calibration](lectures/11-calibration.qmd) | 3 | In preparation |
-| 12 | [RLCD and Jev](lectures/12-rlcd-jev.qmd) | 3 | In preparation |
+| 12 | [RLCD and Jev](lectures/12-rlcd-jev.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb) |
 | 13 | [Retrieval-augmented generation](lectures/13-rag.qmd) | 4 | In preparation |
 | 14 | [Agents](lectures/14-agents.qmd) | 4 | In preparation |
 | 15 | [Capstone](lectures/15-capstone.qmd) | 4 | In preparation |
