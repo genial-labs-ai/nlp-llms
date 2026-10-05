@@ -1,7 +1,8 @@
 """Checks on notebooks/12-rlcd-jev.ipynb.
 
 Static checks (standard library and PyYAML): the policy text and route descriptions are the
-decision set's; the data-loading cells are data/README.md's, unchanged; the recorded toy-model
+decision set's; the data-loading cells are data/README.md's, unchanged; the calibration helpers
+restated from Lab 11 are word for word Lab 11's (one documented deviation); the recorded toy-model
 values agree with data/baselines.json; the honesty labels and banners are present; no TypeSafe
 client is built without a key.
 
@@ -10,6 +11,7 @@ otherwise): the notebook's own cells are executed and LocalDecider is held to th
 briefs/12-rlcd-jev.md, including UnsupportedQuestion for questions the toy model was not trained on.
 """
 
+import ast
 import asyncio
 import importlib.util
 import json
@@ -44,6 +46,39 @@ BASELINES = {
 STATS = json.loads(bd.STATS.read_text(encoding="utf-8"))
 
 
+LAB11_NOTEBOOK = ROOT / "notebooks" / "11-calibration.ipynb"
+LAB11_RESTATED = (
+    "log_softmax",
+    "reliability_bins",
+    "ece",
+    "brier",
+    "brier_binary",
+    "noise_floor",
+    "risk_coverage",
+    "plot_reliability",
+)
+
+
+def _functions(notebook: dict) -> dict:
+    """Name -> source of the last top-level definition in a notebook's code cells (a solution
+    cell follows its stub, so the solution wins). IPython magics are skipped."""
+    out = {}
+    for cell in notebook["cells"]:
+        if cell["cell_type"] != "code":
+            continue
+        lines = "".join(cell["source"]).splitlines()
+        src = "\n".join(line for line in lines if not line.lstrip().startswith(("%", "!")))
+        try:
+            flags = ast.PyCF_ONLY_AST | ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+            tree = compile(src, "cell", "exec", flags=flags)
+        except SyntaxError:
+            continue
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef):
+                out[node.name] = ast.get_source_segment(src, node)
+    return out
+
+
 def cell_with(marker: str) -> str:
     matches = [c for c in CODE_CELLS if marker in c]
     assert len(matches) == 1, f"expected one code cell containing {marker!r}, found {len(matches)}"
@@ -74,6 +109,25 @@ class Restatements(unittest.TestCase):
     def test_decision_set_status(self):
         self.assertIn(f'DECISIONS_STATUS = "{STATS["status"]}"', CODE)
         self.assertIn(f'DECISIONS_NAME = "{STATS["name"]}"', CODE)
+
+    def test_lab11_helpers_word_for_word(self):
+        """The calibration helpers are Lab 11's, word for word; fit_temperature differs only by
+        the documented log_bounds argument."""
+        lab11 = _functions(json.loads(LAB11_NOTEBOOK.read_text(encoding="utf-8")))
+        lab12 = _functions(NB)
+        for name in LAB11_RESTATED:
+            with self.subTest(function=name):
+                self.assertEqual(lab12[name], lab11[name])
+        widened = (
+            lab11["fit_temperature"]
+            .replace(
+                "def fit_temperature(val_logits, val_labels):",
+                "def fit_temperature(val_logits, val_labels, log_bounds=(-3, 3)):",
+            )
+            .replace("bounds=(-3, 3), method", "bounds=log_bounds, method")
+        )
+        self.assertNotEqual(widened, lab11["fit_temperature"])
+        self.assertEqual(lab12["fit_temperature"], widened)
 
 
 class RecordedValues(unittest.TestCase):

@@ -8,7 +8,7 @@ From the Academic Director to the two owners of Lab 12 (`AGENTS.md`, "Who owns w
 
 ## The lab in one paragraph
 
-Participants first train a small decision model on the decision set's training split twice, once with an accuracy-only reward and once with a Brier-score reward, and watch the first one's probabilities run toward 1 while the second one's stay calibrated: **our illustration, not TypeSafe's method**. They then ask a decider typed questions about every `dev` and `test` item of Workshop Desk Decisions v1: Jev through `typesafe-sdk` when a `TYPESAFE_API_KEY` is set, otherwise a local stand-in built on the Brier-trained toy model that returns the same `SystemOneResponse` type. They draw its reliability diagram from the probability of the chosen answer, beside Lab 11's language model, and see what goes wrong if Jev's `confidence` field is used instead. Finally they derive act / ask / escalate thresholds from stated costs, analytically and from `dev`, and report the cost per case on `test`. Every checkpoint tests the participant's function on hand-made or synthetic inputs, so it gives the same verdict on both paths. No calibration result of Jev, or of any language model, is asserted.
+Participants first train a small decision model on the decision set's training split twice, once with an accuracy-only reward and once with a Brier-score reward, and watch the first one's probabilities run toward 1 on the training items while the second one's stay calibrated there; on the held-out wordings of `dev` and `test` both are overconfident, and temperature scaling on `dev` closes the gap (as built; see "As built"): **our illustration, not TypeSafe's method**. They then ask a decider typed questions about every `dev` and `test` item of Workshop Desk Decisions v1: Jev through `typesafe-sdk` when a `TYPESAFE_API_KEY` is set, otherwise a local stand-in built on the Brier-trained toy model that returns the same `SystemOneResponse` type. They draw its reliability diagram from the probability of the chosen answer, beside Lab 11's language model, and see what goes wrong if Jev's `confidence` field is used instead. Finally they derive act / ask / escalate thresholds from stated costs, analytically and from `dev`, and report the cost per case on `test`. Every checkpoint tests the participant's function on hand-made or synthetic inputs, so it gives the same verdict on both paths. No calibration result of Jev, or of any language model, is asserted.
 
 ## The honesty rule, made concrete for this notebook
 
@@ -24,6 +24,8 @@ Participants first train a small decision model on the decision set's training s
 ## Constraints that shape the lab
 
 ### (a) The decision set file does not exist yet
+
+> **Out of date (as built, 2026-10-05).** The decision set exists: the template-only v1, `data/decisions_v1.jsonl.gz` (status `v1-template-only` in `data/decisions_v1_stats.json`; `train` 2,000, `dev` 100, `test` 300), built by `data/build_decisions.py`. The 80 hand-written items and the 60-item audit still need people. Lab 12 trains on the real `train` split, and its numbers are quoted in the lecture and in `data/baselines.json`, always labelled "template items only". The text below is the original constraint, kept for the record.
 
 `data/decisions_v1.jsonl.gz` (spec: `briefs/11-calibration.md`, "Shared decision set") has not been built. Lab 12 needs the **2,000-item `train` split** to train the toy model, so a 20-item fixture (Lab 11's interim plan) is not enough here.
 
@@ -61,6 +63,8 @@ else:
 
 ### Design requirement learned from the stand-in checks
 
+*Stand-in measurements, made before the decision set existed. The decision-set results that replace them in the lecture are under "As built".*
+
 The contrast the lecture promises (lecture section 3) shows cleanly **only for a low-capacity model** trained on many more items than it has parameters. *Checked* on two stand-ins:
 
 - **Synthetic, 2 and 5 options, 2,000 train / 2,000 test items, 8 features, labels the features cannot fully determine** (`torch` linear softmax, Adam, lr 0.05, full batch, no weight penalty, seeds 0 and 1). After 3,000 steps: test accuracy within 0.011 between the two rewards; accuracy-reward model mean probability 0.968–0.986, ECE 0.176–0.299, weight norm still growing (6.5 → 11.3 → 22.8 at 300 / 1,000 / 3,000 steps for one run); Brier-reward model converged by 300 steps, ECE 0.012–0.032. Temperature fitted on 100 held-out items: τ* = 9.9–15.9 for the accuracy-reward model, after which its ECE is 0.020–0.052 and its Brier score 0.261–0.442 against the Brier-reward model's 0.256–0.423.
@@ -86,7 +90,8 @@ Standardize the five numeric and five interaction columns with the `train` mean 
 
 ```python
 class ToyDecider(nn.Module):
-    """Two linear heads over 31 features: policy (yes/no) and route (5 options). ~190 parameters."""
+    """Two linear heads over 31 features: policy (yes/no) and route (5 options). 224 parameters
+    (31 x 2 + 2 and 31 x 5 + 5; the stored standardization buffers are not parameters)."""
     def __init__(self, d=31):
         super().__init__()
         self.policy = nn.Linear(d, 2)        # logits for ["yes", "no"]
@@ -98,8 +103,8 @@ class ToyDecider(nn.Module):
 
 - `train_toy(reward_fn, train_items, steps=3000, lr=0.05, seed=0, log_every=50)`: full batch, Adam, **no weight penalty** (a penalty would cap the accuracy reward's divergence and hide the lesson; say so in a comment). The objective is lecture @eq-outcome-objective: the mean over all 2,000 items of `reward_fn(probs, labels)`, each item through its family's head, maximized (the loss is its negative). Logs, every `log_every` steps: mean train reward, mean $\hat{p}$ on train per family, and the total weight norm. Returns `(model, log)`.
 - Seeds: `torch.manual_seed(seed)` before constructing the model; CPU; deterministic.
-- `TOY_REF = train_toy(reward_brier_solution, ...)` in a provided cell after Exercise 1 (see constraint (c)).
-- Restated from Lab 11, verbatim: `reliability_bins`, `ece`, `brier`, `brier_binary`, `noise_floor`, `fit_temperature`, `risk_coverage`, `plot_reliability`.
+- `TOY_REF = train_toy(reward_brier_ref, ...)` in a provided cell after Exercise 1 (see constraint (c)); `reward_brier_ref` is the solution reward under its own name, so `TOY_REF` never uses the participant's code.
+- Restated from Lab 11, verbatim: `log_softmax`, `reliability_bins`, `ece`, `brier`, `brier_binary`, `noise_floor`, `fit_temperature`, `risk_coverage`, `plot_reliability`. As built, each is word for word Lab 11's solution or provided code (docstrings included), checked by `tests/test_lab12.py`, with one documented deviation: `fit_temperature` takes `log_bounds` (default Lab 11's `(-3, 3)`), because the accuracy-rewarded model's policy head needs $\tau^* \approx 29$, above $e^3$. Lab 11's `noise_floor` returns `(mean, 95th percentile)`, so Lab 12's callers take `[0]`; its `plot_reliability` takes `(conf, correct, ax, ...)`, and Lab 12 relabels the horizontal axis as the probability of the chosen answer.
 
 ### Exercise 1: participants write
 
@@ -164,7 +169,8 @@ Behavior, all of which a unit check in the notebook (and later `tests/`) must pi
 |---|---|
 | `state` | a dict with `today`, `event`, `registration`, `request` (a `policy` key is accepted and ignored); anything else raises `ValueError` |
 | `questions` | a non-empty mapping, values either SDK question objects or raw dicts with a `"type"` key (as the SDK accepts); each is answered independently |
-| `Noul` | `{"type": "noul", "noul": P(yes)}` from the policy head; **no `confidence` key**, as in Jev's schema |
+| `Noul` asking one of the five policy questions (P1 to P5, recognized by `featurize`'s question keywords) | `{"type": "noul", "noul": P(yes)}` from the policy head; **no `confidence` key**, as in Jev's schema |
+| any other `Noul` (for example a guard or verify question) | raise `UnsupportedQuestion(name)` (as built; the original table answered every `Noul` from the policy head) |
 | `Choice` with `set(criteria) == set(ROUTE_OPTIONS)` | `{"type": "choice", "choice": argmax, "probabilities": {label: p} in the criteria's order, "confidence": κ}` with κ from lecture @eq-adapter-conf. Comment in the code: "TypeSafe's emulator formula (`system-one-adapter`); Jev's own formula is not published" |
 | any other `Choice`, any `Score` | raise `UnsupportedQuestion(name)`. Labs 14 and 15 catch it and send the question to their Qwen-backed decider (JV §10) |
 | probabilities | full precision, summing to 1 within 1e-6 (asserted inside); `round_to=2` rounds to 0.01 to mimic the recorded Jev response (JV §2), for testing tie handling only |
@@ -186,7 +192,7 @@ Format per exercise: Predict, Run, Explain, Check; `# TODO N` stub, folded solut
 | # | Participant writes | Equation | Checkpoint (deterministic) | Printed, never asserted | Min |
 |---|---|---|---|---|---|
 | 0 | Nothing: run setup; read `JEV_PATH`; print the policy's first rules and three items (one policy, one route, one `injection`) | – | none | which decider will answer; `JEV_MODEL`; the decision-set version and whether it is `provisional` | 3 |
-| 1 | `reward_accuracy(probs, labels)`, `reward_brier(probs, labels)` | `acc-reward`, `brier-reward`, `outcome-objective`, `acc-optimum` | (i) hand cases: probs `[[0.7, 0.3], [0.2, 0.8]]`, labels `[0, 0]` give accuracy reward `[0.7, 0.2]` and Brier reward `[-0.18, -1.28]` (atol 1e-6); (ii) uniform five-way gives Brier reward −0.8 exactly; one-hot correct gives 0 for both; (iii) Monte Carlo: 200,000 answers sampled from fixed probabilities (`torch.Generator` seeded) have mean correctness within 4 standard errors of `reward_accuracy`; (iv) `reward_brier == -brier` (Lab 11's, per item) to 1e-12; (v) both return shape `(N,)` and carry gradients | Training curves for both rewards: mean $\hat{p}$ per family and weight norm against step (the accuracy-reward curve keeps rising; the Brier curve flattens); table on `dev` and `test`: accuracy, mean $\hat{p}$, ECE (15 bins) with the noise floor for that $N$, Brier (binary, of the correctness event), per family and pooled; the same after `fit_temperature` on `dev` (τ* printed). Every row labelled `toy model (our illustration)` | 14 |
+| 1 | `reward_accuracy(probs, labels)`, `reward_brier(probs, labels)` | `acc-reward`, `brier-reward`, `outcome-objective`, `acc-optimum` | (i) hand cases: probs `[[0.7, 0.3], [0.2, 0.8]]`, labels `[0, 0]` give accuracy reward `[0.7, 0.2]` and Brier reward `[-0.18, -1.28]` (atol 1e-6); (ii) uniform five-way gives Brier reward −0.8 exactly; one-hot correct gives 0 for both; (iii) Monte Carlo: 200,000 answers sampled from fixed probabilities (`torch.Generator` seeded) have mean correctness within 4 standard errors of `reward_accuracy`; (iv) `reward_brier == -brier` (Lab 11's, per item) to 1e-12; (v) both return shape `(N,)` and carry gradients | Training curves for both rewards: mean $\hat{p}$ per family and weight norm against step (as built: both weight norms keep growing, the accuracy reward's faster; the Brier curve does **not** flatten, see "As built"); table on `train`, `dev` and `test`: accuracy, mean $\hat{p}$, ECE (15 bins) with the noise floor for that $N$, Brier (binary, of the correctness event), per family and pooled; the same after `fit_temperature` on `dev` (τ* printed). Every row labelled `toy model (our illustration)` | 14 |
 | 2 | `to_questions(item)` returning `{"decision": Noul(...) or Choice(...)}`; `chosen_answer(answer)` returning `(label, p_hat)` | `chosen-prob` | (i) questions validate, `instructions == item["question"]`, Choice criteria keys equal the item's `options` in order; no `label`/`rule`/`rationale` text appears in `jev_state(item)` or the questions; (ii) on five hand-built responses (constructed through `from_http_response`): `noul = 0.83` → `("yes", 0.83)`; `noul = 0.2` → `("no", 0.8)`; `noul = 0.5` → `("yes", 0.5)`; a Choice with probabilities `(0.6, 0.1, 0.1, 0.1, 0.1)` and `confidence = 0.5` → `("<top label>", 0.6)`, **not 0.5**; a `ScoreAnswer` → `TypeError` | Through the provided `decide_all` on `dev` + `test`: validity rate, accuracy per family, invalid items with their error; on the keyed path, `resp.model`, total input tokens, measured cost in USD, median and 95th-percentile latency; on the local path, the banner of honesty rule 4 | 10 |
 | 3 | `calibration_arrays(records, use="p")` returning `(conf, correct)` over valid records; `use="kappa"` takes the `confidence` field and raises `ValueError` if asked for yes/no records only (they have none) | `chosen-prob`, `adapter-conf` | (i) fixture records give the expected arrays; (ii) **synthetic, seeded**: 100,000 five-way items with probabilities drawn from Dirichlet(1, 1, 1, 1, 1) and labels drawn from those probabilities (calibrated by construction): ECE from `p` < 0.01, ECE from `kappa` (computed with @eq-adapter-conf) > 0.10 (*checked*, seeds 0–2: 0.002–0.003 and 0.134–0.136; at 20,000 items the `p` ECE reached 0.010, too close to the bound) | Reliability diagrams on `test` from `p`: the decider (Jev or `local toy decider (not Jev)`) beside Lab 11's language model (constraint (b)), each with accuracy, ECE, binary Brier, $N_{\text{valid}}$ and the noise floor for that $N$; the route items redrawn with `kappa` on the horizontal axis; one item printed where `kappa` and `p` differ most | 8 |
 | 4 | `expected_costs(p, costs)` → `(C_act, C_ask, C_esc)`; `action_thresholds(costs)` → `(tau_esc, tau_act)`, collapsing to Chow's $\lambda^*$ for both when asking never pays; `choose_thresholds(p, correct, costs)` minimizing @eq-three-empirical over pairs from the observed `p` plus 0 and a value above the maximum | `three-costs`, `three-thresholds`, `three-empirical` | (i) the lecture's worked example: `costs = dict(wrong=20, ask=0.5, miss=4, esc=3)` gives `(0.375, 0.96875)`; at `p = 0.6` the costs are `(8, 2.1, 3)`; (ii) `ask = 2.5` collapses to `(0.85, 0.85)` (both *checked* against a 100,001-point grid of the three cost lines); (iii) a hand-made eight-item case with a known best pair; (iv) the chosen pair's `dev` cost ≤ act-all, ask-all and escalate-all; (v) `tau_esc <= tau_act` always | With the worked example's costs: share of `test` items in each action and cost per case at the analytic pair and at the `dev`-chosen pair, beside act-all, ask-all, escalate-all and Chow's two-action rule; both pairs printed as numbers; the same for Lab 11's language model if its records are present | 10 |
@@ -198,7 +204,7 @@ Minutes: 3 + 14 + 10 + 8 + 10 + 5 = 50.
 
 **Closing cell: "What this lab showed and what it did not"** (markdown, then two questions):
 
-- Exercise 1 showed, on our toy model, that an accuracy-only reward is indifferent to probabilities and drives them toward 1, and that a proper-score reward does not. It did not show how Jev was trained: TypeSafe has not published RLCD.
+- Exercise 1 showed, on our toy model, that an accuracy-only reward is indifferent to probabilities and drives them toward 1, and that a proper-score reward does not, on the items the model was trained on. (As built, the notebook adds: on held-out wordings both toy models were overconfident, and temperature scaling repaired most of it.) It did not show how Jev was trained: TypeSafe has not published RLCD.
 - If you ran without a key, every decider number in this notebook is our toy model's.
 - With a key, Jev's calibration was measured on at most 300 `test` items of one synthetic domain; the noise floor printed beside each ECE says how much of a difference is readable. TypeSafe's own advice is to validate in the target domain.
 - Questions: (1) Your guard for the `send_email` tool (Lab 14) should use higher costs for a wrong action than the router. Which threshold moves, and which way? (2) Name one thing you would need to see from TypeSafe before saying anything about how RLCD works.
@@ -269,9 +275,58 @@ Exercise 1's qualitative claims (the accuracy-reward model's weight norm keeps g
 - **`references.qmd`:** under Module 12, add `SKILL.md` and `typesafe-sdk`, Gneiting and Raftery 2007, Damani et al. 2026, Kahneman 2011, Stanovich and West 2000, and Melnikoff and Bargh 2018; mark TypeSafe's announcement and docs as "to be read".
 - **`tests/`:** a unit test for `LocalDecider` once it lives in a module the tests can import (or a notebook-cell test in `test_notebooks.py`): the behavior table above.
 
+## As built (review of 2026-10-05)
+
+The Academic Director reviewed `notebooks/12-rlcd-jev.ipynb` against this brief and lecture 12, following the Module 1 review pattern. Everything below was *checked* in the build container (CPU, `scripts/test_notebooks.py 12-rlcd-jev` and a scratch nbclient run of the same notebook with no key), not on Colab. No Jev call was made; the keyed path and the stretch's LLM column did not run.
+
+**Toy model on the decision set (template items only; `data/baselines.json`, `lab12.toy.*`; our toy model, not Jev).** Seed 0, 3,000 full-batch Adam steps, lr 0.05, no weight penalty:
+
+| | Accuracy reward | Brier reward |
+|---|---|---|
+| `train`: accuracy, mean $\hat{p}$, ECE | 0.865, 0.993, 0.133 | 0.874, 0.876, 0.027 |
+| Weight norm at steps 1,500 and 3,000 | 71.9, 110.6 | 50.2, 74.7 |
+| `test`: accuracy, mean $\hat{p}$, ECE, binary Brier | 0.677, 0.985, 0.308, 0.306 | 0.687, 0.891, 0.258, 0.281 |
+| $\tau^*$ on `dev` (policy, route) | 28.88, 8.06 | 3.12, 7.43 |
+| `test` after temperature: ECE, binary Brier | 0.155, 0.236 | 0.178, 0.241 |
+
+Seeds 0 to 4 (`settings.seed_check` in both entries, measured with a scratch restatement of the notebook's code; seed 0 agrees with the notebook to the third decimal):
+
+| Seed | 0 | 1 | 2 | 3 | 4 |
+|---|---|---|---|---|---|
+| `test` ECE, accuracy reward | 0.308 | 0.310 | 0.310 | 0.309 | 0.309 |
+| `test` ECE, Brier reward | 0.258 | 0.254 | 0.259 | 0.258 | 0.257 |
+| `test` accuracy, accuracy reward | 0.677 | 0.680 | 0.683 | 0.683 | 0.677 |
+| `test` accuracy, Brier reward | 0.687 | 0.693 | 0.700 | 0.697 | 0.687 |
+| `train` ECE, accuracy reward | 0.133 | 0.132 | 0.129 | 0.129 | 0.133 |
+| `train` ECE, Brier reward | 0.027 | 0.027 | 0.030 | 0.027 | 0.029 |
+| Weight norm at step 3,000, accuracy reward | 110.6 | 112.1 | 116.1 | 112.5 | 113.4 |
+| Weight norm at step 3,000, Brier reward | 74.7 | 74.2 | 78.9 | 72.0 | 79.3 |
+| $\tau^*$ on `dev`, policy head, accuracy reward | 28.877 | 28.909 | 29.997 | 29.104 | 30.355 |
+| $\tau^*$ on `dev`, policy head, Brier reward | 3.115 | 3.294 | 3.117 | 2.940 | 3.305 |
+
+What this changes in the brief and the lecture:
+
+- **The Brier curve does not flatten.** Both weight norms keep growing; the Brier model's more slowly. Some groups of training items are separable by the features (the case flagged at the end of "What is asserted on each path"), so even the proper reward pushes their probabilities toward 0 and 1. Checked by the Director on `TOY_REF` (seed 0): 405 of the 1,000 `train` route items get $\hat{p} > 0.999$, all of them right; 150 of the 1,000 policy items get $\hat{p} > 0.99999$, 98.7% right. The features were not changed. The notebook asserts the rate difference (accuracy model's norm above the Brier model's by more than 15 at step 3,000), not growth against no growth.
+- **The clean contrast is in distribution.** On `train` the Brier model's mean $\hat{p}$ sits on its accuracy and its ECE is a fifth of the accuracy model's. On the held-out wordings of `dev` and `test` both models are overconfident; the Brier model less so on every seed.
+- **Temperature scaling closes the gap.** After one temperature per head on `dev`, the accuracy-rewarded model is no worse than the Brier one on `test` (differences below the noise floor of about 0.06). The lecture's former "its Brier score stayed slightly worse" (a stand-in result) is dropped.
+- **Feature set:** the Brier model's `test` accuracy is 0.740 (policy) and 0.633 (route), inside the 0.60–0.90 design range; no adjustment was needed.
+
+**Local thresholds (`lab12.local_thresholds`; local toy decider, not Jev).** Costs `wrong=20, ask=0.5, miss=4, esc=3`. Analytic pair $(0.375, 0.969)$; `dev`-chosen pair $(0, 0.9999993)$, printed as $(0.000, 1.000)$. The chosen $\tau_{\text{act}}$ is the 11th-largest `dev` probability (float32 softmax saturates: five `dev` answers have $\hat{p} = 1.0$), so the rule acts on the 11 most confident `dev` answers (all right), asks about the other 89 and never escalates. On `test` it asks about 88% and acts on 12% (36 items, 2 of them wrong), at 1.800 per case, against 1.753 ask-all, 3.0 escalate-all, 6.267 act-all, 5.517 Chow and 4.302 at the analytic pair (which acts on 56%). Reason: no top slice of `dev` larger than those 11 is right 96.9% of the time (the 54 answers with $\hat{p} \ge 0.969$ are right 74% of the time), and no bottom slice is mostly wrong (the five least confident are right 60% of the time; no $\hat{p}$ is below 0.375). The lecture's section 8 now states and explains this result.
+
+**Deviations from this brief, accepted:**
+
+- *Recorded values* are asserted at `atol=5e-3` (accuracy, mean $\hat{p}$, ECE, binary Brier for six reward/split/family rows; the `dev`-chosen pair and its `test` cost), not 1e-4, to allow float differences across machines. $\tau^*$ is recorded, not asserted.
+- *Exercise 1's qualitative claims* are asserted (as this brief allowed after five seeds held), with margins of at most half the smallest seed margin: accuracy-model weight growth from step 1,500 to 3,000 above 15; its norm above the Brier model's by 15; its `train` mean $\hat{p}$ above 0.98; Brier `train` $|\hat{p} - \text{accuracy}| < 0.02$; `train` ECE gap above 0.05; `test` ECE gap above 0.025.
+- *`LocalDecider`* answers a `Noul` only when it is one of the five policy questions; any other `Noul` raises `UnsupportedQuestion` (behavior table above, amended). Labs 14 and 15 must catch it for guard and verify questions.
+- *Constraint (b)*: the Lab 11 export exists (Lab 11 cell `ex4-export`, fields `id, split, family, answer, confidence, valid, label, provider, model, date`; Lab 12 checks all ten). The committed reference run `data/lab11_reference_decisions_v1.jsonl.gz` does not exist and Lab 12 does not look for it; without an export the decider is drawn alone.
+- *Timing*: the notebook headed Setup "(3 minutes)" and Exercise 0 "(3 minutes)" (53 in all); Setup is now headed "counted in Exercise 0's 3 minutes", so the core path is 3 + 14 + 10 + 8 + 10 + 5 = 50. Lab 11 has the same double count (Setup 3 and Exercise 0 3); not changed here.
+- *Run time (CPU, build container, no key):* the whole notebook including the stretch's local column runs in 21 to 28 s; the two Exercise 1 trainings take about 12.6 s. Colab not measured.
+
+**Proposed changes, status:** `_variables.yml` objective 3 reworded (done); `data/baselines.json` `lab12.*` entries (done); Lab 11 export cell and `ROUTE_DESCRIPTIONS` (done; Lab 12's copy is checked against `build_decisions.route_descriptions()`); template part of `build_decisions.py` (done); `lab11_reference` dataset entry, `PLAN.md` section 4 wording, section 6 rows and `references.qmd` (not done; not touched by this review, which was told not to edit `PLAN.md` or `_variables.yml`).
+
 ## Not verified by the Director
 
-- **Nothing in this lab has been built or run.** No notebook exists. The decision set does not exist. All toy-model numbers above come from stand-ins (synthetic data and arXiv Topics), not from the decision set.
+- **Superseded (2026-10-05):** "Nothing in this lab has been built or run. No notebook exists. The decision set does not exist." The notebook and the template-only decision set now exist; see "As built" for what was run and what was not. The toy-model numbers in "Design requirement learned from the stand-in checks" are still stand-in numbers; the decision-set numbers are under "As built".
 - **No live Jev call.** Jev's accuracy, calibration, latency, rate limits, rounding, current model behind `jev-latest`, and the server's `confidence` formula are unknown. The local-path construction was checked offline against the cached `typesafe-sdk` 0.7.2 only.
 - **TypeSafe's documentation and announcement are unread** (blocked from the build container on 2026-10-05, again by WebFetch today for `typesafe.ai`). Everything the lecture says TypeSafe stated comes from the SDK, `SKILL.md`, `system-one-adapter` and `WorkflowEvals` via `briefs/jev-verification.md`.
 - **Third-party RLCD claims** were seen only in web-search summaries; the pages themselves were blocked.
