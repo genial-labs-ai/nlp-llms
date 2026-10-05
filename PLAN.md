@@ -254,7 +254,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** build a RAG pipeline; choose chunking, embedding and reranking settings from measurements; evaluate retrieval and answer quality separately.
 - **Lecture:** why retrieval (freshness, grounding, cost); the pipeline: load, chunk, embed, index, retrieve, rerank, generate; dense, sparse (BM25, linking back to Module 1) and hybrid retrieval; rerankers; evaluation: recall@k, MRR, faithfulness, answer relevance; common failures; LlamaIndex and LangChain: what each abstracts and where they overlap.
-- **Lab `13-rag.ipynb`:** index a small document set with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set; build the same retriever as a LangChain runnable; add a reranking step (a Jev reranker written in the notebook on `typesafe-sdk`, since no official LlamaIndex integration exists; a cross-encoder is the fallback and the CI path); score faithfulness.
+- **Lab `13-rag.ipynb`:** index a small document set (Workshop Lectures v1: a frozen snapshot of our own lectures, `data/workshop_lectures_v1.jsonl.gz`) with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set (`data/rag_questions_v1.jsonl`, 80 questions written and checked by people, spec in `briefs/13-rag.md`); build the same retriever as a LangChain runnable; add a reranking step (a Jev reranker written in the notebook on `typesafe-sdk`, since no official LlamaIndex integration exists; a cross-encoder is the fallback and the CI path); score faithfulness.
 - **Stretch:** hybrid retrieval with BM25.
 - **Stack:** LlamaIndex, LangChain, Jev, OpenAI/Claude (fallback: local embedding model and small local LLM).
 - **Readings:** Lewis et al. 2020 (RAG); LlamaIndex and LangChain documentation.
@@ -315,6 +315,7 @@ Every notebook must meet all of these.
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
 | Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| RAG questions need human authors | Model-written questions copy passage wording (inflating BM25) and model relevance labels are circular with the judge Lab 13 teaches people to check | Romeo and one instructor write and blind-check 80 questions (about 4 and 3 hours); a first batch of 40 unblocks the notebook |
 | Lab 11 depends on the Lab 6 logits | `lab06_logits.npz` needs a T4 run with Hub access; without it Lab 11 analyzes the Lab 1 classifier, which is close to calibrated, so the encoder half of lecture 11's section 5 is unmeasured | Lab 11 falls back automatically; an always-on regularization sweep shows temperature scaling in both directions; commit the file after Lab 6's T4 run |
 | Decision set labels need two human annotators | An agent can build the generator but cannot provide independent human labels or write the hand items (the spec forbids model-written items) | Romeo and one instructor write and label 80 hand items and audit 60 template items (estimated 2–3 hours each) |
 | Labs 9 and 10 depend on GPT-2 | They need the Hub (and Lab 10 a GPU); the build container has neither | Build Lab 9's data files and run Lab 10's seed protocol on a Colab T4 |
@@ -408,7 +409,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 9 — Modules 13–15
 
-- [ ] Draft lecture 13: Retrieval-augmented generation
+- [x] Draft lecture 13: Retrieval-augmented generation
 - [x] Draft lecture 14: Agents
 - [ ] Draft the Module 15 capstone brief and wrap-up
 - [ ] Code `13-rag.ipynb`
