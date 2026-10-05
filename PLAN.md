@@ -75,6 +75,7 @@ nlp-llms/
 ├── _includes/               GENERATED tables (schedule, notebook index, dependencies)
 ├── index.qmd                landing page: hero, prerequisites, resource cards
 ├── setup.qmd                Colab, API keys via Colab Secrets, open-model fallback
+├── coding-assistants.qmd    optional: Codex, Claude Code, Gemini CLI, Kimi Code in the terminal
 ├── schedule.qmd             four-day timetable (generated table)
 ├── day-1.qmd … day-4.qmd    day index pages
 ├── lectures/                one page per module: 00-coding-agents.qmd … 15-capstone.qmd
@@ -459,5 +460,6 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Pilot one day with a small group; record where the clock slipped and which checkpoints confused people
 - [ ] Revise module objectives and stretch sections from pilot feedback
 - [ ] Re-verify Jev, LangChain, LangGraph and LlamaIndex APIs and pins monthly
+- [ ] Re-check the install commands and flags on `coding-assistants.qmd` before each delivery (versions in `_variables.yml` under `assistants`)
 - [ ] Revisit Module 12 whenever TypeSafe publishes more about RLCD
 - [ ] Decide on the v1 exclusions: slide decks, quizzes, Spanish translation
