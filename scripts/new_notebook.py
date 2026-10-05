@@ -132,6 +132,8 @@ def main() -> None:
     modules = load_variables()["modules"]
     if args.key not in modules:
         raise SystemExit(f"{args.key}: not a module key in _variables.yml")
+    if not modules[args.key].get("notebook", True):
+        raise SystemExit(f"{args.key}: has `notebook: false` in _variables.yml (no lab)")
     path = NOTEBOOKS / f"{modules[args.key]['slug']}.ipynb"
     if path.exists():
         raise SystemExit(f"{path.name} already exists")

@@ -24,6 +24,8 @@ execute = [
     "pip",
     # What the labs import and Colab preinstalls.
     "numpy>=1.26",
+    # Listed for the Module 0 reference-solution tests (agents-intro/); also pulled in by datasets.
+    "pandas>=2.2",
     "matplotlib>=3.8",
     "scikit-learn>=1.5",
     "scipy>=1.13",

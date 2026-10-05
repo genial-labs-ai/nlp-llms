@@ -18,6 +18,8 @@ Every module is a short lecture followed by a hands-on lab in Google Colab.
 
 See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd).
 
+Day 1 opens at 08:00 with an optional self-serve hour, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd), which you can also do as pre-work.
+
 ## What you will be able to do
 
 - Explain the line of ideas from count-based language models to transformers, and say what problem each step solved.

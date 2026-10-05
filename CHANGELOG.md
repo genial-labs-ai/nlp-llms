@@ -12,3 +12,4 @@ All notable changes to this workshop are recorded here.
 - Notebook template, `00-setup.ipynb`, a notebook runner and an internal link check.
 - CI workflow: generate, drift gate, lint, test, render, link check, notebook execution, and opt-in deployment to GitHub Pages.
 - Scheduled notebook health workflow (`health.yml`): a weekly hermetic run, a non-blocking run of the open-model (Hub) paths, and an on-demand run with API keys. The pull-request notebook run no longer reaches the Hugging Face Hub.
+- Module 0, "Coding agents in the terminal": an optional, self-serve hour on Day 1 from 08:00 to 09:00 (also usable as pre-work), with no notebook. `_variables.yml` gains `modules.m00` (with `notebook: false`), a `self_serve` schedule slot and `days.d1.self_serve`, and `agents_intro` (three.js and agent CLI npm versions, dated). The generators, tests, navbar, day, schedule, setup and teach pages, facilitator guide and pace sheet handle a module numbered 0.

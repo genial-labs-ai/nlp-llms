@@ -31,9 +31,14 @@ def load_variables() -> dict:
 
 
 def entries(v: dict) -> list[dict]:
-    """The setup notebook followed by the modules, in teaching order."""
+    """The setup notebook followed by the modules that have a lab, in teaching order.
+
+    Modules with `notebook: false` (Module 0) are left out, so 00-setup's footer
+    points at the first lab, not at a notebook that does not exist.
+    """
     setup = {"n": 0, "day": None, "objectives": [], "stack": [], **v["setup"]}
-    return [setup] + sorted(v["modules"].values(), key=lambda m: m["n"])
+    labs = [m for m in v["modules"].values() if m.get("notebook", True)]
+    return [setup] + sorted(labs, key=lambda m: m["n"])
 
 
 def header_source(v: dict, e: dict) -> str:
@@ -114,7 +119,10 @@ def main() -> None:
     v = load_variables()
     order = entries(v)
     known = {e["slug"] for e in order}
+    no_lab = {m["slug"] for m in v["modules"].values() if not m.get("notebook", True)}
     for path in sorted(NOTEBOOKS.glob("*.ipynb")):
+        if path.stem in no_lab:
+            raise SystemExit(f"{path.name}: this module has `notebook: false` in _variables.yml")
         if path.stem not in known:
             raise SystemExit(f"{path.name}: no entry with this slug in _variables.yml")
     for i, e in enumerate(order):

@@ -31,8 +31,8 @@ Start a new lab with `uv run --group site python scripts/new_notebook.py mNN`.
 ```bash
 uv run --group site python scripts/gen_tables.py
 uv run --group site python scripts/gen_notebooks.py
-uv run --group lint ruff check scripts tests data
-uv run --group lint ruff format --check scripts tests data
+uv run --group lint ruff check scripts tests data agents-intro
+uv run --group lint ruff format --check scripts tests data agents-intro
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py
 quarto render && uv run --group site python scripts/check_links.py

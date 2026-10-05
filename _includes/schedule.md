@@ -2,6 +2,7 @@
 
 | Time | Day 1: Foundations | Day 2: Transformers and LLMs | Day 3: Training objectives | Day 4: RAG, agents, capstone |
 |---|---|---|---|---|
+| 08:00–09:00 | [0 · Coding agents in the terminal (self-serve)](lectures/00-coding-agents.qmd) |  |  |  |
 | 09:00–09:10 | Welcome, setup check | Recap of Day 1 | Recap of Day 2 | Recap of Day 3 |
 | 09:10–10:45 | [1 · Text as data](lectures/01-text-as-data.qmd) | [5 · The transformer](lectures/05-transformer-from-scratch.qmd) | [9 · Reinforcement and preference learning](lectures/09-preference-learning.qmd) | [13 · Retrieval-augmented generation](lectures/13-rag.qmd) |
 | 10:45–11:00 | Break | Break | Break | Break |

@@ -42,6 +42,9 @@ website:
         text: Schedule
       - text: Days
         menu:
+          # Optional self-serve hour before the Day 1 welcome (Module 0).
+          - href: lectures/00-coding-agents.qmd
+            text: "Day 1, 08:00 · Coding agents (self-serve)"
           - href: day-1.qmd
             text: "Day 1 · Foundations"
           - href: day-2.qmd

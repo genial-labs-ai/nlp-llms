@@ -20,6 +20,7 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 <!-- BEGIN modules -->
 | # | Day | Module | Lab |
 |---|---|---|---|
+| 0 | 1 | [Coding agents in the terminal](https://project-delphi.github.io/nlp-llms/lectures/00-coding-agents.html) | No notebook: runs in your terminal |
 | 1 | 1 | [Text as data](https://project-delphi.github.io/nlp-llms/lectures/01-text-as-data.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb) |
 | 2 | 1 | [Word vectors and neural networks](https://project-delphi.github.io/nlp-llms/lectures/02-word-vectors.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb) |
 | 3 | 1 | [Sequence models](https://project-delphi.github.io/nlp-llms/lectures/03-sequence-models.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/03-sequence-models.ipynb) |
@@ -66,7 +67,7 @@ uv run --group site python scripts/gen_notebooks.py   # notebook header and foot
 Checks:
 
 ```bash
-uv run --group lint ruff check scripts tests data
+uv run --group lint ruff check scripts tests data agents-intro
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py   # run every notebook
 quarto render && uv run --group site python scripts/check_links.py
@@ -89,7 +90,8 @@ uv run --group site python scripts/new_notebook.py m03        # add --api for AP
 | `_variables.yml` | Single source of truth: modules, schedule, URLs, model IDs |
 | `_quarto.yml`, `custom.scss`, `fonts/` | Site configuration and theme |
 | `*.qmd`, `lectures/` | Site pages; one lecture page per module |
-| `notebooks/` | One Colab lab per module, stored without outputs |
+| `notebooks/` | One Colab lab per module from 1 to 15, stored without outputs (Module 0 has none) |
+| `agents-intro/` | Module 0 reference solutions for its two apps |
 | `_includes/` | Generated tables. Do not edit by hand |
 | `scripts/`, `tests/` | Generators, notebook runner, link check, tests |
 | `PLAN.md`, `AGENTS.md` | The build plan and the rules for coding agents |

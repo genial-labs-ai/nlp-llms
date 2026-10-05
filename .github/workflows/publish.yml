@@ -53,8 +53,8 @@ jobs:
 
       - name: Lint
         run: |
-          uvx --from "ruff>=0.6" ruff check scripts tests data
-          uvx --from "ruff>=0.6" ruff format --check scripts tests data
+          uvx --from "ruff>=0.6" ruff check scripts tests data agents-intro
+          uvx --from "ruff>=0.6" ruff format --check scripts tests data agents-intro
 
       # Tests that need torch or typesafe-sdk skip here and run in the notebooks job.
       - name: Test

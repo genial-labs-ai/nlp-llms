@@ -37,6 +37,11 @@ Install TypeSafe's SDK only under its official name, `typesafe-sdk`; the labs in
 
 The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyTorch is rusty, the official [60-minute blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) covers what you need.
 
+## 4. Module 0 (optional)
+
+[Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is a self-serve hour, 08:00–09:00 on Day 1, or at home beforehand. Unlike the labs it runs on your own laptop, not in Colab: you install a terminal coding agent, git and the GitHub CLI, so you need permission to install software and a GitHub account. Its page walks you through the installs. Nothing later in the workshop depends on it.
+
+
 ## Running locally (optional)
 
 Colab is the supported environment. To run the notebooks on your own machine, install [uv](https://docs.astral.sh/uv/) and run:
