@@ -37,8 +37,21 @@ models:
   # Base (not instruction-tuned) causal LM fine-tuned in Lab 7 (Apache 2.0).
   instruct_base: "HuggingFaceTB/SmolLM2-135M"
   instruct_base_revision: "93efa2f097d58c2a74874c7e644dbc9b0cee75a2"
+  # Jev (TypeSafe System One) via typesafe-sdk. "jev-latest" is the SDK default;
+  # pin a concrete ID after listing /v1/models with a key.
+  jev: "jev-latest"
 
-# Colab Secrets names. The TypeSafe name is unverified until build day 8.
+# Package pins for the TypeSafe labs (12-15). Only these names are official:
+# lookalikes on PyPI (typesafe-ai, jev, llama-index-postprocessor-jev, ...) are
+# not TypeSafe's. Checked against PyPI and the source repositories.
+packages:
+  checked: "2026-10-05"
+  typesafe_sdk: "0.7.2"
+  langchain_typesafe: "0.0.1a3"
+  system_one_adapter: "0.2.1"
+
+# Colab Secrets names. TYPESAFE_API_KEY verified 2026-10-05 against typesafe-sdk 0.7.2
+# and langchain-typesafe 0.0.1a3 (briefs/jev-verification.md).
 secrets:
   openai: OPENAI_API_KEY
   anthropic: ANTHROPIC_API_KEY

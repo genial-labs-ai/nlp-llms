@@ -245,7 +245,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
   3. Plot Jev's reliability diagram beside the LLM's from Lab 11.
   4. Choose act / ask / escalate thresholds from a stated cost of error.
 - **Stretch:** compare cost and latency of Jev against an LLM on the same decisions.
-- **Stack:** PyTorch, `typesafe-sdk-python` (fallback: the toy model from step 1).
+- **Stack:** PyTorch, `typesafe-sdk` (fallback: the toy model from step 1).
 - **Readings:** TypeSafe's public RLCD and Jev announcement and API documentation; Kahneman on System 1 and System 2 for the framing.
 
 ### Day 4 — RAG, agents and capstone
@@ -254,7 +254,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** build a RAG pipeline; choose chunking, embedding and reranking settings from measurements; evaluate retrieval and answer quality separately.
 - **Lecture:** why retrieval (freshness, grounding, cost); the pipeline: load, chunk, embed, index, retrieve, rerank, generate; dense, sparse (BM25, linking back to Module 1) and hybrid retrieval; rerankers; evaluation: recall@k, MRR, faithfulness, answer relevance; common failures; LlamaIndex and LangChain: what each abstracts and where they overlap.
-- **Lab `13-rag.ipynb`:** index a small document set with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set; build the same retriever as a LangChain runnable; add a reranking step (Jev through `llama-index-jev`, with a cross-encoder fallback); score faithfulness.
+- **Lab `13-rag.ipynb`:** index a small document set with LlamaIndex; query it; vary chunk size and top-k and measure recall@k on a hand-labelled question set; build the same retriever as a LangChain runnable; add a reranking step (a Jev reranker written in the notebook on `typesafe-sdk`, since no official LlamaIndex integration exists; a cross-encoder is the fallback and the CI path); score faithfulness.
 - **Stretch:** hybrid retrieval with BM25.
 - **Stack:** LlamaIndex, LangChain, Jev, OpenAI/Claude (fallback: local embedding model and small local LLM).
 - **Readings:** Lewis et al. 2020 (RAG); LlamaIndex and LangChain documentation.
@@ -396,7 +396,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 8 — Modules 11–12
 
-- [x] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found (verified against the published packages and the TypeSafe and LangChain repositories; `docs.typesafe.ai` was blocked and is still unread, see `briefs/jev-verification.md`)
+- [ ] Verify Jev SDK, LangChain and LlamaIndex integration names and signatures against `docs.typesafe.ai`; update section 6 of this file with what was found (verified against the published packages and the TypeSafe and LangChain repositories; `docs.typesafe.ai` was blocked and is still unread, see `briefs/jev-verification.md`; left unticked until the docs are read from a networked machine)
 - [ ] Draft lecture 11: Calibration
 - [ ] Draft lecture 12: RLCD and Jev (public facts and our illustration clearly separated)
 - [ ] Code `11-calibration.ipynb`
