@@ -68,7 +68,7 @@ A language model has two memories (Lewis et al., 2020):
 
 1. **Freshness and coverage.** Weights are frozen at a training cutoff and contain nothing private. A lecture page written last week, a company's policy or a participant's notes are not in any model. Updating an index is cheap; retraining is not.
 2. **Grounding.** An answer built from quoted passages can cite them, and a reader can check the citation. Whether the answer actually follows from the passages becomes something we can measure (section 9).
-3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The lab's snapshot of this workshop's pages (lectures 1–12 and the reading list) is 500,754 characters, 134,949 tokens of the `cl100k_base` tokenizer (measured in Lab 13). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 13 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, about ninety times less.
+3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The lab's snapshot of this workshop's pages (lectures 1–12 and the reading list) is 544,974 characters, 147,738 tokens of the `cl100k_base` tokenizer (measured with Lab 13's code). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 15 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, about a hundred times less.
 
 Long context windows do not remove the third reason, and they weaken the second: Liu et al. (2024) found that models use information at the start and end of a long context better than information in the middle. Retrieval keeps the context short and puts the best passages first.
 
@@ -114,7 +114,7 @@ A retriever ranks chunks, not documents, and the generator reads only the chunks
 - **Large chunks** ($L = 512$ or more) keep explanations whole, but one vector must summarize several ideas, and each retrieved chunk spends more of the generator's context.
 - **Overlap** $L_o$ repeats the end of each chunk at the start of the next, so a sentence near a boundary appears whole in at least one chunk, at the price of storing and embedding some text twice.
 
-On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives 1,319 chunks at $L = 128$, 645 at $L = 256$ and 325 at $L = 512$ on the lab's snapshot (measured in Lab 13). The splitter counts tokens of `cl100k_base`, the tokenizer bundled with LlamaIndex, not the embedding model's own; and metadata that is embedded with a chunk also shrinks its effective size, which is one reason the lab excludes it.
+On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives 1,443 chunks at $L = 128$, 705 at $L = 256$ and 355 at $L = 512$ on the lab's snapshot (measured with Lab 13's code). The splitter counts tokens of `cl100k_base`, the tokenizer bundled with LlamaIndex, not the embedding model's own; and metadata that is embedded with a chunk also shrinks its effective size, which is one reason the lab excludes it.
 
 The fair comparison between chunk sizes is **at a fixed context budget**, not at a fixed $k$. Passing $k$ chunks of $L$ tokens costs about
 

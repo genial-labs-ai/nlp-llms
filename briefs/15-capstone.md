@@ -281,7 +281,7 @@ It prints one table per path class, grouped by menu code, with $\Delta\bar{\ell}
 
 | Part | Stub (CPU) | Open, T4 | Open, CPU (subset) | Keyed |
 |---|---|---|---|---|
-| Setup: installs, corpus, index (about 660 chunks at $L = 256$, brief 13), Qwen and NLI downloads | under 1 min | 2–4 min (about 1 GB of Qwen weights, plus about 200 MB for bge-small, the cross-encoder and the NLI model) | 3–6 min | under 2 min (plus Qwen if no TypeSafe key) |
+| Setup: installs, corpus, index (705 chunks at $L = 256$ on the v1 snapshot), Qwen and NLI downloads | under 1 min | 2–4 min (about 1 GB of Qwen weights, plus about 200 MB for bge-small, the cross-encoder and the NLI model) | 3–6 min | under 2 min (plus Qwen if no TypeSafe key) |
 | Self-test | seconds | seconds | seconds | seconds |
 | One `dev` run (45; CPU 12) | seconds | 3–6 min | 3–6 min | 1–3 min |
 | One `test` run (80; CPU 24) | seconds | 6–10 min (measure; fall back to the subset if over 10) | 6–10 min | 2–5 min |

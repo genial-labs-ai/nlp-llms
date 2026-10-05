@@ -16,7 +16,7 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Instruction tuning | 7 | **Databricks Dolly 15k**, a subset | CC BY-SA 3.0 | License confirmed. Lab 7 fixes the subset |
 | Pairwise preferences | 9, 10 | Synthetic, with a known hidden preference | Generated in the notebook | No file. Lab 9 fixes the generator and its seed |
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
-| RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). **Status `provisional`**: rebuild once `references.qmd` is finished, before any question is written |
+| RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). Rebuilt 2026-10-05 from the commit that completed `references.qmd`. **Status `provisional`**: lecture 12 and possibly lectures 6–11 will still change; freeze them, rebuild if needed, and set `final` before any question is written |
 | RAG questions | 13, 15 | **Workshop RAG Questions v1**: 80 questions with evidence spans, written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people. Validator, tools and instructions committed |
 
 AG News, the original proposal for classification, was rejected. See [Why not AG News](#why-not-ag-news).
@@ -325,19 +325,19 @@ The instructions for the two people (proposed: Romeo and one instructor; estimat
 
 | | |
 |---|---|
-| File | `workshop_lectures_v1.jsonl.gz`, 174,945 bytes (514,299 uncompressed), 13 lines, one JSON object per page |
-| SHA-256 | `a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3` |
+| File | `workshop_lectures_v1.jsonl.gz`, 189,037 bytes (558,988 uncompressed), 13 lines, one JSON object per page |
+| SHA-256 | `4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395` |
 | Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz> |
 | Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz> |
 | Builder | [`build_lectures_corpus.py`](build_lectures_corpus.py): standard library plus PyYAML, no network, no model; reads the pages from one git commit with `git show`, not from the working tree; `--check` rebuilds in memory and compares |
-| Source | lecture pages 01–12 and `references.qmd` at commit `ec97bea4f3a06eda04b036984581ae3f4408ac7d` (`source_commit`; also recorded in every record). Lecture 13 is not included: a corpus that explains RAG to a RAG lab adds nothing |
-| Size | 13 documents, 500,754 characters, 78,764 words; 134,949 tokens of `SentenceSplitter`'s tokenizer (tiktoken `cl100k_base`), measured by Lab 13 |
-| Chunks | 1,319 / 645 / 325 at $L$ = 128 / 256 / 512 tokens with $L_o = L/8$ and metadata excluded (`SentenceSplitter`, `llama-index-core` 0.14.25; measured by Lab 13) |
+| Source | lecture pages 01–12 and `references.qmd` at commit `3ba37bc06e2e1f23f7896f43e04117e805b6925e` (`source_commit`; also recorded in every record), the commit that completed `references.qmd` for Modules 1–15. The first build read `ec97bea`, before the reading list was finished. Lecture 13 is not included: a corpus that explains RAG to a RAG lab adds nothing |
+| Size | 13 documents, 544,974 characters, 84,626 words; 147,738 tokens of `SentenceSplitter`'s tokenizer (tiktoken `cl100k_base`), measured with Lab 13's tokenizer call (`llama_index.core.utils.get_tokenizer()`) outside the notebook. `references` is 40,993 characters and 12,153 tokens |
+| Chunks | 1,443 / 705 / 355 at $L$ = 128 / 256 / 512 tokens with $L_o = L/8$ and metadata excluded (`SentenceSplitter`, `llama-index-core` 0.14.25; measured with Lab 13's splitter call outside the notebook, which reproduced the notebook's numbers on the first build exactly: 134,949 tokens and 1,319 / 645 / 325 chunks) |
 | License | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), the license of the pages. The pages quote short passages of third-party material, with sources |
 | Specification | `briefs/13-rag.md`, decision (a) |
 | Status | **`provisional`**. See below |
 
-**Status: provisional.** `references.qmd` is frozen into this snapshot, and its entries for Modules 1–12 are not finished. The snapshot must be **rebuilt once `references.qmd` is complete and before anyone writes a question against it**: set `SOURCE_COMMIT` in the builder to the new commit, run it, and update `sha256`, `bytes`, `source_commit`, `characters` and `status` in `_variables.yml` (and the hash in `notebooks/13-rag.ipynb`, twice, and in the fixture). Questions store verbatim evidence quotes and character offsets are computed from them at load time, so a rebuild after questions exist could silently invalidate them. Three checks in `tests/test_rag_questions.py` prevent that:
+**Status: provisional.** `references.qmd` is frozen into this snapshot and is now complete for Modules 1–15 (rebuilt 2026-10-05). The status stays `provisional` because lecture 12 carries a TODO to quote TypeSafe's own documentation before delivery, and lectures 6–11 may change after their Colab T4 runs (the Lab 6, 7 and 8 model paths, the Lab 6 logits behind lecture 11's section 5, and the Lab 9 and 10 GPT-2 runs). Questions quote the pages verbatim, so the snapshot must be **frozen, rebuilt if any page changed, and set to `final` before anyone writes a question against it**: set `SOURCE_COMMIT` in the builder to the new commit, run it, and update `sha256`, `bytes`, `source_commit`, `characters` and `status` in `_variables.yml` (and the hash in `notebooks/13-rag.ipynb`, twice, in `notebooks/14-agents.ipynb`, once, and in the fixture). Questions store verbatim evidence quotes and character offsets are computed from them at load time, so a rebuild after questions exist could silently invalidate them. Three checks in `tests/test_rag_questions.py` prevent that:
 
 1. every evidence quote must occur **exactly once** in its page of the current snapshot, so a rebuild that changes or duplicates the quoted text fails the test, naming each broken item;
 2. the test fails if `data/rag_questions_v1.jsonl` exists while `datasets.lectures.status` is still `provisional`;
@@ -369,7 +369,7 @@ def load_lectures():
             "https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz",
             "https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz",
         ],
-        "a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3",
+        "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395",
     )
     pages = [json.loads(line) for line in gzip.decompress(blob).decode("utf-8").splitlines()]
     return [{"doc_id": p["slug"], "title": p["title"], "text": p["text"]} for p in pages]

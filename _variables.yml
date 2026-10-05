@@ -136,9 +136,11 @@ datasets:
     seed: 0
     splits: {train: 2000, dev: 100, test: 300}
   # Built by data/build_lectures_corpus.py from lectures 01-12 and references.qmd at
-  # `source_commit` (spec: briefs/13-rag.md, decision (a)). Status "provisional":
-  # references.qmd is not finished, so the snapshot must be rebuilt (new sha256,
-  # bytes and source_commit) before anyone writes questions against it.
+  # `source_commit` (spec: briefs/13-rag.md, decision (a)). references.qmd is complete
+  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12 has a
+  # TODO to quote TypeSafe's documentation and lectures 6-11 may change after their
+  # Colab T4 runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
+  # sha256, bytes, source_commit, characters) if any page changed; questions come after.
   # tests/test_rag_questions.py fails if data/rag_questions_v1.jsonl exists while
   # this status is provisional, and on any evidence quote a rebuild breaks.
   lectures:
@@ -148,14 +150,14 @@ datasets:
     urls:
       - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz
       - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz
-    sha256: "a2d5e23215a50d6aec53cfaca72bff669a0e41acb6d6eeccb795e0a52f86fba3"
-    bytes: 174945
+    sha256: "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395"
+    bytes: 189037
     license: "CC BY 4.0"
     license_url: https://creativecommons.org/licenses/by/4.0/
-    source_commit: "ec97bea4f3a06eda04b036984581ae3f4408ac7d"
+    source_commit: "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
     status: "provisional"
     documents: 13
-    characters: 500754
+    characters: 544974
 
 # The daily clock. `module` slots take the day's modules in order.
 schedule:

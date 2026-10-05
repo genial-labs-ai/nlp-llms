@@ -44,12 +44,15 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "workshop_lectures_v1.jsonl.gz"
 
-# The commit the v1 pages are read from: the tip of the build branch after lecture 13
-# was merged (2026-10-05). Lecture 13 itself is not in the corpus (briefs/13-rag.md).
-# PROVISIONAL: references.qmd is not finished at this commit. Rebuild from the commit that
-# completes it, and update _variables.yml (sha256, bytes, source_commit, characters, status),
-# before anyone writes a question against the snapshot (data/README.md, "Status: provisional").
-SOURCE_COMMIT = "ec97bea4f3a06eda04b036984581ae3f4408ac7d"
+# The commit the v1 pages are read from: the commit that completed references.qmd for
+# Modules 1-15 and fixed the lecture citations found while checking it (2026-10-05).
+# Lecture 13 itself is not in the corpus (briefs/13-rag.md). The previous build read
+# ec97bea, before references.qmd was finished.
+# STILL PROVISIONAL: lecture 12 carries a TODO to quote TypeSafe's own documentation, and
+# lectures 6-11 may change after their Colab T4 runs. If a page changes, rebuild from the new
+# commit and update _variables.yml (sha256, bytes, source_commit, characters, status) before
+# anyone writes a question against the snapshot (data/README.md, "Status: provisional").
+SOURCE_COMMIT = "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
 LECTURE = re.compile(r"^lectures/(0[1-9]|1[0-2])-[a-z0-9-]+\.qmd$")
 REFERENCES = "references.qmd"
 
