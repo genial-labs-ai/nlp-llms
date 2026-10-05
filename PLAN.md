@@ -424,7 +424,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Run all 16 notebooks on a fresh free-tier Colab runtime; record run time and API cost per lab
 - [ ] Timing dry-run of each module against the 45 + 50 minute budget; move overflow into stretch sections
 - [ ] Pedagogical review of all 15 lectures: objectives met, notation consistent, prerequisites honoured
-- [ ] Write `facilitator-guide.md`, `instructor-pace.md` and `assessments.md` (entry and exit checks)
+- [x] Write `facilitator-guide.md`, `instructor-pace.md` and `assessments.md` (entry and exit checks)
 - [ ] Complete `references.qmd` and check every citation (complete for all 15 modules, 135 entries; 45 checked against primary records, 85 against search summaries only because the proxy blocks arXiv, ACL Anthology and most publishers; recheck those from a networked machine)
 - [ ] Link check, spelling pass, accessibility pass (alt text, heading order, contrast)
 - [ ] Licence and attribution check for datasets, figures and borrowed code
