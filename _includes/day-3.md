@@ -3,6 +3,6 @@
 | # | Module | What you will do | Lab |
 |---|---|---|---|
 | 9 | [Reinforcement and preference learning](lectures/09-preference-learning.qmd) | Text generation as a reinforcement-learning problem, the policy gradient, and reward models learned from comparisons. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb) |
-| 10 | [RLHF](lectures/10-rlhf.qmd) | The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong. | In preparation |
+| 10 | [RLHF](lectures/10-rlhf.qmd) | The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb) |
 | 11 | [Calibration](lectures/11-calibration.qmd) | What a probability should mean, how to measure it, and how to use confidence to decide when to abstain. | In preparation |
 | 12 | [RLCD and Jev](lectures/12-rlcd-jev.qmd) | Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API. | In preparation |
