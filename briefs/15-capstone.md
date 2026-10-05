@@ -47,7 +47,7 @@ As Lab 13's schema (`briefs/13-rag.md`, decision (b)), with two additions:
  "answer": "",
  "key_facts": [],
  "would_be": {"slug": "05-transformer-from-scratch", "where": "section 6, where training details would appear"},
- "absent_terms": ["4.5 million", "4.5M"],
+ "absent_terms": ["4.5 million sentence pairs", "4.5M sentence pairs"],
  "outside_source": "Vaswani et al. 2017, section 5.1",
  "memory_bait": true,
  "author": "RA", "checker": "IN", "notes": ""}
@@ -131,7 +131,7 @@ Until the inputs land, build against the fixture and Lab 13's offline stand-ins,
 
 - **Keyed:** `langchain_typesafe.Noul` through `TypeSafeClassifier`, as Lab 14. On a final error, the plan falls back to one query and records the error; the verify **fails closed**: it abstains and records the error.
 - **No key:** `QwenDecider`, `noul = P(" yes") / (P(" yes") + P(" no"))` from next-token logits, never a written probability (Lab 11). The prompt is the instructions, the state as text, then "Answer yes or no:".
-- **Stub:** `StubDecider` gains two documented rules that never read any label, gold field or kind. `needs_two` gives 0.8 if the question contains " and " together with two of "which", "what", "where", "module", "lab", and 0.2 otherwise. `supported` gives 0.95 if at least 80% of the answer's content words of five or more letters appear in the passages, 0.5 if at least 50% do, and 0.1 otherwise. The bands are chosen so that every edge of the graph runs offline.
+- **Stub:** `StubDecider` gains two documented rules that never read any label, gold field or kind. `needs_two` gives 0.8 if the question contains " and " together with two of "which", "what", "where", "module", "lab", and 0.2 otherwise. `supported` gives 0.95 if at least 80% of the answer's content words of five or more letters appear in the passages, 0.5 if at least 50% do, and 0.1 otherwise. The bands were meant to make every edge of the graph run offline; as built, the stub generator copies source sentences, so `supported` always gives 0.95 on the stub path and the retry and abstain-after-verify edges run only in the self-test.
 - The verify state carries the passages the draft was written from, so the verifier reads what the generator read.
 
 ### (d) The graph

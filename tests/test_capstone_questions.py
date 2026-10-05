@@ -225,11 +225,11 @@ class Questions(unittest.TestCase):
             absence_errors(bad[:1]), ["c900: absent term 'Workshop' occurs in the snapshot"]
         )
 
-    def test_the_briefs_example_absent_term_is_in_the_snapshot(self):
-        """Brief 15's schema example lists "4.5 million" as an absent term; the v1 snapshot
-        contains it,
-        so an item using it would be rejected (reported to the Academic Director)."""
-        self.assertIn("4.5 million", SNAPSHOT_TEXT)
+    def test_the_briefs_example_absent_terms_are_absent(self):
+        """Brief 15's schema example must itself pass the absence check. (An earlier
+        example, "4.5 million", matched inside "134.5 million" in lecture 7.)"""
+        for term in ("4.5 million sentence pairs", "4.5M sentence pairs"):
+            self.assertNotIn(term, SNAPSHOT_TEXT)
 
     @unittest.skipUnless(REAL.exists(), "data/capstone_questions_v1.jsonl not written yet (people)")
     def test_full_specification(self):
