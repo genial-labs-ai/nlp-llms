@@ -392,6 +392,15 @@ Both score the same 60,394 test characters as Labs 1 and 3, with Lab 3's metric 
 
 For `C = 10`: noise floor of ECE at this $N$ 0.0193; ECE 0.0220, 0.0231, 0.0379 and 0.0548 at 5, 15, 50 and 100 bins; with $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$ the test cost per case is 1.1625 acting on everything, 1.0 deferring everything, 0.5469 at Chow's $\lambda^* = 0.9$ (coverage 0.578), 0.5175 at the $\lambda$ chosen on validation (0.8422, coverage 0.676) and 0.5131 at Chow's rule after temperature scaling. These values are deterministic and match the build-container values in `briefs/11-calibration.md`. Lab 11's language-model numbers are not recorded: in this container only its offline test double ran, and its numbers measure the notebook, not a model.
 
+**Lab 12, measured 2026-10-05** (Linux container, 4 vCPU shared with other agents, CPU only, PyTorch 2.14.1, `typesafe-sdk` 0.7.2; the no-key path; not run on Colab). **These are numbers of our toy model, not of Jev**, on template items only (status `v1-template-only`). No Jev call has been made. Toy decision model (31 features, two linear heads), trained on `train` for 3,000 full-batch Adam steps, seed 0, with each reward:
+
+| `id` | Train ECE (acc / mean p̂) | Test accuracy | Test mean p̂ | Test ECE (floor) | Test binary Brier | Test ECE after temperature on `dev` |
+|---|---|---|---|---|---|---|
+| `lab12.toy.accuracy_reward` | 0.1334 (0.8645 / 0.9932) | 0.6767 | 0.9852 | 0.3085 (0.0137) | 0.3058 | 0.1549 |
+| `lab12.toy.brier_reward` | 0.0267 (0.8735 / 0.8757) | 0.6867 | 0.8911 | 0.2581 (0.0346) | 0.2807 | 0.1776 |
+
+`lab12.local_thresholds`: the local toy decider (not Jev) with the lecture's costs (wrong 20, ask 0.5, miss 4, escalate 3) chooses $(\tau_{\text{esc}}, \tau_{\text{act}}) = (0, 1.0)$ on `dev` (ask about almost everything) and costs 1.800 per `test` case, against 4.302 at the analytic pair $(0.375, 0.969)$ and 1.753 for asking about everything. Seeds 0 to 4 (a scratch restatement of the notebook's code, recorded in `settings.seed_check`) gave test ECE 0.308 to 0.310 (accuracy reward) and 0.254 to 0.259 (Brier reward). To update: execute the notebook and copy the values of the `lab12_results.json` its card cell writes.
+
 To update the file: execute the notebook, take the `lab01_baselines.json` or `lab02_baselines.json` its card cell writes, and copy the values into the matching entries. `tests/test_baselines.py` checks the fields, that the Lab 1 checkpoint asserts the recorded n-gram values, and that Lab 2 asserts the recorded Lab 1 TF-IDF values and that its recorded accuracy clears the notebook's floor.
 
 ## What was run
