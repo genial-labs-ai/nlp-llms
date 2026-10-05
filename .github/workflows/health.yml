@@ -1,0 +1,208 @@
+name: Notebook health
+
+# Runs the notebooks against freshly resolved dependencies once a week, so drift
+# (a new transformers, langgraph or SDK release; a moved Hub checkpoint) shows up
+# even when nothing in the repository changed. publish.yml runs only on push.
+#
+# Legs:
+#   offline  The same hermetic run as publish.yml's notebooks job: every lab on its
+#            offline test path. This leg decides the workflow's status.
+#   hub      The open-model paths of the labs that have one, with no API keys and
+#            with Hugging Face Hub access. A lab that falls back to its stand-in
+#            counts as a failure here (scripts/test_notebooks.py --expect-hub).
+#            Non-blocking (continue-on-error) until these paths have passed once:
+#            then set continue-on-error to false for this leg.
+#   keyed    Manual only (workflow_dispatch with "keyed" ticked): the API labs with
+#            the repository's OPENAI_API_KEY, ANTHROPIC_API_KEY and TYPESAFE_API_KEY
+#            secrets. Costs money. A lab whose key is absent runs its no-key path.
+
+on:
+  schedule:
+    - cron: "23 5 * * 1" # Mondays 05:23 UTC
+  workflow_dispatch:
+    inputs:
+      notebooks:
+        description: "Notebook stems to run, space-separated (empty: each leg's own list)"
+        required: false
+        default: ""
+      keyed:
+        description: "Also run the API labs with the repository's API keys (costs money)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: health-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MPLBACKEND: Agg
+  # Shortens the from-scratch training runs (Labs 3, 4 and 5) on a CPU runner.
+  NLP_LLMS_QUICK: "1"
+  NLP_LLMS_CELL_TIMEOUT: "1800"
+  OMP_NUM_THREADS: "4"
+  UV_LINK_MODE: copy
+
+jobs:
+  notebooks:
+    name: notebooks (${{ matrix.leg }})
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.timeout }}
+    continue-on-error: ${{ matrix.leg != 'offline' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Keep these flags in step with the notebooks job of publish.yml.
+          - leg: offline
+            timeout: 150
+            notebooks: "" # every notebook
+            expect_hub: ""
+            hf_hub_offline: "1"
+            offline_tiny: "1" # Lab 6
+            lab07: tiny
+            stub: "1" # Labs 8 and 11 (and 13, 14)
+            lab09: tiny
+            lab10: tiny
+            lab13: "1"
+            lab14: "1"
+            lab15: "1" # expected name of the capstone's switch; unused until it lands
+          # Labs 9 and 10 join this list (and lose their flags) once Lab 9's GPT-2 data
+          # files are committed (PLAN.md, Day 7); Lab 15 once its open-model path exists.
+          - leg: hub
+            timeout: 330
+            notebooks: >-
+              06-pretraining-huggingface 07-finetuning-lora 08-llm-apis
+              11-calibration 13-rag 14-agents
+            expect_hub: --expect-hub
+            hf_hub_offline: ""
+            offline_tiny: ""
+            lab07: ""
+            stub: ""
+            lab09: tiny
+            lab10: tiny
+            lab13: ""
+            lab14: ""
+            lab15: ""
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # No uv cache: there is no lockfile, so every run resolves the newest versions
+      # allowed by pyproject.toml (the drift this workflow looks for), and setup-uv's
+      # CI pruning would drop the downloaded wheels that make up most of the cache.
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      # Model weights only. huggingface_hub still asks the Hub for each revision, so a
+      # restored cache never hides a changed checkpoint; it only skips unchanged files.
+      - name: Restore the Hugging Face cache
+        if: matrix.leg == 'hub'
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: hf-${{ runner.os }}-
+
+      - name: Unit tests with the lab dependencies
+        if: matrix.leg == 'offline'
+        run: uv run --group execute --group test python -m unittest discover -s tests
+
+      - name: Execute notebooks
+        shell: bash
+        env:
+          WANTED: ${{ inputs.notebooks || matrix.notebooks }}
+          EXPECT_HUB: ${{ matrix.expect_hub }}
+          HF_HUB_OFFLINE: ${{ matrix.hf_hub_offline }}
+          NLP_LLMS_OFFLINE_TINY: ${{ matrix.offline_tiny }}
+          NLP_LLMS_LAB07_OFFLINE: ${{ matrix.lab07 }}
+          NLP_LLMS_STUB: ${{ matrix.stub }}
+          NLP_LLMS_LAB09_OFFLINE: ${{ matrix.lab09 }}
+          NLP_LLMS_LAB10_OFFLINE: ${{ matrix.lab10 }}
+          NLP_LLMS_LAB13_OFFLINE: ${{ matrix.lab13 }}
+          NLP_LLMS_LAB14_OFFLINE: ${{ matrix.lab14 }}
+          NLP_LLMS_LAB15_OFFLINE: ${{ matrix.lab15 }}
+        run: |
+          read -ra slugs <<< "$WANTED"
+          read -ra flags <<< "$EXPECT_HUB"
+          uv run --group execute python scripts/test_notebooks.py \
+            --save executed "${flags[@]}" "${slugs[@]}" | tee results.txt
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Notebooks (${{ matrix.leg }})"
+            echo '```'
+            grep -E '^(PASS|FAIL|FALLBACK) |notebooks passed' results.txt || echo "no results"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Executed notebooks with their outputs, for reading a failure. No keys are set
+      # in these legs, and the notebooks print only whether a key was found.
+      - name: Upload the executed notebooks
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: executed-${{ matrix.leg }}
+          path: executed/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  keyed:
+    if: github.event_name == 'workflow_dispatch' && inputs.keyed
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      - name: Restore the Hugging Face cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: hf-${{ runner.os }}-
+
+      # Each lab reads a key from Colab Secrets and, outside Colab, from the environment;
+      # an unset secret arrives as an empty string, which the labs treat as "not set".
+      # The labs print only "found" or "not set". GitHub masks secret values in the log;
+      # the executed notebooks are not uploaded from this job, because artifacts are not
+      # masked and a provider's error message can echo part of a key.
+      - name: Execute the API labs with keys
+        shell: bash
+        env:
+          WANTED: ${{ inputs.notebooks || '00-setup 08-llm-apis 11-calibration 12-rlcd-jev 13-rag 14-agents' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
+          NLP_LLMS_LAB09_OFFLINE: tiny
+          NLP_LLMS_LAB10_OFFLINE: tiny
+        run: |
+          read -ra slugs <<< "$WANTED"
+          uv run --group execute python scripts/test_notebooks.py "${slugs[@]}" | tee results.txt
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "### Notebooks (keyed)"
+            echo '```'
+            grep -E '^(PASS|FAIL|FALLBACK) |notebooks passed' results.txt || echo "no results"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

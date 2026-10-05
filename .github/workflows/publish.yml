@@ -18,7 +18,11 @@ jobs:
   render:
     runs-on: ubuntu-latest
     steps:
+      # Full history: tests/test_rag_questions.py rebuilds the Lab 13 corpus snapshot from
+      # its recorded source commit and skips that test in a shallow clone.
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
@@ -46,9 +50,10 @@ jobs:
 
       - name: Lint
         run: |
-          uv run --group lint ruff check scripts tests
-          uv run --group lint ruff format --check scripts tests
+          uv run --group lint ruff check scripts tests data
+          uv run --group lint ruff format --check scripts tests data
 
+      # Tests that need torch or typesafe-sdk skip here and run in the notebooks job.
       - name: Test
         run: uv run --group test python -m unittest discover -s tests -v
 
@@ -76,22 +81,44 @@ jobs:
         with:
           enable-cache: false
 
-      # No API keys are passed: this runs the open-model path of every lab.
-      # NLP_LLMS_QUICK shortens the from-scratch training runs (Labs 3, 4 and 5)
-      # on this CPU runner; Labs 6 and 7 switch to their CPU paths by themselves.
+      # The unit tests again, with torch and typesafe-sdk installed: the Lab 9 offline
+      # build and the Lab 12 local-decider tests skip in the render job without them.
+      - name: Unit tests with the lab dependencies
+        env:
+          UV_LINK_MODE: copy
+        run: uv run --group execute --group test python -m unittest discover -s tests
+
+      # Hermetic: no API keys and no Hugging Face Hub, so a pull request never fails
+      # because huggingface.co is slow or rate-limited. Every lab runs its offline test
+      # path (random stand-in models, test doubles, labeled stand-in data; their numbers
+      # are not results). The open-model paths run in health.yml (weekly, and on demand).
+      # Keep the flags in step with the "offline" leg of health.yml.
       - name: Execute notebooks
         env:
           MPLBACKEND: Agg
+          # Shortens the from-scratch training runs (Labs 3, 4 and 5) on this CPU runner.
           NLP_LLMS_QUICK: "1"
           NLP_LLMS_CELL_TIMEOUT: "1800"
           OMP_NUM_THREADS: "4"
+          # Fail fast if any lab reaches for the Hub that its flag below should have stopped.
+          HF_HUB_OFFLINE: "1"
+          # Lab 6: tiny random encoder and causal LM instead of the Hub checkpoints.
+          NLP_LLMS_OFFLINE_TINY: "1"
+          # Lab 7: random stand-in for SmolLM2 and synthetic data instead of Dolly.
+          NLP_LLMS_LAB07_OFFLINE: tiny
+          # Labs 8 and 11 (and 13, 14): Lab 8's StubProvider instead of the open chat model.
+          NLP_LLMS_STUB: "1"
           # Until Lab 9's GPT-2 data files are built and committed (PLAN.md, Day 7),
           # Labs 9 and 10 run on their labeled offline stand-ins in CI.
           NLP_LLMS_LAB09_OFFLINE: tiny
           NLP_LLMS_LAB10_OFFLINE: tiny
-          # Lab 13: BM25 plus labelled stand-ins until its human question set exists.
+          # Lab 13: BM25 plus labeled stand-ins until its human question set exists.
           NLP_LLMS_LAB13_OFFLINE: "1"
           NLP_LLMS_LAB14_OFFLINE: "1"
+          # Lab 15 (capstone, in progress): expected name of its offline switch. An
+          # environment variable that no notebook reads does nothing, so this is
+          # harmless until the capstone lands; confirm the name when it does.
+          NLP_LLMS_LAB15_OFFLINE: "1"
           UV_LINK_MODE: copy
         run: uv run --group execute python scripts/test_notebooks.py
 
