@@ -501,7 +501,7 @@
         "parameters": 350593,
         "steps": 3000,
         "peak_lr": 0.008,
-        "evaluation": "state carried through the whole split in chunks of 2,048, after a warm-up on the 1,000 characters before it; no character scored from a cold state",
+        "evaluation": "state carried through the whole split in chunks of 2,048 (the committed notebook uses 1,000: the same in exact arithmetic, not re-measured), after a warm-up on the 1,000 characters before it; no character scored from a cold state",
         "train_seconds": 347.9,
         "vocabulary": "the 65 characters of train",
         "trained_on": "train (1,000,000 characters), random windows of 128 characters",

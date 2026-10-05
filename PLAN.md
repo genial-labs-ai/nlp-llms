@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status (2026-10-04):** scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted with lab briefs in `briefs/`; Lab 01 built and run locally (not on Colab); Day 1 schematic figures done. In progress at the end of the last session, on local worktree branches not yet merged: Labs 02, 03, 04, 07 and 08, and the Module 1 lecture-versus-lab review. Lectures 2–8 have not yet been reviewed against their labs. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-05):** scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. This plan is a living document and will be revised as the build proceeds.
 
 ---
 
@@ -310,6 +310,8 @@ Every notebook must meet all of these.
 | Four consecutive days | Fatigue by Day 4; harder for working practitioners to attend | Day 4 afternoon is hands-on pair work; each day stands alone well enough to be offered as 2 + 2 days |
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
+| Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| Build container network | The cloud build environment blocks huggingface.co, so Labs 6–8's model paths and the Lab 6/7 data files cannot be produced there | Allow huggingface.co in the environment's network settings, or run those steps on Colab |
 
 ---
 
@@ -348,35 +350,35 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Draft lecture 1: Text as data
 - [x] Draft lecture 2: Word vectors and neural networks
 - [x] Code `01-text-as-data.ipynb`
-- [ ] Code `02-word-vectors.ipynb`
-- [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget
+- [x] Code `02-word-vectors.ipynb` (run on CPU, not Colab)
+- [ ] Review: each equation maps to a lab line; both labs run cold in Colab within budget (equation-to-lab half done for Modules 1 and 2; Colab half open)
 
 ### Day 4 — Modules 3–4
 
 - [x] Draft lecture 3: Sequence models
 - [x] Draft lecture 4: Seq2seq and attention
-- [ ] Code `03-sequence-models.ipynb`
-- [ ] Code `04-seq2seq-attention.ipynb`
-- [x] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment; the alignment map is illustrative until Lab 4 supplies a measured one)
-- [ ] Review: Day 1 reads as one thread; Lab 3 perplexity is compared with Lab 1
+- [x] Code `03-sequence-models.ipynb` (run on CPU, not Colab)
+- [x] Code `04-seq2seq-attention.ipynb` (run on CPU, not Colab)
+- [x] Produce the Day 1 figures (RNN unrolling, LSTM gates, attention alignment; the alignment map is now drawn from Lab 4's measured weights)
+- [ ] Review: Day 1 reads as one thread; Lab 3 perplexity is compared with Lab 1 (the Lab 3 comparison is done; the cross-module read of Day 1 is open)
 
 ### Day 5 — Modules 5–6
 
 - [x] Draft lecture 5: The transformer
 - [x] Draft lecture 6: Pretraining and the Hugging Face stack
-- [ ] Code `05-transformer-from-scratch.ipynb`
-- [ ] Code `06-pretraining-huggingface.ipynb`
-- [ ] Review: Labs 3 → 5 and 1 → 2 → 6 comparisons report consistent metrics on the same data
+- [x] Code `05-transformer-from-scratch.ipynb` (run on CPU, not Colab)
+- [ ] Code `06-pretraining-huggingface.ipynb` (written; offline parts run; pretrained path not run: Hub blocked)
+- [ ] Review: Labs 3 → 5 and 1 → 2 → 6 comparisons report consistent metrics on the same data (3 → 5 and 1 → 2 done; 6 waits on its pretrained run)
 
 ### Day 6 — Modules 7–8
 
 - [x] Draft lecture 7: Fine-tuning and LoRA
 - [x] Draft lecture 8: LLMs through APIs
-- [ ] Code `07-finetuning-lora.ipynb`
-- [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path
+- [ ] Code `07-finetuning-lora.ipynb` (written; LoRA layer and offline parts run; SmolLM2 + Dolly path not run: Hub blocked)
+- [ ] Code `08-llm-apis.ipynb` with the provider wrapper and the fallback path (written; runs end to end on an offline stub; OpenAI, Claude and Qwen paths not run)
 - [x] Pin OpenAI and Claude model IDs in `_variables.yml`
 - [ ] Add repository secrets and make CI skip keyed paths when they are absent
-- [ ] Review: Lab 8 completes with no keys set
+- [ ] Review: Lab 8 completes with no keys set (holds on the stub only; the Qwen fallback has not run)
 
 ### Day 7 — Modules 9–10
 
