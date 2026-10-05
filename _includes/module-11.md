@@ -4,7 +4,7 @@
 
 What a probability should mean, how to measure it, and how to use confidence to decide when to abstain.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb)
 
 ## Learning objectives
 

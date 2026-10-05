@@ -43,6 +43,14 @@ class Baselines(unittest.TestCase):
         floor = float(re.search(r"ACCURACY_FLOOR = ([0-9.]+)", source).group(1))
         self.assertGreaterEqual(by_id["lab02.sgns_avg_ffn"]["metrics"]["accuracy"], floor)
 
+    def test_lab_11_checks_the_lab_1_classifier(self):
+        """Lab 11's fallback classifier asserts Lab 1's recorded accuracy, and its entries agree."""
+        source = (ROOT / "notebooks" / "11-calibration.ipynb").read_text(encoding="utf-8")
+        by_id = {b["id"]: b for b in DOC["baselines"]}
+        acc = by_id["lab01.tfidf_logreg"]["metrics"]["accuracy"]
+        self.assertIn(f"_acc10 - {acc}", source)
+        self.assertEqual(by_id["lab11.tfidf_logreg.C10"]["metrics"]["accuracy"], acc)
+
     def test_lab_3_restates_the_lab_1_baseline(self):
         """Lab 3 asserts that its character n-gram reproduces Lab 1's recorded values and k."""
         source = (ROOT / "notebooks" / "03-sequence-models.ipynb").read_text(encoding="utf-8")
