@@ -1,81 +1,1612 @@
 /*-- scss:defaults --*/
 
 // A quiet academic palette over cosmo: navy for structure, one warm accent.
-$primary: #16324f;
-$accent: #b3541e;
-$link-color: #1d5f8a;
-$body-color: #1f2933;
+// Every color is a token below. custom-dark.scss overrides the tokens and
+// nothing else, so a rule written here works in both themes. Use the tokens:
+// a literal color in a rule will be wrong in one of the two themes.
+$nl-bg: #ffffff !default; // page
+$nl-surface: #f6f8fa !default; // cards, code blocks, table heads
+$nl-raised: #ffffff !default; // cards that sit on a surface
+$nl-border: #dfe5ec !default;
+$nl-border-strong: #c3ccd6 !default;
+$nl-text: #1f2933 !default;
+$nl-heading: #14263a !default;
+$nl-muted: #55616e !default;
+$nl-link: #1d5f8a !default;
+$nl-navy: #16324f !default; // navbar and hero band
+$nl-on-navy: #ffffff !default;
+$nl-on-navy-muted: #c5d3e2 !default;
+$nl-accent: #b3541e !default; // labs, calls to action
+$nl-accent-soft: #fbf1ea !default;
+$nl-on-accent: #ffffff !default;
+$nl-lecture: #2b5d8a !default; // lecture time in the schedule
+$nl-lecture-soft: #eaf1f8 !default;
+$nl-on-lecture: #ffffff !default;
+$nl-good: #2f6f4f !default; // self-checks, worked examples
+$nl-good-soft: #edf6f0 !default;
+$nl-code: #8a3b12 !default; // inline code
+$nl-code-bg: #f5f7f9 !default;
+$nl-figure-bg: transparent !default; // backing behind figures (dark theme only)
+// Interactive demos: the light palette in both themes (see .demo).
+$nl-demo-bg: #ffffff !default;
+$nl-demo-ink: #1f2933 !default;
+$nl-demo-muted: #55616e !default;
+$nl-demo-link: #1d5f8a !default;
+$nl-demo-accent: #b3541e !default;
+$nl-demo-code: #8a3b12 !default;
+$nl-demo-border: #dfe5ec !default;
+$nl-shadow: 0 1px 2px rgba(20, 38, 58, 0.06), 0 4px 14px rgba(20, 38, 58, 0.05) !default;
+
+$primary: $nl-navy !default;
+$body-bg: $nl-bg !default;
+$body-color: $nl-text !default;
+$link-color: $nl-link !default;
+$border-color: $nl-border !default;
+$headings-color: $nl-heading !default;
+$navbar-bg: $nl-navy !default;
+$navbar-fg: $nl-on-navy !default;
+$code-color: $nl-code !default;
+$code-bg: $nl-code-bg !default;
+$code-block-bg: $nl-code-bg !default;
+$footer-bg: $nl-surface !default;
 
 $font-family-sans-serif: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$font-family-monospace: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 $headings-font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
 $headings-font-weight: 600;
 $font-size-root: 17px;
 
-$navbar-bg: $primary;
-$code-color: #8a3b12;
-
 /*-- scss:rules --*/
 
-// A readable measure for prose; tables and code may run wider.
+// ---------------------------------------------------------------------------
+// Reading experience
+// ---------------------------------------------------------------------------
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip; // the landing hero bleeds to the viewport edge
+}
+
 main.content p,
 main.content li {
   line-height: 1.65;
 }
 
+main.content li + li {
+  margin-top: 0.2rem;
+}
+
 h1.title {
-  font-size: 2.3rem;
-  letter-spacing: -0.01em;
+  font-size: 2.5rem;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
 }
 
 h2 {
-  margin-top: 2.2rem;
-  padding-bottom: 0.3rem;
-  border-bottom: 1px solid #e3e8ee;
+  margin-top: 2.6rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid $nl-border;
+  font-size: 1.6rem;
+  letter-spacing: -0.005em;
+}
+
+h3 {
+  margin-top: 1.8rem;
+  font-size: 1.25rem;
+}
+
+h4 {
+  font-family: $font-family-sans-serif;
+  font-size: 1rem;
+  font-weight: 650;
 }
 
 .subtitle,
 .lead {
-  color: #52606d;
+  color: $nl-muted;
+}
+
+main.content a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  text-decoration-color: rgba($nl-link, 0.4);
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid $nl-accent;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+// Small-caps label used above card titles and in headers.
+.eyebrow {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $nl-muted;
+}
+
+.chip {
+  display: inline-block;
+  padding: 0.08rem 0.55rem;
+  border: 1px solid $nl-border;
+  border-radius: 999px;
+  background: $nl-surface;
+  color: $nl-muted;
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+// Buttons. `.btn-colab` opens a lab; `.btn-quiet` is every secondary action.
+main.content a.btn-colab,
+main.content a.btn-quiet {
+  display: inline-block;
+  padding: 0.3rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color 0.12s, border-color 0.12s;
+}
+
+main.content a.btn-colab {
+  border: 1px solid $nl-accent;
+  background: $nl-accent;
+  color: $nl-on-accent;
+
+  &::after {
+    content: " \2197"; // north-east arrow: leaves the site
+    font-weight: 400;
+  }
+
+  &:hover {
+    background: darken($nl-accent, 6%);
+    border-color: darken($nl-accent, 6%);
+  }
+}
+
+main.content a.btn-quiet {
+  border: 1px solid $nl-border-strong;
+  background: $nl-raised;
+  color: $nl-heading;
+
+  &:hover {
+    border-color: $nl-link;
+    color: $nl-link;
+  }
+}
+
+.lab-note {
+  color: $nl-muted;
+  font-size: 0.84rem;
 }
 
 // Tables: light rules, no heavy borders, comfortable padding.
 main.content table {
-  font-size: 0.94rem;
+  font-size: 0.92rem;
+  border-color: $nl-border;
 
-  th {
-    border-bottom: 2px solid $primary;
-    font-weight: 600;
+  thead th {
+    border-bottom: 1.5px solid $nl-border-strong;
+    font-size: 0.8rem;
+    font-weight: 650;
+    letter-spacing: 0.03em;
+    color: $nl-muted;
+    vertical-align: bottom;
   }
 
   td,
   th {
-    padding: 0.5rem 0.7rem;
+    padding: 0.5rem 0.75rem;
     vertical-align: top;
+  }
+
+  > :not(caption) > * > * {
+    background-color: transparent;
+    color: inherit;
+  }
+
+  tbody tr:last-child td {
+    border-bottom-color: $nl-border-strong;
   }
 }
 
-// Wide tables (the four-day schedule) scroll inside their own box on phones.
+// A table wider than the text column scrolls inside its own box.
 .table-wide {
   overflow-x: auto;
 }
 
-// Colab badges sit on the text baseline in tables and module headers.
-img[alt="Open in Colab"] {
-  vertical-align: middle;
-  margin: 0;
+// Code. Inline code is tinted; blocks sit on a bordered surface.
+code {
+  font-size: 0.875em;
+}
+
+p code:not(.sourceCode),
+li code:not(.sourceCode),
+td code:not(.sourceCode) {
+  padding: 0.1em 0.32em;
+  border-radius: 4px;
+}
+
+div.sourceCode,
+pre:not(.sourceCode) {
+  border: 1px solid $nl-border;
+  border-radius: 7px;
+  background: $nl-code-bg;
+}
+
+// Unhighlighted blocks (```text prompts, printed output): theme text, wrapped.
+pre:not(.sourceCode) {
+  padding: 0.75rem 0.9rem;
+  color: $nl-text;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+
+  code {
+    color: inherit;
+    font-size: inherit;
+  }
+}
+
+div.sourceCode pre.sourceCode {
+  padding: 0.75rem 0.9rem;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.code-copy-button {
+  opacity: 0.55;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Equations: display math gets air and scrolls sideways if it must. KaTeX's
+// default is 1.21em; 1.1em gives the widest lecture equations (and their
+// numbers) room in the text column. Check the long ones before raising it.
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1.1rem 0;
+  padding: 0.15rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+// Figures. In the dark theme $nl-figure-bg is a light panel, because the SVG
+// figures use dark strokes on a transparent background.
+main.content .quarto-figure img,
+main.content figure img {
+  padding: 0.6rem;
+  border-radius: 8px;
+  background: $nl-figure-bg;
+}
+
+main.content figcaption,
+main.content .figure-caption,
+main.content caption {
+  margin-top: 0.6rem;
+  color: $nl-muted;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: left;
+}
+
+main.content .quarto-figure {
+  margin: 1.6rem 0;
+}
+
+// Tab sets (Module 0's agent and language tabs).
+.panel-tabset {
+  .nav-tabs {
+    border-bottom-color: $nl-border-strong;
+  }
+
+  .nav-tabs .nav-link {
+    color: $nl-muted;
+    font-size: 0.92rem;
+    font-weight: 600;
+
+    &:hover {
+      border-color: transparent;
+      color: $nl-link;
+    }
+
+    &.active {
+      border-color: $nl-border-strong $nl-border-strong $nl-bg;
+      background: $nl-bg;
+      color: $nl-heading;
+      box-shadow: inset 0 2px 0 $nl-accent;
+    }
+  }
+
+  .tab-content {
+    border-color: $nl-border-strong;
+    border-radius: 0 0 7px 7px;
+  }
+}
+
+blockquote {
+  border-left: 3px solid $nl-border-strong;
+  color: $nl-muted;
+}
+
+// Callouts keep Quarto's colors per type; only the frame is tuned.
+.callout {
+  border-radius: 7px;
+
+  &.callout-style-simple,
+  &.callout-style-default {
+    border-color: $nl-border;
+    border-left-width: 4px;
+  }
+
+  .callout-body {
+    font-size: 0.94rem;
+  }
+}
+
+// A collapsed callout titled "Optional: ..." sits outside the lecture's 45
+// minutes. filters/pedagogy.lua adds the class; authors change nothing.
+.callout[data-optional] {
+  // !important: Quarto colors the frame and header per callout type.
+  border: 1px dashed $nl-border-strong !important;
+  border-left: 4px solid $nl-border-strong !important;
+  background: transparent;
+
+  > .callout-header {
+    background: transparent !important;
+    color: $nl-muted;
+
+    .callout-icon-container {
+      display: none;
+    }
+
+    .callout-title-container {
+      font-weight: 600;
+    }
+
+    .callout-title-container::after {
+      content: "outside the lecture time";
+      margin-left: 0.7rem;
+      padding: 0.05rem 0.5rem;
+      border: 1px solid $nl-border;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Site chrome: navbar, sidebar, table of contents, page navigation, footer
+// ---------------------------------------------------------------------------
+
+.navbar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .navbar-brand {
   font-family: $headings-font-family;
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
-.callout {
-  border-left-color: $accent !important;
+.navbar .nav-link {
+  font-size: 0.92rem;
 }
 
-@media (max-width: 576px) {
-  h1.title {
-    font-size: 1.8rem;
+.navbar .nav-link.active {
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: $nl-accent;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.5em;
+}
+
+// The module sidebar (generated: _includes/sidebar.yml).
+#quarto-sidebar {
+  font-size: 0.88rem;
+
+  .sidebar-title {
+    @extend .eyebrow;
+    margin-bottom: 0.5rem;
+  }
+
+  .sidebar-item-section > .sidebar-item-container .sidebar-item-text {
+    font-family: $headings-font-family;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: $nl-heading;
+  }
+
+  .sidebar-item-section {
+    margin-top: 0.9rem;
+  }
+
+  ul.sidebar-section .sidebar-item {
+    margin: 0;
+  }
+
+  ul.sidebar-section .sidebar-link {
+    display: block;
+    padding: 0.22rem 0.6rem;
+    border-left: 2px solid $nl-border;
+    color: $nl-muted;
+    line-height: 1.35;
+
+    &:hover {
+      color: $nl-link;
+      border-left-color: $nl-border-strong;
+    }
+
+    &.active {
+      border-left-color: $nl-accent;
+      color: $nl-heading;
+      font-weight: 600;
+    }
+  }
+}
+
+// "On this page".
+#TOC,
+.sidebar nav[role="doc-toc"] {
+  font-size: 0.84rem;
+
+  > h2,
+  #toc-title {
+    @extend .eyebrow;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+  }
+
+  ul a {
+    border-left: 2px solid $nl-border;
+    color: $nl-muted;
+    line-height: 1.35;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+  }
+
+  ul a.active,
+  ul a:hover {
+    border-left-color: $nl-accent;
+    color: $nl-heading;
+  }
+}
+
+// Previous / next module at the foot of a lecture.
+.page-navigation {
+  gap: 1rem;
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $nl-border;
+
+  .nav-page {
+    flex: 1 1 0;
+  }
+
+  .nav-page a.pagination-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    height: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid $nl-border;
+    border-radius: 9px;
+    background: $nl-raised;
+    color: $nl-heading;
+    text-decoration: none;
+    transition: border-color 0.12s, box-shadow 0.12s;
+
+    &:hover {
+      border-color: $nl-link;
+      box-shadow: $nl-shadow;
+    }
+
+    i {
+      display: none;
+    }
+
+    &::before {
+      @extend .eyebrow;
+    }
+
+    .nav-page-text {
+      font-family: $headings-font-family;
+      font-size: 1.08rem;
+      font-weight: 600;
+    }
+  }
+
+  .nav-page-previous a.pagination-link::before {
+    content: "\2190\00a0 Previous module";
+  }
+
+  .nav-page-next a.pagination-link {
+    align-items: flex-end;
+    text-align: right;
+
+    &::before {
+      content: "Next module \00a0\2192";
+    }
+  }
+}
+
+.nav-footer {
+  border-top: 1px solid $nl-border;
+  color: $nl-muted;
+  font-size: 0.82rem;
+}
+
+// A thin reading-progress line under the navbar on lecture pages. Pure CSS; a
+// browser without scroll-driven animations shows nothing.
+@supports (animation-timeline: scroll()) {
+  body.lecture::before {
+    content: "";
+    position: fixed;
+    z-index: 1040;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: $nl-accent;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    animation: nl-progress linear both;
+    animation-timeline: scroll(root);
+    pointer-events: none;
+  }
+
+  @keyframes nl-progress {
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Lecture pages: module header and objectives (generated: _includes/module-NN.md)
+// ---------------------------------------------------------------------------
+
+.module-header {
+  margin: 0.4rem 0 1.4rem;
+  padding: 1.1rem 1.25rem 1.15rem;
+  border: 1px solid $nl-border;
+  border-top: 3px solid $nl-navy;
+  border-radius: 9px;
+  background: $nl-surface;
+
+  p {
+    margin: 0;
+  }
+
+  .module-meta p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: $nl-muted;
+  }
+
+  .module-num {
+    padding: 0.05rem 0.55rem;
+    border-radius: 999px;
+    background: $nl-navy;
+    color: $nl-on-navy;
+  }
+
+  .module-summary {
+    margin: 0.7rem 0 0.9rem;
+    font-family: $headings-font-family;
+    font-size: 1.18rem;
+    line-height: 1.45;
+    color: $nl-heading;
+  }
+
+  .module-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.5rem;
+  }
+
+  .module-actions .btn-colab {
+    margin-right: 0.5rem;
+    padding: 0.42rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+.objectives {
+  margin: 0 0 2rem;
+  padding: 1rem 1.25rem 0.85rem;
+  border: 1px solid $nl-border;
+  border-left: 4px solid $nl-accent;
+  border-radius: 9px;
+  background: $nl-accent-soft;
+
+  h2 {
+    @extend .eyebrow;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+    color: $nl-accent;
+  }
+
+  p {
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    color: $nl-heading;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  li {
+    position: relative;
+    padding-left: 1.6rem;
+  }
+
+  li::before {
+    content: "";
+    position: absolute;
+    left: 0.15rem;
+    top: 0.5em;
+    width: 0.8rem;
+    height: 0.45rem;
+    border-left: 2px solid $nl-accent;
+    border-bottom: 2px solid $nl-accent;
+    transform: rotate(-45deg);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Pedagogy components. Authors write the div; these rules do the rest.
+// ---------------------------------------------------------------------------
+
+// **Objective for this section:** under a numbered heading (class added by
+// filters/pedagogy.lua).
+.section-objective {
+  margin: 0.2rem 0 1.3rem;
+  padding: 0.5rem 0.9rem;
+  border-left: 3px solid $nl-accent;
+  border-radius: 0 6px 6px 0;
+  background: $nl-accent-soft;
+  font-size: 0.93rem;
+
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  p > strong:first-child {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: $nl-accent;
+  }
+}
+
+// Shared frame for the labelled boxes.
+.recap,
+.self-check,
+.worked-example,
+.demo {
+  position: relative;
+  margin: 1.6rem 0;
+  padding: 2.1rem 1.15rem 0.9rem;
+  border: 1px solid $nl-border;
+  border-radius: 9px;
+  background: $nl-surface;
+
+  &::before {
+    @extend .eyebrow;
+    position: absolute;
+    top: 0.75rem;
+    left: 1.15rem;
+  }
+
+  > :last-child,
+  > p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ::: {.recap}  "Where we are": what earlier modules established.
+.recap {
+  border-left: 4px solid $nl-lecture;
+  background: $nl-lecture-soft;
+  font-size: 0.95rem;
+
+  &::before {
+    content: "Where we are";
+    color: $nl-lecture;
+  }
+}
+
+// The label above the box already says it: a bold run that opens a recap
+// ("Where we are.") or a self-check ("Check yourself.") is kept for screen
+// readers and hidden on screen. Do not open these boxes with other bold text.
+.recap,
+.self-check {
+  > p:first-child > strong:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+// ::: {.self-check}  a question, then a collapsed "Answer" callout.
+.self-check {
+  border-left: 4px solid $nl-good;
+  background: $nl-good-soft;
+
+  &::before {
+    content: "Check yourself";
+    color: $nl-good;
+  }
+
+  .callout {
+    margin: 0.8rem 0 0.2rem;
+    border: 1px solid $nl-border !important;
+    border-radius: 7px;
+    background: $nl-raised;
+
+    > .callout-header {
+      padding: 0.15rem 0.5rem;
+      background: transparent !important;
+      color: $nl-good;
+      font-size: 0.88rem;
+
+      .callout-icon-container {
+        display: none;
+      }
+    }
+  }
+}
+
+// ::: {.worked-example}  a calculation carried through with numbers.
+.worked-example {
+  border-left: 4px solid $nl-border-strong;
+  background: $nl-raised;
+
+  &::before {
+    content: "Worked example";
+  }
+
+  .katex-display {
+    margin: 0.7rem 0;
+  }
+}
+
+// ::: {.demo}  an Observable JS widget: inputs, then a small plot.
+// The lecture demos hard-code light-theme colors in their plots (#1d5f8a,
+// #b3541e, #1f2933), so the box keeps a light panel in both themes: the
+// $nl-demo-* tokens are the light palette in the dark theme too, on "paper".
+.demo {
+  border-color: $nl-demo-border;
+  border-top: 3px solid $nl-navy;
+  background: $nl-demo-bg;
+  color: $nl-demo-ink;
+  box-shadow: $nl-shadow;
+
+  &::before {
+    content: "Interactive";
+    color: $nl-demo-muted;
+  }
+
+  a {
+    color: $nl-demo-link;
+    text-decoration-color: rgba($nl-demo-link, 0.4);
+  }
+
+  strong,
+  h3,
+  h4 {
+    color: $nl-demo-ink;
+  }
+
+  code {
+    background: rgba($nl-demo-ink, 0.06);
+    color: $nl-demo-code;
+  }
+
+  table {
+    color: $nl-demo-ink;
+    border-color: $nl-demo-border;
+
+    thead th {
+      color: $nl-demo-muted;
+      border-bottom-color: $nl-demo-border;
+    }
+  }
+
+  .cell {
+    margin: 0.4rem 0;
+  }
+
+  // Observable Inputs.
+  form[class^="oi-"],
+  form[class*=" oi-"] {
+    max-width: 100%;
+    margin: 0.35rem 0;
+    font-family: $font-family-sans-serif;
+    font-size: 0.86rem;
+    color: $nl-demo-ink;
+
+    label {
+      color: $nl-demo-muted;
+      font-weight: 600;
+    }
+
+    input,
+    select,
+    button {
+      accent-color: $nl-demo-accent;
+      font-family: inherit;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select,
+    button {
+      padding: 0.1rem 0.4rem;
+      border: 1px solid $nl-demo-border;
+      border-radius: 5px;
+      background: #ffffff;
+      color: $nl-demo-ink;
+    }
+
+    output {
+      font-variant-numeric: tabular-nums;
+      color: $nl-demo-ink;
+    }
+  }
+
+  // Observable Plot: ink for axes and labels, no panel of its own.
+  figure {
+    margin: 0.4rem 0 0;
+    color: $nl-demo-ink;
+  }
+
+  svg[class^="plot"],
+  figure[class^="plot"] svg {
+    max-width: 100%;
+    height: auto;
+    background: transparent !important;
+    color: $nl-demo-ink;
+    font-family: $font-family-sans-serif;
+  }
+
+  figure[class^="plot"] h2,
+  figure[class^="plot"] h3 {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: $font-family-sans-serif;
+    font-size: 0.9rem;
+    color: $nl-demo-ink;
+  }
+
+  // Values a cell prints (md`...`, numbers) read as a result line.
+  .cell-output-display > p,
+  .observablehq > p {
+    margin: 0.3rem 0;
+    font-size: 0.92rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Module cards: day pages and the top of the notebooks page (generated)
+// ---------------------------------------------------------------------------
+
+.module-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 1.6rem 0;
+}
+
+.module-card {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr;
+  border: 1px solid $nl-border;
+  border-radius: 10px;
+  background: $nl-raised;
+  overflow: hidden;
+  transition: border-color 0.12s, box-shadow 0.12s;
+
+  &:hover {
+    border-color: $nl-border-strong;
+    box-shadow: $nl-shadow;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .module-card-time {
+    display: flex;
+    padding: 1rem 0.5rem 1rem 1rem;
+    border-right: 1px solid $nl-border;
+    background: $nl-surface;
+    color: $nl-heading;
+    font-size: 0.86rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.4;
+  }
+
+  .module-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.9rem 1.1rem 1rem;
+  }
+
+  a.module-card-title,
+  .module-card-title {
+    font-family: $headings-font-family;
+    font-size: 1.28rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $nl-heading;
+    text-decoration: none;
+  }
+
+  a.module-card-title:hover {
+    color: $nl-link;
+    text-decoration: underline;
+  }
+
+  .module-card-body > p:nth-of-type(3) {
+    color: $nl-muted;
+    font-size: 0.94rem;
+    line-height: 1.5;
+  }
+
+  .module-card-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.45rem;
+    margin-top: 0.45rem;
+  }
+
+  .module-card-actions .btn-colab {
+    margin-right: 0.4rem;
+  }
+
+  &.module-card-optional {
+    border-style: dashed;
+  }
+}
+
+// The per-day tables on the notebooks page.
+.notebook-table {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  th:nth-child(1),
+  td:nth-child(1) {
+    width: 3rem;
+    color: $nl-muted;
+    font-variant-numeric: tabular-nums;
+  }
+
+  th:nth-child(3),
+  td:nth-child(3) {
+    width: 7.5rem;
+    white-space: nowrap;
+  }
+
+  th:nth-child(4),
+  td:nth-child(4) {
+    width: 10rem;
+    text-align: right;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+
+  td strong {
+    display: block;
+    font-family: $headings-font-family;
+    font-size: 1.04rem;
+    color: $nl-heading;
+  }
+
+  .notebook-summary {
+    color: $nl-muted;
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Schedule (generated: _includes/schedule.md; a plain table with class spans)
+// ---------------------------------------------------------------------------
+
+// A page that needs more than the text measure (front matter: page-layout: full,
+// body-classes: wide). Prose keeps its measure; the table takes the full width.
+body.wide main.content {
+  max-width: 1180px;
+  margin-inline: auto;
+
+  > p,
+  > header {
+    max-width: 46rem;
+  }
+}
+
+.timetable-legend p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  margin: 1.2rem 0 0.4rem;
+  font-size: 0.84rem;
+  color: $nl-muted;
+}
+
+.legend-lecture,
+.legend-lab,
+.legend-break,
+.legend-optional {
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 1.6rem;
+    height: 0.7rem;
+    margin-right: 0.45rem;
+    border-radius: 3px;
+    vertical-align: -0.05rem;
+  }
+}
+
+.legend-lecture::before {
+  background: $nl-lecture;
+}
+
+.legend-lab::before {
+  background: $nl-accent;
+}
+
+.legend-break::before {
+  border: 1px solid $nl-border-strong;
+  background: repeating-linear-gradient(-45deg, $nl-surface 0 4px, $nl-border 4px 5px);
+}
+
+.legend-optional::before {
+  border: 1px dashed $nl-border-strong;
+}
+
+.timetable table {
+  table-layout: fixed;
+  width: 100%;
+  min-width: 860px;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  th,
+  td {
+    border: 0;
+    border-bottom: 1px solid $nl-border;
+    padding: 0.6rem 0.7rem;
+  }
+
+  thead th {
+    font-family: $headings-font-family;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    color: $nl-heading;
+
+    a {
+      @extend .eyebrow;
+      text-decoration: none;
+      color: $nl-accent;
+    }
+  }
+
+  th:first-child,
+  td:first-child {
+    width: 6.6rem;
+    color: $nl-muted;
+    font-size: 0.82rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  td + td {
+    border-left: 1px solid $nl-border;
+  }
+
+  a.slot-module,
+  a.slot-optional {
+    display: block;
+    font-weight: 600;
+    line-height: 1.35;
+    color: $nl-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $nl-link;
+      text-decoration: underline;
+    }
+  }
+
+  // The bar under a module: lecture then lab, in proportion to their minutes.
+  .slot-split {
+    display: flex;
+    gap: 2px;
+    margin-top: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .slot-lecture,
+  .slot-lab {
+    padding: 0.1rem 0.4rem;
+    overflow: hidden;
+  }
+
+  .slot-lecture {
+    flex: 45 1 0;
+    border-radius: 4px 0 0 4px;
+    background: $nl-lecture;
+    color: $nl-on-lecture;
+  }
+
+  .slot-lab {
+    flex: 50 1 0;
+    border-radius: 0 4px 4px 0;
+    background: $nl-accent;
+    color: $nl-on-accent;
+  }
+
+  .slot-lab:only-child {
+    border-radius: 4px;
+  }
+
+  // Rows without teaching: the opening ten minutes and the breaks.
+  tr:has(.slot-opening) td,
+  tr:has(.slot-break) td {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.82rem;
+    color: $nl-muted;
+  }
+
+  tr:has(.slot-break) td {
+    border-left: 0;
+    background: repeating-linear-gradient(-45deg, $nl-surface 0 6px, $nl-bg 6px 12px);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+  }
+
+  tr:has(.slot-optional) td {
+    border-left: 0;
+  }
+
+  td:has(.slot-optional) {
+    border: 1px dashed $nl-border-strong;
+    border-radius: 6px;
+  }
+
+  a.slot-optional {
+    font-weight: 500;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Landing page (index.qmd; body class `landing`)
+// ---------------------------------------------------------------------------
+
+body.landing {
+  #title-block-header {
+    display: none; // the hero carries the title
+  }
+
+  // The id selector outranks Quarto's `#quarto-content > *` top padding, so the
+  // hero meets the navbar.
+  #quarto-content > main.content {
+    max-width: 1080px;
+    margin-inline: auto;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  main.content > section > h2,
+  main.content > h2,
+  main.content section.level2 > h2 {
+    margin-top: 3.4rem;
+    border: 0;
+    font-size: 1.9rem;
+  }
+
+  .section-lede {
+    max-width: 44rem;
+    color: $nl-muted;
+  }
+
+  .prose {
+    max-width: 46rem;
+  }
+}
+
+.hero {
+  // Full-bleed band: stretch to the viewport edges, keep the text aligned.
+  margin: 0 calc(50% - 50vw) 2.2rem;
+  padding: 4rem calc(50vw - 50%) 2.6rem;
+  background: $nl-navy;
+  color: $nl-on-navy;
+
+  .eyebrow {
+    color: $nl-on-navy-muted;
+  }
+
+  h1 {
+    max-width: 18em;
+    margin: 0.6rem 0 0.5rem;
+    color: $nl-on-navy;
+    font-size: 3.3rem;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  .hero-subtitle {
+    display: block;
+    font-family: $headings-font-family;
+    font-size: 1.45rem;
+    font-style: italic;
+    color: $nl-on-navy-muted;
+  }
+
+  .hero-lead {
+    max-width: 42rem;
+    margin-top: 1.4rem;
+    font-size: 1.1rem;
+    color: $nl-on-navy;
+
+    p {
+      line-height: 1.6;
+    }
+  }
+
+  .hero-actions p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin: 1.7rem 0 0;
+  }
+
+  .hero-actions a {
+    padding: 0.62rem 1.25rem;
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 7px;
+    color: $nl-on-navy;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.12s, border-color 0.12s;
+
+    &:hover {
+      border-color: $nl-on-navy;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .hero-actions a.btn-primary-action {
+    border-color: $nl-accent;
+    background: $nl-accent;
+    color: $nl-on-accent;
+
+    &:hover {
+      background: lighten($nl-accent, 5%);
+      border-color: lighten($nl-accent, 5%);
+    }
+  }
+
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 2.4rem;
+    margin-top: 2.4rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    color: $nl-on-navy-muted;
+    font-size: 0.92rem;
+
+    p {
+      display: contents;
+    }
+
+    strong {
+      margin-right: 0.15rem;
+      color: $nl-on-navy;
+      font-family: $headings-font-family;
+      font-size: 1.35rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// The four days.
+.day-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1.4rem 0 1.2rem;
+}
+
+.day-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.1rem 1.15rem 1rem;
+  border: 1px solid $nl-border;
+  border-top: 3px solid $nl-navy;
+  border-radius: 10px;
+  background: $nl-raised;
+  transition: box-shadow 0.12s, border-color 0.12s;
+
+  &:hover {
+    box-shadow: $nl-shadow;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .eyebrow {
+    color: $nl-accent;
+  }
+
+  a.day-card-title {
+    display: block;
+    margin: 0.3rem 0 0.7rem;
+    font-family: $headings-font-family;
+    font-size: 1.22rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: $nl-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $nl-link;
+      text-decoration: underline;
+    }
+  }
+
+  // The guiding question takes the remaining height, so the spans line up.
+  p:has(.day-card-question) {
+    flex: 1;
+  }
+
+  .day-card-question {
+    display: block;
+    font-family: $headings-font-family;
+    font-style: italic;
+    font-size: 1.02rem;
+    line-height: 1.45;
+    color: $nl-text;
+  }
+
+  .day-card-span {
+    display: block;
+    margin-top: 0.9rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid $nl-border;
+    color: $nl-muted;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+}
+
+// The module arc: one rail, a numbered node per module, grouped by day.
+.path {
+  margin: 1.6rem 0 1rem;
+}
+
+.path-day {
+  display: grid;
+  grid-template-columns: 13.5rem 1fr;
+  column-gap: 1.5rem;
+  padding: 0.3rem 0;
+
+  > p {
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    margin: 0;
+    padding-top: 0.55rem;
+  }
+
+  a.path-day-label {
+    position: sticky;
+    top: 5rem;
+    font-family: $headings-font-family;
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: $nl-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $nl-link;
+      text-decoration: underline;
+    }
+  }
+
+  & + .path-day {
+    margin-top: 0.4rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid $nl-border;
+  }
+}
+
+.path-step {
+  grid-column: 2;
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.3rem 1fr;
+  column-gap: 1rem;
+  padding-bottom: 1.05rem;
+
+  p {
+    margin: 0;
+  }
+
+  // The rail: from this node down to the next one.
+  &::before {
+    content: "";
+    position: absolute;
+    left: calc(1.15rem - 1px);
+    top: 2.3rem;
+    bottom: -0.3rem;
+    width: 2px;
+    background: $nl-border-strong;
+  }
+
+  .path-day:last-child &:last-child::before {
+    display: none;
+  }
+
+  .path-num {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.3rem;
+    height: 2.3rem;
+    border: 2px solid $nl-navy;
+    border-radius: 50%;
+    background: $nl-navy;
+    color: $nl-on-navy;
+    font-size: 0.9rem;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.path-step-optional .path-num {
+    border-style: dashed;
+    border-color: $nl-border-strong;
+    background: $nl-bg;
+    color: $nl-muted;
+  }
+
+  .path-body {
+    padding-top: 0.25rem;
+  }
+
+  a.path-title {
+    margin-right: 0.5rem;
+    font-family: $headings-font-family;
+    font-size: 1.14rem;
+    font-weight: 600;
+    color: $nl-heading;
+    text-decoration: none;
+
+    &:hover {
+      color: $nl-link;
+      text-decoration: underline;
+    }
+  }
+
+  .path-body > p:last-child {
+    margin-top: 0.1rem;
+    max-width: 40rem;
+    color: $nl-muted;
+    font-size: 0.93rem;
+    line-height: 1.5;
+  }
+}
+
+// "What you will be able to do": two columns of outcomes.
+.outcomes ul {
+  columns: 2;
+  column-gap: 2.5rem;
+  padding-left: 1.1rem;
+
+  li {
+    break-inside: avoid;
+    margin-bottom: 0.45rem;
+  }
+}
+
+// Predict, Run, Explain, Check: four numbered cards from an ordered list.
+.rhythm ol {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1.2rem 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: rhythm;
+
+  li {
+    counter-increment: rhythm;
+    margin: 0;
+    padding: 0.9rem 1rem 1rem;
+    border: 1px solid $nl-border;
+    border-radius: 10px;
+    background: $nl-surface;
+    font-size: 0.93rem;
+    line-height: 1.5;
+
+    &::before {
+      content: counter(rhythm);
+      display: block;
+      margin-bottom: 0.3rem;
+      font-family: $headings-font-family;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: $nl-accent;
+    }
+
+    strong {
+      color: $nl-heading;
+    }
   }
 }

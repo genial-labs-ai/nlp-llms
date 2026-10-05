@@ -1,0 +1,34 @@
+/*-- scss:defaults --*/
+
+// The dark palette. This file overrides the tokens of custom.scss and holds no
+// rules: change how something looks in custom.scss, change its dark color here.
+$nl-bg: #10161d;
+$nl-surface: #18212b;
+$nl-raised: #151c25;
+$nl-border: #2a3644;
+$nl-border-strong: #415062;
+$nl-text: #d5dce4;
+$nl-heading: #eef2f6;
+$nl-muted: #9aa7b5;
+$nl-link: #86bde6;
+$nl-navy: #1b3450;
+$nl-on-navy: #f3f6f9;
+$nl-on-navy-muted: #b4c4d6;
+$nl-accent: #e39a63;
+$nl-accent-soft: #2a211b;
+$nl-on-accent: #1b120b;
+$nl-lecture: #7fb2de;
+$nl-lecture-soft: #172433;
+$nl-on-lecture: #0d1a26;
+$nl-good: #7fc49d;
+$nl-good-soft: #15251d;
+$nl-code: #f0b48a;
+$nl-code-bg: #161e27;
+// The SVG figures draw dark strokes on a transparent background: give them paper.
+$nl-figure-bg: #f3f1ec;
+// Demos keep light-theme ink (their plots hard-code it) on the same paper.
+$nl-demo-bg: #f3f1ec;
+$nl-demo-border: #cfd3d6;
+$nl-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.3);
+
+$navbar-bg: #0c1218;

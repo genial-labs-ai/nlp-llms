@@ -2,12 +2,19 @@
 title: "Schedule"
 subtitle: "Four days, 09:00 to 17:00"
 toc: false
+# Five columns need more than the text measure (custom.scss, body.wide).
+page-layout: full
+body-classes: wide
 ---
 
 Each module is {{< var workshop.lecture_minutes >}} minutes of lecture followed by {{< var workshop.lab_minutes >}} minutes of lab. The capstone on Day 4 takes the whole afternoon.
 
 Day 1 opens the room at 08:00 for an optional self-serve hour, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd). You work through its page on your own: there is no talk and no notebook, and you can do it beforehand as pre-work instead. The workshop proper starts at 09:00.
 
-::: {.table-wide}
+::: {.timetable-legend}
+[Lecture]{.legend-lecture} [Lab]{.legend-lab} [Break]{.legend-break} [Optional, self-serve]{.legend-optional}
+:::
+
+::: {.table-wide .timetable}
 {{< include /_includes/schedule.md >}}
 :::
