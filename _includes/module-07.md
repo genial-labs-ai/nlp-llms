@@ -4,7 +4,7 @@
 
 Turning a pretrained language model into an instruction follower, efficiently.
 
-**Lab:** In preparation
+**Lab:** [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/07-finetuning-lora.ipynb)
 
 ## Learning objectives
 
