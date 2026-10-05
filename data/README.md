@@ -254,6 +254,15 @@ The logistic-regression accuracy here (0.8838) is lower than the 0.892 in the ta
 
 Lab 2 recomputes `lab01.tfidf_logreg` in the notebook and reproduces it exactly (0.8838 / 0.8841). Averaged embeddings are 27 papers (1.7 points) behind it. Three further CPU runs of the same procedure with other random streams gave 0.8638 to 0.8719 test accuracy, so the gap is not seed noise. On a GPU the SGNS numbers will differ slightly, because the random streams and the order of floating-point sums differ.
 
+**Lab 3, measured 2026-10-05** (Linux container, 4 vCPU, CPU only, 2 PyTorch threads on a machine shared with other training jobs, PyTorch 2.14.1; full settings, seed 0; not run on Colab):
+
+| `id` | Steps | Val nats/char | Test nats/char / perplexity / bits per character |
+|---|---|---|---|
+| `lab03.rnn_lm`: tanh RNN, the participant's `rnn_cell_step` in a Python loop, d = 64, d_h = 256 | 1,000 | 1.6275 | 1.6959 / 5.4515 / 2.4467 |
+| `lab03.lstm_lm`: `nn.LSTM`, same sizes, forget-gate bias 1 | 2,000 | 1.5316 | 1.6114 / 5.0098 / 2.3247 |
+
+Both follow the character n-gram protocol above. Lab 3 recomputes `lab01.char_ngram.n2`, `n3` and `n5` with a vectorized restatement of Lab 1's add-k model and asserts that they match to 1e-4 with the same k. The neural models score every test character once, carrying the hidden state across 1,000-character chunks after a warm-up on the 1,000 characters before the split. Both beat the best n-gram (1.8326). With `QUICK = True` (250 and 500 steps), seeds 1 and 2 gave 1.8845 and 1.8864 (RNN) and 1.7741 and 1.7758 (LSTM). The neural numbers depend on the hardware and the number of steps; a T4 run will differ slightly. Lab 5 compares against `lab03.lstm_lm` with the same metric. To update: execute the notebook with `QUICK = False` and copy the values from the `lab03_results.json` its results-card cell writes.
+
 To update the file: execute the notebook, take the `lab01_baselines.json` or `lab02_baselines.json` its card cell writes, and copy the values into the matching entries. `tests/test_baselines.py` checks the fields, that the Lab 1 checkpoint asserts the recorded n-gram values, and that Lab 2 asserts the recorded Lab 1 TF-IDF values and that its recorded accuracy clears the notebook's floor.
 
 ## What was run
