@@ -62,6 +62,16 @@ packages:
   llama_index_retrievers_bm25: "0.8.0"
   langchain_text_splitters: "1.1.3"
 
+# Terminal coding assistants (coding-assistants.qmd). Versions whose --help output
+# and install docs the page was checked against. The page does not pin them: each
+# installer fetches the latest release. Re-check before each delivery.
+assistants:
+  checked: "2026-10-05"
+  codex: "0.160.0"
+  claude_code: "2.1.289"
+  gemini_cli: "0.62.0"
+  kimi_code: "2.1.1"
+
 # Colab Secrets names. TYPESAFE_API_KEY verified 2026-10-05 against typesafe-sdk 0.7.2
 # and langchain-typesafe 0.0.1a3 (briefs/jev-verification.md).
 secrets:
