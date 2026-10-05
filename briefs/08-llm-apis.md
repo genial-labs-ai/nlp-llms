@@ -69,3 +69,31 @@ Measure both from `usage` on a real run and put the measured figure in the noteb
 8. **No key ever appears in a cell or an output.** Do not print the `KEYS` dictionary. CI runs with no keys set.
 9. **Prompt-injection item.** Report what each provider did with it. Do not assert on it, and do not present any prompt as a fix; Module 14 returns to it.
 10. **Report back:** which of the three paths you ran, the measured table for each, the measured cost, the fallback's validity rate with and without retry, and anything in the lecture's comparison table that the SDK contradicts.
+
+## As built (Director review, 2026-10-05)
+
+The notebook departs from this brief in these ways. All are accepted; the lecture now matches the notebook.
+
+- **Interface.** `chat(messages, system=None, tools=None, schema=None, max_tokens=MAX_TOKENS)`: the schema is passed to `chat`, and each adapter maps it to its provider's structured-output field (`text.format` at OpenAI, `output_config.format` at Anthropic, the prompt protocol on the open model).
+- **Exercise 1.** Four fixtures per provider (text, truncated, tool call, refusal), not three. They are **constructed, not recorded**: no key was available. They follow the documented shapes and are validated against `openai.types.responses.Response` and `anthropic.types.Message` for the pinned SDKs. `model_context_window_exceeded` maps to `"truncated"`.
+- **Exercise 2.** `extract(provider, text, schema=Event, R=2, shots=1)` returns `(object or None, number of calls)`. `Event` has a validator, `iso_date`, that rejects any `event_date` not written `YYYY-MM-DD` and impossible dates. The lecture now shows it.
+- **Exercise 3.** The zero-shot and one-shot evaluation run opens Exercise 3, as briefed. Validity at `R = 0` is read from the same run (valid at the first attempt). That is exact for greedy local decoding and an approximation for the APIs; the notebook says so. No accuracy floor is asserted on any provider.
+- **Exercise 4.** `execute(call, tools)` returns `(content, is_error)` and never raises; `run_tools(provider, messages, tools, k_max=K_MAX, system=None)` with `K_MAX = 6`. The checkpoint also covers undecodable arguments and a tool that raises. A reported, unasserted cell shows a prompt injection arriving through a tool result (the `note` field of event `E7`).
+- **Run sizes.** CPU fallback: 12 items and the first three tool questions. GPU or keyed provider: 40 items and all six questions.
+- **Offline test double.** If the open model cannot be downloaded, or `NLP_LLMS_STUB=1` is set, the notebook uses `StubProvider`, a rule-based test double that writes the open model's protocol. Its rows are labelled `stub (test double)`. Its numbers measure the harness, not a model, and must never be quoted as model results.
+- **Timing.** The core path is 3 (setup) + 8 + 12 + 8 + 12 + 5 + 2 (the closing "What the response did not tell you" section) = 50 minutes. The stretch is the last section and is optional.
+- **Stretch.** The Lab 7 base model (`models.instruct_base`, pinned revision) plus the adapter folder `lab07_lora` if present; base model alone otherwise, and the notebook says which.
+
+### Corrections to this brief
+
+- **Flag 3 (temperature) was wrong.** At the API, Anthropic returns an error for a non-default `temperature` only on Claude 4.7 and later models; Haiku 4.5 still accepts it. It is the Python SDK, version 1.0 and later, that removed the argument from `messages.create()` (a `TypeError`). Checked on 2026-10-05 against Anthropic's deprecations page and the signature of `anthropic==1.11.0`. The decision not to send a temperature stands.
+- **Structured outputs.** `messages.parse(output_format=Event)` works in `anthropic==1.11.0` because the SDK converts the class and sends it as `output_config.format`. The raw API's top-level `output_format` parameter is deprecated. The lecture now says so.
+- **Cost note.** Both per-run figures are estimates from the token estimate above, not measurements: under \$0.25 on Anthropic (\$1 / \$5 per million tokens, confirmed on Anthropic's pricing page on 2026-10-05) and under \$0.05 on OpenAI. The OpenAI prices (\$0.10 / \$0.50) come from secondary sources; OpenAI's pricing page could not be reached. Lecture and notebook now give the same figures and label them as estimates.
+- **Flag 2 (retirement).** On 2026-10-05 Anthropic's deprecations page listed Claude Haiku 4.5 as active, retirement "not sooner than October 15, 2026". That date is ten days after this review. Re-check before every delivery; the lecture carries this note.
+
+## Not verified by the Director
+
+- The keyed paths (OpenAI and Anthropic) and the open-model fallback have not run: no keys, and the Hugging Face Hub is unreachable from the build container. The notebook ran end to end only on `StubProvider` (`scripts/test_notebooks.py`, 14 s locally, 2026-10-05). It is **written, not run** on any model.
+- OpenAI's documentation and pricing pages could not be reached on 2026-10-05. The OpenAI fragments in the lecture were checked only against the signatures of `openai==3.24.0` (`responses.create`, `responses.parse(text_format=...)`, `output_parsed`, `incomplete_details.reason`). Whether `gpt-6-luna` accepts `temperature`, and its current prices, are unconfirmed.
+- Whether the constructed fixtures match real responses from the pinned models.
+- Run time on Colab, CPU or T4. `quarto render` of the lecture: Quarto is not installed in the build container.

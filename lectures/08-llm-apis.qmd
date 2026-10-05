@@ -22,7 +22,9 @@ title: "{{< var modules.m08.title >}}"
 The collapsed callouts are optional and sit outside the 45 minutes.
 
 ::: {.callout-important appearance="simple"}
-**APIs change; the ideas do not.** Every code fragment on this page was checked against the providers' official documentation on **2026-10-04**. Parameter names, model IDs and prices will drift. The five ideas of this lecture will not: the message list, the schema contract, the tool loop, token arithmetic, and evaluation on a fixed set. The model IDs used in the lab are set in one place: `{{< var models.openai >}}` (OpenAI), `{{< var models.anthropic >}}` (Anthropic) and `{{< var models.fallback >}}` (the open fallback).
+**APIs change; the ideas do not.** Every code fragment on this page was checked against the providers' official documentation on **2026-10-04**, and against the SDK versions the lab pins (`openai==3.24.0`, `anthropic==1.11.0`). The Anthropic statements were checked again against the live documentation on 2026-10-05; OpenAI's documentation could not be reached that day, so the OpenAI fragments rest on the 2026-10-04 reading and the pinned SDK's signatures. Parameter names, model IDs and prices will drift. The five ideas of this lecture will not: the message list, the schema contract, the tool loop, token arithmetic, and evaluation on a fixed set. The model IDs used in the lab are set in one place: `{{< var models.openai >}}` (OpenAI), `{{< var models.anthropic >}}` (Anthropic) and `{{< var models.fallback >}}` (the open fallback).
+
+**Before each delivery,** check both providers' deprecation pages for the pinned models. On 2026-10-05 Anthropic listed Claude Haiku 4.5 as active, with retirement "not sooner than October 15, 2026".
 :::
 
 ## 1. From your own model to someone else's
@@ -123,8 +125,10 @@ print(response.usage.input_tokens, response.usage.output_tokens)
 
 The differences are surface differences: where the system prompt goes, what the output cap is called, and how the reply is wrapped. In both, the reply is a list of typed parts (text is one type, a tool call is another), which matters in section 5.
 
+**Neither call sets a temperature.** The temperature $\tau$ divides the logits before sampling ([Module 3](03-sequence-models.qmd)); lower values make the output less variable. The parameter is in flux. At the API level, Anthropic returns an error for a non-default temperature on Claude 4.7 and later models (Opus 4.7 onward); older models such as Haiku 4.5 still accept it. Separately, version 1.0 and later of Anthropic's Python SDK removed the argument from `messages.create()`, so passing it raises a `TypeError` whatever the model. The OpenAI model in the lab reasons before answering, and the lab sets its reasoning effort instead. The lab sends no temperature to either provider.
+
 ::: {.callout-note appearance="simple"}
-**In the lab.** The request code for both providers is given. In **Exercise 1** you write the two small functions that turn each provider's response into one common `Reply` record: text, $n_{\text{in}}$, $n_{\text{out}}$ and the stop reason. You work on recorded responses, so this exercise needs no key. Everything after it is written once, against `Reply`.
+**In the lab.** The request code for both providers is given: one method, `chat(messages, system=None, tools=None, schema=None, max_tokens=...)`, per provider. In **Exercise 1** you write `parse_openai` and `parse_anthropic`, the two small functions that turn each provider's response into one common `Reply` record: text, tool calls, $n_{\text{in}}$, $n_{\text{out}}$ and the stop reason. You work on stored responses (built from the documented response shapes and validated against the SDKs' own response types), so this exercise needs no key. Everything after it is written once, against `Reply`.
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: two OpenAI endpoints, and server-side state"}
@@ -150,7 +154,7 @@ Three habits make prompts easier to maintain:
 - Change one thing at a time and measure on a fixed set (section 7). A prompt is a hyperparameter.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** The extraction prompt of **Exercise 2** comes in a zero-shot and a one-shot version. You run both and compare the schema-validity rate.
+**In the lab.** The extraction prompt of **Exercise 2** comes in a zero-shot and a one-shot version (`shots=0` or `shots=1`). At the start of Exercise 3 you run both over the evaluation set and compare the schema-validity rate.
 :::
 
 ## 4. Structured output: the schema as a contract
@@ -166,8 +170,10 @@ Three habits make prompts easier to maintain:
 **The schema.** A **schema** is a formal description of the allowed output: the field names, their types, and which are required. The common language is **JSON Schema**. In Python we write the schema as a Pydantic class, which gives us both the JSON Schema to send and a validator for what comes back:
 
 ```python
+import re
+from datetime import date
 from typing import Literal
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 class Event(BaseModel):
     topic: Literal["Language", "Vision", "Machine learning", "Robotics"]
@@ -175,7 +181,17 @@ class Event(BaseModel):
     event_date: str   # ISO 8601: YYYY-MM-DD
     seats: int
     remote: bool
+
+    @field_validator("event_date")
+    @classmethod
+    def iso_date(cls, value):
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+            raise ValueError("event_date must be written YYYY-MM-DD")
+        date.fromisoformat(value)   # rejects impossible dates such as 2027-02-30
+        return value
 ```
+
+The validator is a constraint the JSON Schema sent to the provider does not carry: the schema says only that `event_date` is a string. It runs in your code, on what comes back. "March 3, 2027" is a valid string and an invalid `Event`.
 
 The schema is a **contract** between the model and your code. There are three ways to enforce it, in increasing strength.
 
@@ -202,6 +218,8 @@ response = client.messages.parse(
 event = response.parsed_output          # an Event instance
 ```
 
+The SDK helper `messages.parse(output_format=Event)` works with `anthropic==1.11.0` because the SDK converts the class to a JSON Schema and sends it as `output_config.format`. In a raw request, the top-level `output_format` parameter is deprecated; use `output_config={"format": {...}}`, as the lab's adapter does.
+
 **What the contract guarantees.** Constrained decoding guarantees the *form*: the output parses, and every field has the declared type. It does not guarantee the *content*. `"seats": 400` is valid JSON whether the announcement says 40 or 400. Validity is necessary for correctness, not sufficient, and section 7 measures the two separately.
 
 **What can still go wrong with constrained decoding.**
@@ -215,7 +233,7 @@ So validate even when the provider constrains: it costs one line, and it is the 
 ![Validate and retry. The output is parsed and validated against the schema; on failure the error is appended to the messages and the model is called again, at most $R$ times. Constrained decoding, where the provider offers it, masks invalid tokens during generation; the validation step stays.](/images/08-validate-retry.svg){#fig-validate-retry fig-alt="Model output is parsed and validated against a schema; on failure the error is appended to the messages and the model is called again, up to a retry limit."}
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 2** you write `extract`: call the model, parse, validate against `Event`, and retry with the error message, up to $R$ times. The same function runs on all three providers. On the open fallback model it is the only method available, and you will see how much of the validity rate comes from the retry.
+**In the lab.** In **Exercise 2** you write `extract(provider, text, schema=Event, R=2, shots=1)`: call the model, parse, validate against `Event`, and retry with the error message, up to $R$ times (so at most $R + 1$ calls). It returns the validated record, or `None`, together with the number of calls made. A truncated or refused reply is not parsed and not retried. The same function runs on all three providers. On the open fallback model it is the only method available, and you will see how much of the validity rate comes from the retry.
 :::
 
 ## 5. Tool calling: a loop you write
@@ -239,22 +257,24 @@ The model never runs anything. It writes a request; your code decides whether to
 
 ![The tool-calling loop of the table above as a state diagram. The model only requests tool calls; your code, on the other side of the trust boundary, decides whether to run them and sends the results back. With one call per round trip, each round trip adds two entries to the message list: the reply with its call, and the result.](/images/08-tool-loop.svg){#fig-tool-loop fig-alt="State diagram of the tool-calling loop: the model is called, its tool calls are executed by your code, results are appended to the messages, and the loop repeats until a final answer or a step limit."}
 
-In code, with `provider.chat` returning the common `Reply` of Exercise 1:
+In code, with `provider.chat` returning the common `Reply` of Exercise 1 and `K_MAX = 6`:
 
 ```python
-def run_tools(provider, messages, tools, k_max=6):
+def run_tools(provider, messages, tools, k_max=K_MAX, system=None):
     for k in range(k_max):
-        reply = provider.chat(messages, tools=tools)          # CALL
+        reply = provider.chat(messages, system=system, tools=tools)   # CALL
         if reply.stop in ("truncated", "refused"):
             return None, "failed"
         if not reply.tool_calls:
-            return reply.text, "done"                         # DONE
-        messages.append(reply.as_message())                   # keep the request
-        for call in reply.tool_calls:                         # EXECUTE
-            result = execute(call.name, call.arguments, tools)   # errors become text
-            messages.append(tool_result(call.id, result))
-    return None, "step limit"                                 # FAILED
+            return reply.text, "done"                                 # DONE
+        messages.append(reply.as_message())                           # keep the request
+        for call in reply.tool_calls:                                 # EXECUTE
+            content, is_error = execute(call, tools)                  # never raises
+            messages.append(tool_result(call.id, content, is_error))
+    return None, "step limit"                                         # FAILED
 ```
+
+`execute(call, tools)` looks the tool up by name, validates the arguments against the tool's schema, runs the function, and returns the result as text with an error flag. An unknown name, invalid arguments or an exception inside the tool all come back as `(error message, True)`.
 
 Three details carry most of the bugs:
 
@@ -275,6 +295,7 @@ Three details carry most of the bugs:
 | Token counts | `usage.input_tokens`, `usage.output_tokens` | `usage.input_tokens`, `usage.output_tokens` |
 | Schema-constrained output | `responses.parse(text_format=Model)` | `messages.parse(output_format=Model)` |
 | Parsed result | `response.output_parsed` | `response.parsed_output` |
+| Schema in a raw request | `text={"format": {"type": "json_schema", ...}}` | `output_config={"format": {"type": "json_schema", ...}}` |
 | Tool definition | `type: "function"`, `name`, `description`, `parameters` | `name`, `description`, `input_schema` |
 | Tool call in the reply | an output item of type `function_call` | a content block of type `tool_use` |
 | Call ID | `call_id` | `id` |
@@ -286,7 +307,7 @@ Three details carry most of the bugs:
 Checked against both providers' documentation on 2026-10-04. Read down either column and the state machine is the same.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 4** you write `run_tools` for two tools, `get_event` and `days_between`, and questions that need both in sequence. The checkpoint drives your loop with a scripted stand-in for the model, so it tests the loop itself: the order of calls, the matching of IDs, the error result for an unknown tool, and the stop at $K_{\max}$.
+**In the lab.** In **Exercise 4** you write `execute` and `run_tools` for two tools, `get_event` and `days_between`, and questions that need both in sequence. The checkpoint drives your loop with a scripted stand-in for the model, so it tests the loop itself: the order of calls, the matching of IDs, the error results for an unknown tool, invalid arguments and a tool that raises, and the stop at $K_{\max}$.
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: parallel calls, forced calls, and tools on a small local model"}
@@ -309,9 +330,9 @@ $$
 \text{cost} = \frac{n_{\text{in}}\, p_{\text{in}} + n_{\text{out}}\, p_{\text{out}}}{10^{6}} .
 $$ {#eq-cost}
 
-Both counts come back in the `usage` field of every response, so cost is measured, never guessed. Output is the expensive side: on the two providers' price lists on 2026-10-04, an output token cost five times an input token for both models used in the lab.
+Both counts come back in the `usage` field of every response, so cost is measured, never guessed. Output is the expensive side. On Anthropic's price list (checked 2026-10-05), an output token of Claude Haiku 4.5 costs five times an input token: \$1 and \$5 per million. The OpenAI prices the lab uses have the same ratio, but they come from secondary sources and were not checked against OpenAI's own page.
 
-*Worked example.* At $p_{\text{in}} = 1$ and $p_{\text{out}} = 5$ dollars per million tokens, an extraction request with $n_{\text{in}} = 400$ and $n_{\text{out}} = 60$ costs $(400 \cdot 1 + 60 \cdot 5) / 10^6 = \$0.0007$. A thousand of them cost 70 cents. On the same price lists, the cheapest and the most capable models differ by a factor of up to 100, so the choice of model dominates every other saving.
+*Worked example.* At $p_{\text{in}} = 1$ and $p_{\text{out}} = 5$ dollars per million tokens, an extraction request with $n_{\text{in}} = 400$ and $n_{\text{out}} = 60$ costs $(400 \cdot 1 + 60 \cdot 5) / 10^6 = \$0.0007$. A thousand of them cost 70 cents. On Anthropic's list alone, the cheapest and the most capable current models differ in price per token by a factor of 10, so the choice of model dominates every other saving.
 
 Three things inflate $n_{\text{in}}$ and $n_{\text{out}}$ beyond the text you see:
 
@@ -336,7 +357,9 @@ $$ {#eq-latency}
 where $T_{\text{first}}$ is the time until the first output token (network, queueing, and reading the input) and $v$ is the generation speed in tokens per second. Output length drives latency; input length matters much less. A loop of $K$ calls adds $K$ of these, plus the time your tools take.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 5** you write `cost_usd` (@eq-cost) and fill a table with one row per provider: tokens in, tokens out, cost per 100 requests, and seconds per request. The open fallback model's row has a cost of zero and the highest latency.
+**In the lab.** In **Exercise 5** you write `cost_usd(n_in, n_out, p_in, p_out)` (@eq-cost) and fill a table with one row per provider: tokens in, tokens out, cost per 100 requests, seconds per request, validity and record exact match. The open fallback model's row has a cost of zero and usually the highest latency.
+
+**Cost of a full lab run (estimates, not measurements).** From a token estimate of about 60,000 input and 15,000 output tokens: under \$0.25 on Anthropic, and under \$0.05 on OpenAI. The OpenAI figure rests on prices from secondary sources and is unverified. No keyed run has been made yet; Exercise 5 prints the measured cost of your own run from the `usage` counts.
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: four ways to pay less"}
@@ -386,7 +409,7 @@ For $N = 40$ and $p = 0.9$ this is about $0.05$. A gap of three points between t
 - Pin the grader's model and prompt, and treat a change to either as a change of metric.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 3** you write `score`, which returns @eq-validity, @eq-em per field and record exact match, and you run the same evaluation set through each provider you have a key for and through the open fallback. The scores go in one table with the costs of Exercise 5: the whole comparison of the module on one screen.
+**In the lab.** In **Exercise 3** you write `score(preds, golds)`, which returns @eq-validity, @eq-em per field and record exact match, with the standard error printed beside each. The evaluation set has $N = 40$ generated announcements; on a CPU runtime with the open model, a fixed subset of 12. It runs through the provider selected by the `PROVIDER` switch, and Exercise 5 adds a row for every other provider you have a key for. The scores go in one table with the costs of Exercise 5: the whole comparison of the module on one screen.
 :::
 
 ## 8. Failure modes and security
@@ -398,7 +421,7 @@ A call to a language model can fail without raising an error. Each failure below
 | Failure | What you see | What to do |
 |---|---|---|
 | Invalid or off-schema JSON | Parsing or validation fails | Validate; retry with the error; use constrained output where available |
-| Truncated output | The stop reason reports the token limit (`max_tokens` at Anthropic; status `incomplete` at OpenAI) | Check the stop reason on every reply; raise the cap or shorten the task |
+| Truncated output | The stop reason reports a limit (`max_tokens`, or `model_context_window_exceeded` when the context window filled up, at Anthropic; status `incomplete` at OpenAI) | Check the stop reason on every reply; raise the cap or shorten the task |
 | Refusal | A refusal in place of the answer, reported in the reply (a `refusal` stop reason or item) | Detect it and handle it as its own outcome; do not parse it as data |
 | Tool-call loop | The model keeps calling tools | Enforce $K_{\max}$; return errors as results |
 | Wrong tool or arguments | Unknown name, arguments that fail the schema | Validate before executing; never pass raw arguments to a shell, a query or `eval` |
@@ -446,14 +469,15 @@ That sets up Day 3. Where would such a signal come from? It depends on what the 
 
 | Idea or equation | Lab 8 |
 |---|---|
-| One reply shape for every provider (section 2) | Exercise 1 |
-| Validate and retry against the schema (section 4) | Exercise 2 |
-| Schema-validity rate and exact match (@eq-validity, @eq-em) | Exercise 3 |
-| The tool loop as a state machine (section 5) | Exercise 4 |
-| Cost of a request (@eq-cost) and measured latency (@eq-latency) | Exercise 5 |
-| Cost of a loop (@eq-loop-cost) | Exercise 5, printed for your Exercise 4 runs |
-| Standard error of a score (@eq-se) | provided, printed beside each score |
-| A fine-tuned model as a fourth provider | Stretch |
+| The message list and the stateless API (@eq-append) | provided: `Reply.as_message`, `tool_result`, and each adapter's `chat(messages, system, tools, schema, max_tokens)` |
+| One reply shape for every provider (section 2) | Exercise 1: `parse_openai(raw)`, `parse_anthropic(raw)` |
+| Validate and retry against the schema (section 4) | Exercise 2: `extract(provider, text, schema=Event, R=2, shots=1)`; the date check is `Event.iso_date` (provided) |
+| Schema-validity rate and exact match (@eq-validity, @eq-em) | Exercise 3: `score(preds, golds)` |
+| Standard error of a score (@eq-se) | provided: `se(p, n)`, printed beside each score in Exercise 3 |
+| The tool loop as a state machine (section 5) | Exercise 4: `execute(call, tools)`, `run_tools(provider, messages, tools, k_max=K_MAX, system=None)` |
+| Cost of a request (@eq-cost) and measured latency (@eq-latency) | Exercise 5: `cost_usd(n_in, n_out, p_in, p_out)`; latency is `Reply.latency_s`, averaged in `table_row` |
+| Cost of a loop (@eq-loop-cost) | Exercise 5: measured input tokens of your Exercise 4 runs printed against the formula, with $n_0$ and $\delta$ measured |
+| A fine-tuned model as a fourth provider | Stretch: the Lab 7 model wrapped as a `LocalProvider` |
 
 ## Common misconceptions
 
@@ -461,7 +485,7 @@ That sets up Day 3. Where would such a signal come from? It depends on what the 
 - **"The system prompt is a security boundary."** It is more text in the same sequence. It has priority, not enforcement.
 - **"The model calls the tool."** The model writes a request. Your code runs the function, and your code is responsible for what it does.
 - **"Structured output means correct output."** It means parseable output. Validity and accuracy are separate numbers.
-- **"Setting the temperature to zero makes the output reproducible."** It makes it less variable at best. Providers do not guarantee identical outputs across calls, some current models do not accept the parameter at all, and model versions change. Evaluate on a set, not on one run.
+- **"Setting the temperature to zero makes the output reproducible."** It makes it less variable at best. Providers do not guarantee identical outputs across calls, the newest Claude models reject a non-default temperature, and model versions change. Evaluate on a set, not on one run.
 - **"Tokens are words."** They are subword units, they differ between providers, and hidden reasoning tokens are billed too.
 - **"A cheaper price per token means a cheaper task."** Cost per task depends on how many tokens each model needs, including retries and reasoning.
 - **"If the model is unsure, it will say so."** Nothing in next-token training requires that. Day 3 measures it.
