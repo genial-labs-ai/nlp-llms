@@ -26,6 +26,15 @@ execute = [
     "numpy>=1.26",
     "matplotlib>=3.8",
     "scikit-learn>=1.5",
+    "torch>=2.3",
+    "transformers>=5.18",
+    "tokenizers>=0.23",
+    "datasets>=5.0",
+    "accelerate>=1.15",
+    "peft>=0.21",
+    "pydantic>=2.13",
+    "openai>=3.24",
+    "anthropic>=1.11",
 ]
 # Running the labs locally. Grows as labs are written.
 notebooks = [
@@ -35,6 +44,16 @@ notebooks = [
     "scikit-learn>=1.5",
     "torch>=2.3",
 ]
+
+# CPU-only torch wheels on Linux (CI runners), so the execute job does not pull
+# the multi-gigabyte CUDA build. Other platforms resolve torch from PyPI.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [tool.ruff]
 line-length = 100

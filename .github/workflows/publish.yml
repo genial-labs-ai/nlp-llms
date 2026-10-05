@@ -64,7 +64,7 @@ jobs:
 
   notebooks:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v7
 
@@ -77,8 +77,15 @@ jobs:
           enable-cache: false
 
       # No API keys are passed: this runs the open-model path of every lab.
+      # NLP_LLMS_QUICK shortens the from-scratch training runs (Labs 3 and 4)
+      # on this CPU runner; Labs 6 and 7 switch to their CPU paths by themselves.
       - name: Execute notebooks
-        run: MPLBACKEND=Agg uv run --group execute python scripts/test_notebooks.py
+        env:
+          MPLBACKEND: Agg
+          NLP_LLMS_QUICK: "1"
+          NLP_LLMS_CELL_TIMEOUT: "1800"
+          OMP_NUM_THREADS: "4"
+        run: uv run --group execute python scripts/test_notebooks.py
 
   deploy:
     needs: render

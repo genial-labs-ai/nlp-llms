@@ -22,7 +22,8 @@ from nbclient.exceptions import CellExecutionError
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
-TIMEOUT_SECONDS = 900
+# Per-cell limit. CI raises it: CPU training cells in Labs 2 and 7 run long.
+TIMEOUT_SECONDS = int(os.environ.get("NLP_LLMS_CELL_TIMEOUT", "900"))
 
 
 def run(path: Path) -> tuple[bool, float, str]:
