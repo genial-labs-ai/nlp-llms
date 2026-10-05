@@ -26,17 +26,16 @@ The collapsed callouts are optional and sit outside the 45 minutes.
 
 [Module 6](06-pretraining-huggingface.qmd) left us with a pretrained **causal language model**: a decoder-only transformer trained to predict the next token of ordinary text. Give it a prefix and it writes a plausible continuation.
 
-That is not the same as doing what the prefix asks. Here is the lab's pretrained model, before any fine-tuning, given the request `Name the capital of France.` and decoded greedily:
+That is not the same as doing what the prefix asks. Given the request `Name the capital of France.` and decoded greedily, the lab's pretrained model, before any fine-tuning, writes something of this kind:
 
 ```text
 Name the capital of France.
 
 The French are a very proud people. They are very proud of their
-history and their culture. They are very proud of their history and
-their culture. ...
+history and their culture. ...
 ```
 
-It repeats the request, drifts into an essay, and does not stop. This is likely text, which is all the model was trained to produce. It is not an answer followed by a stop. The model has no notion of who is speaking, of whose turn it is, or of when a reply is finished.
+This output is illustrative, written to show the pattern; it is not a recorded run. Step 0 of the lab shows you the model's real output on five held-out prompts. The pattern to look for: it repeats the request, drifts into unrelated text, and does not stop before the length limit. This is likely text, which is all the model was trained to produce. It is not an answer followed by a stop. The model has no notion of who is speaking, of whose turn it is, or of when a reply is finished.
 
 Module 6 also showed the standard remedy for a mismatch between pretraining and the task: **fine-tuning**, which continues training on task data. There you updated every weight of a small encoder. Two things are open:
 
@@ -72,7 +71,7 @@ Name the capital of France.<|im_end|>
 Paris.<|im_end|>
 ```
 
-At generation time there is no assistant message yet. We format the user message and append the opening of an assistant message, `<|im_start|>assistant\n`. This suffix is the **generation prompt**. The most likely continuation is now a reply, and the reply ends when the model emits `<|im_end|>`, which we use as the stop token.
+At generation time there is no assistant message yet. We format the user message and append the opening of an assistant message, `<|im_start|>assistant\n`. This suffix is the **generation prompt**. The most likely continuation is now a reply, and the reply ends when the model emits `<|im_end|>`, which we use as the stop token (section 7 adds a second one).
 
 In Hugging Face `transformers` the template is stored with the tokenizer as a Jinja string (Jinja is a small templating language) and applied with `apply_chat_template`:
 
@@ -111,6 +110,8 @@ Let $w_1, \dots, w_T$ be the tokens of one formatted example, with $T$ its lengt
 - $m_t = 1$ if $w_t$ is a token of the assistant's response, **including the closing `<|im_end|>`**;
 - $m_t = 0$ otherwise: the instruction, the role names and the generation prompt.
 
+A training sequence stops at the closing `<|im_end|>` of the response. The template writes a newline after it, but generation stops at `<|im_end|>`, so the model never has to produce that newline: it is dropped from the sequence and never scored.
+
 The instruction-tuning loss is the mean negative log-likelihood over the response positions only:
 
 $$
@@ -136,15 +137,19 @@ with $\mathcal{L}_{\text{resp}}$ averaged over all response tokens of a held-out
 In code, the mask is applied through the labels. PyTorch's cross-entropy skips every position whose label equals its `ignore_index`, which is `-100` by default, and Hugging Face models follow that convention:
 
 ```python
-labels = input_ids.clone()          # (batch, T)
-labels[response_mask == 0] = -100   # these positions are not scored
+def build_labels(input_ids, response_mask):     # both (batch_size, T)
+    labels = input_ids.clone()                  # the model still reads every token
+    labels[response_mask == 0] = -100           # prompt and padding are not scored
+    return labels
+
+labels = build_labels(input_ids, response_mask)
 loss = model(input_ids=input_ids, attention_mask=attention_mask, labels=labels).loss
 ```
 
-Padding positions also get `-100`.
+Padding positions have $m_t = 0$, so they also get `-100`. The model shifts the labels by one position itself: the label at position $t$ is scored against the prediction made at $t - 1$.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 4** you build the labels for @eq-masked-loss. The checkpoint counts the scored positions on a known example and compares the model's loss with a hand computation. The provided evaluation function reports @eq-masked-loss and @eq-ppl-resp on held-out examples.
+**In the lab.** In **Exercise 4** you write `build_labels` for @eq-masked-loss; the provided `encode_example` builds `response_mask`. The checkpoint counts the scored positions on a known example and compares the model's loss with a hand computation. The provided `response_loss` reports @eq-masked-loss on held-out examples, and @eq-ppl-resp is its exponential.
 :::
 
 ## 4. What full fine-tuning costs
@@ -246,9 +251,14 @@ class LoRALinear(nn.Module):
     def forward(self, x):                                   # x: (..., d_in)
         return self.base(x) + self.scale * (x @ self.A.T @ self.B.T)
 
-    def merged_weight(self):                                # (d_out, d_in)
-        return self.base.weight + self.scale * (self.B @ self.A)
+
+def merged_weight(layer):                                   # (d_out, d_in)
+    return layer.base.weight + layer.scale * (layer.B @ layer.A)
+
+LoRALinear.merged_weight = merged_weight                    # attach it as a method
 ```
+
+The lab writes `merged_weight` as a separate function and attaches it to the class, so that Exercise 2 can come after a training cell without redefining `LoRALinear`.
 
 **Why should a low-rank update be enough?** Three parts, in decreasing order of certainty.
 
@@ -257,7 +267,7 @@ class LoRALinear(nn.Module):
 - **This is an empirical finding, not a theorem.** A rank-$r$ matrix cannot represent an arbitrary $\Delta W$. When the target task is far from the pretraining data, or the model must absorb much new knowledge, a low rank can underperform full fine-tuning. The rank sweep in the lab's stretch section is how you find out for a given task.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** **Exercise 1** is the layer: you write the initialization and the forward pass of `LoRALinear` (@eq-lora, @eq-lora-forward). Two checkpoints: the output equals the base layer's output at initialization, because $B = 0$; and the number of trainable parameters equals $r(d_{\text{in}} + d_{\text{out}})$ (@eq-lora-count). In **Exercise 2** you write `merged_weight` (@eq-lora-merge), after a few provided training steps have made $B$ nonzero, and check that a plain linear layer with the merged weight reproduces the adapter's output to floating-point tolerance. The gradients of @eq-lora-grad are computed by autograd; a provided cell prints them at initialization so you can see that the gradient of $A$ is zero and that of $B$ is not.
+**In the lab.** **Exercise 1** is the layer: you write the initialization and the forward pass of `LoRALinear` (@eq-lora, @eq-lora-forward). Two checkpoints: the output equals the base layer's output at initialization, because $B = 0$; and the number of trainable parameters equals $r(d_{\text{in}} + d_{\text{out}})$ (@eq-lora-count). In **Exercise 2** you write `merged_weight` (@eq-lora-merge), after a provided loop has trained a layer on a toy regression so that $B$ is nonzero, and check that a plain linear layer with the merged weight reproduces the adapter's output to floating-point tolerance. The gradients of @eq-lora-grad are computed by autograd; a provided cell prints them at initialization so you can see that the gradient of $A$ is zero and that of $B$ is not.
 :::
 
 ## 6. LoRA in practice: where, how large, and the `peft` library
@@ -267,6 +277,8 @@ class LoRALinear(nn.Module):
 **Which layers.** @eq-lora applies to any linear layer. A transformer block (Module 5) has several: the query, key, value and output projections of attention, and the two layers of the feed-forward network. Hu et al. adapted only the query and value projections and found that, for a fixed parameter budget, spreading a small rank over both worked better than a large rank on one. Adapting every linear layer costs more parameters and often helps on harder tasks. The lab starts with query and value, named `q_proj` and `v_proj` in its model.
 
 **How large.** In the lab's model, 30 blocks each have a `q_proj` of shape $576 \times 576$ and a `v_proj` of shape $192 \times 576$. With $r = 8$, @eq-lora-count gives $8 \times (576 + 576) + 8 \times (576 + 192) = 15{,}360$ parameters per block and $460{,}800$ in total, about 0.34% of the model's 134.5 million. You will check this number in the lab.
+
+Adapting every linear layer of every block at $r = 8$ trains $2{,}442{,}240$ parameters, about 1.8% of the model and 5.3 times as many. Whether the query-and-value adapter is enough for this model to learn to end its replies with `<|im_end|>` within the lab's step budget is an open question: we have not yet measured it on the real model. The lab's stretch section measures it, reporting how replies end for both choices.
 
 **Which rank.** Small ranks go a long way. Raising $r$ adds capacity and parameters in proportion; past some point quality stops improving. There is no formula for that point. Sweep it.
 
@@ -298,7 +310,7 @@ Things to know when reading this:
 - `merge_and_unload` is not in place: use the model it returns.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 5** you complete the `LoraConfig`, predict the number of trainable parameters from @eq-lora-count before calling `print_trainable_parameters`, and assert that the two agree. The training loop is provided. The checkpoint after training is a number: the response loss and perplexity (@eq-masked-loss, @eq-ppl-resp) on held-out examples, before and after. The **stretch** section sweeps the rank $r$.
+**In the lab.** In **Exercise 5** you write `lora_param_count(model, r, target_modules)`, which sums @eq-lora-count over the targeted layers, complete the `LoraConfig`, and assert that your count equals what `peft` reports after wrapping. Predict the number on paper first. The training loop is provided. The checkpoint after training is a number: the response loss and perplexity (@eq-masked-loss, @eq-ppl-resp) on held-out examples, before and after. The **stretch** section sweeps the rank $r$ and compares the query-and-value adapter with one on every linear layer.
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: quantization and QLoRA"}
@@ -336,23 +348,30 @@ How to choose:
 
 - **When there is a reference answer and you are measuring**, decode greedily. The output is deterministic, so a change in the score is a change in the model and not in the dice.
 - **When variety is wanted** (open-ended writing), sample with $\tau$ a little below 1 and nucleus sampling. Module 3 explains why: this trims the unreliable tail without making the text repetitive.
-- **Always set the stopping rule.** Generation ends at the stop token or after `max_new_tokens`, whichever comes first. Pass the id of `<|im_end|>` as `eos_token_id`. If you set neither, the library's default length applies, which is only 20 new tokens unless the model's generation configuration says otherwise.
+- **Always set the stopping rule.** Generation ends at a stop token or after `max_new_tokens`, whichever comes first. `eos_token_id` accepts a list, and the lab passes two ids: `<|im_end|>`, which closes a reply in the template, and `<|endoftext|>`, which ended every document in pretraining. A base model tuned for a few hundred steps may still end a reply with that end-of-document habit, and without the second id it would run on to the length limit. The lab reports which of the two ended each reply. If you set no length limit, the library's default applies, which is only 20 tokens in total, prompt included, unless the model's generation configuration says otherwise.
 
 Two traps. Sampling arguments such as `temperature` are ignored, with a warning, unless `do_sample=True`. And with `do_sample=True`, the documentation states that top-$k$ with $k = 50$ applies when the model's generation configuration does not set it, so "plain" sampling in the library is not sampling from the full distribution. Set `top_k` and `top_p` explicitly so that your settings are the ones you report.
 
 ```python
-inputs = tokenizer.apply_chat_template(
-    messages, add_generation_prompt=True, return_tensors="pt", return_dict=True
-).to(model.device)
-im_end = tokenizer.convert_tokens_to_ids("<|im_end|>")
-output = model.generate(**inputs, max_new_tokens=128, do_sample=False, eos_token_id=im_end)
-reply = tokenizer.decode(output[0, inputs["input_ids"].shape[1]:], skip_special_tokens=True)
+def generate_reply(model, tokenizer, messages, **gen_kwargs) -> str:
+    # <|im_end|> ends a reply in the template; eos_token is <|endoftext|>, the end of a document.
+    stop_ids = [tokenizer.convert_tokens_to_ids("<|im_end|>"), tokenizer.eos_token_id]
+    inputs = tokenizer.apply_chat_template(
+        messages, add_generation_prompt=True, return_tensors="pt", return_dict=True
+    ).to(model.device)
+    settings = dict(max_new_tokens=64, do_sample=False, eos_token_id=stop_ids,
+                    pad_token_id=tokenizer.pad_token_id)    # the lab sets pad_token = eos_token
+    settings.update(gen_kwargs)                             # e.g. do_sample=True, temperature=0.7
+    output = model.generate(**inputs, **settings)
+    new = output[0, inputs["input_ids"].shape[1]:].tolist() # drop the prompt
+    ends = [i for i, t in enumerate(new) if t in stop_ids]
+    return tokenizer.decode(new[: ends[0]] if ends else new, skip_special_tokens=True)
 ```
 
-The last line drops the prompt tokens: `generate` returns the prompt followed by the continuation.
+`generate` returns the prompt followed by the continuation, so the function keeps only the new tokens and cuts them at the first stop token.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** The `generate_reply` helper above is provided. A fixed set of prompts is run through the model before and after fine-tuning with greedy decoding, and the replies are shown side by side. In **Exercise 6** you change the settings for one prompt and predict the effect before you run it.
+**In the lab.** The `generate_reply` helper above is provided in Step 0. A fixed set of prompts is run through the model before and after fine-tuning with greedy decoding, and the replies are shown side by side. In **Exercise 6** you edit a `SAMPLING` dictionary of `generate` arguments for one prompt, predict the effect, and compare three sampled replies with two greedy ones. There is no function to write for this part.
 :::
 
 ## 8. Evaluating generated text
@@ -412,15 +431,15 @@ Human judgment remains the reference point for all three. [Module 8](08-llm-apis
 | Equation | Lab 7 |
 |---|---|
 | LoRA layer and forward pass (@eq-lora, @eq-lora-forward) | Exercise 1: `LoRALinear` |
-| Parameter count (@eq-lora-count) | Exercise 1 checkpoint; Exercise 5 on the full model |
+| Parameter count (@eq-lora-count) | Exercise 1 checkpoint; Exercise 5: `lora_param_count` on the full model |
 | Gradients at initialization (@eq-lora-grad) | provided cell after Exercise 1 (autograd; you predict which gradient is zero) |
-| Merge (@eq-lora-merge) | Exercise 2: `merged_weight` |
+| Merge (@eq-lora-merge) | Exercise 2: `merged_weight`; `merge_and_unload` on the full model in "Save the adapter" |
 | Chat template (section 2) | Exercise 3: `format_chat` |
-| Masked loss (@eq-masked-loss) | Exercise 4: the labels |
-| Response perplexity (@eq-ppl-resp) | provided evaluation; the before-and-after checkpoint of Exercise 5 |
-| Decoding settings (section 7) | Exercise 6 |
+| Masked loss (@eq-masked-loss) | Exercise 4: `build_labels` (with the provided `encode_example`) |
+| Response perplexity (@eq-ppl-resp) | provided `response_loss`; the before-and-after checkpoint after Exercise 5 |
+| Decoding settings (section 7) | provided `generate_reply`; Exercise 6: the `SAMPLING` cell |
 | ROUGE-$n$ (@eq-rouge) | Exercise 6: `rouge_n` |
-| Rank sweep | Stretch |
+| Rank sweep; all-linear targets (section 6) | Stretch |
 | BLEU, model-graded evaluation | not implemented in this lab |
 
 ## Common misconceptions

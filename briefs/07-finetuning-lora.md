@@ -71,3 +71,31 @@ All on the same 200 held-out examples, same template, greedy decoding, `max_new_
 4. Use the lecture's names: `A`, `B`, `r`, `alpha`, `scale`, `W_0` as `base.weight`, `response_mask`. Write batch size as `batch_size`, never `B`.
 5. Pin `transformers` and `peft` in the setup cell after checking what Colab preinstalls. `apply_chat_template(tokenize=True)` returns a `BatchEncoding` in 5.18 (*checked*); pass `return_dict=True` explicitly.
 6. Report measured loss, perplexity, stop rate, ROUGE-1, trainable counts and run times (T4 and CPU), and send me the five before-and-after outputs.
+
+## As built (Director review, 2026-10-05)
+
+The notebook was reviewed from its source. huggingface.co was blocked in the build environment, so the SmolLM2-135M and Dolly path is **written, not run**: the model cells ran only on the test-only random stand-ins (`NLP_LLMS_LAB07_OFFLINE=tiny` or `smollm2-shape`), whose numbers are not results. The departures below are accepted; the lecture now matches the notebook.
+
+- **Exercise 5** also has participants write `lora_param_count(model, r, target_modules)`, eq. `lora-count` summed over the targeted `nn.Linear` layers; the checkpoint compares it with `peft`'s count and with 460,800.
+- **Exercise 2:** `merged_weight(layer)` is a function attached to the class (`LoRALinear.merged_weight = merged_weight`), not a method in the class body. The toy training loop is 300 Adam steps at rank 4 on a rank-2 target change.
+- **Exercise 6:** decoding is an editable `SAMPLING` cell (three seeds next to two greedy runs), not a `# TODO`. `rouge_n` is the only function written.
+- **Flag 2 resolved:** a training sequence stops at the closing `<|im_end|>`; the newline the template writes after it is dropped and never scored (`encode_example`, asserted against `format_chat`).
+- **Stop tokens:** `generate_reply` and `generate_batch` stop at `<|im_end|>` or `<|endoftext|>` (the tokenizer's `eos_token`, the base model's end-of-document habit). The "stop rate" is reported as three shares: ended with `<|im_end|>`, with `<|endoftext|>`, or at the length limit. `max_new_tokens` is 64 throughout.
+- **Template:** ChatML, unchanged (flag 1: no switch to a plain-text template).
+- **Training:** AdamW, learning rate 5e-4, 10 warmup steps then linear decay, gradient clipping at 1.0, `lora_dropout=0.0`, batch size 16. Full run 250 steps (two passes over 2,000 examples); `FAST` run 300 train, 50 held-out, 10 generated, 40 steps, 15 stretch steps.
+- **Stretch:** one section, last, with two cells: the rank sweep, and one `all-linear` adapter at r = 8 trained for `RUN["steps"]` (2,442,240 trainable), compared on held-out loss and how replies end. On the full run the second cell trains another 250 steps, which may exceed the 3-minute stretch budget; measure it.
+- **Not committed:** the Dolly subset under `data/` (the notebook writes `lab07_dolly_subset.jsonl` and prints its hash on the first online run).
+- Exercise minutes: 3 + 10 + 5 + 6 + 8 + 10 + 8 = 50.
+
+**Measured without the model** (reported by the Lab Engineer, CPU, `transformers` 5.18.0, `peft` 0.21.2, `torch` 2.14.1): `LoRALinear` on `nn.Linear(576, 192)` with r = 8 equals the base output at initialization; 6,144 trainable = r(d_in + d_out); dL/dA = 0 and dL/dB ≠ 0 at initialization; the merged layer matches the adapter to 1.91e-6; `format_chat` equals `apply_chat_template` exactly. At SmolLM2-135M's shapes (random weights): r = 8 on `q_proj`, `v_proj` gives 460,800 trainable (0.3414% of all parameters including the adapter); r = 1, 4, 16, 64 give 57,600, 230,400, 921,600 and 3,686,400; `all-linear` at r = 8 gives 2,442,240.
+
+**Stand-in observation, not a SmolLM2 result:** on the random stand-ins, `q_proj`/`v_proj` adapters rarely ended replies with `<|im_end|>` (0%), against 80–96% with `all-linear`. Whether this holds on the real model is open; the stretch measures it on the first T4 run. The main path stays on `q_proj`, `v_proj`. The lecture mentions it only as an open question, without these numbers.
+
+## Not verified by the Director
+
+- Every number that needs the real model: base and tuned response loss and perplexity, stop rates, ROUGE-1, the five before-and-after outputs, the size of `lab07-adapter`, and run times on a T4 and on a CPU runtime.
+- The loss margins in the after-training checkpoint (0.5 nats full, 0.2 nats `FAST`) are targets, not measurements. Set them from at least three seeds.
+- That SmolLM2's `tokenizer.eos_token` is `<|endoftext|>` (id 0) at the pinned revision. The stand-in copies this; the lab's stop logic relies on it.
+- The lecture's section 1 sample output is illustrative; the brief's earlier *checked* note (the base model repeats the request and runs to the length limit) was not re-run.
+- The `generate` defaults quoted in lecture section 7 (`max_length` 20, `top_k` 50 when unset, `top_k=0` disables top-k) and `merge_and_unload` not being in place were checked against the installed `transformers` 5.18.0 and `peft` 0.21.2 source, not against the live documentation.
+- `quarto render` was not run (Quarto is not installed in the build environment).
