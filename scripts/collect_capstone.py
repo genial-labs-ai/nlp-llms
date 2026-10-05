@@ -48,10 +48,21 @@ def expected_manifest_sha256(path: Path = MANIFEST) -> str | None:
     return hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
 
 
+def well_formed(sub: dict) -> bool:
+    """True if the submission has the fields the report table reads."""
+    try:
+        deltas = sub["compare"]["test"]["deltas"]
+        return isinstance(sub["hypothesis"], dict) and "pair" in sub and isinstance(deltas, dict)
+    except (KeyError, TypeError):
+        return False
+
+
 def check(sub: dict, manifest_sha256: str | None) -> tuple[str, list[str]]:
     """(status, reasons). Status is one of: ranked, over budget, test used for development,
     not comparable, code check only."""
     reasons = []
+    if not well_formed(sub):
+        reasons.append("missing fields (pair, hypothesis or compare.test): an older notebook?")
     if sub.get("scoring_hash") != SCORING.scoring_hash():
         reasons.append("scoring hash differs from scripts/capstone_score.py")
     if sub.get("loss") != SCORING.LOSS or sub.get("abstain_sentence") != SCORING.ABSTAIN:
@@ -98,15 +109,15 @@ def row(sub: dict, status: str) -> dict:
         "pair": sub["pair"],
         "code": sub["hypothesis"].get("component", "?"),
         "status": status,
-        "d_cost": _d(d["cost_bar"]),
-        "d_acc": _d(d["acc"]),
-        "d_absU": _d(d["abs_U"]),
-        "d_absA": _d(d["abs_A"]),
-        "d_uns": _d(d["uns"]),
-        "g/l/p": f"{c['gained']}/{c['lost']}/{c['p']:.3f}",
+        "d_cost": _d(d.get("cost_bar")),
+        "d_acc": _d(d.get("acc")),
+        "d_absU": _d(d.get("abs_U")),
+        "d_absA": _d(d.get("abs_A")),
+        "d_uns": _d(d.get("uns")),
+        "g/l/p": f"{c.get('gained', '?')}/{c.get('lost', '?')}/{_d(c.get('p'), '.3f')}",
         "flips": "n/a" if sub.get("flips") is None else str(sub["flips"]),
-        "d_usd": _d(d["usd_per_q"], "+.4f"),
-        "d_lat_s": _d(d["latency_median"], "+.2f"),
+        "d_usd": _d(d.get("usd_per_q"), "+.4f"),
+        "d_lat_s": _d(d.get("latency_median"), "+.2f"),
     }
 
 
@@ -129,7 +140,8 @@ def report(subs: list[dict], manifest_sha256: str | None) -> str:
         group = [
             (s, st)
             for s, st, _ in checked
-            if (s.get("path_class") if s.get("path_class") in PATH_CLASSES else "(other)")
+            if well_formed(s)
+            and (s.get("path_class") if s.get("path_class") in PATH_CLASSES else "(other)")
             == path_class
         ]
         if not group:

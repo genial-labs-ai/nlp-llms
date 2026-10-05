@@ -69,13 +69,10 @@ def by_split(split):
 class Rebuild(unittest.TestCase):
     def test_rebuild_is_byte_identical(self):
         items, blob, stats = bd.build()
+        # Content, not compressed bytes: gzip output depends on the zlib build, which differs
+        # between machines. tests/test_data.py checks the committed file's hash.
         self.assertEqual(
             gzip.decompress(blob), gzip.decompress(BLOB), "content differs: rebuild the set"
-        )
-        self.assertEqual(
-            hashlib.sha256(blob).hexdigest(),
-            hashlib.sha256(BLOB).hexdigest(),
-            "same content, different gzip bytes (zlib build?)",
         )
         self.assertEqual(bd.stats_bytes(stats), bd.STATS.read_bytes())
 

@@ -7,7 +7,6 @@ apply only to the real file). Nothing here touches the network.
 """
 
 import gzip
-import hashlib
 import importlib.util
 import json
 import os
@@ -67,8 +66,11 @@ class Snapshot(unittest.TestCase):
         _commit_available(LECTURES["source_commit"]), "source commit not in this clone's history"
     )
     def test_snapshot_rebuilds_byte_for_byte(self):
+        # Content, not compressed bytes: gzip output depends on the zlib build, which differs
+        # between machines. tests/test_data.py checks the committed file's hash.
         blob, _ = builder.build(LECTURES["source_commit"])
-        self.assertEqual(hashlib.sha256(blob).hexdigest(), LECTURES["sha256"])
+        committed = (DATA / LECTURES["file"]).read_bytes()
+        self.assertEqual(gzip.decompress(blob), gzip.decompress(committed))
 
     def test_notebook_quotes_the_snapshot_hash(self):
         nb = json.loads((ROOT / "notebooks" / "13-rag.ipynb").read_text(encoding="utf-8"))

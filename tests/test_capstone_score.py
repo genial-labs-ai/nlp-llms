@@ -218,6 +218,20 @@ class Collector(unittest.TestCase):
             self.assertIn("== stub (1 submissions) ==", text)
             self.assertIn("With m = 1 ranked pairs", text)
 
+    def test_a_malformed_submission_does_not_break_the_report(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "manifest.json"
+            manifest.write_bytes(b"{}\n")
+            good = hashlib.sha256(b"{}\n").hexdigest()
+            submission(tmp, manifest=good)
+            old = {"pair": "9", "path_class": "open-cpu", "scoring_hash": "x"}  # no compare
+            (Path(tmp) / "capstone_old.json").write_text(json.dumps(old), encoding="utf-8")
+            self.assertEqual(C.check(old, good)[0], "not comparable")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(C.main([tmp, "--manifest", str(manifest)]), 0)
+            self.assertIn("capstone_old.json: not comparable: missing fields", out.getvalue())
+
 
 class ManifestBuilder(unittest.TestCase):
     def items(self, source, n_auto, n_reported, n_unans, split):

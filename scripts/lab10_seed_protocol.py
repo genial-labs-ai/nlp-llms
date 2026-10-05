@@ -122,6 +122,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         if (out / f"{label}.json").exists() and not args.force:
             print(f"skip  {label} (already done; --force reruns it)")
             continue
+        (out / f"{label}.json").unlink(missing_ok=True)  # no stale results if the rerun fails
         env = {**base, "NLP_LLMS_LAB10_SEED": str(seed)}
         if reward_model:
             env["NLP_LLMS_LAB10_REWARD_MODEL"] = reward_model

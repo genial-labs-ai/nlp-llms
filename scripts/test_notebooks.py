@@ -24,7 +24,7 @@ from pathlib import Path
 
 import nbformat
 from nbclient import NotebookClient
-from nbclient.exceptions import CellExecutionError
+from nbclient.exceptions import CellExecutionError, CellTimeoutError, DeadKernelError
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
@@ -70,6 +70,8 @@ def run(path: Path, save: Path | None) -> tuple[bool, float, str, list[str]]:
             client.execute()
         except CellExecutionError as exc:
             ok, error = False, str(exc)
+        except (CellTimeoutError, DeadKernelError) as exc:  # not CellExecutionError subclasses
+            ok, error = False, f"{type(exc).__name__}: {exc}"
     if save is not None:
         save.mkdir(parents=True, exist_ok=True)
         nbformat.write(nb, save / path.name)

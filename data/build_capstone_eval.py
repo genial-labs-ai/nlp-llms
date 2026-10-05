@@ -145,10 +145,11 @@ def build() -> bytes:
             f"Missing input(s): {', '.join(missing)}. Both question files are "
             "written and checked by people (briefs/13-rag.md, briefs/15-capstone.md)."
         )
-    if snapshot_status() == "provisional":
+    status = snapshot_status()
+    if status != "final":  # fail closed: a missing or unreadable status counts as not frozen
         raise SystemExit(
-            "The corpus snapshot is still provisional in _variables.yml: freeze it, "
-            "then write the questions, then build the manifest."
+            f"The corpus snapshot's status in _variables.yml is {status!r}, not 'final': "
+            "freeze it, then write the questions, then build the manifest."
         )
     lab13, new = load_items(LAB13), load_items(CAPSTONE)
     manifest = build_manifest(
