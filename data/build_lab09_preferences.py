@@ -19,13 +19,18 @@ measured yet). Run from the repository root:
     # 2. The full build into data/. Refuses to write if an acceptance criterion fails.
     python data/build_lab09_preferences.py
 
-    # 3. The reward model, from the notebook's own solution code at seed 0 (CPU is enough).
-    #    test_notebooks.py runs the notebook in a temporary directory, so the path is absolute.
-    NLP_LLMS_REWARD_MODEL_OUT="$PWD/data/lab09_reward_model.pt" \\
+    # 3. Pin the two printed hashes in LAB09_FILES of notebooks/09-preference-learning.ipynb.
+    #    Then the reward model at seeds 0, 1 and 2 from the notebook's own solution code (CPU is
+    #    enough). test_notebooks.py runs the notebook in a temporary directory, so paths are
+    #    absolute. NLP_LLMS_LAB09_MEASURE=1 prints Exercise 4's metrics instead of asserting the
+    #    provisional thresholds; each checkpoint stores its metrics. Set the thresholds from the
+    #    three seeds, then re-run seed 0 without NLP_LLMS_LAB09_MEASURE.
+    for s in 0 1 2; do
+      NLP_LLMS_LAB09_MEASURE=1 NLP_LLMS_RM_SEED=$s \\
+      NLP_LLMS_REWARD_MODEL_OUT=/tmp/lab09_reward_model_seed$s.pt \\
         python scripts/test_notebooks.py 09-preference-learning
-    #    Seeds 1 and 2, kept outside the repository for Lab 10's robustness check:
-    NLP_LLMS_RM_SEED=1 NLP_LLMS_REWARD_MODEL_OUT=/tmp/lab09_reward_model_seed1.pt \\
-        python scripts/test_notebooks.py 09-preference-learning
+    done
+    cp /tmp/lab09_reward_model_seed0.pt data/lab09_reward_model.pt
 
 Offline test of everything except GPT-2 (word-level stand-in tokenizer and sampler; the
 files it writes are NOT the dataset and are refused inside data/):
