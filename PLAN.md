@@ -212,7 +212,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** frame text generation as a reinforcement-learning problem; derive and implement the policy gradient; train a reward model from pairwise preferences.
 - **Lecture:** why supervised fine-tuning is not enough: no label for "better"; the minimum RL needed: policy, reward, return, the policy-gradient theorem, REINFORCE, baselines and variance; generation as sequential decisions; preference data: why comparisons instead of scores; the Bradley–Terry model; training a reward model.
-- **Lab `09-preference-learning.ipynb`:** REINFORCE on a small sequence task where the optimal policy is known; add a baseline and watch variance fall; build a synthetic pairwise-preference dataset with a known hidden preference; train a reward model and check it recovers the hidden preference.
+- **Lab `09-preference-learning.ipynb`:** REINFORCE on a small sequence task where the optimal policy is known; add a baseline and watch variance fall; load a synthetic pairwise-preference dataset with a known hidden preference, sampled from Lab 10's reference policy (the small GPT-2 of Lab 6) and labeled through the Bradley–Terry model; train a reward model and check it recovers the hidden preference.
 - **Stretch:** measure how reward-model accuracy degrades with noisy raters.
 - **Stack:** PyTorch, Hugging Face.
 - **Readings:** Sutton & Barto, chapter 13 (policy gradients); Christiano et al. 2017.
@@ -221,7 +221,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 
 - **Objectives:** describe the three-stage RLHF pipeline; optimise a small LM against a reward model with a KL constraint; apply DPO; name RLHF's failure modes and observe one.
 - **Lecture:** the InstructGPT pipeline: supervised fine-tuning, reward model, policy optimisation; PPO in outline; KL regularisation toward the reference policy and why it matters; DPO as preference optimisation without an RL loop; failure modes: reward hacking, sycophancy, mode collapse, and optimising for what raters prefer rather than what is true.
-- **Lab `10-rlhf.ipynb`:** fine-tune a small GPT-2 against the Lab 9 reward model with a KL-penalised policy-gradient step (a pre-trained reward model checkpoint is provided); measure reward gain and drift from the reference model; remove the KL penalty and observe reward hacking; train the same preference data with a DPO loss and compare.
+- **Lab `10-rlhf.ipynb`:** fine-tune the small GPT-2 of Lab 6 (`models.causal_lm`) against the Lab 9 reward model with a KL-penalised policy-gradient step (a pre-trained reward model checkpoint is provided); measure reward gain and drift from the reference model; remove the KL penalty and observe reward hacking; train the same preference data with a DPO loss and compare.
 - **Stretch:** vary the KL coefficient and plot the reward–drift trade-off.
 - **Stack:** PyTorch, Hugging Face.
 - **Readings:** Ouyang et al. 2022 (InstructGPT); Schulman et al. 2017 (PPO); Rafailov et al. 2023 (DPO).
@@ -311,6 +311,7 @@ Every notebook must meet all of these.
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
 | Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
+| Labs 9 and 10 depend on GPT-2 | They need the Hub (and Lab 10 a GPU); the build container has neither | Build Lab 9's data files and run Lab 10's seed protocol on a Colab T4 |
 | Build container network | The cloud build environment blocks huggingface.co, so Labs 6–8's model paths and the Lab 6/7 data files cannot be produced there | Allow huggingface.co in the environment's network settings, or run those steps on Colab |
 
 ---
@@ -382,11 +383,12 @@ Ten working days to a first complete version, then continued review. Lectures an
 
 ### Day 7 — Modules 9–10
 
-- [ ] Draft lecture 9: Reinforcement and preference learning
-- [ ] Draft lecture 10: RLHF
+- [x] Draft lecture 9: Reinforcement and preference learning
+- [x] Draft lecture 10: RLHF
 - [ ] Code `09-preference-learning.ipynb`
 - [ ] Code `10-rlhf.ipynb`, including the pre-trained reward model checkpoint
-- [ ] Review: the reward-hacking demonstration is reliable across seeds
+- [ ] Build the Lab 9 data files (`data/build_lab09_preferences.py`) on a machine with Hub access and record their statistics
+- [ ] Review: the reward-hacking demonstration is reliable across seeds (protocol in `briefs/10-rlhf.md`; needs a Colab T4)
 
 ### Day 8 — Modules 11–12
 
