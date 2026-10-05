@@ -26,12 +26,20 @@ project:
     - /notebooks/*.ipynb
     - /fonts/**
 
+# website.sidebar (the modules grouped by day) is generated from _variables.yml.
+metadata-files:
+  - _includes/sidebar.yml
+
 website:
   title: "NLP to LLMs"
   description: "A four-day workshop on the path from traditional NLP to modern LLMs: n-grams, attention, transformers, RLHF, RLCD and agents."
   site-url: https://project-delphi.github.io/nlp-llms
   repo-url: https://github.com/project-delphi/nlp-llms
   open-graph: true
+  # Previous/next module links at the foot of each lecture, in sidebar order.
+  page-navigation: true
+  # The module header already names the day; no breadcrumb line above the title.
+  bread-crumbs: false
   navbar:
     background: primary
     search: true
@@ -73,16 +81,44 @@ website:
 
 format:
   html:
+    # custom.scss holds the light palette and every rule; custom-dark.scss only
+    # overrides the palette. Quarto adds the light/dark toggle to the navbar.
     theme:
-      - cosmo
-      - custom.scss
+      light: [cosmo, custom.scss]
+      dark: [cosmo, custom.scss, custom-dark.scss]
     # The @font-face rules sit beside the font files they name.
     css:
       - fonts/fonts.css
+    # First visit: follow the operating system's light/dark setting. Quarto 1.6
+    # reads only this stored value; the navbar toggle overwrites it.
+    include-in-header:
+      text: |
+        <script>
+        try {
+          if (localStorage.getItem("quarto-color-scheme") === null &&
+              matchMedia("(prefers-color-scheme: dark)").matches) {
+            localStorage.setItem("quarto-color-scheme", "alternate");
+          }
+        } catch (e) {}
+        </script>
+    # The text column stays 800 px wide, as before the sidebar: lecture demos
+    # place two 360 px plots side by side, and the longest equations need it.
+    grid:
+      sidebar-width: 240px
+      body-width: 850px
+      margin-width: 220px
+      gutter-width: 1.5rem
     toc: true
     toc-depth: 3
+    toc-title: "On this page"
     anchor-sections: true
     code-copy: true
     code-overflow: wrap
+    # An adaptive style: Quarto emits a light and a dark variant.
+    highlight-style: a11y
     html-math-method: katex
     link-external-newwindow: true
+    # Adds classes to lecture markup (section objectives, optional callouts).
+    filters:
+      - at: pre-ast
+        path: filters/pedagogy.lua
