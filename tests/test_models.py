@@ -24,6 +24,7 @@ USES = {
     "11-calibration": ["openai", "anthropic", "fallback"],
     "12-rlcd-jev": ["jev", "openai", "anthropic"],
     "13-rag": ["openai", "anthropic", "fallback", "embedding", "reranker", "nli", "jev"],
+    "14-agents": ["openai", "anthropic", "fallback", "jev"],
 }
 
 # Commercial model IDs: any such literal in a notebook must be a pinned value.

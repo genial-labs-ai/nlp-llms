@@ -30,7 +30,7 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 | 11 | 3 | [Calibration](https://project-delphi.github.io/nlp-llms/lectures/11-calibration.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb) |
 | 12 | 3 | [RLCD and Jev](https://project-delphi.github.io/nlp-llms/lectures/12-rlcd-jev.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb) |
 | 13 | 4 | [Retrieval-augmented generation](https://project-delphi.github.io/nlp-llms/lectures/13-rag.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb) |
-| 14 | 4 | [Agents](https://project-delphi.github.io/nlp-llms/lectures/14-agents.html) | In preparation |
+| 14 | 4 | [Agents](https://project-delphi.github.io/nlp-llms/lectures/14-agents.html) | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb) |
 | 15 | 4 | [Capstone](https://project-delphi.github.io/nlp-llms/lectures/15-capstone.html) | In preparation |
 <!-- END modules -->
 

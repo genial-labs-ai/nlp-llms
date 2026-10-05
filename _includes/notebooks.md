@@ -16,5 +16,5 @@
 | 11 | [Calibration](lectures/11-calibration.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb) |
 | 12 | [RLCD and Jev](lectures/12-rlcd-jev.qmd) | 3 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb) |
 | 13 | [Retrieval-augmented generation](lectures/13-rag.qmd) | 4 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb) |
-| 14 | [Agents](lectures/14-agents.qmd) | 4 | In preparation |
+| 14 | [Agents](lectures/14-agents.qmd) | 4 | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb) |
 | 15 | [Capstone](lectures/15-capstone.qmd) | 4 | In preparation |

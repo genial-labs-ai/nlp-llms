@@ -40,6 +40,17 @@
       "scipy": "1.18.1",
       "typesafe-sdk": "0.7.2",
       "path": "local (no TypeSafe key); no Jev call was made"
+    },
+    "lab14": {
+      "machine": "Linux x86_64 container, 4 vCPU shared with other agents, CPU only; executed with nbclient (scripts/test_notebooks.py); not run on Colab",
+      "python": "3.12.3",
+      "torch": "2.14.1+cu130",
+      "numpy": "2.5.3",
+      "langgraph": "1.2.12",
+      "langchain-core": "1.6.6",
+      "langchain-typesafe": "0.0.1a3",
+      "typesafe-sdk": "0.7.2",
+      "path": "local (no TypeSafe key); stub agent and stub guard (no Hub access); no Jev call and no language model was run"
     }
   },
   "baselines": [
@@ -1010,6 +1021,34 @@
         "chosen_on_dev_note": "tau_act is the 11th-largest dev probability, 0.9999993 (float32 softmax; five dev answers have p = 1.0): act on the 11 most confident dev answers (all right), ask about the other 89, never escalate; on test it asks about 88% and acts on 12%",
         "rule": "escalate below tau_esc, ask in between, act at or above tau_act (lecture eq-three-empirical)",
         "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); trained on train (2,000), temperature fitted on dev (100), reported on test (300)"
+      },
+      "date": "2026-10-05"
+    },
+    {
+      "id": "lab14.local_router",
+      "notebook": "notebooks/14-agents.ipynb",
+      "dataset": "decisions",
+      "split": "test",
+      "metrics": {
+        "accuracy": 0.6333,
+        "followed": 0.8067,
+        "accuracy_when_followed": 0.6116,
+        "n": 150,
+        "n_followed": 121
+      },
+      "val_metrics": {
+        "accuracy": 0.66,
+        "followed": 0.84,
+        "accuracy_when_followed": 0.6905,
+        "n": 50,
+        "n_followed": 42
+      },
+      "settings": {
+        "label": "local toy decider (not Jev): TOY_REF (Lab 12, Brier reward, seed 0) behind LocalDecider, wrapped as a RunnableLambda returning langchain-typesafe's ClassifierResponse",
+        "question": "route Choice over retrieve, calculate, send_email, ask_user, escalate with ROUTE_DESCRIPTIONS as criteria",
+        "threshold": "follow the chosen route when p_route >= tau_route = 0.75 (Chow's rule from ROUTER_COSTS wrong 4, esc 1); invalid answers count as wrong",
+        "data": "Workshop Desk Decisions v1, status v1-template-only (template items only); route items of dev (50, val_metrics) and test (150)",
+        "note": "accuracy equals lab12.toy.brier_reward accuracy_route: the same model on the same items and question"
       },
       "date": "2026-10-05"
     }

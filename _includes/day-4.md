@@ -3,5 +3,5 @@
 | # | Module | What you will do | Lab |
 |---|---|---|---|
 | 13 | [Retrieval-augmented generation](lectures/13-rag.qmd) | Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb) |
-| 14 | [Agents](lectures/14-agents.qmd) | Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control. | In preparation |
+| 14 | [Agents](lectures/14-agents.qmd) | Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control. | [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb) |
 | 15 | [Capstone](lectures/15-capstone.qmd) | Combine retrieval, an agent graph and calibrated control into one system, evaluate it, and explain the design. | In preparation |
