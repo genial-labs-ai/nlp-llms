@@ -388,7 +388,8 @@ blockquote {
   border-left: 4px solid $nl-border-strong !important;
   background: transparent;
 
-  > .callout-header {
+  > .callout-header,
+  > details > .callout-header {
     background: transparent !important;
     color: $nl-muted;
 
@@ -409,6 +410,75 @@ blockquote {
       font-size: 0.72rem;
       font-weight: 500;
       white-space: nowrap;
+    }
+  }
+}
+
+// Collapsed callouts as native disclosures (filters/disclosure.lua): a <details>
+// with a <summary> header, so the header is a keyboard stop that opens with Enter
+// or Space and announces its title and state. Quarto colors its own headers with
+// direct-child rules, which cannot reach a <summary>; these rules restore the look.
+.callout.callout-disclosure {
+  > details > summary {
+    display: block;
+    list-style: none;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  > details[open] > summary {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .callout-header-row {
+    display: flex;
+    align-items: center;
+  }
+
+  .callout-icon-container {
+    padding-right: 0.35em;
+    line-height: 1;
+  }
+
+  .callout-title-container {
+    flex: 1 1 auto;
+    opacity: 0.85;
+  }
+
+  .callout-btn-toggle {
+    line-height: 1;
+  }
+
+  > details:not([open]) .callout-toggle::before {
+    transform: rotate(-90deg);
+  }
+
+  &.callout-style-simple > details > summary {
+    padding-left: 0;
+    opacity: 0.75;
+  }
+
+  // A link into a closed callout opens it (the filter's script); land the target
+  // below the fixed navbar, whether the script or the browser does the scrolling.
+  [id] {
+    scroll-margin-top: 5rem;
+  }
+}
+
+// The header color of each callout type, as Quarto gives its own headers.
+@each $name, $info in $callouts {
+  .callout-disclosure.callout-#{$name}.callout-style-default > details > summary {
+    @if (quarto-color.blackness($body-bg) > $code-block-theme-dark-threshhold) {
+      background-color: shift-color(quarto-map.get($info, "color"), 70%);
+    } @else {
+      background-color: shift-color(quarto-map.get($info, "color"), -90%);
     }
   }
 }
@@ -803,7 +873,8 @@ blockquote {
     border-radius: 7px;
     background: $nl-raised;
 
-    > .callout-header {
+    > .callout-header,
+    > details > .callout-header {
       padding: 0.15rem 0.5rem;
       background: transparent !important;
       color: $nl-good;

@@ -124,9 +124,12 @@ format:
     highlight-style: a11y
     html-math-method: katex
     link-external-newwindow: true
-    # Adds classes to lecture markup (section objectives, optional callouts).
+    # Adds classes to lecture markup (section objectives, optional callouts, the
+    # live plan), then writes collapsed callouts as native <details> disclosures.
     filters:
       - at: pre-ast
         path: filters/pedagogy.lua
       - at: pre-ast
         path: filters/live.lua
+      - at: pre-ast
+        path: filters/disclosure.lua
