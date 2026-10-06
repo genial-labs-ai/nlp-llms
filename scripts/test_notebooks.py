@@ -203,7 +203,7 @@ def status_of(path: Path, r: dict, learner: bool, offline: bool) -> str:
     """The same verdict the console prints: a learner run passes when it stops as expected."""
     if learner and has_exercises(path):
         return "pass" if (not r["ok"] and r["learner_message"]) else "fail"
-    return "pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail"
+    return "pass" if r["ok"] else "fail"
 
 
 def write_record(
@@ -233,7 +233,12 @@ def write_record(
                 "seconds": round(r["seconds"], 1),
                 "content_sha": run_records.content_sha(path.stem),
                 "phases": r["phases"],
-                **({"note": "fell back: " + "; ".join(r["fallbacks"])} if r["fallbacks"] else {}),
+                # A run that fell back to stand-ins ran test doubles, whatever the flags.
+                **(
+                    {"path": "offline", "note": "fell back: " + "; ".join(r["fallbacks"])}
+                    if r["fallbacks"]
+                    else {}
+                ),
                 **(
                     {"path": "open", "note": "reads none of the offline flags: its only path"}
                     if offline and not reads_offline_flags(path)
@@ -279,6 +284,9 @@ def main() -> int:
         print(f"No such notebook: {', '.join(sorted(missing))}")
         return 2
     failures, results = 0, []
+    if args.learner:
+        # Only labs with exercises have something for a learner run to stop at.
+        paths = [p for p in paths if has_exercises(p)]
     for path in paths:
         r = run(path, args.save, args.verify_checkpoints)
         results.append((path, r))

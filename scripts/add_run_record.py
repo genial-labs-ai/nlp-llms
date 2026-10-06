@@ -89,13 +89,14 @@ def main() -> int:
     parser.add_argument("file", nargs="?", type=Path, help="default: read standard input")
     parser.add_argument("--env", help="a key of readiness.envs, if not a Colab run")
     parser.add_argument("--path", choices=run_records.PATHS)
-    parser.add_argument("--date", default=dt.date.today().isoformat())
+    parser.add_argument("--date", help="default: the date in the record, else today")
     args = parser.parse_args()
     text = args.file.read_text(encoding="utf-8") if args.file else sys.stdin.read()
     record = extract(text)
     v = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))
     envs = set(v["readiness"]["envs"])
-    batch = batch_from(record, env_of(record, args.env), path_of(record, args.path), args.date)
+    date = args.date or record.get("date") or dt.date.today().isoformat()
+    batch = batch_from(record, env_of(record, args.env), path_of(record, args.path), date)
     notebooks = {p.stem for p in run_records.NOTEBOOKS.glob("*.ipynb")}
     if record.get("notebook") not in notebooks:
         raise SystemExit(f"Not added: no notebook named {record.get('notebook')!r}")

@@ -121,7 +121,9 @@ jobs:
           # Lab 15 (capstone): stub path on plumbing probes until its question set exists.
           NLP_LLMS_LAB15_OFFLINE: "1"
           UV_LINK_MODE: copy
-        run: uv run --group execute python scripts/test_notebooks.py
+        # Each exercise's first checkpoint also runs on its unfinished stub, where it must
+        # fail (the same check as the offline leg of health.yml).
+        run: uv run --group execute python scripts/test_notebooks.py --verify-checkpoints
 
       # The same notebooks, run as a participant who has written nothing: each lab must
       # stop at a checkpoint with the harness's recovery message, never pass on the

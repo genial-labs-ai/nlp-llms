@@ -1,5 +1,6 @@
 """The generated exercise harness (scripts/harness.py), run in a real IPython shell."""
 
+import json
 import os
 import sys
 import unittest
@@ -79,12 +80,46 @@ class Harness(unittest.TestCase):
         self.assertFalse(result.success)
         self.assertEqual(self.ip.user_ns["workshop"].results["uses 1"], (False, None))
 
-    def test_a_failed_cell_fixed_and_rerun_does_not_fail_the_run(self):
+    def test_a_skipped_todo_is_not_replaced_by_the_reference(self):
         self.cell(SOURCE)
-        self.cell("x = 1\nassert x == 1")
-        self.cell("assert True")
-        cells = self.ip.user_ns["workshop"].cells
-        self.assertTrue(all(ok for _, ok in cells.values()))
+        self.cell("@workshop.solution(1)\ndef double(x):\n    return 2 * x")
+        result = self.cell("double(2)")
+        self.assertIsInstance(result.error_in_exec, NotImplementedError)
+        self.assertIn("TODO 1", str(result.error_in_exec))
+
+    def test_unticking_worked_example_restores_your_code(self):
+        self.cell(SOURCE)
+        self.cell("def double(x):\n    return x + x + 1")
+        self.cell("WORKED_EXAMPLE = True")
+        self.cell("@workshop.solution(1)\ndef double(x):\n    return 2 * x")
+        self.assertEqual(self.ip.user_ns["double"](3), 6)
+        self.cell("WORKED_EXAMPLE = False")
+        self.cell("@workshop.solution(1)\ndef double(x):\n    return 2 * x")
+        self.assertEqual(self.ip.user_ns["double"](3), 7)
+
+    def test_a_reference_bound_long_ago_is_still_recognized(self):
+        self.cell(SOURCE)
+        self.cell("def double(x):\n    return x + x + 1")
+        self.cell("@workshop.solution(1)\ndef double(x):\n    return 2 * x")
+        self.cell("workshop.use_reference(1)")
+        for _ in range(5):
+            self.cell("@workshop.solution(1)\ndef double(x):\n    return 2 * x")
+        self.cell("workshop.checkpoint(1)\nassert double(2) == 4")
+        self.assertEqual(self.ip.user_ns["workshop"].results["1"], (True, "the REFERENCE solution"))
+
+    def test_the_run_record_has_a_date_and_passes_on_checkpoints(self):
+        self.cell(SOURCE)
+        self.cell("workshop.checkpoint(label='x')\nassert False")
+        self.cell("workshop.checkpoint(label='x')\nassert True")
+        self.cell(
+            "import io, contextlib, json\n_buf = io.StringIO()\n"
+            "with contextlib.redirect_stdout(_buf):\n    workshop.run_record()"
+        )
+        text = self.ip.user_ns["_buf"].getvalue()
+        record = json.loads(text[text.index("{") : text.rindex("}") + 1])
+        self.assertEqual(record["status"], "pass")
+        self.assertRegex(record["date"], r"^\d{4}-\d{2}-\d{2}$")
+        self.assertNotIn("NLP_LLMS_DATA", record["settings"])
 
     def test_rerunning_the_harness_starts_a_new_run(self):
         self.cell(SOURCE)

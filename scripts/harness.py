@@ -67,10 +67,11 @@ class _Workshop:
         # run: the checkpoint results, cell times and run clock describe this run only.
         self.ref = getattr(old, "ref", {})
         self.stub = getattr(old, "stub", {})
+        self.chosen = getattr(old, "chosen", set())  # exercises switched by use_reference
         self.verified = {}
         self._verifying = None
         self.results = {}
-        self.cells = {}
+        self.cell_seconds = []
         self.started = _time.time()
         self._current = None
         self._t0 = None
@@ -90,17 +91,40 @@ class _Workshop:
 
         def bind(obj, name=None):
             name = name or obj.__name__
-            kept = self.ref.setdefault(n, {}).setdefault(name, [])
-            kept.append(obj)
-            del kept[:-3]  # recent references only: a rerun makes a new object
+            self.ref.setdefault(n, {}).setdefault(name, []).append(obj)
             current = _get_ipython().user_ns.get(name, self._MISSING)
             if current is not self._MISSING and not self._is_reference(n, name, current):
                 self.stub.setdefault(n, {})[name] = current
-            if self.worked or current is self._MISSING:
+            if self.worked:
                 return obj
-            return current
+            if current is not self._MISSING and not self._is_reference(n, name, current):
+                self.chosen.discard(n)  # your TODO cell ran again: back to your code
+                return current
+            if n in self.chosen:
+                return obj  # you chose the reference with use_reference(n)
+            # Your TODO cell has not run, or the name still holds a reference from a
+            # worked run: go back to your code if it is known, never silently to the reference.
+            yours = self.stub.get(n, {}).get(name, self._MISSING)
+            if yours is not self._MISSING:
+                return yours
+            if callable(obj):
+                return self._not_run(n, name)
+            print(f"[workshop] Run your # TODO {n} cell: {name} is the reference until you do.")
+            return obj
 
         return bind
+
+    def _not_run(self, n, name):
+        """Stands in for a function or class whose TODO cell has not run yet."""
+
+        def missing(*args, **kwargs):
+            raise NotImplementedError(
+                f"{name}: run your # TODO {n} cell first, or go on with"
+                f" workshop.use_reference({n!r})"
+            )
+
+        missing.__name__ = name
+        return missing
 
     def solution_value(self, n, name, value):
         """The same as solution(n), for a value rather than a function or class."""
@@ -113,6 +137,7 @@ class _Workshop:
         ns = _get_ipython().user_ns
         for name, objs in self.ref[n].items():
             ns[name] = objs[-1]
+        self.chosen.add(n)
         print(
             f"Exercise {n}: now using the REFERENCE solution. Rerun the cells below it."
             f" To switch back to your code, rerun your # TODO {n} cell."
@@ -135,12 +160,11 @@ class _Workshop:
 
     def _pre(self, info):
         self._t0 = _time.time()
-        self._cell = hash(info.raw_cell)
 
     def _post(self, result):
-        elapsed = round(_time.time() - (self._t0 or _time.time()), 2)
-        # The latest run of each cell counts: a cell that failed and was fixed is fine.
-        self.cells[getattr(self, "_cell", None)] = (elapsed, bool(result.success))
+        if self._t0 is None:  # this harness cell itself: its hooks were registered mid-cell
+            return
+        self.cell_seconds.append(round(_time.time() - self._t0, 2))
         if self._current is None:
             return
         n, label, whose = self._current
@@ -248,15 +272,18 @@ class _Workshop:
                 packages[name] = _md.version(name)
             except Exception:
                 pass
+        import datetime as _dt
+
         record = {
+            "date": _dt.datetime.now(_dt.timezone.utc).date().isoformat(),
             "notebook": _NOTEBOOK,
             "content_sha": _CONTENT_SHA,
             "mode": "worked" if self.worked else "learner",
-            "status": "pass"
-            if self.cells and all(ok for _, ok in self.cells.values())
-            else "fail",
+            # This cell runs only when the notebook reached its end; then the run passed if
+            # every checkpoint's latest result passed.
+            "status": "pass" if all(ok for ok, _ in self.results.values()) else "fail",
             "seconds": round(_time.time() - self.started, 1),
-            "cell_seconds": [s for s, _ in self.cells.values()],
+            "cell_seconds": self.cell_seconds,
             "python": platform.python_version(),
             "platform": sys.platform,
             "gpu": gpu,
