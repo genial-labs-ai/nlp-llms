@@ -298,6 +298,9 @@ setup:
   slug: 00-setup
   title: "Setup and environment check"
   minutes: 10
+  # The runtime a participant runs it on (readiness.envs): Colab's default CPU runtime;
+  # the notebook tells them to switch a T4 on for the labs from Module 2 onward.
+  runtime: colab-cpu
   summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
 
 # What is known about whether each module can be taught, and on what evidence.

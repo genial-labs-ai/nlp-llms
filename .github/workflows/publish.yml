@@ -111,10 +111,11 @@ jobs:
 
       # The unit tests again, with torch and typesafe-sdk installed: the Lab 9 offline
       # build and the Lab 12 local-decider tests skip in the render job without them.
+      # --locked also fails if uv.lock no longer matches pyproject.toml.
       - name: Unit tests with the lab dependencies
         env:
           UV_LINK_MODE: copy
-        run: uv run --group execute --group test python -m unittest discover -s tests
+        run: uv run --locked --group execute --group test python -m unittest discover -s tests
 
       # Hermetic: no API keys and no Hugging Face Hub, so a pull request never fails
       # because huggingface.co is slow or rate-limited. Every lab runs its offline test
@@ -124,13 +125,13 @@ jobs:
       - name: Execute notebooks
         # Each exercise's first checkpoint also runs on its unfinished stub, where it must
         # fail (the same check as the offline leg of health.yml).
-        run: uv run --group execute python scripts/test_notebooks.py --verify-checkpoints
+        run: uv run --locked --group execute python scripts/test_notebooks.py --verify-checkpoints
 
       # The same notebooks, run as a participant who has written nothing: each lab must
       # stop at a checkpoint with the harness's recovery message, never pass on the
       # reference solutions, and never fail first in a provided cell.
       - name: Learner smoke test
-        run: uv run --group execute python scripts/test_notebooks.py --learner
+        run: uv run --locked --group execute python scripts/test_notebooks.py --learner
 
   # Desktop sizes in both themes: no sideways scroll, math typeset, demos drawn,
   # answers reachable and operable from the keyboard. Its own job, on the site the

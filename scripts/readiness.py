@@ -2,7 +2,7 @@
 
 Reads the readiness fields in _variables.yml (readiness: and modules.mNN.readiness) and
 the run records in runs/. Used by scripts/gen_tables.py to write the readiness tables
-(and, once it exists, by the release check, which also applies readiness.max_run_age_days).
+and by scripts/release_check.py, which also applies readiness.max_run_age_days.
 Nothing here reads the clock: the output depends only on the
 repository, so the generated pages do not drift from one day to the next.
 """
@@ -32,7 +32,8 @@ def item_closed(v: dict, item: dict) -> tuple[bool, str]:
         paths = check["exists"] if isinstance(check["exists"], list) else [check["exists"]]
         missing = [p for p in paths if not (ROOT / p).exists()]
         if missing:
-            return False, ", ".join(f"`{p}`" for p in missing) + " does not exist"
+            verb = " does not exist" if len(missing) == 1 else " do not exist"
+            return False, ", ".join(f"`{p}`" for p in missing) + verb
         return True, ", ".join(f"`{p}`" for p in paths) + " exists"
     if "var" in check:
         try:
@@ -211,7 +212,7 @@ def describe(v: dict, r: dict) -> str:
 def build(v: dict, records: list[dict]) -> dict:
     """Everything the readiness pages need, computed once."""
     labs = [m for m in v["modules"].values() if m.get("notebook", True)]
-    setup = {"slug": v["setup"]["slug"], "readiness": {"runtime": None}}
+    setup = {"slug": v["setup"]["slug"], "readiness": {"runtime": v["setup"].get("runtime")}}
     ev = {
         m["slug"]: evidence(v, m["slug"], m["readiness"]["runtime"], records)
         for m in [*labs, setup]
@@ -252,9 +253,15 @@ def build(v: dict, records: list[dict]) -> dict:
         "ci_stale": sum(1 for r in ci_latest if r.get("stale")),
         "ci_doubles": sum(1 for r in ci_latest if passed(r) and r["path"] == "offline"),
     }
-    summary["ready"] = summary["teaching"] == summary["labs"] and summary["items_open"] == 0
+    summary["setup_ready"] = passed(ev[setup["slug"]]["teaching"])
+    summary["ready"] = (
+        summary["teaching"] == summary["labs"]
+        and summary["setup_ready"]
+        and summary["items_open"] == 0
+    )
     return {
         "evidence": {k: e for k, e in ev.items() if k != setup["slug"]},
+        "setup": ev[setup["slug"]],
         "items": all_items,
         "summary": summary,
     }

@@ -49,6 +49,10 @@ uv run --group browser python scripts/check_browser.py
 
 `check_browser.py` opens the rendered site in Chromium at 1280 x 800, 1440 x 900, 1920 x 1080 and 1366 x 768 at 150% zoom, in both themes (desktop only; see AGENTS.md). The first time, install the browser with `uv run --group browser playwright install chromium`.
 
+`uv.lock` pins the environment that local runs and CI use. To move to newer versions, run `uv lock --upgrade`, run the checks above, and commit the lockfile with the fixes it needed; the weekly `drift` leg of `health.yml` shows in advance what an upgrade would break.
+
+To see what stands between `main` and a release, run `uv run --group site python scripts/release_check.py`. Pushing a `v*` tag runs the same check in `.github/workflows/release.yml`, which creates the GitHub Release only if nothing blocks it.
+
 Without flags, `test_notebooks.py` runs each lab's open-model path, which needs the Hugging Face Hub. CI runs the offline test paths instead; the flags are listed in the notebooks job of `.github/workflows/publish.yml`.
 
 Work on a branch and open a pull request against `main`.
