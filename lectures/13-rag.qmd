@@ -364,7 +364,7 @@ viewof budget13 = Inputs.range([512, 2560], {value: 2560, step: 128, label: "con
                  512: [1, 1, 2, 2, 3, 3, 4, 5, 7, 9, Infinity, Infinity]};
   const recall = (L, k) => ranks[L].filter(r => r <= k).length / ranks[L].length;    // eq-recall with one group each
   const sizes = [128, 256, 512], name = L => `L = ${L}`;
-  const color = {domain: sizes.map(name), range: ["#b3541e", "#6b7280", "#1d5f8a"], legend: true};
+  const color = {domain: sizes.map(name), range: ["var(--demo-orange)", "var(--demo-grey)", "var(--demo-blue)"], legend: true};
   const curve = sizes.flatMap(L => Array.from({length: 20}, (_, i) => ({L: name(L), k: i + 1, n: (i + 1) * L, r: recall(L, i + 1)})));
   const at = sizes.map(L => { const k = Math.floor(budget13 / L); return {L: name(L), k, n: k * L, r: recall(L, k)}; });
   const panel = (x, label, domain, extra) => Plot.plot({width: 360, height: 320, grid: true, color,

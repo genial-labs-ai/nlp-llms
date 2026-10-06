@@ -342,7 +342,7 @@ toy = {
   const bars = Plot.plot({
     width: 360, height: 240, marginBottom: 40,
     x: {label: "next token w", domain: toy.vocab}, y: {label: "P(w | context)", domain: [0, 1]},
-    color: {legend: true, domain: ["seen after this context", "never seen after it"], range: ["#1d5f8a", "#b9c2cc"]},
+    color: {legend: true, domain: ["seen after this context", "never seen after it"], range: ["var(--demo-blue)", "var(--demo-faint)"]},
     marks: [Plot.barY(rows, {x: "w", y: "p", fill: "kind"}), Plot.ruleY([1 / V], {strokeDasharray: "4 3"}), Plot.ruleY([0])]
   });
   const line = Plot.plot({
@@ -351,8 +351,8 @@ toy = {
     marks: [
       Plot.ruleY([V], {strokeDasharray: "4 3"}),
       Plot.text([{k: 0.0012, ppl: V}], {x: "k", y: "ppl", text: () => "uniform: |V| = 9", dy: -8, textAnchor: "start"}),
-      Plot.line(curve, {x: "k", y: "ppl", stroke: "#1d5f8a", strokeWidth: 2}),
-      Plot.dot([{k, ppl: toy.ppl(k)}], {x: "k", y: "ppl", r: 6, fill: "#b3541e"})
+      Plot.line(curve, {x: "k", y: "ppl", stroke: "var(--demo-blue)", strokeWidth: 2}),
+      Plot.dot([{k, ppl: toy.ppl(k)}], {x: "k", y: "ppl", r: 6, fill: "var(--demo-orange)"})
     ]
   });
   return html`<div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end">${bars}${line}</div>

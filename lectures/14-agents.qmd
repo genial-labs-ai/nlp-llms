@@ -498,7 +498,7 @@ toy14 = {
   const bands = [["escalate", 0, tEsc], ["ask", tEsc, tAct], ["act", tAct, 1]].filter(b => b[2] > b[1]).map(([a, x1, x2]) => ({a, x1, x2}));
   const fig = Plot.plot({width: 720, height: 320, marginTop: 30,
     x: {domain: [0, 1], label: "p_allow reported by the guard"}, y: {label: "items", grid: true},
-    color: {domain: ["allowed", "not allowed"], range: ["#1d5f8a", "#b3541e"], legend: true},
+    color: {domain: ["allowed", "not allowed"], range: ["var(--demo-blue)", "var(--demo-orange)"], legend: true},
     marks: [Plot.rectY(items, Plot.binX({y: "count"}, {x: "p", fill: "label", thresholds: 40, domain: [0, 1]})),
       Plot.ruleX([tEsc, tAct], {stroke: "currentColor", strokeDasharray: "4 3"}),
       Plot.text(bands, {x: d => (d.x1 + d.x2) / 2, frameAnchor: "top", dy: -14, text: "a", fontWeight: "bold"})]});

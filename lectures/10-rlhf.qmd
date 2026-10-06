@@ -452,14 +452,14 @@ toy10 = {
 html`<div style="display: flex; gap: 16px; flex-wrap: wrap;">${Plot.plot({
   width: 360, height: 300, marginLeft: 45,
   fx: {label: null}, x: {axis: null, domain: ["reference", "optimal"]}, y: {label: "probability", domain: [0, 1], grid: true},
-  color: {legend: true, domain: ["reference", "optimal"], range: ["#1d5f8a", "#b3541e"]},
+  color: {legend: true, domain: ["reference", "optimal"], range: ["var(--demo-blue)", "var(--demo-orange)"]},
   marks: [Plot.barY(toy10.bars, {fx: "name", x: "policy", y: "p", fill: "policy"}), Plot.ruleY([0])]
 })}${Plot.plot({
   width: 360, height: 300, marginLeft: 45, grid: true,
   x: {label: "drift: KL from the reference (nats)"}, y: {label: "expected reward"},
-  color: {legend: true, domain: ["reward-model score", "gold reward"], range: ["#b3541e", "#1d5f8a"]},
+  color: {legend: true, domain: ["reward-model score", "gold reward"], range: ["var(--demo-orange)", "var(--demo-blue)"]},
   marks: [
-    Plot.ruleY([0], {stroke: "#bbb"}),
+    Plot.ruleY([0], {stroke: "var(--demo-faint)"}),
     Plot.line(toy10.path, {x: "kl", y: "value", stroke: "which", strokeWidth: 2}),
     Plot.dot([{kl: toy10.now.kl, value: toy10.now.proxy, which: "reward-model score"}, {kl: toy10.now.kl, value: toy10.now.gold, which: "gold reward"}],
       {x: "kl", y: "value", fill: "which", r: 5})

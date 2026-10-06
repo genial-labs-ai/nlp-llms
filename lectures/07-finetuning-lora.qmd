@@ -299,10 +299,10 @@ Plot.plot({
   width: 720, height: 320, marginLeft: 70, grid: true,
   x: {type: "log", label: "width d"},
   y: {type: "log", label: "parameters in one layer"},
-  color: {legend: true, domain: ["frozen W0: d × d", "LoRA adapter: r (d + d)"], range: ["#1d5f8a", "#b3541e"]},
+  color: {legend: true, domain: ["frozen W0: d × d", "LoRA adapter: r (d + d)"], range: ["var(--demo-blue)", "var(--demo-orange)"]},
   marks: [
     Plot.line(curve07, {x: "d", y: "n", stroke: "kind", strokeWidth: 2}),
-    Plot.ruleX([d07], {stroke: "#888", strokeDasharray: "4 3"}),
+    Plot.ruleX([d07], {stroke: "var(--demo-grey)", strokeDasharray: "4 3"}),
     Plot.dot([{d: d07, n: d07 * d07, kind: "frozen W0: d × d"}, {d: d07, n: 2 * r07 * d07, kind: "LoRA adapter: r (d + d)"}],
       {x: "d", y: "n", fill: "kind", r: 5})
   ]

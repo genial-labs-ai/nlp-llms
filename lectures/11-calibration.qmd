@@ -402,7 +402,7 @@ toy11 = {
 ```{ojs}
 //| echo: false
 {
-  const m = toy11.metrics(tau11), ink = "currentColor", navy = "#1d5f8a", warm = "#b3541e";
+  const m = toy11.metrics(tau11), ink = "currentColor", navy = "var(--demo-blue)", warm = "var(--demo-orange)";
   const left = Plot.plot({width: 360, height: 340, grid: true,
     x: {domain: [0, 1], label: "confidence (mean per bin)"}, y: {domain: [0, 1], label: "accuracy (mean per bin)"},
     r: {range: [2, 9]},

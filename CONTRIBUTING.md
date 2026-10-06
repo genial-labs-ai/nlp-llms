@@ -44,7 +44,10 @@ uv run --group lint ruff format --check scripts tests data agents-intro
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py
 quarto render && uv run --group site python scripts/check_links.py
+uv run --group browser python scripts/check_browser.py
 ```
+
+`check_browser.py` opens the rendered site in Chromium at 1280 x 800, 1440 x 900, 1920 x 1080 and 1366 x 768 at 150% zoom, in both themes (desktop only; see AGENTS.md). The first time, install the browser with `uv run --group browser playwright install chromium`.
 
 Without flags, `test_notebooks.py` runs each lab's open-model path, which needs the Hugging Face Hub. CI runs the offline test paths instead; the flags are listed in the notebooks job of `.github/workflows/publish.yml`.
 

@@ -22,6 +22,10 @@ Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4
 
 {{< include /_includes/day-2.md >}}
 
+## Run sheet {#run-sheet}
+
+{{< include /_includes/run-2.md >}}
+
 ## Closing synthesis (16:45–17:00) {#synthesis}
 
 In pairs for 5 minutes, then the room for 10. The facilitator writes the table on the board and keeps it for Day 5. The numbers are the room's own, from its runs.
