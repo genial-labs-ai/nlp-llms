@@ -327,8 +327,8 @@ Every notebook must meet all of these.
 - **One optional stretch section.** Clearly marked, placed last, never required by a later lab. It gives fast participants more to do and a slow group something to skip.
 - **Generated header and footer.** Cell 0 (title, Colab badge, duration, objectives) and the final cell are written by `scripts/gen_notebooks.py`. Do not edit them by hand.
 - **Setup cell.** Quiet, pinned `%pip install -q package==x.y.z` for anything Colab does not preinstall. Seeds are set here.
-- **Exercises and solutions in one notebook.** Each exercise is a `# TODO N` stub, followed by a folded solution cell (`#@title Solution`, form view, source hidden) and a short "why this works" note.
-- **Checkpoints.** Each exercise ends with an assertion or a printed metric that tells the participant whether they got it right.
+- **Exercises and solutions in one notebook.** Each exercise is a `# TODO N` stub, followed by a folded solution cell (`#@title Solution`, form view, source hidden) and a short "why this works" note. The solution is marked `@workshop.solution(N)` and never replaces the participant's code: the generated harness cell binds it only in worked mode (`WORKED_EXAMPLE`, or `NLP_LLMS_WORKED=1` in CI), and `workshop.use_reference(N)` lets a stuck participant go on (CONTRIBUTING.md).
+- **Checkpoints.** Each exercise ends with an assertion or a printed metric that tells the participant whether they got it right. A checkpoint cell starts with `workshop.checkpoint(N)` and reports whether it checked the participant's code or the reference; `scripts/test_notebooks.py --verify-checkpoints` proves each exercise's first checkpoint fails on the unfinished stub.
 - **API keys.** Read from Colab Secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and the TypeSafe key name given in its documentation). Keys are never written into a cell.
 - **Open-model fallback.** A single `PROVIDER` switch at the top of each API lab. With no keys set, the lab runs on a small Hugging Face model (and, for Jev, the toy decision model from Lab 12). The fallback path is the one CI executes.
 - **Cost note.** Each API lab states its approximate cost per full run.
@@ -529,7 +529,31 @@ Romeo approved a revision from four to five days after a review brief and a crit
 
 ### Phase 2 — Exercise harness and run records
 
-- [ ] Harness cell with `@workshop.solution(N)`, `workshop.checkpoint(N)` and `WORKED_EXAMPLE`; migration of all labs; `--record`, `--learner` and `--verify-checkpoints`; `tests/test_exercises.py`
+- [x] `scripts/harness.py`. `scripts/gen_notebooks.py` writes a harness cell after each notebook's header and a summary cell before its footer:
+  - the `WORKED_EXAMPLE` switch (`NLP_LLMS_WORKED=1` in CI);
+  - `@workshop.solution(N)` and `workshop.solution_value(...)`;
+  - `workshop.use_reference(N)`;
+  - `workshop.checkpoint(N | label=)`, which reports whose code it checked;
+  - `workshop.summary()` and `workshop.run_record()`.
+- [x] `scripts/migrate_exercises.py` applied to every lab: 80 solution cells marked, pure stubs raise `NotImplementedError("TODO N")`, every checkpoint cell names what it checks (reviewed override table), and the introductions rewritten. Special cases: Lab 7's `merged_weight` attachment moved into Checkpoint 2; Lab 15's exercise and self-test tagged.
+- [x] `scripts/test_notebooks.py`:
+  - worked mode by default;
+  - `--learner`: each lab must stop at a checkpoint with the harness's message;
+  - `--verify-checkpoints`: each exercise's first checkpoint must fail on its stub;
+  - `--record --env`: writes a run-record batch;
+  - data is read from a temporary copy, so runs never add files to `data/`.
+- [x] `scripts/add_run_record.py` turns a notebook's printed run record into a `runs/` file.
+- [x] New `tests/test_exercises.py`. `tests/test_lab14.py` and `tests/test_lab15.py` skip the harness marker in restated definitions.
+- [x] CI: `publish.yml` runs every notebook with `--verify-checkpoints` and then a learner smoke test; the blocking offline leg of `health.yml` runs `--verify-checkpoints` weekly.
+- [x] Docs: CONTRIBUTING, PLAN §5, the AGENTS.md definition of done, the facilitator guide and the notebooks page.
+- [x] Review round 5 of PR #10 fixed in the readiness code:
+  - a stale record never outranks a current one;
+  - the CI sentence applies staleness;
+  - a newer partial pass no longer hides a full one;
+  - the item checks never crash;
+  - dates are real and not in the future.
+- [x] The CI backfill record's setting names corrected. They are `NLP_LLMS_LAB07_OFFLINE` and so on, not `LAB07_OFFLINE`.
+- [x] Labs 13–15 and the facilitator guide now cite TypeSafe's published price and rate limits (Models page, read 2026-10-06).
 
 ### Phase 3 — Five-day restructure
 

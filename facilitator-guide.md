@@ -37,7 +37,7 @@ The [readiness page](readiness.qmd) has the evidence for every module. It is gen
 
 1. Run every notebook from the [notebooks page](notebooks.qmd) on a fresh Colab runtime, with no keys set, then again with the keys you will hand out. Colab's preinstalled packages change. Record the run time per lab; the pace sheet needs it.
 2. Decide on keys. Every API lab runs without keys. If you provide keys, provide them for the whole room or for no one, so that groups compare like with like.
-3. Ask TypeSafe for workshop keys. A room of 30 on one key makes about 12,000 Jev calls in Lab 12, 48,000 in Lab 13's reranking and 15,000 in Lab 14. Rate limits are unknown.
+3. Ask TypeSafe for workshop keys. A room of 30 on one key makes about 12,000 Jev calls in Lab 12, 48,000 in Lab 13's reranking and 15,000 in Lab 14. TypeSafe's Models page (read 2026-10-06) lists limits of 100K tokens and 80 requests per second, which can change without notice, without saying whether they apply per key or per account: a room sharing one key can hit them within seconds.
 4. Check the model IDs against the providers' deprecation pages: `{{< var models.openai >}}`, `{{< var models.anthropic >}}`, and the open fallback `{{< var models.fallback >}}`.
 5. Check that the blocking work on the [readiness page](readiness.qmd#open-work) is done, or plan the fallback named in each module's section.
 6. Send participants the [Module 0](#module-0) page as optional pre-work, decide whether you will open the room at 08:00 on Day 1 for a drop-in clinic, and tell them. Ask anyone on a managed work laptop to check now that they may install software.
@@ -84,7 +84,11 @@ Say this out loud on Day 4, before Lab 12, and again on Day 5. TypeSafe's SDK is
 
 ### How the notebooks behave
 
-- **Run all always completes.** Each `# TODO` cell is followed by a folded solution, and Run all runs the solutions after the participants' cells. To test their own code, participants run the `# TODO` cell and then the checkpoint, skipping the solution.
+- **Solutions never replace participants' code.** Each `# TODO` cell is followed by a folded solution. That solution is stored, not bound, unless `WORKED_EXAMPLE` is ticked in the harness cell at the top.
+  - **Every checkpoint says whose code it checked:** "passed on your code" or "passed on the REFERENCE solution".
+  - **Run all stops at the first unwritten TODO,** with a message saying how to go on.
+  - **A stuck participant runs `workshop.use_reference(N)`** and carries on. The final cell prints which checkpoints passed on their own code.
+  - **To demonstrate a whole lab, tick `WORKED_EXAMPLE` and choose Run all.** That run shows how the lab goes, not that anyone did it.
 - **Checkpoints are numbered by exercise.** Checkpoint 3 belongs to Exercise 3. Some labs split a checkpoint (3a, 3b).
 - **Data files** are fetched with a hash check. `fetch` looks in a local `data/` folder first. If a URL fails in the room, download the file from the repository on one machine, upload it to the Colab **Files** panel into a folder named `data`, and rerun the cell.
 

@@ -1,6 +1,7 @@
 """Readiness metadata (_variables.yml) and run records (runs/*.json) are well formed and
 agree with each other, and the generated readiness pages are current."""
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -125,8 +126,8 @@ def record(**fields) -> dict:
         "evidence": "test",
         "file": "test.json",
         "index": 0,
-        "content_sha": run_records.content_sha("05-transformer-from-scratch"),
     }
+    base["content_sha"] = run_records.content_sha(fields.get("notebook", base["notebook"]))
     return {**base, **fields}
 
 
@@ -150,6 +151,42 @@ class Validation(unittest.TestCase):
             ' "01-text-as-data", "scope": "notebook", "status": "pass", "seconds": 1}]}'
         )
         self.assertIn("content_sha", "\n".join(self.check(batch)))
+
+    def test_impossible_future_and_unhashable_values_are_reported(self):
+        def batch(**over):
+            entry = {
+                "notebook": "01-text-as-data",
+                "scope": "notebook",
+                "status": "pass",
+                "seconds": 1,
+                **over,
+            }
+            return json.dumps(
+                {
+                    "schema": 1,
+                    "date": "2026-10-06",
+                    "source": "backfill",
+                    "env": "colab-t4",
+                    "path": "open",
+                    "mode": "worked",
+                    "evidence": "x",
+                    "runs": [entry],
+                }
+            )
+
+        self.assertIn("not a real date", "\n".join(self.check(batch(date="2026-13-40"))))
+        self.assertIn("future", "\n".join(self.check(batch(date="2999-01-01"))))
+        self.assertIn("env", "\n".join(self.check(batch(env=["colab-t4"]))))
+        self.assertIn("notebook", "\n".join(self.check(batch(notebook={"slug": "x"}))))
+
+    def test_item_checks_never_crash(self):
+        for check in (
+            {"absent": "no/such/file.qmd", "pattern": "x"},
+            {"json": "data/decisions_v1_stats.json", "key": "split", "at_least": 1},
+            {"var": "repo.owner"},
+        ):
+            closed, why = readiness.item_closed(V, {"check": check})
+            self.assertFalse(closed, check)
 
     def test_malformed_json_is_reported_not_raised(self):
         self.assertIn("not valid JSON", "\n".join(self.check('{"schema": 1,}')))
@@ -208,12 +245,15 @@ class EvidenceRules(unittest.TestCase):
         for fields in (
             {"path": "keyed"},
             {"settings": {"NLP_LLMS_QUICK": "1"}},
-            {"mode": "learner"},
             {"scope": "partial", "scope_note": "Part A"},
         ):
             e = self.ev(record(**fields))
             self.assertIsNone(e["teaching"], fields)
             self.assertIsNotNone(e["other"], fields)
+
+    def test_learner_runs_are_no_evidence_of_the_lab_running(self):
+        e = self.ev(record(mode="learner", status="fail"))
+        self.assertEqual((e["teaching"], e["other"], e["ci"]), (None, None, None))
 
     def test_a_backfill_on_the_runtime_is_shown_not_dropped(self):
         e = self.ev(record(source="backfill", content_sha=None))
@@ -272,6 +312,32 @@ class EvidenceRules(unittest.TestCase):
         self.assertFalse(closed)
         closed, why = readiness.item_closed(V, {"check": {"var": "no.such.key", "equals": 1}})
         self.assertFalse(closed)
+
+    def test_a_newer_stale_run_never_hides_an_older_current_pass(self):
+        e = self.ev(
+            record(date="2026-10-06"),
+            record(date="2026-10-09", status="fail", content_sha="0" * 16),
+        )
+        self.assertTrue(readiness.passed(e["teaching"]))
+
+    def test_a_newer_partial_pass_keeps_an_older_full_pass_end_to_end(self):
+        records = [
+            record(env="mac-m1pro", date="2026-10-04"),
+            record(env="mac-m1pro", date="2026-10-05", scope="partial", scope_note="x"),
+        ]
+        s = readiness.build(V, records)["summary"]
+        self.assertEqual((s["real"], s["real_partial_only"]), (1, 0))
+
+    def test_a_same_day_partial_failure_is_not_hidden_by_a_full_pass(self):
+        records = [
+            record(env="mac-m1pro", index=0),
+            record(env="mac-m1pro", index=1, scope="partial", scope_note="x", status="fail"),
+        ]
+        self.assertEqual(readiness.build(V, records)["summary"]["real"], 0)
+
+    def test_learner_mode_ci_runs_are_not_ci_evidence(self):
+        e = self.ev(record(env="gha-ubuntu", path="offline", mode="learner", status="fail"))
+        self.assertIsNone(e["ci"])
 
     def test_ci_runs_are_their_own_row(self):
         e = self.ev(record(env="gha-ubuntu", path="offline"))

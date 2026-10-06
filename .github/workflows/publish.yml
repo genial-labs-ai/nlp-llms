@@ -73,6 +73,31 @@ jobs:
   notebooks:
     runs-on: ubuntu-latest
     timeout-minutes: 150
+    # The offline-path flags, shared by the worked run and the learner smoke test below.
+    env:
+      MPLBACKEND: Agg
+      # Shortens the from-scratch training runs (Labs 3, 4 and 5) on this CPU runner.
+      NLP_LLMS_QUICK: "1"
+      NLP_LLMS_CELL_TIMEOUT: "1800"
+      OMP_NUM_THREADS: "4"
+      # Fail fast if any lab reaches for the Hub that its flag below should have stopped.
+      HF_HUB_OFFLINE: "1"
+      # Lab 6: tiny random encoder and causal LM instead of the Hub checkpoints.
+      NLP_LLMS_OFFLINE_TINY: "1"
+      # Lab 7: random stand-in for SmolLM2 and synthetic data instead of Dolly.
+      NLP_LLMS_LAB07_OFFLINE: tiny
+      # Labs 8 and 11 (and 13, 14): Lab 8's StubProvider instead of the open chat model.
+      NLP_LLMS_STUB: "1"
+      # Until Lab 9's GPT-2 data files are built and committed (PLAN.md, Day 7),
+      # Labs 9 and 10 run on their labeled offline stand-ins in CI.
+      NLP_LLMS_LAB09_OFFLINE: tiny
+      NLP_LLMS_LAB10_OFFLINE: tiny
+      # Lab 13: BM25 plus labeled stand-ins until its human question set exists.
+      NLP_LLMS_LAB13_OFFLINE: "1"
+      NLP_LLMS_LAB14_OFFLINE: "1"
+      # Lab 15 (capstone): stub path on plumbing probes until its question set exists.
+      NLP_LLMS_LAB15_OFFLINE: "1"
+      UV_LINK_MODE: copy
     steps:
       - uses: actions/checkout@v7
 
@@ -97,31 +122,15 @@ jobs:
       # are not results). The open-model paths run in health.yml (weekly, and on demand).
       # Keep the flags in step with the "offline" leg of health.yml.
       - name: Execute notebooks
-        env:
-          MPLBACKEND: Agg
-          # Shortens the from-scratch training runs (Labs 3, 4 and 5) on this CPU runner.
-          NLP_LLMS_QUICK: "1"
-          NLP_LLMS_CELL_TIMEOUT: "1800"
-          OMP_NUM_THREADS: "4"
-          # Fail fast if any lab reaches for the Hub that its flag below should have stopped.
-          HF_HUB_OFFLINE: "1"
-          # Lab 6: tiny random encoder and causal LM instead of the Hub checkpoints.
-          NLP_LLMS_OFFLINE_TINY: "1"
-          # Lab 7: random stand-in for SmolLM2 and synthetic data instead of Dolly.
-          NLP_LLMS_LAB07_OFFLINE: tiny
-          # Labs 8 and 11 (and 13, 14): Lab 8's StubProvider instead of the open chat model.
-          NLP_LLMS_STUB: "1"
-          # Until Lab 9's GPT-2 data files are built and committed (PLAN.md, Day 7),
-          # Labs 9 and 10 run on their labeled offline stand-ins in CI.
-          NLP_LLMS_LAB09_OFFLINE: tiny
-          NLP_LLMS_LAB10_OFFLINE: tiny
-          # Lab 13: BM25 plus labeled stand-ins until its human question set exists.
-          NLP_LLMS_LAB13_OFFLINE: "1"
-          NLP_LLMS_LAB14_OFFLINE: "1"
-          # Lab 15 (capstone): stub path on plumbing probes until its question set exists.
-          NLP_LLMS_LAB15_OFFLINE: "1"
-          UV_LINK_MODE: copy
-        run: uv run --group execute python scripts/test_notebooks.py
+        # Each exercise's first checkpoint also runs on its unfinished stub, where it must
+        # fail (the same check as the offline leg of health.yml).
+        run: uv run --group execute python scripts/test_notebooks.py --verify-checkpoints
+
+      # The same notebooks, run as a participant who has written nothing: each lab must
+      # stop at a checkpoint with the harness's recovery message, never pass on the
+      # reference solutions, and never fail first in a provided cell.
+      - name: Learner smoke test
+        run: uv run --group execute python scripts/test_notebooks.py --learner
 
   deploy:
     needs: render
