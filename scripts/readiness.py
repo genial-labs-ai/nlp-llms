@@ -155,7 +155,8 @@ def evidence(v: dict, slug: str, runtime: str, records: list[dict]) -> dict:
         _with_staleness(r, current, False) for r in mine if not teaching_eligible(v, r, runtime)
     ]
     real = [r for r in rest if r["path"] in ("open", "keyed")]
-    ci = [r for r in rest if r["env"] in ci_envs]
+    # CI evidence is a worked run: a learner-mode run stops at a checkpoint on purpose.
+    ci = [r for r in rest if r["env"] in ci_envs and r["mode"] == "worked"]
     off_ci = [r for r in real if r["env"] not in ci_envs]
     ci_real = [r for r in ci if r["path"] != "offline"]
     return {
@@ -221,9 +222,11 @@ def build(v: dict, records: list[dict]) -> dict:
         """The newest whole-notebook real run passed, and nothing failed after it."""
         full, newest = e["real_full"], e["real_any"]
         later_failure = (
-            newest is not None and newest["status"] == "fail" and newest["date"] > full["date"]
-            if full is not None
-            else False
+            full is not None
+            and newest is not None
+            and newest is not full
+            and newest["status"] == "fail"
+            and newest["date"] >= full["date"]
         )
         return passed(full) and not later_failure
 

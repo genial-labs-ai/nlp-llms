@@ -24,23 +24,26 @@ import run_records  # noqa: E402
 import yaml  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-OFFLINE_FLAGS = ("NLP_LLMS_OFFLINE_TINY", "NLP_LLMS_STUB")
 
 
 def env_of(record: dict, given: str | None) -> str:
     if given:
         return given
     gpu = record.get("gpu") or ""
-    if record.get("colab_release") or "colab" in json.dumps(record.get("settings", {})).lower():
-        return "colab-t4" if "T4" in gpu else "colab-cpu"
-    raise SystemExit("Not a Colab run (no colab_release): name the machine with --env")
+    if not record.get("colab_release"):
+        raise SystemExit("Not a Colab run (no colab_release): name the machine with --env")
+    if not gpu:
+        return "colab-cpu"
+    if "T4" in gpu:
+        return "colab-t4"
+    raise SystemExit(f"A Colab run on {gpu}, not a T4: name the machine with --env")
 
 
 def path_of(record: dict, given: str | None) -> str:
     if given:
         return given
     settings = record.get("settings") or {}
-    if any(settings.get(flag) for flag in OFFLINE_FLAGS):
+    if any(settings.get(flag) for flag in run_records.OFFLINE_FLAGS):
         return "offline"
     return "keyed" if record.get("provider") in ("openai", "anthropic") else "open"
 
@@ -93,17 +96,19 @@ def main() -> int:
     v = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))
     envs = set(v["readiness"]["envs"])
     batch = batch_from(record, env_of(record, args.env), path_of(record, args.path), args.date)
+    notebooks = {p.stem for p in run_records.NOTEBOOKS.glob("*.ipynb")}
+    if record.get("notebook") not in notebooks:
+        raise SystemExit(f"Not added: no notebook named {record.get('notebook')!r}")
     if batch["runs"][0]["content_sha"] != run_records.content_sha(record["notebook"]):
         print(
             "Note: the record was made against other code than the committed notebook's;"
             " it is kept, and the readiness page marks it stale."
         )
-    name = f"{batch['date']}-{batch['env']}-{batch['path']}-{record['notebook']}.json"
+    stamp = dt.datetime.now().strftime("%H%M%S")
+    name = f"{batch['date']}-{batch['env']}-{batch['path']}-{record['notebook']}-{stamp}.json"
     out = run_records.RUNS / name
     body = json.dumps(batch, indent=2) + "\n"
-    _, problems = run_records.check_batch(
-        name, body, envs, {p.stem for p in run_records.NOTEBOOKS.glob("*.ipynb")}
-    )
+    _, problems = run_records.check_batch(name, body, envs, notebooks)
     if problems:
         raise SystemExit("Not added:\n  " + "\n  ".join(problems))
     out.write_text(body, encoding="utf-8")

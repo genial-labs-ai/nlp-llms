@@ -325,6 +325,17 @@ class EvidenceRules(unittest.TestCase):
         s = readiness.build(V, records)["summary"]
         self.assertEqual((s["real"], s["real_partial_only"]), (1, 0))
 
+    def test_a_same_day_partial_failure_is_not_hidden_by_a_full_pass(self):
+        records = [
+            record(env="mac-m1pro", index=0),
+            record(env="mac-m1pro", index=1, scope="partial", scope_note="x", status="fail"),
+        ]
+        self.assertEqual(readiness.build(V, records)["summary"]["real"], 0)
+
+    def test_learner_mode_ci_runs_are_not_ci_evidence(self):
+        e = self.ev(record(env="gha-ubuntu", path="offline", mode="learner", status="fail"))
+        self.assertIsNone(e["ci"])
+
     def test_ci_runs_are_their_own_row(self):
         e = self.ev(record(env="gha-ubuntu", path="offline"))
         self.assertIsNone(e["other"])

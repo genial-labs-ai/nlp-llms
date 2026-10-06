@@ -47,13 +47,15 @@ class _Workshop:
     _MISSING = object()
 
     def __init__(self, old=None):
+        # Rerunning this cell (as Run all does) keeps the stored solutions but starts a new
+        # run: the checkpoint results, cell times and run clock describe this run only.
         self.ref = getattr(old, "ref", {})
         self.stub = getattr(old, "stub", {})
-        self.verified = getattr(old, "verified", {})
+        self.verified = {}
         self._verifying = None
-        self.results = getattr(old, "results", {})
-        self.cells = getattr(old, "cells", [])
-        self.started = getattr(old, "started", _time.time())
+        self.results = {}
+        self.cells = []
+        self.started = _time.time()
         self._current = None
         self._t0 = None
 
@@ -159,7 +161,11 @@ class _Workshop:
     def _verify_end(self, n):
         """Test-only: restore the reference and require that the stub copy failed."""
         ns = _get_ipython().user_ns
-        ns.update({k: v for k, v in self._saved.items() if v is not self._MISSING})
+        for name, value in self._saved.items():
+            if value is self._MISSING:
+                ns.pop(name, None)
+            else:
+                ns[name] = value
         self._verifying = None
         if self.verified.get(n) is not False:
             raise AssertionError(
@@ -231,9 +237,11 @@ class _Workshop:
 
 _ip = _get_ipython()
 _old = _ip.user_ns.get("workshop")
-for _event, _method in (("pre_run_cell", "_pre"), ("post_run_cell", "_post")):
+# Remove only an earlier harness's own hooks; every other hook (Colab's, an extension's)
+# stays registered.
+for _event in ("pre_run_cell", "post_run_cell"):
     for _callback in list(_ip.events.callbacks[_event]):
-        if getattr(_callback, "__self__", None) is _old:
+        if type(getattr(_callback, "__self__", None)).__name__ == "_Workshop":
             _ip.events.unregister(_event, _callback)
 workshop = _Workshop(_old if hasattr(_old, "ref") else None)
 _ip.events.register("pre_run_cell", workshop._pre)

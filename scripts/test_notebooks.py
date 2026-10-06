@@ -59,16 +59,7 @@ FALLBACK_MARKERS = (
     "OFFLINE TEST MODE",  # Labs 6, 7, 10: an offline test flag is set
 )
 # Environment variables that put a lab on its offline path (publish.yml's notebooks job).
-OFFLINE_FLAGS = (
-    "NLP_LLMS_OFFLINE_TINY",
-    "NLP_LLMS_STUB",
-    "NLP_LLMS_LAB07_OFFLINE",
-    "NLP_LLMS_LAB09_OFFLINE",
-    "NLP_LLMS_LAB10_OFFLINE",
-    "NLP_LLMS_LAB13_OFFLINE",
-    "NLP_LLMS_LAB14_OFFLINE",
-    "NLP_LLMS_LAB15_OFFLINE",
-)
+OFFLINE_FLAGS = run_records.OFFLINE_FLAGS
 # What the harness prints when a checkpoint stops a participant who has not finished an
 # exercise: a pure stub raised NotImplementedError, or a partial stub gave a wrong answer.
 LEARNER_MESSAGES = ("is not written yet", "failed on your code")
@@ -94,7 +85,10 @@ def fallbacks(nb: nbformat.NotebookNode) -> list[str]:
 def checkpoint_exercise(cell) -> object | None:
     """N from a checkpoint cell's `workshop.checkpoint(N, ...)`, or None for a checkpoint
     of provided code (`workshop.checkpoint(label=...)`)."""
-    for node in ast.walk(ast.parse(cell.source)):
+    code = "\n".join(
+        line for line in cell.source.splitlines() if not line.lstrip().startswith(("%", "!"))
+    )
+    for node in ast.walk(ast.parse(code)):
         if (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
@@ -234,7 +228,14 @@ def write_record(
             {
                 "notebook": path.stem,
                 "scope": "notebook",
-                "status": "pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail",
+                "status": (
+                    "pass"
+                    if (r["learner_message"] and not r["ok"])
+                    or (r["ok"] and not (r["fallbacks"] and not offline))
+                    else "fail"
+                )
+                if learner
+                else ("pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail"),
                 "seconds": round(r["seconds"], 1),
                 "content_sha": run_records.content_sha(path.stem),
                 "phases": r["phases"],
