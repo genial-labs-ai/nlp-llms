@@ -1,5 +1,7 @@
 # Lab brief: `notebooks/11-calibration.ipynb`
 
+**Status (2026-10-06).** `notebooks/11-calibration.ipynb` now exists and passes its offline code check in CI. The decision set is built as template items only (`data/decisions_v1.jsonl.gz`; the 80 hand-written items are open), and the Lab 6 logits file has not been built. The "Not verified" section below records the state when this brief was written. For what has run since, see the [readiness page](../readiness.qmd).
+
 From the Academic Director to the Neural Lab Engineer (owner of Lab 11), with Exercise 4 and the shared decision set coordinated with the Agentic Systems Engineer (owner of Lab 8's provider wrapper and of Labs 12 and 14, which reuse the set). Lecture: `lectures/11-calibration.qmd` (same symbols and equation names: `bin-stats`, `ece`, `brier`, `log-loss`, `proper`, `brier-expected`, `temp-scaling`, `temp-fit`, `risk-coverage`, `threshold`, `selective-cost`). Lab standards: `PLAN.md` section 5. Data contract: `data/README.md`. Lab 6 hand-off: `briefs/06-pretraining-huggingface.md`. Provider wrapper: `briefs/08-llm-apis.md`, "As built". This file is not rendered by Quarto.
 
 **Objectives exercised** (from `_variables.yml`, `m11`): say what a probability should mean; measure calibration with reliability diagrams, ECE and the Brier score; explain proper scoring rules; use confidence to decide when to abstain.

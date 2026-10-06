@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "source": "backfill",
+  "env": "gha-ubuntu",
+  "env_detail": "GitHub Actions ubuntu-latest, CPU, Python 3.12, newest allowed package versions",
+  "path": "offline",
+  "mode": "worked",
+  "settings": {
+    "NLP_LLMS_QUICK": "1",
+    "HF_HUB_OFFLINE": "1",
+    "NLP_LLMS_OFFLINE_TINY": "1",
+    "LAB07_OFFLINE": "tiny",
+    "NLP_LLMS_STUB": "1",
+    "LAB09_OFFLINE": "tiny",
+    "LAB10_OFFLINE": "tiny",
+    "LAB13_OFFLINE": "1",
+    "LAB14_OFFLINE": "1",
+    "LAB15_OFFLINE": "1"
+  },
+  "commit": "d462d65",
+  "evidence": "GitHub Actions run 37463984863 (Publish on main), job notebooks, scripts/test_notebooks.py output",
+  "runs": [
+    {
+      "notebook": "00-setup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.6,
+      "path": "open",
+      "note": "reads none of the offline flags, so CI ran its only path",
+      "settings": {}
+    },
+    {
+      "notebook": "01-text-as-data",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 19.0,
+      "path": "open",
+      "note": "reads none of the offline flags, so CI ran its only path",
+      "settings": {}
+    },
+    {
+      "notebook": "02-word-vectors",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 46.6,
+      "path": "open",
+      "note": "reads none of the offline flags, so CI ran its only path",
+      "settings": {}
+    },
+    {
+      "notebook": "03-sequence-models",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 79.0
+    },
+    {
+      "notebook": "04-seq2seq-attention",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 96.4
+    },
+    {
+      "notebook": "05-transformer-from-scratch",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 209.1
+    },
+    {
+      "notebook": "06-pretraining-huggingface",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 36.0
+    },
+    {
+      "notebook": "07-finetuning-lora",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 9.9
+    },
+    {
+      "notebook": "08-llm-apis",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 9.4
+    },
+    {
+      "notebook": "09-preference-learning",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 103.5
+    },
+    {
+      "notebook": "10-rlhf",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 17.8
+    },
+    {
+      "notebook": "11-calibration",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 14.5
+    },
+    {
+      "notebook": "12-rlcd-jev",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 13.8,
+      "path": "open",
+      "note": "reads none of the offline flags, so CI ran its only path; no TypeSafe key, so the local toy decider answered",
+      "settings": {}
+    },
+    {
+      "notebook": "13-rag",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 20.9
+    },
+    {
+      "notebook": "14-agents",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 10.3
+    },
+    {
+      "notebook": "15-capstone",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 11.1
+    }
+  ]
+}

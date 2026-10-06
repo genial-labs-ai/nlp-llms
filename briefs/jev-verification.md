@@ -2,7 +2,7 @@
 
 From the Agentic Systems Engineer, build Day 8 (2026-10-05). Input to Labs 12–15 and lectures 12–14. This file is not rendered by Quarto.
 
-**Bottom line.** The official Python package is `typesafe-sdk` (import `typesafe_sdk`), not `typesafe-sdk-python`. That name is the GitHub repository and is not on PyPI. The LangChain integration `langchain-typesafe` exists and its class is `TypeSafeClassifier`, but it is an alpha release (`0.0.1a3`) and the class is marked `@beta`. **No official LlamaIndex integration exists**: `llama-index-jev` is not on PyPI, and the `run-llama/llama_index` repository has no TypeSafe or Jev code. The only LlamaIndex reranker is a package published by a private individual. The API key variable `TYPESAFE_API_KEY` is confirmed. I verified every fact below against code, packages or repositories published by TypeSafe AI or LangChain. **`docs.typesafe.ai` itself could not be read** (the build container's egress proxy blocks it), so I could not check the documentation's own wording on confidence, limits, pricing or RLCD.
+**Bottom line.** The official Python package is `typesafe-sdk` (import `typesafe_sdk`), not `typesafe-sdk-python`. That name is the GitHub repository and is not on PyPI. The LangChain integration `langchain-typesafe` exists and its class is `TypeSafeClassifier`, but it is an alpha release (`0.0.1a3`) and the class is marked `@beta`. **No official LlamaIndex integration exists**: `llama-index-jev` is not on PyPI, and the `run-llama/llama_index` repository has no TypeSafe or Jev code. The only LlamaIndex reranker is a package published by a private individual. The API key variable `TYPESAFE_API_KEY` is confirmed. I verified every fact below against code, packages or repositories published by TypeSafe AI or LangChain. **`docs.typesafe.ai` itself could not be read** (the build container's egress proxy blocks it), so I could not check the documentation's own wording on confidence, limits, pricing or RLCD. **Update 2026-10-06:** the documentation has since been read from a networked machine; section 12 records what it states and which statements below it supersedes.
 
 Labels used below:
 
@@ -328,3 +328,59 @@ Also proposed, in pages I may not edit:
 - PLAN.md section 4, Module 12 stack: `typesafe-sdk-python` → `typesafe-sdk`.
 - PLAN.md section 4, Module 13: "Jev through `llama-index-jev`" → "a Jev reranker written in the notebook on `typesafe-sdk` (no official LlamaIndex integration exists)".
 - `tests/`: a check that no notebook or page contains the strings `pip install typesafe-ai`, `typesafe-sdk-python`, `llama-index-jev` or `pip install jev`.
+
+## 12. 2026-10-06: docs.typesafe.ai read
+
+From the Academic Director, 2026-10-06. The documentation was read from a networked machine: the pages named below, and the site's full-text export (`https://docs.typesafe.ai/llms-full.txt`, linked from `https://docs.typesafe.ai/llms.txt`; 111 pages, 21,167 lines), which was searched for the terms listed under "Searched for and not found". Raw copies were saved locally for the session and are not committed. Quotations are verbatim, with Markdown formatting removed. **No live API call was made** (no key), and nothing on `typesafe.ai` outside the documentation was read. The quotations used in lecture 12 await the workshop lead's sign-off (the notice `typesafe-unverified` in lecture 12, section 2).
+
+### What TypeSafe states
+
+| Page | Quotation | Bearing |
+|---|---|---|
+| [AI primer](https://docs.typesafe.ai/introduction/machine-learning-primer) | "Pretrained language models have been adapted in two major ways. TypeSafe adds a third. RLHF and RLVR are shown here for context; TypeSafe's training path is RLCD." | RLCD is named by TypeSafe. Supersedes §7's "the string RLCD does not appear". |
+| AI primer | "Reinforcement learning for calibrated decisions trains TypeSafe to return decisions and calibrated probabilities instead of generated text." | The expansion of RLCD and its aim. |
+| AI primer | "RLCD optimizes for a different output contract:" "The model does not generate text." "It returns decisions and probabilities." "Higher probability should correspond to a greater chance that the answer is correct." | What RLCD optimizes for, stated as a contract on outputs, not as a method. |
+| AI primer | RLHF "trains models to produce responses people prefer"; "it can also reward sycophancy and confident-sounding hallucinations". "TypeSafe's position is that production automation needs a different training objective—one centered on constrained decisions and calibrated uncertainty." | The third-party claim that RLCD optimizes calibration "instead of optimizing preference like RLHF" is TypeSafe's position in substance; those words are the third parties'. |
+| [System One](https://docs.typesafe.ai/concepts/system-one) | "System One models are trained for calibrated decisions: their probabilities are optimized against outcomes to reflect uncertainty. Calibration is measured across groups of predictions; it does not guarantee that an individual answer is correct." | The fullest training statement found. It names no reward or loss. |
+| [Models](https://docs.typesafe.ai/models) | Jev "is trained with RLCD to return calibrated decisions, and the same weights serve every account." "Jev is not fine-tuned or LoRA-adapted with customer data." "Jev is not trained on customer requests or responses." "English is the primary training language and where accuracy is currently best." | The only statements about training data. |
+| Models | `jev-1.13.0`: price "\$42 / \$0.042" per Btok / per Mtok; "Charged per input token. Output tokens are free." | Confirms the `WorkflowEvals` price in §5 (0.042 USD per million input tokens, output free). |
+| Models | Rate limits "100K tokens per second / 80 requests per second"; "A request over either limit returns `429 Too Many Requests`." Warning: "the limits above can change without notice"; "Higher limits are available on custom and enterprise plans." | Rate limits are now published (§2 and §9 said unknown). Whether they apply per key or per account is not stated. |
+| Models | Context length "64k tokens per request; 32k tokens for `state` plus the longest question". Aliases: `jev-latest` and `jev-preview` both point to `jev-1.13.0`; "There is no preview build available right now." | `jev-latest` resolved to `jev-1.13.0` on the day read. |
+| [Confidence](https://docs.typesafe.ai/confidence) | "`confidence` is a statistic computed from the probability distribution the answer already gives you." Choice: confidence = (p_max − 1/n) / (1 − 1/n), "where p_max is the probability of the selected option". Score: max(0, 1 − Σ_i p_i \|i − m\| / MAD_unif), with MAD_unif = (1/n) Σ_i \|i − (n − 1)/2\| and m the most likely level. Noul: "TypeSafe returns no separate `confidence` for it"; for a confidence-style number it suggests \|2p − 1\|. | The server formulas are published. The choice formula is identical to `system-one-adapter`'s (§2), and the score formula matches the adapter's description. Supersedes §2's "the exact server formula is unverified", except that no live response has been checked. |
+| Confidence | Top probability "reads directly as "how likely is the selected option", which makes thresholds easy to reason about". Its examples gate on `confidence` (below 0.5 to a human; above 0.9 to act on a transfer). | TypeSafe's examples threshold `confidence`; lecture 12 thresholds the probability and says why. |
+| [Jev 1.13 jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13) (page "Last reviewed 2026-10-02") | "`jev-1.13` is fast, calibrated, and good at common-sense judgment but it is not perfect." "`jev-1.13`'s score levels are weak in numerical calibration." | A calibration claim without a published measurement. |
+| [How to build with TypeSafe](https://docs.typesafe.ai/concepts/how-to-build-with-system-one) | "Most queries complete in about 100 ms." "Questions are evaluated independently and in parallel." "RLCD communicates uncertainty through calibrated probabilities instead of tending toward overconfidence." | TypeSafe's latency figure. |
+| [Example use cases](https://docs.typesafe.ai/concepts/use-case-map) | "Frontier intelligence at real-time speeds (150ms)" | A second latency figure. |
+| Cookbooks [`consistency_choice_cookbook`](https://docs.typesafe.ai/cookbooks/consistency_choice_cookbook) and [`consistency_noul_cookbook`](https://docs.typesafe.ai/cookbooks/consistency_noul_cookbook) | "In this run `typesafe_choice` has a mean round-trip latency of 114ms." "In this run TypeSafe has a mean round-trip latency of 111ms." | Measured by TypeSafe in particular runs, 15 samples each. |
+
+### Checks run on the documentation
+
+- The four example Choice responses on the [Choice page](https://docs.typesafe.ai/primitives/choice) agree with the Choice formula to within their two-decimal rounding: (0.04, 0.35, 0.61) gives 0.415, shown as 0.42; (0, 0.26, 0, 0, 0.74) gives 0.675, shown as 0.67; (0.34, 0.40, 0.02, 0.24) gives 0.20, shown as 0.2; (0.84, 0.16, 0) gives 0.76, shown as 0.76. The Score page's example (0, 0.57, 0.43) gives 0.355, shown as 0.35. These are documentation examples; whether they are live responses is not stated.
+- The example responses show probabilities rounded to two decimals, as the recorded live response in §2 did.
+
+### Searched for and not found (full-text export, 2026-10-06)
+
+- **The method.** No reward function, loss, description of the algorithm, paper or arXiv link. "Reward" appears only in an example question about phishing and in the primer's descriptions of RLVR and RLHF. Training data: only the two Models-page sentences above.
+- **Measured calibration for Jev.** No reliability diagram, ECE, Brier score or log loss. The nearest thing is the `classification_using_confidence` cookbook, which splits 60 answers at `confidence` ≥ 0.9 (27 of 30 right above, 12 of 30 below): a ranking demonstration, not a calibration measurement.
+- **Third-party claims.** "Parallel sampler": not found (the documentation says questions are "evaluated independently and in parallel", a different claim). "70 to 500 ms": not found. "Novel" and "unpublished": not found as descriptions of RLCD.
+- **The announcement.** No September 2026 announcement is in the documentation. The only blog link is `https://typesafe.ai/blog/introducing-system-one-models-and-jev`, cited in the `sde_cascade` cookbook for "published Jev pricing". **Not read.**
+- **A pricing page.** The documentation has none; the price is on the Models page. A pricing page on `typesafe.ai`, if one exists, was not read.
+
+### What remains unverified
+
+- The blog post above, and anything else on `typesafe.ai`: the manifesto, the legal pages (data processing agreement, privacy policy, zero data retention for enterprise customers) and any pricing page.
+- Whether the rate limits apply per key or per account, and what a room of 30 on one key actually meets. The page warns that limits "can change without notice".
+- Everything that needs a key: live latency, rounding, the `confidence` values against the published formulas, Jev's calibration on the decision set, and what `jev-latest` resolves to on the day of delivery.
+- Free tier or workshop credits: the documentation says nothing about either.
+
+### Effect on the earlier sections of this brief
+
+- §2, "The exact server formula is unverified": superseded. The formulas are published; they have not been checked against a live response.
+- §2 and §9, "Rate limits: not stated": superseded (Models page, above).
+- §5, the `WorkflowEvals` price: confirmed by the Models page.
+- §7, "the string RLCD does not appear" and "the only statement about training is in SKILL.md": superseded (AI primer, System One and Models pages). What still holds: TypeSafe has not published how RLCD works.
+- §10, the label "TypeSafe's emulator formula; Jev's own formula is not published": superseded. Label it "TypeSafe's published choice formula".
+
+### Files updated from this reading
+
+`lectures/12-rlcd-jev.qmd`, `lectures/15-capstone.qmd` (the "Jev and RLCD" box and the section 7 table row), `references.qmd` (TypeSafe sources), `assessments.md` (question 12.1a only) and `notebooks/12-rlcd-jev.ipynb` (markdown and comments only). Not updated, because they are owned by others or were outside this task: `faq.qmd`, `PLAN.md` section 6, `_variables.yml` (`m12` `gaps`), `facilitator-guide.md`, `index.qmd`, the notebooks of Labs 13 to 15 and their briefs, which still say that rate limits are not published, cite the `WorkflowEvals` price table, and (Lab 14's `LocalDecider`) call the choice formula the emulator's only.

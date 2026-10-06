@@ -1,0 +1,9 @@
+---
+title: "Readiness"
+subtitle: "What has run, where, and what is still missing"
+page-layout: full
+---
+
+This page says, module by module, what is known about whether the workshop can be taught as designed. It is generated from two sources, never written by hand: the readiness fields in [`_variables.yml`]({{< var repo.url >}}/blob/main/_variables.yml) and the run records in [`runs/`]({{< var repo.url >}}/tree/main/runs), one record for each time a notebook was run and timed. A run time appears here only if a record exists.
+
+{{< include /_includes/readiness.md >}}

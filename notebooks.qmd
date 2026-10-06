@@ -4,7 +4,7 @@ subtitle: "One lab per module, each opens in Google Colab"
 toc: false
 ---
 
-Start with the setup notebook, then follow the modules in order. Every notebook loads its own data and can be opened cold.
+Start with the setup notebook, then follow the modules in order. Every notebook loads its own data from this repository, so you can open any of them cold, with two exceptions: Lab 10 starts from Lab 9's preference data and reward model, which are [not built yet](readiness.qmd#open-work), and Lab 12's comparison with Lab 11 uses a file that Lab 11 writes.
 
 {{< include /_includes/notebooks.md >}}
 

@@ -5,11 +5,13 @@
 [![Quarto](https://img.shields.io/badge/built%20with-Quarto-447099)](https://quarto.org)
 [![License: CC BY 4.0 / MIT](https://img.shields.io/badge/license-CC%20BY%204.0%20%2F%20MIT-blue)](LICENSE)
 
-A four-day workshop by Genial Labs on the path from traditional NLP to modern LLMs: n-grams, word vectors, attention, transformers, RLHF, RLCD and agents. Every module is a short lecture followed by a hands-on lab in Google Colab.
+A four-day workshop by Genial Labs on the path from traditional NLP to modern LLMs: n-grams, word vectors, attention, transformers, RLHF, RLCD and agents. Modules 1 to 14 are each a short lecture followed by a hands-on lab in Google Colab, and the capstone is a hands-on afternoon.
 
 **Workshop site: <https://project-delphi.github.io/nlp-llms/>** · [Schedule](https://project-delphi.github.io/nlp-llms/schedule.html) · [Notebooks](https://project-delphi.github.io/nlp-llms/notebooks.html) · [References](https://project-delphi.github.io/nlp-llms/references.html)
 
-> **Status: in development.** The curriculum, site and notebook pipeline are in place. Lectures and labs are being written module by module. See [PLAN.md](PLAN.md).
+<!-- BEGIN status -->
+> **As of 2026-10-06: not yet ready to teach.** 0 of 15 labs have run end to end, with their current code, on the Colab runtime they are designed for. 6 have run end to end on their real path elsewhere, on another machine or on the CI runner, and 1 more in part. On the GitHub CPU runner (newest run of each notebook, 2026-10-06), 16 of 16 notebooks passed; 12 of the passing runs used test doubles, which check that the code runs, not what the models do. 11 of 11 pieces of blocking work are open. See the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html).
+<!-- END status -->
 
 ## Who it is for
 

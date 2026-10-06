@@ -26,7 +26,7 @@ The brief covers sections 1 to 4 in 10 minutes, so it is a talk through the tabl
 Check-yourself questions and interactive demos are for self-study and sit outside the 190 minutes; an instructor may use one as a pause.
 
 ::: {.callout-warning appearance="simple"}
-**Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe's only statement we have found in a TypeSafe source is that its System One models "are trained for calibrated decisions"; the method is unpublished. Section 7 keeps that statement apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
+**Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe states in its documentation that Jev "is trained with RLCD to return calibrated decisions" and that its System One models "are trained for calibrated decisions"; it has not published the method or a measurement of Jev's calibration (Module 12, section 2). Section 7 keeps those statements apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -361,7 +361,7 @@ Each module began where the last one stopped working. Where a lab measured the s
 | 9 · Preference learning | the policy gradient; a reward model learned from comparisons | | a policy optimized against a learned reward exploits it → **10** |
 | 10 · RLHF | KL-regularized optimization; DPO without a reward model | | it optimizes what raters prefer, and raters do not judge confidence → **11** |
 | 11 · Calibration | what a probability should mean; temperature scaling; abstention by cost | ECE 0.164 → 0.009 after temperature scaling (the $C = 1$ classifier) | the fix comes after training, and there are only two actions → **12** |
-| 12 · RLCD and Jev | calibration as a training target (TypeSafe's stated aim; the method is unpublished, and Lab 12's toy is our illustration); typed decisions with probabilities; act, ask, escalate | | a decision is only as good as the state in front of it → **13** |
+| 12 · RLCD and Jev | calibration as a training target (RLCD: TypeSafe's stated name and aim; the method is unpublished, and Lab 12's toy is our illustration); typed decisions with probabilities; act, ask, escalate | | a decision is only as good as the state in front of it → **13** |
 | 13 · RAG | retrieval puts the right documents in the state; retrieval and answers measured separately | | a fixed pipeline: no branching, no actions, no pause for a person → **14** |
 | 14 · Agents | an explicit graph with state, interrupts, a router and a guard | | parts measured one at a time; the whole never measured on a fixed task → **15** |
 | 15 · Capstone | one system, measured end to end for accuracy, abstention and cost | your table | section 9 |

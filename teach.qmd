@@ -5,7 +5,9 @@ subtitle: "Materials for instructors"
 
 ## The instructor kit
 
-- **[Facilitator guide](facilitator-guide.md):** what to set up, what to say in the first five minutes, where groups get stuck, what to cut when the clock slips and what to do when Colab, an API or the Hub fails, module by module. It opens with what has not yet been verified; read that first.
+{{< include /_includes/readiness-summary.md >}}
+
+- **[Facilitator guide](facilitator-guide.md):** what to set up, what to say in the first five minutes, where groups get stuck, what to cut when the clock slips and what to do when Colab, an API or the Hub fails, module by module. It opens with what has not yet been verified; read that first, with the [readiness page](readiness.qmd), which lists what has run, where, and the blocking work that remains.
 - **[Pace sheet](instructor-pace.md):** a minute-by-minute plan for every module, with the checkpoint participants should have passed by each point.
 - **[Assessments](assessments.md):** an entry check on the prerequisites and an exit check with one or two questions per module objective, with answers.
 
@@ -18,7 +20,7 @@ Every module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< 
 3. Ask someone to explain the result, especially a surprising one.
 4. Use the checkpoint cell to confirm.
 
-Each lab has a core path sized for the lab slot and one optional stretch section. If a group runs slow, skip the stretch; nothing later depends on it.
+Each lab has a core path planned for the lab slot and one optional stretch section. The plans are estimates until the lab has been timed on your runtime; the [readiness page](readiness.qmd) shows which have. If a group runs slow, skip the stretch; nothing later depends on it.
 
 Module 0 is the exception: a self-serve hour, 08:00–09:00 on Day 1, with no lecture and no notebook. Participants work through its page on their own laptops; you open the room and help with installs. See its section in the [facilitator guide](facilitator-guide.md#module-0).
 
@@ -26,7 +28,7 @@ Module 0 is the exception: a self-serve hour, 08:00–09:00 on Day 1, with no le
 
 - Ask participants to complete [Setup](setup.qmd) the day before, and tell them whether the room opens at 08:00 on Day 1 for [Module 0](lectures/00-coding-agents.qmd) or whether they should do it as pre-work.
 - Decide whether you will provide API keys or rely on the open-model path. Both work.
-- Run every notebook on a fresh Colab runtime the week before. Colab's preinstalled packages change.
+- Run every notebook on a fresh Colab runtime the week before. Colab's preinstalled packages change. Record each run (see [`runs/`]({{< var repo.url >}}/tree/main/runs)) so the readiness page reflects it.
 
 ## Reuse
 

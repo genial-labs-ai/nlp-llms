@@ -4,21 +4,23 @@ title: "FAQ"
 
 ## Do I need API keys?
 
-No. Every lab that uses a commercial API also runs on a free open model. Keys for OpenAI, Anthropic and TypeSafe let you compare the commercial models directly. See [Setup](setup.qmd).
+No. Every lab runs without keys: the API labs fall back to a free open model, and Module 12 falls back to a small decision model you train in the lab. A result from a fallback describes that model, not OpenAI, Claude or Jev. Keys for OpenAI, Anthropic and TypeSafe let you run the commercial models themselves. See [Setup](setup.qmd).
 
 ## Do I need a GPU?
 
-The free T4 GPU in Colab is enough for every lab. Each lab is designed to need under ten minutes of compute.
+The labs are designed for Google Colab's free tier: a T4 GPU for most labs, a CPU runtime for Labs 1, 9, 11 and 12. Each lab's planning estimate is ten minutes of compute or less. Those are estimates. Which labs have actually been run and timed, and on which machines, is on the [readiness page](readiness.qmd):
+
+{{< include /_includes/readiness-summary.md >}}
 
 ## How much will the API labs cost?
 
-Each API lab states its approximate cost for one full run. The labs use small inputs and are designed to be inexpensive.
+Nothing, without keys. With keys, each API lab states its estimated cost for one full run, and prints the measured cost of your run from the token counts each response reports. The estimates are collected on the [readiness page](readiness.qmd); they run from under 5 cents to under 1 USD per lab for one person, and under 2 USD per pair for the capstone afternoon on Claude.
 
 ## What are RLCD and Jev?
 
-Jev is a decision model from TypeSafe AI: it takes typed questions and returns typed answers with probabilities, instead of generating text. TypeSafe's own published material says its System One models are "trained for calibrated decisions". The name RLCD (reinforcement learning for calibrated decisions) and the descriptions of it come from third-party pages; we have not found it in TypeSafe's own sources (checked 2026-10-05; see [lecture 12](lectures/12-rlcd-jev.qmd)).
+Jev is a decision model from TypeSafe AI: it takes typed questions and returns typed answers with probabilities, instead of generating text. TypeSafe's documentation (read 2026-10-06) says Jev "is trained with RLCD to return calibrated decisions", where RLCD is reinforcement learning for calibrated decisions, and that its models' "probabilities are optimized against outcomes to reflect uncertainty". [Lecture 12](lectures/12-rlcd-jev.qmd) lists TypeSafe's statements with their sources, separately from what third parties report.
 
-TypeSafe has not published how its models are trained. Day 3 teaches calibration from the published literature, separates what TypeSafe has stated from what third parties report, and includes a small training experiment that is our own illustration of the idea, not TypeSafe's method.
+TypeSafe has published RLCD's name and aim, but not the method: no reward function, no algorithm, no paper and no measured calibration for Jev. Day 3 teaches calibration from the published literature, separates what TypeSafe has stated from what third parties report, and includes a small training experiment that is our own illustration of the idea, not TypeSafe's method.
 
 ## Can I attend only some of the days?
 

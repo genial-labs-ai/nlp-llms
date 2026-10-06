@@ -8,11 +8,17 @@ Outputs (all overwritten on every run, never edited by hand):
   _includes/day-N.md         the module cards for one day
   _includes/module-NN.md     the header block of one lecture page
   _includes/notebooks.md     the notebook index with Colab links
+  _includes/readiness.md     the readiness page: evidence per module, blocking work
+  _includes/readiness-summary.md  the one-paragraph status on the landing, FAQ and teach pages
   _includes/sidebar.yml      the module sidebar, read by _quarto.yml (metadata-files)
-  README.md                  the region between the BEGIN/END modules markers
+  README.md                  the regions between the BEGIN/END status and modules markers
 
 It also creates a stub lecture page for any module that has none. Existing
 lecture pages are never touched.
+
+The readiness outputs read modules.mNN.readiness and readiness: in _variables.yml and the
+run records in runs/ (scripts/readiness.py). They print dates from the records, never today's
+date, so they change only when the repository does.
 
 Module numbers start at 0. A module with `notebook: false` (Module 0) has no
 lab: it gets a lecture page and a row in the day, schedule and README tables,
@@ -24,9 +30,14 @@ Run:  uv run --group site python scripts/gen_tables.py
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import readiness  # noqa: E402
+import run_records  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 INCLUDES = ROOT / "_includes"
@@ -379,6 +390,142 @@ def sidebar_yaml(v: dict) -> str:
     )
 
 
+def readiness_status(report: dict) -> str:
+    """One paragraph: is the workshop ready to teach, and what has run where."""
+    s = report["summary"]
+    verdict = "ready to teach" if s["ready"] else "not yet ready to teach"
+    when = f"As of {s['as_of']}" if s["as_of"] else "No runs are recorded yet"
+    parts = [
+        f"**{when}: {verdict}.**",
+        f"{s['teaching']} of {s['labs']} labs have run end to end, with their current code,"
+        " on the Colab runtime they are designed for.",
+        f"{s['real']} have run end to end on their real path elsewhere, on another machine"
+        f" or on the CI runner, and {s['real_partial_only']} more in part.",
+    ]
+    if s["ci_to"]:
+        span = s["ci_to"] if s["ci_from"] == s["ci_to"] else f"{s['ci_from']} to {s['ci_to']}"
+        failed = f", {s['ci_failed']} failed" if s["ci_failed"] else ""
+        parts.append(
+            f"On the GitHub CPU runner (newest run of each notebook, {span}),"
+            f" {s['ci_passed']} of {s['notebooks']} notebooks passed{failed};"
+            f" {s['ci_doubles']} of the passing runs used test doubles, which check that the"
+            " code runs, not what the models do."
+        )
+    parts.append(f"{s['items_open']} of {s['items']} pieces of blocking work are open.")
+    return " ".join(parts)
+
+
+def readiness_summary(report: dict) -> str:
+    return readiness_status(report) + " [What has run, where, and what is missing](/readiness.qmd)."
+
+
+def _accounts(r: dict) -> str:
+    text = ", ".join(r["accounts"])
+    if r.get("optional_accounts"):
+        text += f"; optional: {', '.join(r['optional_accounts'])}"
+    if r["cost"] == "free":
+        return f"{text}. Free"
+    return f"{text}. {r['cost'][0].upper()}{r['cost'][1:]}"
+
+
+def _evidence_cell(v: dict, e: dict) -> str:
+    def show(r):
+        return readiness.describe(v, r) if r is not None else "not run"
+
+    ci = e["ci"]
+    if ci is None:
+        ci_text = "—"
+    elif ci["path"] == "offline":
+        ci_text = show(ci) + ", with test doubles"
+    else:
+        ci_text = show(ci) + ", real path (no test doubles)"
+    return "<br>".join(
+        [
+            "**On its Colab runtime:** " + show(e["teaching"]),
+            "**Real path, other runs:** " + show(e["other"]),
+            "**CI:** " + ci_text,
+        ]
+    )
+
+
+def readiness_table(v: dict, report: dict) -> str:
+    """The full readiness page: one row per module, the open work, and a legend."""
+    R = v["readiness"]
+    envs = R["envs"]
+    rows = [
+        "| Module | Content | Designed for | Evidence | Without API keys | Accounts and cost |",
+        "|---|---|---|---|---|---|",
+    ]
+    for _, m in modules_in_order(v):
+        r = m["readiness"]
+        content = f"Lecture {r['lecture']}" + (f" · lab {r['lab']}" if r["lab"] != "none" else "")
+        planned = f"{envs[r['runtime']]['name']} · estimate {r['estimate_minutes']} min"
+        if has_notebook(m):
+            evidence = _evidence_cell(v, report["evidence"][m["slug"]])
+        else:
+            evidence = "No notebook. Not yet run on a fresh laptop"
+        fallback = readiness.FALLBACK_LABELS[r["fallback"]["kind"]]
+        rows.append(
+            f"| [{m['n']} · {m['title']}](/lectures/{m['slug']}.qmd) | {content} | {planned} "
+            f"| {evidence} | **{fallback}.** {r['fallback']['note']} | {_accounts(r)} |"
+        )
+    out = [
+        readiness_status(report),
+        "",
+        "::: {.column-page .table-wide .readiness-table}",
+        "\n".join(rows),
+        ":::",
+        "",
+        "## Blocking work {#open-work}",
+        "",
+    ]
+    for item in report["items"]:
+        mods = ", ".join(str(n) for n in item["modules"])
+        word = "module" if len(item["modules"]) == 1 else "modules"
+        mark = "Done" if item["closed"] else "Open"
+        out.append(f"- **{mark}:** {item['title']} ({word} {mods}; {item['why']})")
+    out.append("")
+
+    gaps = [m for _, m in modules_in_order(v) if m["readiness"].get("gaps")]
+    if gaps:
+        out += ["## Known gaps by module {#gaps}", ""]
+        out += [f"- **{m['n']} · {m['title']}:** {m['readiness']['gaps']}." for m in gaps]
+        out.append("")
+
+    out += [
+        "## How to read this page {#legend}",
+        "",
+        "**Evidence.** Each line is the newest run of that kind, from the run records in"
+        " [`runs/`]({{< var repo.url >}}/tree/main/runs). A newer failure replaces an older"
+        " pass, and on the same day a failure wins. *On its Colab runtime* means a worked run"
+        " (solutions bound) of the whole notebook, on the path a participant without keys"
+        " takes, with no QUICK shortcuts, on the runtime the module is designed for, recorded"
+        " by a tool with the notebook's code hash; it stops counting when the code changes."
+        " *Real path, other runs* is the newest other run without test doubles, on any"
+        " machine except the CI runner; a laptop's or a CPU runner's time does not predict a"
+        " T4's. *CI* is the newest run on the GitHub CPU runner: with test doubles it shows"
+        " that the code runs, not what a model does. A run marked *before the notebook last"
+        " changed* was made against older code; backfilled runs carry no code hash, so they"
+        " cannot be checked. An estimate is a planning figure from the lab's brief, not a"
+        " measurement. Dates are shown as recorded; the release check will also require a"
+        f" teaching run to be at most {R['max_run_age_days']} days old.",
+        "",
+        "**Paths.**",
+        "",
+    ]
+    out += [f"- `{k}`: {text}." for k, text in R["paths"].items()]
+    out += ["", "**Without API keys.**", ""]
+    out += [
+        f"- *{readiness.FALLBACK_LABELS[k]}*: {text}." for k, text in R["fallback_kinds"].items()
+    ]
+    return "\n".join(out)
+
+
+def readme_status(v: dict, report: dict) -> str:
+    site = v["repo"]["site_url"]
+    return f"> {readiness_status(report)} See the [readiness page]({site}/readiness.html)."
+
+
 def readme_table(v: dict) -> str:
     site = v["repo"]["site_url"]
     rows = ["| # | Day | Module | Lab |", "|---|---|---|---|"]
@@ -431,8 +578,13 @@ def main() -> None:
     for key, m in modules_in_order(v):
         write(INCLUDES / f"module-{m['n']:02d}.md", module_block(v, key, m))
     write(INCLUDES / "notebooks.md", notebooks_index(v))
+    records = run_records.load_valid(set(v["readiness"]["envs"]))
+    report = readiness.build(v, records)
+    write(INCLUDES / "readiness-summary.md", readiness_summary(report))
+    write(INCLUDES / "readiness.md", readiness_table(v, report))
     sidebar = INCLUDES / "sidebar.yml"
     sidebar.write_text(f"{YAML_NOTICE}\n{sidebar_yaml(v)}", encoding="utf-8")
+    replace_region(ROOT / "README.md", "status", readme_status(v, report))
     replace_region(ROOT / "README.md", "modules", readme_table(v))
     scaffold_lectures(v)
 

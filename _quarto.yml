@@ -19,6 +19,7 @@ project:
     - instructor-pace.md
     - assessments.md
     - faq.qmd
+    - readiness.qmd
   # Copied to the site as files. Globs are anchored with a leading `/` so they
   # cannot match anything inside .venv/.
   resources:

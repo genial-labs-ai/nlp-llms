@@ -18,6 +18,7 @@ This file does two jobs. The first section gives the rules every agent working i
 - **Language.** American English spelling in published content. Plain, direct sentences. Define a term the first time it appears.
 - **Definition of done.** For a lecture: objectives from `_variables.yml` are each addressed, every equation maps to a line in the lab, `quarto render` is clean. For a lab: Run all succeeds on a fresh Colab runtime with no keys set, checkpoints pass with the solutions, the generators produce no diff.
 - **Report honestly.** State what you ran and what you did not. A notebook that was not executed is "written, not run".
+- **Evidence lives in `runs/`.** A run time, a "verified" or a "has run on" claim on the site comes from a run record (`runs/README.md`) through the generated readiness pages, never typed into a page. When you time a notebook, add a record and rerun `scripts/gen_tables.py`. Never label a laptop or CPU-runner time as a Colab or T4 time.
 
 ### Who owns what
 
