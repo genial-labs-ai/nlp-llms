@@ -4,6 +4,10 @@ title: "{{< var modules.m02.title >}}"
 
 {{< include /_includes/module-02.md >}}
 
+::: {.recap}
+**Where we are.** Module 1 ended with strong count-based baselines and one thing they cannot do: a model that saw *the cat sat* gives *the dog sat* no credit, because every word is its own unrelated symbol and smoothing hands every unseen n-gram the same share. This module asks one question: can a model *learn* a representation in which similar words are close, and what does that buy a classifier and a language model?
+:::
+
 ## Plan for the 45 minutes
 
 | Part | Topic | Minutes |
@@ -17,11 +21,11 @@ title: "{{< var modules.m02.title >}}"
 | 7 | Feed-forward networks and backpropagation | 7 |
 | 8 | Bengio's neural language model | 5 |
 
-Collapsed callouts marked **Optional** are outside the 45 minutes. Skip them in delivery; they are there for reading afterwards.
+Collapsed callouts marked **Optional** are outside the 45 minutes. Skip them in delivery; they are there for reading afterwards. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## 1. Where counts stop
 
-[Module 1](01-text-as-data.qmd) built two count-based models: an n-gram language model and a TF-IDF classifier. Both treat each word as an atomic symbol, and both fail in the same two ways.
+Both models of [Module 1](01-text-as-data.qmd), the n-gram language model and the TF-IDF classifier, fail in the same two ways.
 
 **Sparsity.** A trigram model estimates $P(w_t \mid w_{t-2}, w_{t-1})$ from the count $c(w_{t-2}, w_{t-1}, w_t)$. There are $|V|^3$ possible trigrams, where $V$ is the vocabulary and $|V|$ its size. With $|V| = 20{,}000$ that is $8 \times 10^{12}$ cells, and any corpus fills only a tiny fraction of them. Smoothing moves probability mass onto the empty cells, but it cannot tell a plausible unseen trigram from an absurd one.
 
@@ -31,6 +35,14 @@ Collapsed callouts marked **Optional** are outside the 45 minutes. Skip them in 
 - The TF-IDF classifier learns one weight per word and class. A test abstract that mentions *lidar* gets no help from the training abstracts that mentioned *depth* sensing: the two words share no weight.
 
 What we want is a representation in which similar words have similar vectors, so that what the model learns about one word transfers to its neighbors. The representation should also be small: tens or hundreds of dimensions, not $|V|$.
+
+::: {.self-check}
+**Check yourself.** Take the one-hot vectors of *hotel*, *motel* and *banana* in $\mathbb{R}^{|V|}$. What is the Euclidean distance from *hotel* to *motel*? From *hotel* to *banana*? If you looked up the nearest neighbor of *hotel*, what would you get?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Both distances are $\sqrt{2}$. Two different one-hot vectors differ in exactly two coordinates, each by 1, so the distance is $\sqrt{1^2 + 1^2}$ for *every* pair of distinct words, and every cosine is 0. The nearest neighbor of *hotel* is a tie among all the other $|V| - 1$ words. The representation carries the identity of a word and nothing else, so no amount of training on top of it can transfer what was learned about *hotel* to *motel*.
+:::
+:::
 
 ## 2. The distributional hypothesis and dense vectors
 
@@ -47,6 +59,14 @@ $$
 $$ {#eq-cosine}
 
 where $\lVert \cdot \rVert$ is the Euclidean norm. Cosine ignores vector length, which tends to track word frequency rather than meaning. *Lab: Exercise 2 implements @eq-cosine to find nearest neighbors.*
+
+::: {.self-check}
+**Check yourself.** In two dimensions, let $e_a = (1, 1)$, $e_b = (1, 0.8)$ and $e_c = (5, 1)$. Which of $b$ and $c$ is the nearer neighbor of $a$ by dot product? By cosine (@eq-cosine)? Which answer would you want from a nearest-neighbor search, and why?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Dot products: $e_a^\top e_b = 1.8$ and $e_a^\top e_c = 6$, so the dot product picks $c$. Cosines: $1.8 / (1.414 \times 1.281) = 0.994$ for $b$ and $6 / (1.414 \times 5.099) = 0.832$ for $c$, so cosine picks $b$. Vector $c$ wins the dot product only because it is long; it points in a different direction from $a$. Length tends to track how often a word occurs, so a dot-product search keeps returning frequent words. Cosine compares directions only, which is why the lab's `nearest_neighbors` uses it.
+:::
+:::
 
 ## 3. Skip-gram with a full softmax
 
@@ -85,6 +105,14 @@ $$ {#eq-softmax-grad}
 
 The gradient is "observed context vector minus expected context vector". The expectation is a sum over the whole vocabulary, so every training pair costs $O(|V|)$ and touches every row of $U$. With billions of pairs and $|V|$ in the hundreds of thousands, this is the bottleneck. *Lab: @eq-softmax and @eq-sg-loss are the provided function `softmax_skipgram_loss`, used only to time one training step against SGNS at the lab's $|V|$ and at $|V| = 100{,}000$; you do not implement them. @eq-softmax-grad is not computed explicitly; autograd applies it in that timing cell.*
 
+::: {.self-check}
+**Check yourself.** A text has $T = 8$ tokens and the window half-width is $m = 2$, as in @fig-skipgram-window. How many (center, context) pairs does it produce? With a full softmax and $|V| = 100{,}000$, how many rows of $U$ does the gradient of *one* of those pairs touch?
+
+::: {.callout-tip collapse="true" title="Answer"}
+26 pairs, not $2mT = 32$: the windows are cut off at the ends of the text. The eight positions have 2, 3, 4, 4, 4, 4, 3 and 2 context words. Each pair touches all 100,000 rows of $U$, because the sum in @eq-softmax-grad runs over the whole vocabulary: the observed row $u_o$ once, and every row $u_v$ with weight $P_\theta(v \mid w)$. So this 8-token text already costs 2.6 million row updates per pass. That is the cost negative sampling removes.
+:::
+:::
+
 ## 4. Negative sampling
 
 Negative sampling (Mikolov et al., 2013) replaces the $|V|$-way prediction with a much cheaper binary one. This is the derivation the lab implements, so we take it step by step.
@@ -121,6 +149,18 @@ This is the skip-gram negative-sampling (SGNS) loss. The training loss is its av
 
 One value is worth knowing by heart. If every score is 0, then $\sigma(0) = \tfrac12$ and each of the $K + 1$ terms is $-\log \tfrac12 = \log 2$, so $\mathcal{L}_{\text{SGNS}} = (K + 1) \log 2$, about 4.159 for $K = 5$. That is the loss of a model that cannot tell real pairs from noise; the Exercise 1 checkpoint tests it, and the lab's training curve starts there.
 
+::: {.worked-example}
+**Worked example: one real pair, two negatives.** Take $K = 2$ and suppose the current vectors give the scores $u_o^\top e_w = 2$, $u_{\tilde{w}_1}^\top e_w = -1$ and $u_{\tilde{w}_2}^\top e_w = 0.5$. The three terms of @eq-sgns are:
+
+| Pair | Score | Label $D$ | $\sigma(\text{score})$ | Loss term |
+|---|---|---|---|---|
+| real, $(w, o)$ | $2$ | 1 | $0.881$ | $-\log \sigma(2) = 0.127$ |
+| noise, $(w, \tilde{w}_1)$ | $-1$ | 0 | $0.269$ | $-\log \sigma(1) = 0.313$ |
+| noise, $(w, \tilde{w}_2)$ | $0.5$ | 0 | $0.622$ | $-\log \sigma(-0.5) = 0.974$ |
+
+So $\mathcal{L}_{\text{SGNS}} = 0.127 + 0.313 + 0.974 = 1.414$, below the $(K + 1)\log 2 = 2.079$ of a model that knows nothing. Most of the remaining loss comes from the second noise word: the model gives that fake pair a probability of 0.622 of being real.
+:::
+
 ![Negative sampling as binary classification. The real pair $(w, o)$ and $K = 3$ noise pairs $(w, \tilde{w}_k)$ each pass a dot-product score through a sigmoid. The target label is $D = 1$ for the real pair and $D = 0$ for the noise pairs.](/images/02-sgns-binary.svg){#fig-sgns-binary fig-alt="Four rows. The first row is the real pair (w, o): its score, u_o transpose e_w, feeds a sigmoid, and the target label is D = 1. The other three rows are noise pairs (w, w-tilde-1) to (w, w-tilde-3): each score, u_w-tilde-k transpose e_w, feeds a sigmoid, and the target label is D = 0."}
 
 **Step 5: the gradients.** We need one derivative: $\frac{d}{dx} \log \sigma(x) = \frac{\sigma'(x)}{\sigma(x)} = 1 - \sigma(x)$, using $\sigma'(x) = \sigma(x)(1 - \sigma(x))$. Replacing $x$ by $-x$ and applying the chain rule gives $\frac{d}{dx} \log \sigma(-x) = -(1 - \sigma(-x)) = -\sigma(x)$. Apply the chain rule to each term of @eq-sgns:
@@ -138,6 +178,95 @@ $$ {#eq-sgns-grad}
 **What we gained.** One update now touches $K + 2$ vectors instead of $|V| + 1$: the cost per pair drops from $O(|V|)$ to $O(K)$. *Lab: the Exercise 1 checkpoint compares autograd's gradient of your `sgns_loss` against @eq-sgns-grad.*
 
 **What we gave up.** @eq-sgns is not an approximation of the softmax likelihood @eq-sg-loss, and $\sigma(u_o^\top e_w)$ is not a normalized distribution over words. SGNS gives good vectors, not a language model.
+
+::: {.worked-example}
+**Worked example, continued: the gradients.** For the three scores above, the prediction errors $\sigma(\cdot) - D$ are $0.881 - 1 = -0.119$ for the real pair, $0.269$ for the first noise pair and $0.622$ for the second. @eq-sgns-grad multiplies each by the other side's vector:
+
+$$
+\frac{\partial \mathcal{L}_{\text{SGNS}}}{\partial u_o} = -0.119\, e_w, \qquad
+\frac{\partial \mathcal{L}_{\text{SGNS}}}{\partial u_{\tilde{w}_1}} = 0.269\, e_w, \qquad
+\frac{\partial \mathcal{L}_{\text{SGNS}}}{\partial u_{\tilde{w}_2}} = 0.622\, e_w .
+$$
+
+Gradient descent subtracts these. So $u_o$ takes a small step *toward* $e_w$ (the real pair is already scored well), $u_{\tilde{w}_1}$ a moderate step away from it, and $u_{\tilde{w}_2}$ the largest step away, because it is the pair the model currently gets most wrong. The center vector moves by the same three errors applied to the three context vectors: $\partial \mathcal{L}_{\text{SGNS}} / \partial e_w = -0.119\, u_o + 0.269\, u_{\tilde{w}_1} + 0.622\, u_{\tilde{w}_2}$.
+:::
+
+::: {#demo-sgns .demo}
+**Try it: SGNS updates in two dimensions.** Four hand-picked vectors in $\mathbb{R}^2$: a center vector $e_w$, the context vector $u_o$ of a real pair, and the context vectors $\tilde{u}_1$, $\tilde{u}_2$ of $K = 2$ noise words. (Here $\tilde{u}_k$ is short for $u_{\tilde{w}_k}$; the plot labels the four vectors "center e", "real u", "noise ũ₁" and "noise ũ₂".) Each step applies @eq-sgns-grad once to all four with plain gradient descent. This is an illustration, not lab data.
+
+**Predict first.** At the start, $\tilde{u}_1$ points almost the same way as $e_w$ and $\tilde{u}_2$ points almost the opposite way. Which of the two moves farther in the first step, and along which direction does each context vector move?
+
+```{ojs}
+//| echo: false
+viewof sgdSteps = Inputs.range([0, 40], {value: 0, step: 1, label: "Gradient steps taken"})
+viewof eta = Inputs.range([0.05, 1], {value: 0.3, step: 0.05, label: "Learning rate"})
+```
+
+```{ojs}
+//| echo: false
+sgnsRun = {
+  const sigma = (x) => 1 / (1 + Math.exp(-x));
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+  const start = {e: [1.0, 0.2], uo: [-0.3, 1.0], neg: [[0.9, 0.6], [-0.8, -0.5]]};
+  let {e, uo, neg} = start;
+  for (let s = 0; s < sgdSteps; s++) {
+    const go = sigma(dot(uo, e)) - 1;               // error on the real pair: sigma - 1
+    const gk = neg.map((u) => sigma(dot(u, e)));    // error on each noise pair: sigma - 0
+    const ge = [0, 1].map((i) => go * uo[i] + gk[0] * neg[0][i] + gk[1] * neg[1][i]);
+    const e0 = e;                                   // all four gradients use the old vectors
+    e = e.map((x, i) => x - eta * ge[i]);
+    uo = uo.map((x, i) => x - eta * go * e0[i]);
+    neg = neg.map((u, j) => u.map((x, i) => x - eta * gk[j] * e0[i]));
+  }
+  const loss = -Math.log(sigma(dot(uo, e))) - neg.reduce((a, u) => a + Math.log(sigma(-dot(u, e))), 0);
+  const cos = (a, b) => dot(a, b) / (Math.hypot(a[0], a[1]) * Math.hypot(b[0], b[1]));
+  return {start, e, uo, neg, loss, cos};
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const r = sgnsRun;
+  const rows = (s) => [
+    {x: s.e[0], y: s.e[1], name: "center e", kind: "center"},
+    {x: s.uo[0], y: s.uo[1], name: "real u", kind: "real context"},
+    {x: s.neg[0][0], y: s.neg[0][1], name: "noise ũ₁", kind: "noise"},
+    {x: s.neg[1][0], y: s.neg[1][1], name: "noise ũ₂", kind: "noise"}
+  ];
+  const chart = Plot.plot({
+    width: 440, height: 440, grid: true,
+    x: {domain: [-2.6, 2.6], label: "dimension 1"}, y: {domain: [-2.6, 2.6], label: "dimension 2"},
+    color: {legend: true, domain: ["center", "real context", "noise"], range: ["#1f2933", "#1d5f8a", "#b3541e"]},
+    marks: [
+      Plot.link(rows(r.start), {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "kind", strokeOpacity: 0.35, strokeDasharray: "3 3"}),
+      Plot.arrow(rows(r), {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "kind", strokeWidth: 2.5}),
+      Plot.text(rows(r), {x: (d) => d.x + 0.32 * d.x / Math.hypot(d.x, d.y), y: (d) => d.y + 0.32 * d.y / Math.hypot(d.x, d.y), text: "name", fontSize: 13})
+    ]
+  });
+  return html`${chart}<p>After ${sgdSteps} steps: loss = ${r.loss.toFixed(3)};
+  cosine of the center vector with the real context vector = ${r.cos(r.e, r.uo).toFixed(2)}, with ũ₁ = ${r.cos(r.e, r.neg[0]).toFixed(2)}, with ũ₂ = ${r.cos(r.e, r.neg[1]).toFixed(2)}.</p>`;
+}
+```
+
+Solid arrows are the current vectors; dashed lines are where they started. Every context vector moves along $\pm e_w$, the "other side's vector" of @eq-sgns-grad, by an amount set by its prediction error: $u_o$ toward $e_w$, both noise vectors away, and $\tilde{u}_1$ much farther than $\tilde{u}_2$ because its error is larger (0.74 against 0.29 at the start). The center vector turns toward $u_o$ and away from the noise. Keep stepping and the loss falls toward 0 while the vectors keep growing: with one pair and two fixed negatives nothing stops the model from becoming ever more confident. In real training each vector is pulled by many pairs and fresh negatives at once.
+:::
+
+::: {.self-check}
+**Check yourself.** Two words have counts $c = 1{,}000$ and $c = 10$. Under the raw unigram distribution the frequent word is drawn 100 times as often as the rare one. How many times as often under the noise distribution @eq-noise? What would an exponent of 0 do?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The ratio becomes $(1000/10)^{3/4} = 100^{0.75} \approx 31.6$. The normalizing sum cancels in a ratio, so only the exponent matters. The rare word is still drawn less often, but relative to the frequent word about three times more often than the raw counts would give. An exponent of 0 gives every word the same probability $1/|V|$: negatives would then be mostly rare words, since most of the vocabulary is rare (Zipf's law), and frequent words would almost never be pushed away from anything. The value $3/4$ sits between the two extremes and was chosen by experiment.
+:::
+:::
+
+::: {.self-check}
+**Check yourself.** A colleague trains SGNS and wants to report its perplexity on held-out text, to compare with Module 1's bigram model. What do you tell them?
+
+::: {.callout-tip collapse="true" title="Answer"}
+It cannot be done. Perplexity needs a normalized next-token distribution $P(w_t \mid w_{<t})$. SGNS produces $\sigma(u_o^\top e_w)$, the probability that one pair is real; summed over all $o$ in the vocabulary these values do not add up to 1, and nothing in @eq-sgns pushes them to. SGNS also predicts words on both sides of the center, not the next word from the previous ones. Negative sampling is a different objective from the softmax, not a faster way to compute it. To get a perplexity you need a model with a softmax over the vocabulary, such as the one in Part 8.
+:::
+:::
 
 ::: {.callout-note collapse="true" title="Optional: subsampling frequent words, and the dynamic window"}
 Words such as *the* appear in almost every window and say little about their neighbors. Mikolov et al. (2013) discard each occurrence of word $v$ before building pairs with probability
@@ -187,6 +316,14 @@ How much of this structure appears depends on the data. Lab 2 trains on about on
 
 The picture is cleaner than the analogies: words from papers on the same topic are close, which is what the distributional hypothesis predicts. *Lab: Section A3 draws this plot from your embeddings and saves the coordinates; @fig-embedding-pca is drawn from the recorded run (`scripts/make_figures_02.py`).*
 
+::: {.self-check}
+**Check yourself.** Suppose the offset idea holds only loosely: $e_b - e_a$ is a short vector compared with $e_{a'}$ itself. Remove the exclusion set from @eq-analogy, so that the arg max runs over all of $V$. Which word will the analogy "$a$ is to $b$ as $a'$ is to ?" most likely return?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Most likely $a'$ itself. The query vector is $e_{a'} + (e_b - e_a)$: the vector of $a'$ plus a small displacement. Unless the displacement is large, the vector with the highest cosine to "$e_{a'}$ plus a little" is $e_{a'}$. So without the exclusion the method mostly returns one of its own inputs, and the reported accuracy of the analogy test depends on the exclusion rule. That is one reason to read analogy scores as evidence of *some* linear structure, not as a test of whether the model understands the relation.
+:::
+:::
+
 ## 6. PyTorch refresher
 
 Everything from here to Module 12 is written in PyTorch. Four ideas are enough for today.
@@ -224,6 +361,14 @@ for center, context, negatives in loader:          # 1. get a batch
 `B` is the batch size. The function `sgns_loss` is @eq-sgns averaged over the batch: the one piece you write in Exercise 1. Step 4 computes @eq-sgns-grad for you; the gradient is nonzero only in the rows of $E$ and $U$ that the batch used. `loader` stands for whatever yields batches: in the lab it is a loop over the shuffled pairs from `make_pairs`, 16,384 pairs at a time, with the negatives drawn from $P_n$ inside the loop.
 
 The two `nn.init` lines are word2vec's initialization, and the lab uses them too. With $U = 0$ every score $u^\top e$ is 0 at the first step, so the first loss is exactly $(K + 1)\log 2$; the lab asserts this. At that first step only $U$ moves: in @eq-sgns-grad the gradient with respect to $e_w$ is a weighted sum of context vectors, and all of them are still zero.
+
+::: {.self-check}
+**Check yourself.** To simplify the code, someone initializes *both* $E$ and $U$ to zero. Use @eq-sgns-grad to predict the loss after 1,000 training steps.
+
+::: {.callout-tip collapse="true" title="Answer"}
+It is still $(K + 1)\log 2$, the starting value. Every gradient in @eq-sgns-grad is an error times the *other* side's vector. The gradient for $e_w$ is a weighted sum of context vectors, all zero. The gradients for $u_o$ and $u_{\tilde{w}_k}$ are multiples of $e_w$, also zero. Nothing moves at step 1, so nothing moves at step 2, and so on: zero is a stationary point of the loss, and the optimizer never leaves it. One of the two matrices must start nonzero to break the tie. That is why word2vec, and the lab, start $E$ small and random and only $U$ at zero.
+:::
+:::
 
 ## 7. Feed-forward networks and backpropagation
 
@@ -264,6 +409,14 @@ $$ {#eq-backprop}
 where $\odot$ is the elementwise product and $\mathbf{1}[a > 0]$ is 1 where the hidden unit was active and 0 elsewhere (the derivative of ReLU). The first line comes from differentiating $\mathcal{L} = -z_y + \log \sum_j \exp(z_j)$: the derivative with respect to $z_i$ is $\hat{y}_i$, minus 1 when $i = y$. It has the same "prediction minus target" form as @eq-softmax-grad and @eq-sgns-grad. Each later line multiplies the error arriving from above by the local derivative of one layer. *Lab: you do not write @eq-backprop; `loss.backward()` computes it. A provided cell checks autograd's $\partial \mathcal{L} / \partial z$ against $\hat{y} - \mathrm{onehot}(y)$.*
 
 One more step of the chain rule gives $\partial \mathcal{L} / \partial x = W_1^\top \delta_a$, and through @eq-avg a gradient for every embedding in the document. So embeddings can be trained by the classification loss too. In the lab's core path they stay frozen, so that the comparison with TF-IDF measures the features and nothing else.
+
+::: {.self-check}
+**Check yourself.** For one training example, hidden unit 3 has pre-activation $a_3 = -0.7$. What gradient does this example send to row 3 of $W_1$ and to entry 3 of $b_1$? What if $a_3 < 0$ for *every* training example?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Zero, for both. In @eq-backprop, $\delta_a = (W_2^\top \delta_z) \odot \mathbf{1}[a > 0]$, and the indicator is 0 for unit 3, so entry 3 of $\delta_a$ is 0 whatever error arrives from above. Row 3 of $\partial \mathcal{L} / \partial W_1 = \delta_a x^\top$ is then a zero row. The unit output 0 in the forward pass, so it had no effect on the loss, and it gets no signal. If $a_3 < 0$ for every example, the unit never receives a gradient and its weights never change again: a "dead" ReLU unit. It is one reason for careful initialization and moderate learning rates.
+:::
+:::
 
 ### What the lab measures
 
@@ -316,6 +469,14 @@ The model in Bengio et al. (2003) also has optional direct connections from $x$ 
 - Each word has one vector regardless of context: *bank* is the same in "river bank" and "bank account".
 
 [Module 3](03-sequence-models.qmd) takes up the first two: recurrent networks read a sequence of any length in order, carrying a hidden state $h_t$ from one token to the next. The third waits for contextual representations in Modules 5 and 6.
+
+::: {.self-check}
+**Check yourself.** A neural language model (@eq-nplm) has $|V| = 10{,}000$, $d = 100$, $d_h = 200$ and reads $n - 1 = 3$ context words. Count its weights, ignoring biases. How many cells does the corresponding 4-gram count table have? Then widen the context to 10 words: how many weights are added, and what does the model still not share?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Embeddings $|V| d = 1{,}000{,}000$; hidden layer $d_h (n-1) d = 200 \times 300 = 60{,}000$; output layer $|V| d_h = 2{,}000{,}000$. Total: 3.06 million weights, against $|V|^4 = 10^{16}$ cells in the 4-gram table. Widening to 10 context words grows only $W_1$, from $200 \times 300$ to $200 \times 1{,}000$: 140,000 more weights. That is cheap, but each of the 10 positions gets its own block of columns in $W_1$. What the model learns about a word three positions back does not transfer to the same word four positions back, and no fixed width covers every dependency. Sharing one set of weights across positions is the idea of Module 3.
+:::
+:::
 
 ## Equation-to-lab map
 

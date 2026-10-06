@@ -2,17 +2,38 @@
 title: "{{< var workshop.title >}}"
 subtitle: "A four-day workshop: {{< var workshop.subtitle >}}"
 toc: false
+page-layout: full
+# custom.scss hides the title block on this page: the hero below carries the title.
+body-classes: landing
 ---
+
+::: {.hero}
+[{{< var workshop.org >}} · A four-day workshop]{.eyebrow}
+
+# {{< var workshop.title >}} {.unnumbered .unlisted}
+
+[{{< var workshop.subtitle >}}]{.hero-subtitle}
+
+::: {.hero-lead}
+Modern language models did not appear from nowhere. Each step, from counting words to attention to training on human preferences, fixed a specific failure of the step before it. This workshop follows that line over four days, and you build each step yourself.
+:::
+
+::: {.hero-actions}
+[Start with setup](setup.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
+:::
+
+{{< include /_includes/facts.md >}}
+:::
 
 ::: {.callout-note appearance="simple"}
 This workshop is being written. The curriculum and schedule are set; lectures and labs are added module by module.
 :::
 
-Modern language models did not appear from nowhere. Each step, from counting words to attention to training on human preferences, fixed a specific failure of the step before it. This workshop follows that line over four days, and you build each step yourself.
-
-Every module is a short lecture followed by a hands-on lab in Google Colab.
-
 ## The four days
+
+::: {.section-lede}
+Each day answers one question. Every module is a short lecture followed by a hands-on lab in Google Colab.
+:::
 
 {{< include /_includes/days.md >}}
 
@@ -20,8 +41,17 @@ See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebook
 
 Day 1 opens at 08:00 with an optional self-serve hour, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd), which you can also do as pre-work.
 
+## The path {#path}
+
+::: {.section-lede}
+Each step fixes a failure of the one before it. The same small datasets and tasks come back from module to module, so each improvement is measured, not asserted.
+:::
+
+{{< include /_includes/path.md >}}
+
 ## What you will be able to do
 
+::: {.outcomes}
 - Explain the line of ideas from count-based language models to transformers, and say what problem each step solved.
 - Implement the core of each model in PyTorch: skip-gram, an LSTM language model, seq2seq with attention, and a small GPT.
 - Fine-tune pretrained models with Hugging Face, including LoRA.
@@ -30,9 +60,11 @@ Day 1 opens at 08:00 with an optional self-serve hour, [Module 0 · {{< var modu
 - Measure calibration, explain how RLCD's objective differs from RLHF's, and use a calibrated decision model (Jev) through its API.
 - Build and evaluate a RAG pipeline with LlamaIndex and LangChain.
 - Build a LangGraph agent with tools, state, human-in-the-loop checkpoints and confidence-gated control.
+:::
 
 ## Who it is for {#prerequisites}
 
+::: {.prose}
 Machine learning practitioners who want to understand language models from the ground up. You should be comfortable with:
 
 - **Python and NumPy:** functions, classes, broadcasting, matrix products.
@@ -41,15 +73,18 @@ Machine learning practitioners who want to understand language models from the g
 - **Math:** vectors and matrices, the chain rule, conditional probability, cross-entropy.
 
 You need a Google account for Colab. API keys are optional: every lab that uses a commercial API also runs on a free open model. See [Setup](setup.qmd).
+:::
 
 ## How each module works
 
 Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The labs follow one rhythm:
 
+::: {.rhythm}
 1. **Predict** what a cell will output before you run it.
 2. **Run** it.
 3. **Explain** the result, especially when it differs from your prediction.
 4. **Check** your work against a checkpoint that passes or fails.
+:::
 
 Each exercise has a solution folded directly beneath it, and each lab ends with an optional stretch section for those who finish early.
 

@@ -60,6 +60,7 @@ Drawn from Stanford CS224N, CMU CS 11-747 and MIT 6.S191:
 - **Short lecture, immediate lab.** No lecture runs longer than 45 minutes before hands-on work (MIT 6.S191).
 - **Predict → Run → Explain → Check.** The lab rhythm carried over from `tensors-workshop`: participants predict an output, run the cell, explain the result, then pass a checkpoint assertion.
 - **One running thread.** The same small datasets and the same tasks reappear across modules, so improvements are measured, not asserted.
+- **Retrieve and manipulate before the lab.** Each lecture opens with a recap box, closes most sections with a check-yourself question (answer folded), carries its derivations through a worked numeric example, and has at most one interactive demo. These sit outside the 45 minutes. Authoring hooks: `.recap`, `.self-check`, `.worked-example`, `.demo` (styled in `custom.scss`; `filters/pedagogy.lua` styles the per-section objective lines).
 - **Honesty about what is known.** Where a method is unpublished (RLCD), the material says so and separates public facts from our own illustration.
 
 ---
@@ -85,7 +86,7 @@ nlp-llms/
 ├── faq.qmd
 ├── teach.qmd                instructor hub
 ├── facilitator-guide.md  instructor-pace.md  assessments.md
-├── custom.scss              cosmo override; Inter body, Source Serif 4 headings
+├── custom.scss              cosmo override; Inter body, Source Serif 4 headings (custom-dark.scss: dark theme tokens)
 ├── fonts/  images/  data/   vendored fonts, figures, fallback dataset copies
 ├── scripts/                 gen_tables.py, gen_notebooks.py, new_notebook.py, test_notebooks.py, check_links.py
 ├── tests/
@@ -104,7 +105,7 @@ nlp-llms/
 - **Generated files are never edited by hand.** `scripts/gen_tables.py` writes the tables in `_includes/` and the marked regions in `README.md`. `scripts/gen_notebooks.py` owns the first cell (title, Colab badge, time, objectives) and the last cell (next notebook, site link) of every notebook, strips outputs and execution counts, and is idempotent. CI fails if running the generators changes anything.
 - **Notebooks are not executed at render time.** `_quarto.yml` lists pages explicitly under `render:` and ships `notebooks/*.ipynb` as `resources:`. There is no `_freeze/`.
 - **Deploy from an Actions artifact.** `publish.yml` renders to `docs/`, which is gitignored, and deploys with `actions/deploy-pages`.
-- **Navbar only, no sidebar.** Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ.
+- **Navbar, plus a module sidebar on lecture pages.** Navbar: Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ. Inside `lectures/` a generated left sidebar (`_includes/sidebar.yml`) lists the modules by day, with previous/next module links at the foot of each page. (Changed 2026-10-05; `tensors-workshop` has no sidebar.)
 
 ### Deliberately left out of v1
 
@@ -274,11 +275,11 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 #### Module 14 · Agents
 
 - **Objectives:** build a tool-using agent as an explicit graph; add state, memory and human-in-the-loop interrupts; use a calibrated decision model for routing and tool-call approval.
-- **Lecture:** from the hand-written tool loop of Module 8 to agents; ReAct; LangChain tools and runnables; LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts; where agents fail (loops, wrong tool, unsafe action, prompt injection); using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12.
+- **Lecture:** from the hand-written tool loop of Module 8 to agents; the agent harness (agent = model + harness; not to be confused with an evaluation or test harness), with ARC-AGI's same-model, different-harness results as a worked example; ReAct; LangChain tools and runnables; tool design (descriptions, few tools, short results, actionable errors); LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts, resume or start fresh; where agents fail (loops, wrong tool, unsafe action, prompt injection), stopping on a final answer, and enforcement in code; using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12, plus escalation triggers and hand-offs; designing the harness: workflow patterns (Anthropic) and agentic design patterns (Ng), coordinators and subagents, context as a budget.
 - **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a probability; gate the risky tool with an act / ask / escalate guard from Module 12's thresholds (a simulated human answers interrupts in unattended runs); replay from a checkpoint; test against a prompt-injection document.
-- **Stretch:** add a verification node that checks the final answer against the retrieved sources.
+- **Stretch (one section, four parts; pick one):** (A) a verification node that checks the final answer against the retrieved sources; (B) a research subagent with its own context, failures returned as results, and a coverage check at the coordinator; (C) compaction that keeps the facts word for word; (D) a hand-off record that stands alone.
 - **Stack:** LangChain, LangGraph, Jev, OpenAI/Claude (fallback: local model and the Module 12 toy decision model).
-- **Readings:** Yao et al. 2022 (ReAct); LangGraph documentation.
+- **Readings:** Yao et al. 2023 (ReAct); LangGraph documentation; Schluntz and Zhang 2024 (Building effective agents); Greshake et al. 2023; Beurer-Kellner et al. 2025.
 
 #### Module 15 · Capstone (double slot)
 
@@ -315,7 +316,7 @@ Every notebook must meet all of these.
 | Item | Risk | Mitigation |
 |---|---|---|
 | RLCD is unpublished | No paper, reward function or reliability data from TypeSafe; teaching it as fact would be speculation | Module 11 teaches calibration theory on its own footing; Module 12 states what is public and labels the toy lab as our own illustration |
-| Jev package names and API surface | Checked 2026-10-05 against the published packages and TypeSafe's and LangChain's GitHub repositories (details and sources in `briefs/jev-verification.md`). `docs.typesafe.ai` was blocked from the build container and has not been read. **SDK:** PyPI `typesafe-sdk` 0.7.2 (MIT, by TypeSafe AI), import `typesafe_sdk`; `typesafe-sdk-python` is only the repository name and is not on PyPI. `TypeSafeClient` / `AsyncTypeSafeClient`, key from `TYPESAFE_API_KEY`; `system_one(state, questions)` sends `POST /v1/systemone` with `Noul` / `Choice` / `Score` questions. `Choice` and `Score` answers carry `probabilities` and `confidence`; `Noul` carries only a probability, with no confidence field. There is no batch endpoint. **LangChain:** `langchain-typesafe` 0.0.1a3 (alpha; the class is `@beta`), `TypeSafeClassifier` confirmed; it does not depend on `typesafe-sdk`. **LlamaIndex:** there is no official integration: `llama-index-jev` does not exist, and `llama_index` main has no TypeSafe code | Use `typesafe-sdk==0.7.2` and `langchain-typesafe==0.0.1a3`. Write the Module 13 reranker in the notebook on the SDK, with a cross-encoder fallback. With no key, a local backend returns the same `SystemOneResponse` type. Re-read `docs.typesafe.ai` (confidence, limits, pricing) from a networked machine before delivery. Section 4 still names `typesafe-sdk-python` and `llama-index-jev`; the Academic Director should correct both |
+| Jev package names and API surface | Checked 2026-10-05 against the published packages and TypeSafe's and LangChain's GitHub repositories (details and sources in `briefs/jev-verification.md`). `docs.typesafe.ai` was blocked from the build container and has not been read. **SDK:** PyPI `typesafe-sdk` 0.7.2 (MIT, by TypeSafe AI), import `typesafe_sdk`; `typesafe-sdk-python` is only the repository name and is not on PyPI. `TypeSafeClient` / `AsyncTypeSafeClient`, key from `TYPESAFE_API_KEY`; `system_one(state, questions)` sends `POST /v1/systemone` with `Noul` / `Choice` / `Score` questions. `Choice` and `Score` answers carry `probabilities` and `confidence`; `Noul` carries only a probability, with no confidence field. There is no batch endpoint. **LangChain:** `langchain-typesafe` 0.0.1a3 (alpha; the class is `@beta`), `TypeSafeClassifier` confirmed; it does not depend on `typesafe-sdk`. **LlamaIndex:** there is no official integration: `llama-index-jev` does not exist, and `llama_index` main has no TypeSafe code | Use `typesafe-sdk==0.7.2` and `langchain-typesafe==0.0.1a3`. Write the Module 13 reranker in the notebook on the SDK, with a cross-encoder fallback. With no key, a local backend returns the same `SystemOneResponse` type. Re-read `docs.typesafe.ai` (confidence, limits, pricing) from a networked machine before delivery. Section 4 now names only `typesafe-sdk` and says there is no LlamaIndex integration (corrected 2026-10-05) |
 | Lookalike Jev packages on PyPI | Unaffiliated packages sit on names participants may guess: `typesafe-ai` (a shim by a private individual), `jev` (no author), `typesafe-client` (a placeholder), `typesafe` (unrelated, 2010) and `llama-index-postprocessor-jev` (an individual's reranker). The names `typesafe-sdk-python` and `llama-index-jev` are unregistered and could be taken by anyone | Print only `typesafe-sdk` and `langchain-typesafe`, with exact pins; warn participants in `setup.qmd`; add a test that fails if a notebook or page installs any other TypeSafe-like name |
 | Jev confidence semantics | `confidence` measures how concentrated the distribution is, not the probability of the chosen label. Jev's formula is unpublished. A recorded live response had probabilities rounded to 0.01 | Lab 12 draws reliability diagrams from `noul` and `probabilities[choice]`, never from `confidence`, and says why. Thresholds are explicit numbers derived from a stated cost of error |
 | Jev experimental LangChain middleware | `AutoModeMiddleware` blocks risky tool calls at a hard-coded p ≥ 0.5 and never asks a human. It works only with `create_agent`, and omitting `criteria` silently drops its default criteria | Lab 14 writes its own act / ask / escalate guard node with `interrupt()` and explicit thresholds, and quotes the middleware's instructions only as an example |
@@ -453,6 +454,15 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Wiring: `modules.m00` (`notebook: false`), the `self_serve` slot and `days.d1.self_serve`, `agents_intro` versions; generators, tests, navbar, day, schedule, setup, index and teach pages; facilitator guide and pace sheet sections; `agents-intro` in the ruff paths 
 - [ ] Verify every install command (the three agents, git, `gh`) against each tool's current documentation, and refresh `agents_intro`, before each delivery
 - [ ] Run Module 0 end to end on a fresh laptop per OS (macOS, Windows with WSL 2, Linux); record the times and replace the provisional rows in `instructor-pace.md`
+
+### Module 14 — certification, harness and ARC-AGI pass (added 2026-10-06)
+
+- [x] Lecture 14: the harness defined in section 1, with a terminology note and an ARC-AGI worked example; tool design in section 3; resume or start fresh in section 5; stopping and enforcement in section 6; escalation triggers and hand-offs in section 7; a new section 9 (patterns, subagents, context) with an optional Claude Agent SDK and MCP mapping. Sources: the *Claude Certified Architect – Foundations* exam guide v1.0, Anthropic's engineering posts, Ng's letters in *The Batch*, ARC Prize's reports and leaderboard, all opened 2026-10-06. Three optional callouts moved out of the 45 minutes to make room. Rendered clean with Quarto 1.6.40
+- [x] `references.qmd` (Module 14 and library documentation), Module 0's harness sentence, Module 15's further study, brief 14's note for the Lab Engineer
+- [ ] Timing dry-run of the rebalanced lecture 14 (section 9 is budgeted at 4 minutes, which is tight)
+- [x] Lab 14 stretch exercises for the new material: parts B (research subagent, `run_subagent` and `coverage_gaps`), C (`compact`) and D (`handoff`) beside part A (the verify node), each with a folded solution and a scripted checkpoint; spec in brief 14. The core path is unchanged
+- [ ] Decide whether `m14` objectives gain a fourth (designing the harness); not done, because only the optional stretch exercises it
+- [ ] Re-read the ARC-AGI figures and Anthropic's posts before each delivery: the leaderboard reprices runs, and "Building effective agents" has already been edited once since 2024
 
 ### Ongoing review (after v1.0)
 

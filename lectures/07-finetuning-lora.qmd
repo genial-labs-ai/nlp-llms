@@ -4,6 +4,10 @@ title: "{{< var modules.m07.title >}}"
 
 {{< include /_includes/module-07.md >}}
 
+::: {.recap}
+**Where we are.** [Module 6](06-pretraining-huggingface.qmd) ended with a pretrained causal language model that continues text, and with a fine-tuning recipe that updates every parameter. Neither is enough for an assistant: the model cannot tell a request from a reply, and updating every weight does not scale. This module answers one question: how do we teach a pretrained model to follow instructions while training well under 1% of its parameters?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -19,6 +23,8 @@ title: "{{< var modules.m07.title >}}"
 | **Total** | **45** |
 
 The collapsed callouts are optional and sit outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## 1. A language model continues; it does not answer
 
@@ -99,6 +105,14 @@ Three points to carry away:
 **In the lab.** In **Exercise 3** you write `format_chat` and check that it returns exactly the string that `tokenizer.apply_chat_template` returns for the same messages.
 :::
 
+::: {.self-check}
+**Check yourself.** At generation time you call `format_chat(messages)` on one user message and forget `add_generation_prompt=True`. Write the last line of the string the model receives. What is it now free to write next, and why is that a problem?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The string ends with the user's message and its closing token: `Name the capital of France.<|im_end|>` and a newline. Nothing says whose turn is next, so the model must write `<|im_start|>` and a role name itself. It may write `assistant`, or it may write `user` and continue with a second user message. Whatever follows is returned to you as "the reply". The generation prompt removes that choice: it fixes the next speaker, so the only thing left to predict is the reply.
+:::
+:::
+
 ## 3. The instruction-tuning loss
 
 **Objective for this section:** write the loss that turns a language model into an instruction follower.
@@ -152,6 +166,14 @@ Padding positions have $m_t = 0$, so they also get `-100`. The model shifts the 
 **In the lab.** In **Exercise 4** you write `build_labels` for @eq-masked-loss; the provided `encode_example` builds `response_mask`. The checkpoint counts the scored positions on a known example and compares the model's loss with a hand computation. The provided `response_loss` reports @eq-masked-loss on held-out examples, and @eq-ppl-resp is its exponential.
 :::
 
+::: {.self-check}
+**Check yourself.** A formatted example has 10 tokens. Three of them are the response: two words and the closing `<|im_end|>`. The model gives these three the probabilities 0.5, 0.25 and 0.5. Compute $\mathcal{L}_{\text{resp}}$ and $\mathrm{PPL}_{\text{resp}}$. Why do you not need the other seven probabilities? What would the model fail to learn if the mask on the closing token were 0?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$\mathcal{L}_{\text{resp}} = \tfrac{1}{3}(\log 2 + \log 4 + \log 2) = \tfrac{4}{3}\log 2 \approx 0.924$, and $\mathrm{PPL}_{\text{resp}} = e^{0.924} \approx 2.52$. The other seven positions have $m_t = 0$, so they enter neither the sum nor the count of @eq-masked-loss. The model still reads them: each response probability is conditioned on them. With the closing token masked out, no training step would ever reward writing `<|im_end|>` after an answer. The model would answer and then keep writing until the length limit.
+:::
+:::
+
 ## 4. What full fine-tuning costs
 
 **Objective for this section:** say where the cost of updating every weight comes from.
@@ -165,6 +187,14 @@ Padding positions have $m_t = 0$, so they also get `-100`. The model shifts the 
 **Parameter-efficient fine-tuning (PEFT)** is the family of methods that freeze the pretrained weights and train a small number of new parameters. A frozen parameter needs no gradient and no optimizer state, and what must be stored per task is only the small new part. LoRA is the most widely used of these methods.
 
 One caveat. The activations of the forward pass must still be kept to backpropagate *through* the frozen layers to the trainable ones, so memory falls by less than the parameter count does. Hu et al. (2022) report 10,000 times fewer trainable parameters but 3 times less GPU memory for GPT-3.
+
+::: {.self-check}
+**Check yourself.** The lab's model has 134.5 million parameters, and its LoRA adapter trains 460,800 of them (section 6 derives that number). With the rule above, four numbers per trainable parameter and one per frozen parameter at 4 bytes each, estimate the parameter-related training memory for full fine-tuning and for LoRA. LoRA trains about 290 times fewer parameters. Does memory fall 290-fold?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Full fine-tuning: $4 \times 4 \times 134.5 \times 10^6$ bytes $\approx 2.15$ GB. LoRA: the frozen weights still take $4 \times 134.5 \times 10^6$ bytes $\approx 0.54$ GB, and the adapter, with its weights, gradients and optimizer state, adds $4 \times 4 \times 460{,}800$ bytes $\approx 7.4$ MB. So this part of the memory falls about 4-fold, not 290-fold, because the frozen weights still have to be held. The activations, which neither estimate counts, shrink even less. This is the gap between 10,000 times and 3 times in the paper's GPT-3 figures.
+:::
+:::
 
 ## 5. LoRA: a low-rank update
 
@@ -234,6 +264,68 @@ $$ {#eq-lora-merge}
 
 The merged layer is an ordinary linear layer: no extra parameters, no extra computation, no added latency at inference. Subtracting $\frac{\alpha}{r} BA$ restores $W_0$. The alternative is to keep one copy of the base model and swap small adapters in and out, one per task.
 
+::: {.worked-example}
+**Worked example: a LoRA layer by hand.** Take $d_{\text{in}} = 3$, $d_{\text{out}} = 2$, rank $r = 1$ and $\alpha = 2$, so the scale is $\alpha / r = 2$. Suppose that after some training
+
+$$
+W_0 = \begin{pmatrix} 1 & 0 & 2 \\ 0 & 1 & -1 \end{pmatrix}, \qquad
+A = \begin{pmatrix} 1 & -1 & 0 \end{pmatrix}, \qquad
+B = \begin{pmatrix} 0.5 \\ -1 \end{pmatrix}, \qquad
+x = \begin{pmatrix} 2 \\ 1 \\ 1 \end{pmatrix}.
+$$
+
+- **Frozen path:** $W_0 x = (4,\ 0)^\top$.
+- **Bypass** (@eq-lora-forward): $Ax = 2 - 1 + 0 = 1$, a single number because $r = 1$. Then $B(Ax) = (0.5,\ -1)^\top$, and after the scale, $(1,\ -2)^\top$.
+- **Output:** $h = (4,\ 0)^\top + (1,\ -2)^\top = (5,\ -2)^\top$.
+- **Merge** (@eq-lora-merge): $BA = \begin{pmatrix} 0.5 & -0.5 & 0 \\ -1 & 1 & 0 \end{pmatrix}$, so $W_{\text{merged}} = W_0 + 2BA = \begin{pmatrix} 2 & -1 & 2 \\ -2 & 3 & -1 \end{pmatrix}$, and $W_{\text{merged}}\, x = (4 - 1 + 2,\ -4 + 3 - 1)^\top = (5,\ -2)^\top$. The same output, from one ordinary matrix.
+- **Rank:** both rows of $BA$ are multiples of the one row of $A$. That is what rank 1 means: the update can move the output along a single direction, the column of $B$.
+- **Count** (@eq-lora-count): $r\,(d_{\text{in}} + d_{\text{out}}) = 5$ trained numbers, against 6 in $W_0$. At this size nothing is saved. The saving comes with width: at $d_{\text{in}} = d_{\text{out}} = 576$ and $r = 8$ it is 9,216 against 331,776.
+:::
+
+::: {#demo-lora-count .demo}
+**Demo: the sum against the product.**
+
+**Predict first.** At a fixed rank $r$, what happens to the adapter's share of the layer when the width $d$ doubles? And at which rank does the adapter have as many parameters as the frozen matrix itself?
+
+```{ojs}
+//| echo: false
+viewof d07 = Inputs.range([64, 4096], {label: "Width d (d_in = d_out)", step: 64, value: 576})
+viewof r07 = Inputs.range([1, 64], {label: "Rank r", step: 1, value: 8})
+viewof alpha07 = Inputs.range([1, 128], {label: "Scaling constant α", step: 1, value: 16})
+```
+
+```{ojs}
+//| echo: false
+Plot.plot({
+  width: 720, height: 320, marginLeft: 70, grid: true,
+  x: {type: "log", label: "width d"},
+  y: {type: "log", label: "parameters in one layer"},
+  color: {legend: true, domain: ["frozen W0: d × d", "LoRA adapter: r (d + d)"], range: ["#1d5f8a", "#b3541e"]},
+  marks: [
+    Plot.line(curve07, {x: "d", y: "n", stroke: "kind", strokeWidth: 2}),
+    Plot.ruleX([d07], {stroke: "#888", strokeDasharray: "4 3"}),
+    Plot.dot([{d: d07, n: d07 * d07, kind: "frozen W0: d × d"}, {d: d07, n: 2 * r07 * d07, kind: "LoRA adapter: r (d + d)"}],
+      {x: "d", y: "n", fill: "kind", r: 5})
+  ]
+})
+```
+
+```{ojs}
+//| echo: false
+curve07 = Array.from({length: 64}, (_, i) => 64 * (i + 1)).flatMap(d => [
+  {d, n: d * d, kind: "frozen W0: d × d"},
+  {d, n: 2 * r07 * d, kind: "LoRA adapter: r (d + d)"}
+])
+```
+
+```{ojs}
+//| echo: false
+html`<p>Frozen matrix: <strong>${(d07 * d07).toLocaleString("en-US")}</strong> parameters. Adapter: <strong>${(2 * r07 * d07).toLocaleString("en-US")}</strong>, which is <strong>${(100 * 2 * r07 / d07).toFixed(2)}%</strong> of the layer. Scale α / r = <strong>${(alpha07 / r07).toFixed(2)}</strong>.</p>`
+```
+
+The demo plots both sides of @eq-lora-count for a square layer, on logarithmic axes. The frozen matrix grows as $d^2$ and the adapter as $2rd$, so the adapter's share is $2r / d$: it halves each time the width doubles, and it reaches 100% at $r = d / 2$, where LoRA stops saving anything. The last number is the scale of @eq-lora: raising $r$ with $\alpha$ fixed shrinks it, which is why $\alpha$ is usually set in proportion to $r$.
+:::
+
 **The whole layer in code:**
 
 ```python
@@ -268,6 +360,22 @@ The lab writes `merged_weight` as a separate function and attaches it to the cla
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** **Exercise 1** is the layer: you write the initialization and the forward pass of `LoRALinear` (@eq-lora, @eq-lora-forward). Two checkpoints: the output equals the base layer's output at initialization, because $B = 0$; and the number of trainable parameters equals $r(d_{\text{in}} + d_{\text{out}})$ (@eq-lora-count). In **Exercise 2** you write `merged_weight` (@eq-lora-merge), after a provided loop has trained a layer on a toy regression so that $B$ is nonzero, and check that a plain linear layer with the merged weight reproduces the adapter's output to floating-point tolerance. The gradients of @eq-lora-grad are computed by autograd; a provided cell prints them at initialization so you can see that the gradient of $A$ is zero and that of $B$ is not.
+:::
+
+::: {.self-check}
+**Check yourself.** A colleague initializes both $A$ and $B$ with small random values, "so that both get a gradient from the first step". Does training still work? What has been lost?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Training works: by @eq-lora-grad both gradients are now nonzero at step 1. What is lost is the starting point. With $B \neq 0$ the product $BA$ is not zero, so $W = W_0 + \frac{\alpha}{r} BA \neq W_0$: the first forward pass runs a randomly perturbed copy of the pretrained model, in every adapted layer at once. Zero-initializing $B$ costs nothing, since $B$ still gets a gradient, and it guarantees that step 0 is exactly the pretrained model.
+:::
+:::
+
+::: {.self-check}
+**Check yourself.** You train with $r = 8$ and $\alpha = 16$. For a second run you raise the rank to $r = 16$ and leave everything else alone. What happened to the scale in @eq-lora, and what would you set $\alpha$ to if you wanted to change only the rank?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The scale $\alpha / r$ fell from $16 / 8 = 2$ to $16 / 16 = 1$. By @eq-lora-grad the scale also multiplies both gradients, so the second run differs from the first in two ways: more capacity, and a smaller effective step for the adapter. To change only the rank, keep the ratio and set $\alpha = 32$. This is the practical meaning of "$\alpha$ is tuned like a learning rate": when you report a rank sweep, report $\alpha$ with it.
+:::
 :::
 
 ## 6. LoRA in practice: where, how large, and the `peft` library
@@ -311,6 +419,14 @@ Things to know when reading this:
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 5** you write `lora_param_count(model, r, target_modules)`, which sums @eq-lora-count over the targeted layers, complete the `LoraConfig`, and assert that your count equals what `peft` reports after wrapping. Predict the number on paper first. The training loop is provided. The checkpoint after training is a number: the response loss and perplexity (@eq-masked-loss, @eq-ppl-resp) on held-out examples, before and after. The **stretch** section sweeps the rank $r$ and compares the query-and-value adapter with one on every linear layer.
+:::
+
+::: {.self-check}
+**Check yourself.** Without recomputing from the shapes, give the number of trainable parameters for $r = 16$ on `q_proj` and `v_proj` in the lab's model, and its share of the model. Then decide which adapter is larger: $r = 32$ on the query and value projections, or $r = 8$ on every linear layer.
+
+::: {.callout-tip collapse="true" title="Answer"}
+@eq-lora-count is linear in $r$, so doubling the rank doubles the count: $2 \times 460{,}800 = 921{,}600$, about 0.69% of 134.5 million. At $r = 32$ the query-and-value adapter has $4 \times 460{,}800 = 1{,}843{,}200$ parameters, still fewer than the 2,442,240 of the $r = 8$ adapter on every linear layer. The two choices spend a similar budget in different ways: a higher rank in a few places, or a low rank everywhere. Which is better for a task is a measurement, which the stretch section makes.
+:::
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: quantization and QLoRA"}
@@ -374,6 +490,14 @@ def generate_reply(model, tokenizer, messages, **gen_kwargs) -> str:
 **In the lab.** The `generate_reply` helper above is provided in Step 0. A fixed set of prompts is run through the model before and after fine-tuning with greedy decoding, and the replies are shown side by side. In **Exercise 6** you edit a `SAMPLING` dictionary of `generate` arguments for one prompt, predict the effect, and compare three sampled replies with two greedy ones. There is no function to write for this part.
 :::
 
+::: {.self-check}
+**Check yourself.** You score a model on 20 prompts, generating with `do_sample=True, temperature=0.7`. After a change to the training data the score rises a little. Name two explanations for the rise, and the change to the protocol that separates them.
+
+::: {.callout-tip collapse="true" title="Answer"}
+Either the model improved, or the dice fell differently: with sampling, two runs of the *same* model give different replies and so different scores, and 20 prompts are few. Decode greedily (`do_sample=False`) for the measurement, so that the output is a function of the model alone. If the application needs sampling, score several sampled runs of each model and compare the spread within a model with the gap between models.
+:::
+:::
+
 ## 8. Evaluating generated text
 
 **Objective for this section:** define three kinds of metric for generated text and state what each one misses.
@@ -412,6 +536,14 @@ Human judgment remains the reference point for all three. [Module 8](08-llm-apis
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 6** you write `rouge_n` (@eq-rouge) and compare the mean score of the model's replies before and after fine-tuning. Exact match was written in Lab 4. BLEU and model-graded evaluation are not implemented in this lab; Lab 8 returns to graded evaluation.
+:::
+
+::: {.self-check}
+**Check yourself.** The reference is `the capital of france is paris` (lowercased, punctuation stripped). Compute ROUGE-1 (@eq-rouge with $n = 1$) for three candidates: (a) `paris`; (b) `the capital of france is lyon`; (c) `the the the the`. Which candidate does the metric rank first, and what does that show?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The reference has 6 unigrams, so the denominator is 6. (a) shares one: $1/6 \approx 0.17$. (b) shares five: $5/6 \approx 0.83$. (c) also scores $1/6$: `the` occurs once in the reference, so the $\min$ credits it once, however often the candidate repeats it. The metric ranks (b) first, and (b) is the only wrong answer. The correct, concise answer (a) ties with the nonsense of (c). Overlap measures shared words with one reference, not correctness, which is why the lab reports it beside the outputs themselves.
+:::
 :::
 
 ## Summary

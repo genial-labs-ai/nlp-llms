@@ -4,6 +4,10 @@ title: "{{< var modules.m04.title >}}"
 
 {{< include /_includes/module-04.md >}}
 
+::: {.recap}
+**Where we are.** Module 3's recurrent language model reads a prefix of any length and emits one prediction per input token, in step with it. It has no way to map one sequence to *another*, of a different length and in a different order: a sentence to its translation, a written date to ISO format. This module asks one question: how should the source reach the model that writes the target, and what breaks when it has to pass through a single vector?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -18,7 +22,7 @@ title: "{{< var modules.m04.title >}}"
 | 8. Attention as a query-key-value lookup | 3 |
 | **Total** | **45** |
 
-The collapsed callouts are optional and sit outside the 45 minutes.
+The collapsed callouts are optional and sit outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## 1. From next-token prediction to transduction
 
@@ -102,6 +106,14 @@ The lab averages the loss over the non-padding target tokens of a batch instead 
 **In the lab.** The encoder (@eq-encoder), the decoder cell and the training loop are provided. In **Exercise 1** you write `forward_plain` and `seq2seq_loss`: the teacher-forced forward pass and the loss of @eq-decoder, @eq-output and @eq-loss. The checkpoint asks for an untrained loss close to $\ln |V| = \ln 15 \approx 2.71$ nats per token.
 :::
 
+::: {.self-check}
+**Check yourself.** The target is `2021-03-03`, one character per token, followed by `<eos>`. How many factors does @eq-factorization have for it? For an untrained model over the lab's 15 target tokens, what is the summed loss @eq-loss, and what does the lab's averaged loss print? Under teacher forcing, the model predicts `7` at step 2 where the target has `0`. What is the decoder's input at step 3?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Eleven factors: ten characters and `<eos>`, which the model must also predict so that it knows when to stop. An untrained model is close to uniform, so each factor costs about $\ln 15 = 2.71$ nats: the sum is about $11 \times 2.71 = 29.8$ nats and the average is $2.71$. The average is the number the checkpoint tests, because it does not depend on the target's length. At step 3 the input is the embedding of `0`, the correct $y_2$. Teacher forcing feeds the true previous token whatever the model predicted, which is why all eleven losses come from a single forward pass.
+:::
+:::
+
 ## 3. The fixed-vector bottleneck
 
 **Objective for this section:** explain why this model degrades as the source gets longer.
@@ -125,6 +137,14 @@ The evidence is empirical. Bahdanau et al. (2015) report that the translation qu
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** The source contains $K$ dates, $K = 1$ to $4$, so the amount the decoder must remember grows with the input. In **Exercise 2** you write `exact_match` (the whole output string must be right) and measure it by $K$ for the model without attention. At the lab's budget ($d_h = 128$, 4,000 training steps) it breaks as soon as a second date appears: exact match is 0.898 for one date and 0.000 for two, three and four. It keeps only the first date. In every bucket the first output date is right for 0.90 to 0.93 of the sources and every later date for none, although the outputs still have the right number of well-formed ISO dates. More capacity or training would raise these numbers. The claim is about an equal budget, which the attention model of section 4 gets.
+:::
+
+::: {.self-check}
+**Check yourself.** Double the source length from $S$ to $2S$ and leave the target alone. In the plain encoder-decoder, how do these two quantities change: the number of values in the vector that carries the source to the decoder, and the number of recurrent steps between the first source token and the last target token? Which of the two problems named above does each belong to?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The vector does not change: $h_S$ has $d_h$ values whatever $S$ is, so twice the information must fit in the same space. That is the capacity problem. The path grows from $S + T$ steps to $2S + T$, so the gradient that tells the encoder how to store the first token passes through $S$ more recurrent steps. That is the optimization problem, the one Module 3 analyzed. A longer source makes both worse at once, which is why they are easy to confuse. They have different cures, though: a larger $d_h$ addresses capacity and does nothing for the path, while gating helps the path and leaves capacity alone.
+:::
 :::
 
 ## 4. Attention
@@ -158,6 +178,16 @@ A worked example with $S = 3$: scores $(2, 0, 0)$ give $\exp$ values $(7.39, 1, 
 $$
 \bar{h}_t = \sum_{i=1}^{S} \alpha_{t,i}\, h_i .
 $$ {#eq-context}
+
+::: {.worked-example}
+**Worked example: one attention step with vectors.** Take $S = 3$ and $d_h = 2$, with encoder states $h_1 = (1, 0)$, $h_2 = (0, 1)$, $h_3 = (-1, 0)$ and decoder state $s_t = (2, 0)$.
+
+1. **Score** with the dot product: $s_t^\top h_1 = 2$, $s_t^\top h_2 = 0$, $s_t^\top h_3 = -2$.
+2. **Normalize** (@eq-weights): the exponentials are $(7.389,\ 1,\ 0.135)$, with sum $8.524$, so $\alpha_t = (0.867,\ 0.117,\ 0.016)$.
+3. **Average** (@eq-context): $\bar{h}_t = 0.867\,(1, 0) + 0.117\,(0, 1) + 0.016\,(-1, 0) = (0.851,\ 0.117)$.
+
+The context is mostly $h_1$, the state that points the same way as the query, but it is not $h_1$: every state contributes. Now suppose position 3 is padding, a filler position that makes the sources of a batch equally long (see **Padding** below). Its score is set to $-\infty$, its exponential is 0, and the softmax runs over the other two: $\alpha_t = (0.881,\ 0.119,\ 0)$ and $\bar{h}_t = (0.881,\ 0.119)$. The weights of the real positions rise so that the row still sums to one.
+:::
 
 ::: {.callout-important appearance="simple"}
 **Notation.** The original papers write the context vector as $c_t$. In this workshop $c_t$ is the LSTM cell state from Module 3, so we write the context as $\bar{h}_t$: the bar is a reminder that it is an average of encoder states $h_i$. It lives in the same space, $\bar{h}_t \in \mathbb{R}^{d_h}$.
@@ -196,6 +226,65 @@ def dot_product_attention(q, keys, mask):  # q: (B, T, d_h), the decoder states 
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** **Exercise 3** is the attention step, in the two functions above: `masked_attention(scores, keys, mask)` (the masked softmax of @eq-weights and the context vector of @eq-context) and `dot_product_attention(q, keys, mask)` (the scores of @eq-dot). Both return `(alpha, h_bar)`. The combination layer of @eq-attentional is provided. Trained with the same $d_h$, steps, optimizer and batches as the plain model, the attention model reaches exact match 1.000 for every $K$ from 1 to 4, where the plain model scored 0.000 from $K = 2$ on.
+:::
+
+::: {#demo-attention .demo}
+**Try it: turn the query, watch the weights.** Five encoder states $h_1, \dots, h_5$ are placed by hand in two dimensions. You control the decoder state $s_t$, the query: its direction and its length. The demo computes dot-product scores $s_t^\top h_i$, the weights $\alpha_{t,i}$ of @eq-weights and the context vector $\bar{h}_t$ of @eq-context. This is an illustration, not states from Lab 4.
+
+**Predict first.** The query starts out pointing nearest to $h_1$. Double its length without turning it. Do the weights become more peaked, flatter, or stay the same? Then try to find a query that puts the context vector $\bar{h}_t$ outside the pentagon formed by the five states.
+
+```{ojs}
+//| echo: false
+viewof qAngle = Inputs.range([0, 360], {value: 20, step: 1, label: "Direction of the query (degrees)"})
+viewof qLen = Inputs.range([0, 3], {value: 1.5, step: 0.1, label: "Length of the query"})
+```
+
+```{ojs}
+//| echo: false
+{
+  const keys = [[1.4, 0.15], [0.7, 1.25], [-0.85, 1.1], [-1.4, -0.3], [0.3, -1.4]]
+    .map(([x, y], i) => ({x, y, name: "h" + "₁₂₃₄₅"[i]}));
+  const rad = qAngle * Math.PI / 180, q = {x: qLen * Math.cos(rad), y: qLen * Math.sin(rad)};
+  const scores = keys.map((h) => q.x * h.x + q.y * h.y);                 // s_t^T h_i
+  const top = Math.max(...scores), ex = scores.map((s) => Math.exp(s - top));
+  const total = ex.reduce((a, b) => a + b, 0);
+  const rows = keys.map((h, i) => ({...h, score: scores[i], alpha: ex[i] / total}));   // softmax over positions
+  const ctx = {x: rows.reduce((a, d) => a + d.alpha * d.x, 0), y: rows.reduce((a, d) => a + d.alpha * d.y, 0)};
+  const plane = Plot.plot({
+    width: 360, height: 360, grid: true,
+    x: {domain: [-3.4, 3.4], label: "dimension 1"}, y: {domain: [-3.4, 3.4], label: "dimension 2"},
+    marks: [
+      Plot.line([...rows, rows[0]], {x: "x", y: "y", stroke: "#b9c2cc", strokeDasharray: "3 3"}),
+      Plot.arrow(rows, {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "#1d5f8a", strokeWidth: 2, strokeOpacity: (d) => 0.25 + 0.75 * d.alpha}),
+      Plot.text(rows, {x: (d) => 1.18 * d.x, y: (d) => 1.18 * d.y, text: "name", fontSize: 13, fill: "#1d5f8a"}),
+      Plot.arrow([q], {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "#1f2933", strokeWidth: 2.5}),
+      Plot.text([q], {x: (d) => d.x + 0.45 * Math.cos(rad), y: (d) => d.y + 0.45 * Math.sin(rad), text: () => "query", fontSize: 13, fontWeight: "bold"}),
+      Plot.dot([ctx], {x: "x", y: "y", r: 6, fill: "#b3541e"})
+    ]
+  });
+  const bars = Plot.plot({
+    width: 360, height: 360, marginBottom: 40,
+    x: {label: "source position", domain: rows.map((d) => d.name)}, y: {label: "attention weight α", domain: [0, 1]},
+    marks: [
+      Plot.barY(rows, {x: "name", y: "alpha", fill: "#1d5f8a"}),
+      Plot.text(rows, {x: "name", y: "alpha", text: (d) => d.alpha.toFixed(2), dy: -8}),
+      Plot.ruleY([0])
+    ]
+  });
+  return html`<div style="display:flex;flex-wrap:wrap;gap:1.5rem;align-items:flex-end">${plane}${bars}</div>
+  <p>Scores: (${scores.map((s) => s.toFixed(2)).join(", ")}). Context vector (orange dot): (${ctx.x.toFixed(2)}, ${ctx.y.toFixed(2)}).</p>`;
+}
+```
+
+The direction of the query decides *which* state gets the most weight; its length decides *how much*. Lengthening the query multiplies every score by the same factor, which widens the gaps between them, and the softmax sharpens. At length 0 every score is 0, the weights are uniform, and the context is the plain mean of the states. The orange dot never leaves the pentagon: the weights are positive and sum to one, so $\bar{h}_t$ is always a blend of the states and never one state exactly.
+:::
+
+::: {.self-check}
+**Check yourself.** The scores $(2, 0, 0)$ gave the weights $(0.79, 0.11, 0.11)$. Without computing any exponentials, what are the weights for the scores $(12, 10, 10)$? Are the weights for $(20, 0, 0)$ more or less peaked than $(0.79, 0.11, 0.11)$? What is the context vector when all $S$ scores are equal?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$(12, 10, 10)$ gives the same weights, $(0.79, 0.11, 0.11)$. Adding a constant to every score multiplies the numerator and the denominator of @eq-weights by the same factor, so only the *differences* between scores matter. $(20, 0, 0)$ is far more peaked: the gap grew from 2 to 20, the ratio of weights from $e^2 \approx 7$ to $e^{20} \approx 5 \times 10^8$, and the first weight is 1 to eight decimal places. Equal scores give $\alpha_{t,i} = 1/S$ for every $i$, and the context is the plain average of the encoder states. Attention with equal scores is the order-blind averaging of Module 2. It selects something only once training has moved the scores apart.
+:::
 :::
 
 ::: {.callout-tip collapse="true" title="Optional: where exactly does the context enter the decoder?"}
@@ -262,6 +351,14 @@ The sum `q_proj + k_proj` holds $B \times T \times S \times d_a$ numbers, where 
 **In the lab.** Exercise 3 uses the dot-product score (@eq-dot). In **Exercise 4** you write `additive_score(q, keys, W_q, W_k, u)` (@eq-additive) and pass its scores to the same `masked_attention`. The checkpoint compares your scores with the equation evaluated one pair at a time. Training a model with the additive score is optional and off by default, because it would be a third training run. The general score (@eq-general) is not implemented in the lab.
 :::
 
+::: {.self-check}
+**Check yourself.** Take $d_h = 128$ and attention size $d_a = 64$. How many parameters does each of the three scores add to the model? For a batch with $B = 64$, $T = 11$ and $S = 40$, how many numbers does `additive_score` hold just before the $\tanh$, and how many scores come out?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Dot product: none. General: $W_a$ is $128 \times 128 = 16{,}384$. Additive: $W_q$ and $W_k$ are $64 \times 128$ each and $u$ has 64 entries, $2 \times 8{,}192 + 64 = 16{,}448$. So the two learned scores cost about the same in parameters. They differ in computation. The additive score forms `q_proj + k_proj`, with $B \times T \times S \times d_a = 64 \times 11 \times 40 \times 64 = 1{,}802{,}240$ numbers, to produce $B \times T \times S = 28{,}160$ scores: $d_a = 64$ intermediate numbers per score. The multiplicative scores get each score from one matrix product with no intermediate of that size, which is the reason Module 5 keeps the multiplicative form.
+:::
+:::
+
 ## 6. Attention as soft alignment
 
 **Objective for this section:** read an attention heat-map and state what it does and does not show.
@@ -285,6 +382,14 @@ Two cautions when reading these maps:
 **In the lab.** In **Exercise 5** you plot the matrix of $\alpha_{t,i}$ for the example above and three test inputs, then write `alignment_hit_rate(alphas, examples, tol)`: the share of target digits whose largest weight lies inside the span of the correct date, or at most `tol` positions after it. On the test set, with `tol = 1` to allow for the unidirectional encoder, it is 0.996; an arg-max drawn uniformly over the source would score between 0.23 and 0.41 for $K \ge 2$. The off-by-one shifts mostly stay inside the date: with `tol = 0` the rate is still 0.99 or more in every bucket.
 :::
 
+::: {.self-check}
+**Check yourself.** The source is `12 May 2020` and the encoder reads left to right, so $h_i$ has seen characters 1 to $i$ and nothing after them. The decoder must write the month as `05`. What is the first source position whose state can settle which month it is? If a month row of the heat-map put all its weight on the `M`, what could the decoder learn from it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Position 6, the `y`. The characters are `1`, `2`, space, `M`, `a`, `y`. After `M` the month could be March or May; after `Ma` it still could. Only $h_6$ has read enough to rule out March. A row with all its weight on the `M` would return $h_4$, a state computed before the month was decided. It could tell the decoder that a month starting with M is here, not which one. So you should expect the month rows to read at the `y` or just after it, not before, as @fig-attention-alignment shows for `March`, where the weight sits at the `r` and the space. A bright cell marks the state that was read, and a state knows only its prefix.
+:::
+:::
+
 ## 7. Decoding
 
 **Objective for this section:** distinguish greedy decoding from beam search.
@@ -298,6 +403,14 @@ At test time we want a target sequence with high probability under @eq-factoriza
 Whether the extra search helps depends on the model. On the date task it changes nothing: the attention model puts almost all its probability on one output, so greedy decoding already finds it. Beam search earns its cost when the model is uncertain between several outputs, as in translation.
 
 Module 3's sampling strategies (temperature, top-k, nucleus) are the alternative when variety is wanted. For transduction tasks with one correct answer, such as dates, we want the most probable output, so we search.
+
+::: {.self-check}
+**Check yourself.** A model with a two-token vocabulary $\{a, b\}$ gives the first token the probabilities $P(a) = 0.6$, $P(b) = 0.4$. After $a$, its most probable continuation has probability 0.5. After $b$, its most probable continuation has probability 0.9. Which two-token output does greedy decoding return, and with what probability? Which does beam search with $B = 2$ return?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Greedy takes $a$, because $0.6 > 0.4$, and then the best continuation: probability $0.6 \times 0.5 = 0.30$. Beam search with $B = 2$ keeps both first tokens alive, extends each, and compares complete outputs: $0.30$ for the best output starting with $a$ against $0.4 \times 0.9 = 0.36$ for the best starting with $b$. It returns the second. The best first token did not start the best sequence. Greedy can never recover from that, because it has discarded $b$ before seeing what follows. On the lab's date model the first choice is almost never this close, which is why the two decoders tie there.
+:::
+:::
 
 ::: {.callout-tip collapse="true" title="Optional: beam search in detail"}
 A **hypothesis** is a partial output $y_1, \dots, y_t$ together with its log-probability so far, which we call its *value* (to keep the word "score" for attention):
@@ -357,6 +470,14 @@ The additive score already hints that queries and keys can be given separate lea
 - What if we then drop the recurrence altogether?
 
 That is the transformer, and it is where [Module 5](05-transformer-from-scratch.qmd) starts.
+
+::: {.self-check}
+**Check yourself.** Try the first question now. Let a sequence attend to itself with this module's dot-product score, taking $q = k_i = v_i = h_i$ directly from the states. Suppose all the states have the same length $\lVert h_i \rVert$. For the query $q = h_t$, which position gets the highest score? What does that suggest is missing?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Position $t$ itself. The score is $h_t^\top h_i = \lVert h_t \rVert\, \lVert h_i \rVert \cos(h_t, h_i)$, and with equal lengths it is largest where the cosine is 1, which is at $i = t$. Each position would mostly read itself and learn nothing new. The score also cannot be asymmetric: $h_t^\top h_i = h_i^\top h_t$, so if a verb attends to its subject, the subject must attend equally (before normalization) to the verb. What is missing is a way for a position to *ask for* something different from what it *is*. Module 5 supplies it by giving the query, the key and the value each their own learned projection of $h_i$, the step that this module's additive score already took for $W_q$ and $W_k$.
+:::
+:::
 
 ## Summary
 

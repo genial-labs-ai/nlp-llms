@@ -8,7 +8,7 @@ title: "{{< var modules.m00.title >}}"
 
 You work alone, in a terminal, at your own pace. It runs on Day 1 from 08:00 to 09:00, before the first lecture, and it also works as pre-work at home.
 
-A **coding agent** is a language model that runs in a loop on your machine. It reads files, proposes edits, runs commands, reads their output, and decides what to do next. You give it a goal in plain English; it asks before it does anything risky. Module 14 builds a small agent from scratch. Here you use a finished one.
+A **coding agent** is a language model that runs in a loop on your machine. It reads files, proposes edits, runs commands, reads their output, and decides what to do next. You give it a goal in plain English; it asks before it does anything risky. The software around the model (the loop, the tools, what the model is shown, the rules for what it may do without asking) is called the **harness**: Claude Code, Codex and Gemini CLI are three harnesses, each around its maker's models. Module 14 builds a small harness from scratch. Here you use a finished one.
 
 By the end you have a public GitHub repository of your own with two small apps, each with a 3D page that anyone can open:
 

@@ -4,6 +4,10 @@ title: "{{< var modules.m11.title >}}"
 
 {{< include /_includes/module-11.md >}}
 
+::: {.recap}
+[Module 10](10-rlhf.qmd) trained a model on what raters prefer, and [Module 8](08-llm-apis.qmd) showed that an answer from an API arrives with no sign of how likely it is to be right. Neither gives a program a number it can act on. This module answers one question: when a model attaches a probability to its answer, how do we check that the number means what it says, and how do we turn it into a decision to act or to hand the case to a person?
+:::
+
 ## Timing
 
 | Section | Minutes |
@@ -19,6 +23,8 @@ title: "{{< var modules.m11.title >}}"
 | **Total** | **45** |
 
 The collapsed callouts are optional and sit outside the 45 minutes.
+
+Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
 ## Notation for this module
 
@@ -107,6 +113,14 @@ Accuracy moves by 0.6 points; mean confidence moves by 20 points. Matching mean 
 
 **Sharpness.** The useless model above shows that calibration alone is not the goal. We also want confidences far from the base rate, so that they separate the easy cases from the hard ones. Gneiting, Balabdaoui and Raftery (2007) put the aim as: maximize sharpness subject to calibration. The scores of section 4 reward both at once.
 
+::: {.self-check}
+**Check yourself.** A classifier makes 1,000 predictions. On 500 of them its confidence is 0.6, and 400 of those are right. On the other 500 its confidence is 1.0, and 400 of those are right. Its mean confidence equals its accuracy. Is it calibrated?
+
+::: {.callout-tip collapse="true" title="Answer"}
+No. Mean confidence is $(0.6 + 1.0)/2 = 0.8$ and accuracy is $800/1000 = 0.8$, so the averages match. But @eq-calibration asks for the match at every confidence level. At confidence 0.6 the model is right 80% of the time (underconfident by 0.2), and at confidence 1.0 it is also right 80% of the time (overconfident by 0.2). The two errors cancel in the average and nowhere else. A system that acts only on the "certain" half would be wrong one time in five.
+:::
+:::
+
 ## 3. Measuring calibration: reliability diagrams and ECE
 
 **Objective for this section:** estimate the gap in @eq-calibration from a finite test set, and say what can make the estimate misleading.
@@ -136,6 +150,17 @@ $$ {#eq-ece}
 
 ECE is 0 for a calibrated model in the limit of infinite data, and at most 1. Guo et al. (2017) used $M = 15$, and so do we. For the three classifiers of section 2 it is 0.164 (`C = 1`), 0.023 (`C = 10`) and 0.044 (`C = 100`).
 
+::: {.worked-example}
+**Worked example: ECE on ten predictions in two bins.** Take $N = 10$ predictions of a four-class model and $M = 2$ bins, $(0, 0.5]$ and $(0.5, 1]$.
+
+| Bin | Confidences $\hat{p}$ | Outcomes $o$ | $\mathrm{conf}(B_m)$ | $\mathrm{acc}(B_m)$ | Gap |
+|---|---|---|---|---|---|
+| $B_1 = (0, 0.5]$ | 0.3, 0.4, 0.4, 0.5 | 1, 0, 1, 0 | $1.6 / 4 = 0.40$ | $2 / 4 = 0.50$ | 0.10 |
+| $B_2 = (0.5, 1]$ | 0.6, 0.7, 0.8, 0.9, 0.9, 0.9 | 1, 1, 0, 1, 0, 1 | $4.8 / 6 = 0.80$ | $4 / 6 = 0.67$ | 0.13 |
+
+By @eq-ece, $\mathrm{ECE} = \tfrac{4}{10} \times 0.10 + \tfrac{6}{10} \times 0.13 = 0.04 + 0.08 = 0.12$. The low bin sits above the diagonal (underconfident) and the high bin below it (overconfident). The absolute value in @eq-ece stops the two from canceling. The confidence 0.5 goes in $B_1$ because the bins are closed on the right.
+:::
+
 **Five pitfalls.** ECE is the most reported calibration number and one of the easiest to misread (Nixon et al., 2019).
 
 1. **It depends on $M$.** For the `C = 10` classifier on the same predictions: 0.022 with 5 bins, 0.023 with 15, 0.038 with 50, 0.055 with 100. Compare ECEs only at the same $M$, and report $M$.
@@ -143,6 +168,14 @@ ECE is 0 for a calibrated model in the limit of infinite data, and at most 1. Gu
 3. **Equal-width bins crowd at the top.** An accurate model puts most predictions above 0.9, so a few bins carry nearly all the weight and the rest are empty or nearly so. **Equal-mass** (adaptive) bins, each holding $N/M$ examples, spread the estimate more evenly. The lab prints both.
 4. **Zero ECE does not mean a good model.** The input-blind model of section 2 has ECE exactly 0. ECE says nothing about sharpness, and it is not a proper scoring rule (section 4): a model can lower it without becoming more useful. Report it next to a proper score.
 5. **It sees only the top class.** Errors in how the remaining probability is spread over the other classes are invisible to it. The Brier score and the log loss of section 4 see the whole vector.
+
+::: {.self-check}
+**Check yourself.** Recompute the ECE of the worked example with a single bin, $M = 1$. Which pitfall does the change illustrate, and is the smaller number better news about the model?
+
+::: {.callout-tip collapse="true" title="Answer"}
+With one bin, $\mathrm{conf} = 6.4/10 = 0.64$ and $\mathrm{acc} = 6/10 = 0.60$, so $\mathrm{ECE} = 0.04$, a third of the two-bin value. Nothing about the model changed, so it is not better news: this is pitfall 1, the dependence on $M$. Inside the single bin the underconfident and the overconfident predictions cancel, as they did in section 2's question. Fewer bins hide more; more bins leave fewer examples in each and raise the noise floor (pitfall 2). Report $M$ and $N$ with every ECE.
+:::
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 1** you write `reliability_bins(conf, correct, n_bins=15, adaptive=False)`, which returns the counts, mean confidences and accuracies of @eq-bin-stats, and `ece(conf, correct, n_bins=15, adaptive=False)`, which is @eq-ece. Checkpoints: a hand-made ten-example case with a known answer; ECE 0 for the input-blind model; ECE near 0 for a large synthetic set that is calibrated by construction. You then draw the reliability diagram of the classifier and print its ECE beside the simulated noise floor for the same $N$.
@@ -220,6 +253,14 @@ $$
 The approximation is exact when every forecast in a bin is the same. The first term is a squared version of ECE's gap; the second rewards bins whose accuracy differs from the base rate; the third is fixed by the data. One proper score contains the two goals of section 2: calibration and sharpness.
 :::
 
+::: {.self-check}
+**Check yourself.** The label of a two-class item is drawn from $p = (0.7, 0.3)$. Use @eq-brier-expected to compute the expected Brier score of three reports: the honest $(0.7, 0.3)$, the exaggerated $(1, 0)$ and the hedged $(0.5, 0.5)$. Then rank the same three by expected log loss. Do the two rules agree on which dishonest report is worse?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The fixed term is $\sum_c p_c(1 - p_c) = 0.21 + 0.21 = 0.42$. The report-dependent term is 0 for the honest report, $0.3^2 + 0.3^2 = 0.18$ for $(1, 0)$ and $0.2^2 + 0.2^2 = 0.08$ for $(0.5, 0.5)$. So the expected Brier scores are 0.42, 0.60 and 0.50. The expected log loss is $-(0.7 \log 0.7 + 0.3 \log 0.3) = 0.611$ for the honest report, $\log 2 = 0.693$ for the hedge, and infinite for $(1, 0)$, because 30% of the time it gave the label probability zero. Both rules put honesty first and the exaggeration last. They differ in how hard they punish it: the Brier score by a bounded 0.18, the log loss without limit.
+:::
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you write `brier(probs, labels)` (@eq-brier) and `nll(probs, labels)` (@eq-log-loss), each averaged over examples. Checkpoints: hand computations on three examples; the uniform four-class model scores exactly 0.75 and $\log 4$; `nll` agrees with `sklearn.metrics.log_loss`. A provided cell then prints the table above for your classifier and for the three Lab 1 models. The **stretch** section shows numerically that the expected Brier score is minimized by the true probability (@eq-brier-expected), that the linear score is not, and that accuracy is flat.
 :::
@@ -246,6 +287,14 @@ Three qualifications, all from later measurements.
 Why would preference training do this? Module 10 gives two reasons to expect it, neither of which is a measured mechanism: the reward compares whole answers and never rewards an appropriate hedge, and the optimum of the KL-regularized objective, $\pi^* \propto \pi_{\text{ref}}\, e^{r/\beta}$, moves probability toward the responses the reward rates highest, which sharpens the distribution over answers. What is established is the measured effect in the reported cases. How general it is, and which part of post-training causes it, are open questions.
 
 **The practical conclusion.** Never assume a model is calibrated, in either direction. Measure it, on data like the data it will see, and recheck when the data change.
+
+::: {.self-check}
+**Check yourself.** You train a network for five more epochs. Its held-out accuracy does not move, and its held-out log loss rises. What happened to its confidences, what does its reliability diagram look like now, and which way would a fitted temperature move from 1?
+
+::: {.callout-tip collapse="true" title="Answer"}
+The predictions did not change, so the probabilities did: the logits grew and every prediction became more confident. On the held-out examples the model gets right, the log loss can fall only a little, because those probabilities were already near 1. On the ones it gets wrong, the probability of the true class shrinks and $-\log \hat{y}_y$ grows without limit, so the average rises. The reliability diagram's points move right at the same accuracy, below the diagonal: overconfidence. A fitted temperature would come out above 1 (section 6). This is Guo et al.'s overfitting in the log loss.
+:::
+:::
 
 ## 6. Temperature scaling
 
@@ -313,6 +362,76 @@ All of these are fitted on validation data and leave the model's weights alone.
 Niculescu-Mizil and Caruana (2005) compare Platt scaling and isotonic regression across many classical models.
 :::
 
+::: {#demo-temperature .demo}
+**Demo: one temperature moves the whole reliability diagram.** The 4,000 synthetic four-class predictions below come from a model that is overconfident by construction: each label was drawn from $\mathrm{softmax}(z^\ast)$ for random logits $z^\ast$, and the model reports $z = 2.5\, z^\ast$. The slider sets $\tau$ in @eq-temp-scaling. **Predict first.** Which $\tau$ puts the points on the diagonal, and what happens to the accuracy on the way there?
+
+```{ojs}
+//| echo: false
+viewof tau11 = Inputs.range([0.5, 5], {value: 1, step: 0.05, label: "temperature τ"})
+```
+
+```{ojs}
+//| echo: false
+toy11 = {
+  let s = 11;                                    // fixed seed: the same 4,000 examples on every load
+  const rand = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const gauss = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+  const softmax = z => { const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), t = e.reduce((a, b) => a + b);
+    return e.map(v => v / t); };
+  const data = Array.from({length: 4000}, () => {
+    const zs = Array.from({length: 4}, () => 1.5 * gauss()), p = softmax(zs);
+    let u = rand(), y = 0; while (y < 3 && u > p[y]) { u -= p[y]; y++; }     // y ~ softmax(z*)
+    return {z: zs.map(v => 2.5 * v), y};                                     // reported logits
+  });
+  const metrics = tau => {                       // eq-temp-scaling, eq-bin-stats, eq-ece (M = 15), eq-log-loss
+    const M = 15, bins = Array.from({length: M}, () => ({n: 0, conf: 0, acc: 0}));
+    let nll = 0, hits = 0;
+    for (const {z, y} of data) {
+      const p = softmax(z.map(v => v / tau)), conf = Math.max(...p), hit = p.indexOf(conf) === y ? 1 : 0;
+      const b = bins[Math.min(M - 1, Math.max(0, Math.ceil(conf * M) - 1))];
+      b.n++; b.conf += conf; b.acc += hit; nll -= Math.log(p[y]); hits += hit;
+    }
+    const N = data.length, pts = bins.filter(b => b.n).map(b => ({conf: b.conf / b.n, acc: b.acc / b.n, n: b.n}));
+    return {tau, pts, nll: nll / N, acc: hits / N, ece: pts.reduce((a, b) => a + b.n / N * Math.abs(b.acc - b.conf), 0)};
+  };
+  return {metrics, curve: Array.from({length: 46}, (_, i) => metrics(0.5 + 0.1 * i))};
+}
+```
+
+```{ojs}
+//| echo: false
+{
+  const m = toy11.metrics(tau11), ink = "currentColor", navy = "#1d5f8a", warm = "#b3541e";
+  const left = Plot.plot({width: 360, height: 340, grid: true,
+    x: {domain: [0, 1], label: "confidence (mean per bin)"}, y: {domain: [0, 1], label: "accuracy (mean per bin)"},
+    r: {range: [2, 9]},
+    marks: [Plot.line([[0, 0], [1, 1]], {stroke: ink, strokeDasharray: "4 4"}),
+      Plot.link(m.pts, {x1: "conf", x2: "conf", y1: "conf", y2: "acc", stroke: warm, strokeWidth: 2}),
+      Plot.dot(m.pts, {x: "conf", y: "acc", r: "n", fill: navy})]});
+  const right = Plot.plot({width: 360, height: 340, grid: true,
+    x: {label: "temperature τ"}, y: {domain: [0, 1.6], label: "value on the 4,000 examples"},
+    marks: [Plot.line(toy11.curve, {x: "tau", y: "nll", stroke: navy}), Plot.line(toy11.curve, {x: "tau", y: "ece", stroke: warm}),
+      Plot.ruleX([tau11], {stroke: ink, strokeDasharray: "2 3"}),
+      Plot.dot([m], {x: "tau", y: "nll", fill: navy, r: 4}), Plot.dot([m], {x: "tau", y: "ece", fill: warm, r: 4}),
+      Plot.text([{x: 4.9, y: toy11.curve[44].nll + 0.07, t: "log loss"}], {x: "x", y: "y", text: "t", fill: navy, textAnchor: "end"}),
+      Plot.text([{x: 4.9, y: toy11.curve[44].ece + 0.07, t: "ECE (M = 15)"}], {x: "x", y: "y", text: "t", fill: warm, textAnchor: "end"})]});
+  return html`<div style="display:flex;gap:1rem;flex-wrap:wrap">${left}${right}</div>
+    <p><strong>τ = ${tau11.toFixed(2)}</strong>: accuracy ${m.acc.toFixed(3)}, ECE ${m.ece.toFixed(3)}, log loss ${m.nll.toFixed(3)}</p>`;
+}
+```
+
+*What it shows.* Left: the reliability diagram at the chosen $\tau$, one dot per non-empty bin of @eq-bin-stats, sized by its count, with its gap to the diagonal drawn. Right: the log loss (@eq-log-loss) and ECE (@eq-ece) of the same predictions against $\tau$. At $\tau = 1$ the dots hang below the diagonal, further the higher the confidence. Near $\tau = 2.5$, the factor the logits were inflated by, the dots reach the diagonal and both curves reach their minimum; past it the model turns underconfident and both rise again. The accuracy never changes (property 1). The log-loss curve is smooth with a single minimum, which is why @eq-temp-fit fits $\tau$ to it and not to ECE. The data are synthetic and say nothing about any real model. Both curves are drawn on one set of examples; a real fit chooses $\tau$ on validation data and reports on test data.
+:::
+
+::: {.self-check}
+**Check yourself.** One example has logits $z = (2, 1, 0)$. Compute its confidence $\hat{p}$ at $\tau = 1$ and at $\tau = 2$. A colleague then proposes to fit $\tau$ by maximizing validation accuracy. What will that search find?
+
+::: {.callout-tip collapse="true" title="Answer"}
+At $\tau = 1$: $\hat{p} = e^2 / (e^2 + e^1 + e^0) = 0.665$. At $\tau = 2$ the logits become $(1, 0.5, 0)$ and $\hat{p} = e^1 / (e^1 + e^{0.5} + e^0) = 0.506$. The predicted class is the first one both times, because dividing by a positive number keeps the order of the logits. For the same reason validation accuracy is the same for every $\tau > 0$: the colleague's objective is flat, and the search returns an arbitrary value. Accuracy cannot tell 0.665 from 0.506 (section 4), so it cannot fit a parameter that changes only the confidence. The log loss can.
+:::
+:::
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 3** you write `fit_temperature(val_logits, val_labels)` (@eq-temp-scaling, @eq-temp-fit). Checkpoints: on synthetic logits from a calibrated model multiplied by 3, it recovers $\tau \approx 3$; the validation log loss at $\tau^*$ is no higher than at $\tau = 1$; test accuracy is identical before and after. You then print the before-and-after table for your classifier and for the three Lab 1 models, and draw the reliability diagrams side by side.
 :::
@@ -347,6 +466,14 @@ So a stated confidence is neither worthless nor trustworthy. It is one more outp
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you write `parse_decision(reply_text, options)`, which turns a reply into an answer and a confidence, or `None` if either is missing or out of range. The checkpoint runs it on recorded reply strings and is the same on every provider. A provided loop then asks the model selected by `PROVIDER` for an answer and a confidence on each item of the decision set, and your functions from Exercises 1 and 2 report its accuracy, ECE, Brier score and reliability diagram, with a histogram of the stated confidences. On the open model the lab also reads the answer-token probability and compares the two. **No model's calibration is asserted.** If no model can be reached, the lab runs on a stub that writes replies in the same format; it exercises your code, and its numbers are labeled as a test double and are not a measurement of anything.
+:::
+
+::: {.self-check}
+**Check yourself.** A language model answers 300 questions and states a confidence with each. It says 0.9 on 200 of them, of which 150 are right, and 0.95 on the other 100, of which 90 are right. With $M = 15$ equal-width bins, how many bins are non-empty, and what is the ECE? Is the result within the noise floor of a calibrated forecaster on 300 questions?
+
+::: {.callout-tip collapse="true" title="Answer"}
+Two bins: 0.9 falls in $(13/15, 14/15]$ and 0.95 in $(14/15, 1]$. Their accuracies are $150/200 = 0.75$ and $90/100 = 0.90$, so the gaps are 0.15 and 0.05, and $\mathrm{ECE} = \tfrac{200}{300} \times 0.15 + \tfrac{100}{300} \times 0.05 = 0.117$. That is about three times the noise floor of 0.04 quoted above for 300 questions, so this model is overconfident beyond what chance explains: it claims 0.917 on average and is right 80% of the time. The stated confidences still carry some information, since the 0.95 group is right more often than the 0.9 group. With only two distinct values, though, the risk–coverage curve of section 8 has only two steps.
+:::
 :::
 
 ## 8. Selective prediction and the cost of a wrong action
@@ -389,7 +516,23 @@ $$ {#eq-selective-cost}
 
 with $N$ the number of validation examples here. Only values of $\lambda$ equal to an observed confidence (plus 0 and a value above the largest) need to be tried. Then report the cost, coverage and risk on the test set at the chosen $\lambda$. With a calibrated model the two thresholds agree; a gap between them is a measurement of miscalibration where it matters, near the threshold.
 
-**Worked example** (the `C = 10` Lab 1 classifier, $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$, test set, build container, 2026-10-05):
+::: {.worked-example}
+**Worked example: five predictions by hand.** Sorted by confidence, five predictions have $\hat{p} = 0.95, 0.9, 0.8, 0.7, 0.6$ and outcomes $o = 1, 1, 0, 1, 0$. Take $\ell_{\text{wrong}} = 10$ and $\ell_{\text{defer}} = 1$.
+
+| Threshold $\lambda$ | Acted on | Coverage | Risk (@eq-risk-coverage) | Cost per case (@eq-selective-cost) |
+|---|---|---|---|---|
+| above 0.95 | none | 0 | – | $5 \times 1 / 5 = 1.0$ |
+| 0.95 | 1 | 0.2 | $0/1 = 0$ | $(0 + 4)/5 = 0.8$ |
+| 0.9 | 2 | 0.4 | $0/2 = 0$ | $(0 + 3)/5 = 0.6$ |
+| 0.8 | 3 | 0.6 | $1/3 = 0.33$ | $(10 + 2)/5 = 2.4$ |
+| 0.7 | 4 | 0.8 | $1/4 = 0.25$ | $(10 + 1)/5 = 2.2$ |
+| 0.6 or below | all 5 | 1.0 | $2/5 = 0.40$ | $20/5 = 4.0$ |
+
+The cheapest threshold is $\lambda = 0.9$, at 0.6 per case, and Chow's rule gives the same value, $\lambda^* = 1 - 1/10 = 0.9$. One wrong action costs as much as ten reviews, so the first error, admitted at $\lambda = 0.8$, outweighs everything gained by deferring less. Risk is not monotone in coverage: it falls from 0.33 to 0.25 when the fourth prediction, a correct one, is admitted.
+:::
+
+::: {.worked-example}
+**Worked example: the measured classifier** (the `C = 10` Lab 1 classifier, $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$, test set, build container, 2026-10-05).
 
 | Policy | Coverage | Risk | Cost per case |
 |---|---|---|---|
@@ -400,8 +543,17 @@ with $N$ the number of validation examples here. Only values of $\lambda$ equal 
 | Chow's rule after temperature scaling ($\tau^* = 0.79$) | 0.693 | 0.030 | 0.51 |
 
 Acting on everything costs more than sending everything to a person. Abstaining on the least confident 31 to 42% of cases halves the cost of either. Before temperature scaling this model is slightly underconfident at the top, so Chow's rule abstains more than it needs to; after scaling, the rule and the empirical choice land close together, as they should for a calibrated model.
+:::
 
 **Towards Module 12.** Two actions are rarely enough. An assistant might act, ask the user a clarifying question, or escalate to a person, each with its own cost; two thresholds then split the confidence range into three regions, and the same reasoning sets both. [Module 12](12-rlcd-jev.qmd) does this with a decision model that returns probabilities with every typed answer, using the decision set of this lab.
+
+::: {.self-check}
+**Check yourself.** A wrong action costs 50 and a review costs 2. What threshold does Chow's rule give? You then find, on validation data, that predictions with $\hat{p}$ at or above that threshold are right only 90% of the time. What does acting on them cost per case, and what should you do about it?
+
+::: {.callout-tip collapse="true" title="Answer"}
+$\lambda^* = 1 - 2/50 = 0.96$. The rule assumes that a prediction above the threshold is wrong at most 4% of the time. Here it is wrong 10% of the time, so acting costs $0.10 \times 50 = 5$ per case, against 2 for a review: on these cases the rule does worse than deferring. Chow's rule is only as good as the calibration behind it. Either recalibrate first (section 6) and apply the rule to the repaired confidences, or choose $\lambda$ directly on validation data with @eq-selective-cost, which uses the outcomes and trusts no probability.
+:::
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 5** you write `risk_coverage(conf, correct)`, which returns coverage and risk at every threshold (@eq-risk-coverage), and `choose_threshold(conf, correct, l_wrong, l_defer)`, which minimizes @eq-selective-cost. Checkpoints: a hand-made six-example case; risk at full coverage equals the error rate; the chosen threshold's validation cost is no higher than acting on everything or deferring everything. You then draw the risk–coverage curves of the classifier and of the language model, print the test cost at your threshold beside Chow's $\lambda^*$, and compare the classifier's curve before and after temperature scaling: unchanged for two classes (asserted), slightly changed for four (printed).
