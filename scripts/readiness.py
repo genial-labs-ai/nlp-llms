@@ -212,7 +212,7 @@ def describe(v: dict, r: dict) -> str:
 def build(v: dict, records: list[dict]) -> dict:
     """Everything the readiness pages need, computed once."""
     labs = [m for m in v["modules"].values() if m.get("notebook", True)]
-    setup = {"slug": v["setup"]["slug"], "readiness": {"runtime": None}}
+    setup = {"slug": v["setup"]["slug"], "readiness": {"runtime": v["setup"].get("runtime")}}
     ev = {
         m["slug"]: evidence(v, m["slug"], m["readiness"]["runtime"], records)
         for m in [*labs, setup]

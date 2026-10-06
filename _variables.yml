@@ -298,6 +298,8 @@ setup:
   slug: 00-setup
   title: "Setup and environment check"
   minutes: 10
+  # The runtime a participant runs it on (readiness.envs); from Module 2 onward the labs need a T4.
+  runtime: colab-t4
   summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
 
 # What is known about whether each module can be taught, and on what evidence.

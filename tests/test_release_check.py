@@ -79,7 +79,29 @@ class LabBlockers(unittest.TestCase):
                 self.assertIn("no teaching run", lab1([teaching_run(**{name: value})]))
 
 
+def lab1_blockers(records: list[dict]) -> list[str]:
+    return [b for b in release_check.blockers(V, records, AS_OF) if b.startswith("Module 1 ")]
+
+
 class Release(unittest.TestCase):
+    def test_a_run_dated_after_the_release_date_does_not_count(self):
+        self.assertEqual(lab1_blockers([teaching_run()]), [])
+        later = (AS_OF + dt.timedelta(days=1)).isoformat()
+        self.assertEqual(len(lab1_blockers([teaching_run(date=later)])), 1)
+
+    def test_the_setup_notebook_is_checked(self):
+        setup = V["setup"]
+        self.assertIn(setup["runtime"], V["readiness"]["envs"])
+        found = release_check.blockers(V, [], AS_OF)
+        self.assertTrue(any(b.startswith("Setup notebook ") for b in found))
+        run = teaching_run(
+            notebook=setup["slug"],
+            env=setup["runtime"],
+            content_sha=run_records.content_sha(setup["slug"]),
+        )
+        found = release_check.blockers(V, [run], AS_OF)
+        self.assertFalse(any(b.startswith("Setup notebook ") for b in found))
+
     def test_open_items_block(self):
         found = release_check.blockers(V, [], AS_OF)
         open_items = [i for i in readiness.items(V) if not i["closed"]]

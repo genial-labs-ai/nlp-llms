@@ -77,7 +77,8 @@ jobs:
             lab13: "1"
             lab14: "1"
             lab15: "1" # capstone stub path (plumbing probes)
-          # The offline leg on the newest allowed versions (uv lock --upgrade).
+          # The offline leg on the newest allowed versions (uv lock --upgrade). Its flags
+          # must stay identical to the offline leg's above.
           - leg: drift
             timeout: 180
             notebooks: ""
@@ -134,12 +135,21 @@ jobs:
       - name: Upgrade the lockfile to the newest allowed versions
         if: matrix.leg == 'drift'
         run: |
+          cp uv.lock "$RUNNER_TEMP/uv.lock.before"
           uv lock --upgrade
-          git diff --stat -- uv.lock
           {
             echo "### Upgraded since uv.lock"
             echo '```'
-            git diff -U0 -- uv.lock | grep -E '^[-+](name|version) = ' | head -200 || true
+            python3 - "$RUNNER_TEMP/uv.lock.before" uv.lock <<'PY'
+          import sys, tomllib
+          def versions(path):
+              with open(path, "rb") as f:
+                  return {p["name"]: p.get("version", "?") for p in tomllib.load(f)["package"]}
+          old, new = versions(sys.argv[1]), versions(sys.argv[2])
+          moved = [f"{n}: {old.get(n, '(new)')} -> {new.get(n, '(removed)')}"
+                   for n in sorted(old.keys() | new.keys()) if old.get(n) != new.get(n)]
+          print("\n".join(moved) or "nothing moved")
+          PY
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 

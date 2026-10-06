@@ -248,7 +248,8 @@ def unanswerable_agreement(author: list[dict], checker: list[dict]) -> tuple[int
             continue
         n += 1
         c = sheet.get(it["id"], {})
-        agree += not c.get("evidence") and c.get("answer", "").strip().lower() == NOT_FOUND
+        answer = (c.get("answer") or "").strip().rstrip(".").lower()
+        agree += not c.get("evidence") and answer == NOT_FOUND
     return agree, n
 
 

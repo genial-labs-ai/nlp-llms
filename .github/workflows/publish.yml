@@ -51,10 +51,6 @@ jobs:
             exit 1
           fi
 
-      # uv.lock must match pyproject.toml (resolves only; installs nothing).
-      - name: Lockfile is current
-        run: uv lock --check
-
       - name: Lint
         run: |
           uvx --from "ruff>=0.6" ruff check scripts tests data agents-intro
@@ -115,6 +111,7 @@ jobs:
 
       # The unit tests again, with torch and typesafe-sdk installed: the Lab 9 offline
       # build and the Lab 12 local-decider tests skip in the render job without them.
+      # --locked also fails if uv.lock no longer matches pyproject.toml.
       - name: Unit tests with the lab dependencies
         env:
           UV_LINK_MODE: copy

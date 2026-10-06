@@ -124,6 +124,8 @@ class Agreement(unittest.TestCase):
             {"id": "q2", "kind": "unanswerable"},
             {"id": "q3", "kind": "unanswerable"},
             {"id": "q4", "kind": "lookup"},
+            {"id": "q5", "kind": "unanswerable"},
+            {"id": "q6", "kind": "unanswerable"},
         ]
         checker = [
             {"id": "q1", "evidence": [], "answer": "Not in the corpus"},
@@ -133,8 +135,10 @@ class Agreement(unittest.TestCase):
                 "evidence": [[{"slug": "x", "quote": "y"}]],
                 "answer": "not in the corpus",
             },
+            {"id": "q5", "evidence": [], "answer": "Not in the corpus."},
+            {"id": "q6", "evidence": [], "answer": None},
         ]
-        self.assertEqual(tools.unanswerable_agreement(author, checker), (1, 3))
+        self.assertEqual(tools.unanswerable_agreement(author, checker), (2, 5))
 
 
 class Questions(unittest.TestCase):
