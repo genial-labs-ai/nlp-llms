@@ -1234,6 +1234,36 @@
         "precision": "float32 (Lab 6 uses fp16 only on CUDA)",
         "note": "Lab 6's GPU settings, run on Apple MPS from a copy changed only to treat mps as a GPU; one seed; not a T4 run. The logits in lab06_logits.npz are this run's."
       }
+    },
+    {
+      "id": "lab11.lab06_encoder",
+      "notebook": "notebooks/11-calibration.ipynb",
+      "dataset": "lab06_logits",
+      "split": "test",
+      "date": "2026-10-06",
+      "metrics": {
+        "accuracy": 0.8975,
+        "mean_confidence": 0.9349,
+        "ece_15": 0.0392,
+        "ece_15_equal_mass": 0.046,
+        "brier": 0.158,
+        "log_loss": 0.2991,
+        "ece_by_bins": {
+          "5": 0.0374,
+          "15": 0.0392,
+          "50": 0.0442,
+          "100": 0.0515
+        },
+        "tau_star": 1.097,
+        "ece_15_after": 0.036,
+        "brier_after": 0.155,
+        "log_loss_after": 0.295
+      },
+      "settings": {
+        "model": "Lab 6 encoder (distilbert/distilbert-base-uncased), from lab06_logits.npz",
+        "confidence": "max softmax of the logits",
+        "note": "Lab 11's own printout of 2026-10-06; the after-scaling values are printed to three decimals. tau* fitted on the 600 validation papers."
+      }
     }
   ]
 }

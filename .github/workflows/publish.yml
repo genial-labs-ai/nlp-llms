@@ -88,10 +88,9 @@ jobs:
       NLP_LLMS_LAB07_OFFLINE: tiny
       # Labs 8 and 11 (and 13, 14): Lab 8's StubProvider instead of the open chat model.
       NLP_LLMS_STUB: "1"
-      # Labs 9 and 10 need GPT-2's tokenizer and model from the Hub even with Lab 9's data
-      # committed, so this hermetic job runs their labeled offline stand-ins; the hub leg of
-      # health.yml runs them for real.
-      NLP_LLMS_LAB09_OFFLINE: tiny
+      # Lab 9 runs on its committed data here (it needs the Hub only for an optional
+      # tokenizer). Lab 10 needs GPT-2 from the Hub, so it runs its labeled stand-in; the hub
+      # leg of health.yml runs it for real.
       NLP_LLMS_LAB10_OFFLINE: tiny
       # Lab 13: BM25 plus labeled stand-ins until its human question set exists.
       NLP_LLMS_LAB13_OFFLINE: "1"

@@ -10,19 +10,19 @@
   "evidence": "scripts/test_notebooks.py --record",
   "runs": [
     {
-      "notebook": "15-capstone",
+      "notebook": "11-calibration",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 802.0,
-      "content_sha": "85ff4a6b16c65bf6",
+      "seconds": 323.3,
+      "content_sha": "4586977907b44173",
       "phases": {
         "generated": 0.0,
-        "other": 2804.9,
+        "setup": 6.0,
+        "other": 313.2,
         "exercise": 0.0,
         "solution": 0.0,
-        "checkpoint": 0.1
-      },
-      "note": "Open-cpu path (Qwen2.5-0.5B generator, Qwen log-prob decider labeled not Jev, BGE retriever, NLI judge); scored on plumbing probes, because the question sets are not written yet. The metrics measure code, not the system."
+        "checkpoint": 0.3
+      }
     }
   ]
 }

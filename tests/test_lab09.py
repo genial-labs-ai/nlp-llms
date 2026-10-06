@@ -123,6 +123,48 @@ class CommittedFiles(unittest.TestCase):
 
 
 @unittest.skipUnless(importlib.util.find_spec("torch"), "torch is not installed")
+def literal_assignments(source: str, names: set[str]) -> dict:
+    """{name: value} for every `name = <literal>` in source, at any depth."""
+    import ast
+
+    out = {}
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast.Name) and target.id in names:
+                try:
+                    out[target.id] = ast.literal_eval(node.value)
+                except ValueError:
+                    pass
+    return out
+
+
+def notebook_cells(slug: str) -> list[str]:
+    nb = json.loads((ROOT / "notebooks" / f"{slug}.ipynb").read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+
+
+class Frames(unittest.TestCase):
+    """The 16 subjects and 16 frames are written out in the builder and again in the offline
+    stand-ins of Labs 9 and 10; all three must equal what the committed data were built from."""
+
+    def test_stand_ins_use_the_committed_frames(self):
+        prompts = json.loads((ROOT / "data" / "lab09_prompts.json").read_text(encoding="utf-8"))
+        built = literal_assignments(BUILD.read_text(encoding="utf-8"), {"SUBJECTS", "FRAMES"})
+        self.assertEqual(built["SUBJECTS"], prompts["subjects"])
+        self.assertEqual(built["FRAMES"], prompts["frames"])
+        for slug in ("09-preference-learning", "10-rlhf"):
+            found = {}
+            for cell in notebook_cells(slug):
+                try:
+                    found.update(literal_assignments(cell, {"subjects", "frames"}))
+                except SyntaxError:  # a cell with a Colab shell command
+                    continue
+            with self.subTest(slug):
+                self.assertEqual(found.get("subjects"), prompts["subjects"])
+                self.assertEqual(found.get("frames"), prompts["frames"])
+
+
 class OfflineBuild(unittest.TestCase):
     def run_build(self, *args):
         return subprocess.run(

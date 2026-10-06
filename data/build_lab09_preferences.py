@@ -30,11 +30,14 @@ on an Apple M1 Pro CPU (2026-10-06): --stats-only about 70 s, the full build abo
       NLP_LLMS_REWARD_MODEL_OUT=/tmp/lab09_reward_model_seed$s.pt \\
         python scripts/test_notebooks.py 09-preference-learning
     done
-    cp /tmp/lab09_reward_model_seed0.pt data/lab09_reward_model.pt
-
-    # torch.save names the archive's root folder after the file, so the committed copy
-    # (2026-10-06) came from one more seed-0 run whose output path ended in
-    # lab09_reward_model.pt; its weights equal the measure run's bit for bit on one CPU.
+    # Then the committed file: one more seed-0 run, written straight to a path whose file
+    # name is lab09_reward_model.pt. torch.save names the archive's root folder after the
+    # file, so copying /tmp/lab09_reward_model_seed0.pt would change the SHA-256 even with
+    # identical weights.
+    mkdir -p /tmp/rm
+    NLP_LLMS_RM_SEED=0 NLP_LLMS_REWARD_MODEL_OUT=/tmp/rm/lab09_reward_model.pt \\
+      python scripts/test_notebooks.py 09-preference-learning
+    cp /tmp/rm/lab09_reward_model.pt data/lab09_reward_model.pt
 
 Offline test of everything except GPT-2 (word-level stand-in tokenizer and sampler; the
 files it writes are NOT the dataset and are refused inside data/):

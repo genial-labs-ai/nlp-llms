@@ -616,13 +616,14 @@ Both score the same 60,394 test characters as Labs 1 and 3, with Lab 3's metric 
 
 Lab 9's Exercise 4 thresholds come from these three rows. To update: rebuild only if the data change, then rerun the three seeds as in the docstring of `build_lab09_preferences.py`.
 
-**Lab 11, measured 2026-10-05** (Linux container, 4 vCPU shared with another agent, CPU only, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1; not run on Colab). Calibration of the Lab 1 pipeline, recomputed in Lab 11 at three values of `C`, on the 1,600 test papers; ECE with 15 equal-width right-closed bins; $\tau^*$ fitted on the 600 validation papers. The Lab 6 encoder's row is missing: its logits are not recorded yet.
+**Lab 11, measured 2026-10-05** (Linux container, 4 vCPU shared with another agent, CPU only, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1; not run on Colab). Calibration of the Lab 1 pipeline, recomputed in Lab 11 at three values of `C`, on the 1,600 test papers; ECE with 15 equal-width right-closed bins; $\tau^*$ fitted on the 600 validation papers. The last row, added 2026-10-06 (Apple M1 Pro, CPU, `scripts/test_notebooks.py`), is the Lab 6 encoder from `lab06_logits.npz`, the lab's primary classifier since its logits were committed; its after-scaling values are printed to three decimals.
 
 | `id` | Accuracy | Mean confidence | ECE | Brier | Log loss | $\tau^*$ | ECE after | Brier after | Log loss after |
 |---|---|---|---|---|---|---|---|---|---|
 | `lab11.tfidf_logreg.C1` | 0.8875 | 0.7234 | 0.1641 | 0.2111 | 0.4356 | 0.4685 | 0.0094 | 0.1637 | 0.3033 |
 | `lab11.tfidf_logreg.C10` | 0.8838 | 0.8617 | 0.0231 | 0.1662 | 0.3142 | 0.7895 | 0.0180 | 0.1645 | 0.3065 |
 | `lab11.tfidf_logreg.C100` | 0.8819 | 0.9245 | 0.0435 | 0.1755 | 0.3387 | 1.3017 | 0.0173 | 0.1710 | 0.3187 |
+| `lab11.lab06_encoder` | 0.8975 | 0.9349 | 0.0392 | 0.1580 | 0.2991 | 1.097 | 0.036 | 0.155 | 0.295 |
 
 For `C = 10`: noise floor of ECE at this $N$ 0.0193; ECE 0.0220, 0.0231, 0.0379 and 0.0548 at 5, 15, 50 and 100 bins; with $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$ the test cost per case is 1.1625 acting on everything, 1.0 deferring everything, 0.5469 at Chow's $\lambda^* = 0.9$ (coverage 0.578), 0.5175 at the $\lambda$ chosen on validation (0.8422, coverage 0.676) and 0.5131 at Chow's rule after temperature scaling. These values are deterministic and match the build-container values in `briefs/11-calibration.md`. Lab 11's language-model numbers are not recorded: in this container only its offline test double ran, and its numbers measure the notebook, not a model.
 
