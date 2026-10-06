@@ -27,9 +27,11 @@ from __future__ import annotations
 import argparse
 import ast
 import datetime as dt
+import functools
 import json
 import os
 import platform
+import re
 import shutil
 import sys
 import tempfile
@@ -37,6 +39,7 @@ import time
 from pathlib import Path
 
 import nbformat
+import yaml
 from nbclient import NotebookClient
 from nbclient.exceptions import CellExecutionError, CellTimeoutError, DeadKernelError
 
@@ -52,13 +55,7 @@ TIMEOUT_SECONDS = int(os.environ.get("NLP_LLMS_CELL_TIMEOUT", "900"))
 # Text a lab prints when it could not load an open model and carried on with a
 # stand-in. Labs 8, 11, 13 and 14 fall back silently on purpose (a participant
 # without Hub access still finishes), so with --expect-hub these count as failures.
-FALLBACK_MARKERS = (
-    "Could not load ",  # Labs 8, 11, 13, 14: open chat model, encoder, reranker or NLI model
-    "did not load",  # Labs 13, 14: build_retriever's encoder or cross-encoder
-    "USING StubProvider",  # Labs 8, 11, 13, 14: the test double answered instead of a model
-    "LSA stand-in fitted",  # Lab 13: TF-IDF + SVD instead of the dense encoder
-    "OFFLINE TEST MODE",  # Labs 6, 7, 10: an offline test flag is set
-)
+FALLBACK_MARKERS = harness.FALLBACK_MARKERS
 # Environment variables that put a lab on its offline path (publish.yml's notebooks job).
 OFFLINE_FLAGS = run_records.OFFLINE_FLAGS
 # What the harness prints when a checkpoint stops a participant who has not finished an
@@ -89,7 +86,12 @@ def checkpoint_exercise(cell) -> object | None:
     code = "\n".join(
         line for line in cell.source.splitlines() if not line.lstrip().startswith(("%", "!"))
     )
-    for node in ast.walk(ast.parse(code)):
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:  # other IPython syntax: read the first statement by pattern
+        m = re.search(r"workshop\.checkpoint\((\d+|'[^']*'|\"[^\"]*\")?", cell.source)
+        return ast.literal_eval(m.group(1)) if m and m.group(1) else None
+    for node in ast.walk(tree):
         if (
             isinstance(node, ast.Call)
             and isinstance(node.func, ast.Attribute)
@@ -187,23 +189,41 @@ def run(path: Path, save: Path | None, verify: bool) -> dict:
     }
 
 
+@functools.cache
 def has_exercises(path: Path) -> bool:
     nb = nbformat.read(path, as_version=4)
     return any("exercise" in c.get("metadata", {}).get("tags", []) for c in nb.cells)
 
 
 def reads_offline_flags(path: Path) -> bool:
-    """Whether a notebook has an offline path at all. One that reads none of the flags
-    runs its real path even in an offline batch."""
-    text = path.read_text(encoding="utf-8")
+    """Whether a notebook has an offline path at all: one that reads none of the flags in
+    its own cells runs its real path even in an offline batch. The generated harness cell
+    names every flag, so it is not counted."""
+    nb = nbformat.read(path, as_version=4)
+    text = "".join(c.source for c in nb.cells if c.get("id") not in harness.GENERATED_CODE_IDS)
     return any(flag in text for flag in OFFLINE_FLAGS)
 
 
-def status_of(path: Path, r: dict, learner: bool, offline: bool) -> str:
+def status_of(path: Path, r: dict, learner: bool) -> str:
     """The same verdict the console prints: a learner run passes when it stops as expected."""
     if learner and has_exercises(path):
         return "pass" if (not r["ok"] and r["learner_message"]) else "fail"
     return "pass" if r["ok"] else "fail"
+
+
+def entry_path(path: Path, r: dict, offline: bool) -> dict:
+    """Per-notebook corrections to the batch's path. A run that fell back to stand-ins ran
+    test doubles, whatever the flags; a notebook with no offline path ran its only path."""
+    if r["fallbacks"]:
+        return {"path": "offline", "note": "fell back: " + "; ".join(r["fallbacks"])}
+    if offline and not reads_offline_flags(path):
+        quick = {k: v for k, v in [("NLP_LLMS_QUICK", os.environ.get("NLP_LLMS_QUICK"))] if v}
+        return {
+            "path": "open",
+            "settings": quick,
+            "note": "reads none of the offline flags: its only path",
+        }
+    return {}
 
 
 def write_record(
@@ -229,28 +249,28 @@ def write_record(
             {
                 "notebook": path.stem,
                 "scope": "notebook",
-                "status": status_of(path, r, learner, offline),
+                "status": status_of(path, r, learner),
                 "seconds": round(r["seconds"], 1),
                 "content_sha": run_records.content_sha(path.stem),
                 "phases": r["phases"],
-                # A run that fell back to stand-ins ran test doubles, whatever the flags.
-                **(
-                    {"path": "offline", "note": "fell back: " + "; ".join(r["fallbacks"])}
-                    if r["fallbacks"]
-                    else {}
-                ),
-                **(
-                    {"path": "open", "note": "reads none of the offline flags: its only path"}
-                    if offline and not reads_offline_flags(path)
-                    else {}
-                ),
+                **entry_path(path, r, offline),
             }
             for path, r in results
         ],
     }
+    name = f"{today}-{env}-{batch['path']}-{int(time.time())}.json"
+    body = json.dumps(batch, indent=2) + "\n"
+    envs = set(
+        yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))["readiness"]["envs"]
+    )
+    _, problems = run_records.check_batch(
+        name, body, envs, {p.stem for p in NOTEBOOKS.glob("*.ipynb")}
+    )
+    if problems:
+        raise SystemExit("Run record not written:\n  " + "\n  ".join(problems))
     directory.mkdir(parents=True, exist_ok=True)
-    out = directory / f"{today}-{env}-{batch['path']}-{int(time.time())}.json"
-    out.write_text(json.dumps(batch, indent=2) + "\n", encoding="utf-8")
+    out = directory / name
+    out.write_text(body, encoding="utf-8")
     return out
 
 

@@ -43,7 +43,7 @@ def path_of(record: dict, given: str | None) -> str:
     if given:
         return given
     settings = record.get("settings") or {}
-    if any(settings.get(flag) for flag in run_records.OFFLINE_FLAGS):
+    if record.get("fallbacks") or any(settings.get(flag) for flag in run_records.OFFLINE_FLAGS):
         return "offline"
     return "keyed" if record.get("provider") in ("openai", "anthropic") else "open"
 
@@ -93,6 +93,11 @@ def main() -> int:
     args = parser.parse_args()
     text = args.file.read_text(encoding="utf-8") if args.file else sys.stdin.read()
     record = extract(text)
+    if record.get("mode") != "worked":
+        raise SystemExit(
+            "Not added: a learner-mode run is evidence of the participant's work, not that the"
+            " lab runs as taught. Tick WORKED_EXAMPLE, Run all, and paste that record."
+        )
     v = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))
     envs = set(v["readiness"]["envs"])
     date = args.date or record.get("date") or dt.date.today().isoformat()

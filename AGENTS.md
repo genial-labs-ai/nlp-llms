@@ -8,7 +8,7 @@ This file does two jobs. The first section gives the rules every agent working i
 
 - **Read `PLAN.md` first.** It defines the curriculum, the repository layout, the lab standards and the task list. When you finish a task, tick its box in `PLAN.md`.
 - **Single source of truth.** Module titles, durations, objectives, repository URLs, model IDs and package pins live in `_variables.yml`. Change them there, never in a page or a notebook.
-- **Do not edit generated files.** Anything under `_includes/`, the first and last cell of every notebook, and the marked regions of `README.md` are written by `scripts/gen_tables.py` and `scripts/gen_notebooks.py`. Change the source or the generator, then re-run it.
+- **Do not edit generated files.** Anything under `_includes/`, four cells of every notebook (the header, the harness cell after it, the summary cell before the footer, and the footer), and the marked regions of `README.md` are written by `scripts/gen_tables.py` and `scripts/gen_notebooks.py`. Change the source or the generator, then re-run it.
 - **Naming.** One ID per module: `NN-kebab-slug` for the lecture page (`lectures/`), the notebook (`notebooks/`) and the `_variables.yml` key (`mNN`).
 - **Notebooks** follow section 5 of `PLAN.md`: run cold on free Colab, a 50-minute core path plus one stretch section, pinned installs, exercises with folded solutions, a checkpoint per exercise, keys from Colab Secrets, an open-model fallback, no committed outputs.
 - **Verify fast-moving APIs against live documentation.** OpenAI, Anthropic, LangChain, LangGraph, LlamaIndex and TypeSafe (Jev) change often. Check the current docs before writing code against them; do not rely on memory. If you could not verify something, say so.

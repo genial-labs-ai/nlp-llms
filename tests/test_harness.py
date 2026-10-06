@@ -31,6 +31,11 @@ class Harness(unittest.TestCase):
 
     def tearDown(self):
         InteractiveShell.clear_instance()
+        import builtins
+
+        builtins.print = self._print
+
+    _print = print
 
     def cell(self, code):
         return self.ip.run_cell(code, store_history=False)
@@ -110,6 +115,7 @@ class Harness(unittest.TestCase):
     def test_the_run_record_has_a_date_and_passes_on_checkpoints(self):
         self.cell(SOURCE)
         self.cell("workshop.checkpoint(label='x')\nassert False")
+        self.cell(SOURCE)  # Run all reruns the harness first, so the run starts clean
         self.cell("workshop.checkpoint(label='x')\nassert True")
         self.cell(
             "import io, contextlib, json\n_buf = io.StringIO()\n"
@@ -120,6 +126,33 @@ class Harness(unittest.TestCase):
         self.assertEqual(record["status"], "pass")
         self.assertRegex(record["date"], r"^\d{4}-\d{2}-\d{2}$")
         self.assertNotIn("NLP_LLMS_DATA", record["settings"])
+
+    def record(self):
+        self.cell(
+            "import io, contextlib\n_buf = io.StringIO()\n"
+            "with contextlib.redirect_stdout(_buf):\n    workshop.run_record()"
+        )
+        text = self.ip.user_ns["_buf"].getvalue()
+        return json.loads(text[text.index("{") : text.rindex("}") + 1])
+
+    def test_a_fallback_printed_by_a_lab_is_in_the_record(self):
+        self.cell(SOURCE)
+        self.cell("print('Could not load Qwen; USING StubProvider')")
+        self.cell("workshop.checkpoint(label='x')\nassert True")
+        record = self.record()
+        self.assertIn("USING StubProvider", record["fallbacks"])
+
+    def test_a_run_without_checkpoints_or_with_errors_does_not_pass(self):
+        self.cell(SOURCE)
+        self.assertEqual(self.record()["status"], "fail")
+        self.cell("workshop.checkpoint(label='x')\nassert True")
+        self.cell("raise ValueError('a provided cell failed')")
+        self.assertEqual(self.record()["status"], "fail")
+
+    def test_a_plain_scalar_cannot_be_a_solution_value(self):
+        self.cell(SOURCE)
+        result = self.cell("K = workshop.solution_value(1, 'K', 5)")
+        self.assertIsInstance(result.error_in_exec, TypeError)
 
     def test_rerunning_the_harness_starts_a_new_run(self):
         self.cell(SOURCE)

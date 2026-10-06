@@ -29,6 +29,16 @@ OFFLINE_FLAGS = (
     "NLP_LLMS_LAB15_OFFLINE",
 )
 RECORDED_SETTINGS = (*OFFLINE_FLAGS, "NLP_LLMS_QUICK", "HF_HUB_OFFLINE")
+# Text a lab prints when it could not load an open model and carried on with a stand-in.
+# A run that printed one ran test doubles, whatever its flags (scripts/test_notebooks.py and
+# the run record both use this list).
+FALLBACK_MARKERS = (
+    "Could not load ",  # Labs 8, 11, 13, 14: open chat model, encoder, reranker or NLI model
+    "did not load",  # Labs 13, 14: build_retriever's encoder or cross-encoder
+    "USING StubProvider",  # Labs 8, 11, 13, 14: the test double answered instead of a model
+    "LSA stand-in fitted",  # Lab 13: TF-IDF + SVD instead of the dense encoder
+    "OFFLINE TEST MODE",  # Labs 6, 7, 10: an offline test flag is set
+)
 
 HARNESS_ID = "workshop-harness"
 SUMMARY_ID = "workshop-summary"
@@ -50,6 +60,7 @@ _NOTEBOOK = "__NOTEBOOK__"
 _CONTENT_SHA = "__CONTENT_SHA__"
 _EXERCISES = __EXERCISES__
 _RECORDED_SETTINGS = __SETTINGS__
+_FALLBACK_MARKERS = __MARKERS__
 _RECORD_PACKAGES = (
     "torch", "transformers", "numpy", "scikit-learn", "peft", "datasets", "openai",
     "anthropic", "typesafe-sdk", "langgraph", "langchain-core", "llama-index-core",
@@ -72,6 +83,8 @@ class _Workshop:
         self._verifying = None
         self.results = {}
         self.cell_seconds = []
+        self.cell_errors = 0
+        self.fallbacks = set()
         self.started = _time.time()
         self._current = None
         self._t0 = None
@@ -128,6 +141,11 @@ class _Workshop:
 
     def solution_value(self, n, name, value):
         """The same as solution(n), for a value rather than a function or class."""
+        if value is None or isinstance(value, (bool, int, float, str, bytes)):
+            # Python shares equal small values, so yours and the reference could not be told
+            # apart: give such a value in the stub instead of making it part of the exercise.
+            kind = type(value).__name__
+            raise TypeError(f"solution_value({n!r}, {name!r}): use an object, not a plain {kind}")
         return self.solution(n)(value, name)
 
     def use_reference(self, n):
@@ -165,6 +183,8 @@ class _Workshop:
         if self._t0 is None:  # this harness cell itself: its hooks were registered mid-cell
             return
         self.cell_seconds.append(round(_time.time() - self._t0, 2))
+        if not result.success:
+            self.cell_errors += 1
         if self._current is None:
             return
         n, label, whose = self._current
@@ -279,9 +299,13 @@ class _Workshop:
             "notebook": _NOTEBOOK,
             "content_sha": _CONTENT_SHA,
             "mode": "worked" if self.worked else "learner",
-            # This cell runs only when the notebook reached its end; then the run passed if
-            # every checkpoint's latest result passed.
-            "status": "pass" if all(ok for ok, _ in self.results.values()) else "fail",
+            # A run passes when it reached this last cell with no error on the way and every
+            # checkpoint passed. Run all reruns the harness first, so it starts clean.
+            "status": "pass"
+            if self.results and self.cell_errors == 0 and all(ok for ok, _ in self.results.values())
+            else "fail",
+            "cell_errors": self.cell_errors,
+            "fallbacks": sorted(self.fallbacks),
             "seconds": round(_time.time() - self.started, 1),
             "cell_seconds": self.cell_seconds,
             "python": platform.python_version(),
@@ -306,6 +330,26 @@ for _event in ("pre_run_cell", "post_run_cell"):
         if type(getattr(_callback, "__self__", None)).__name__ == "_Workshop":
             _ip.events.unregister(_event, _callback)
 workshop = _Workshop(_old if hasattr(_old, "ref") else None)
+
+# Notice when a lab falls back to a stand-in, for the run record. print is wrapped once.
+import builtins as _builtins
+
+if not getattr(_builtins.print, "_workshop", False):
+    _print = _builtins.print
+
+    def _watching_print(*args, **kwargs):
+        try:
+            ip = _get_ipython()
+            ws = ip.user_ns.get("workshop") if ip is not None else None
+            if ws is not None and hasattr(ws, "fallbacks"):
+                text = " ".join(str(a) for a in args)
+                ws.fallbacks.update(m.strip() for m in _FALLBACK_MARKERS if m in text)
+        except Exception:
+            pass  # watching must never break printing
+        return _print(*args, **kwargs)
+
+    _watching_print._workshop = True
+    _builtins.print = _watching_print
 _ip.events.register("pre_run_cell", workshop._pre)
 _ip.events.register("post_run_cell", workshop._post)
 print("Workshop harness ready:", "WORKED EXAMPLE" if workshop.worked else "checking your code")
@@ -364,4 +408,5 @@ def harness_source(slug: str, content_sha: str, exercises: dict) -> str:
         .replace("__CONTENT_SHA__", content_sha)
         .replace("__EXERCISES__", repr(dict(sorted(exercises.items(), key=lambda kv: str(kv[0])))))
         .replace("__SETTINGS__", repr(RECORDED_SETTINGS))
+        .replace("__MARKERS__", repr(FALLBACK_MARKERS))
     )

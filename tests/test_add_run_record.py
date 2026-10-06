@@ -26,6 +26,8 @@ class Classes(unittest.TestCase):
             self.assertEqual(arr.path_of({"settings": {flag: "1"}}, None), "offline", flag)
         self.assertEqual(arr.path_of({"settings": {}, "provider": "open"}, None), "open")
         self.assertEqual(arr.path_of({"settings": {}, "provider": "anthropic"}, None), "keyed")
+        fell_back = {"settings": {}, "provider": "open", "fallbacks": ["USING StubProvider"]}
+        self.assertEqual(arr.path_of(fell_back, None), "offline")
 
 
 if __name__ == "__main__":
