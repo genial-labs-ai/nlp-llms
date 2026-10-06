@@ -1,0 +1,3655 @@
+{
+ "format": "nlp-llms/lab09-prompts",
+ "version": 1,
+ "model": "distilbert/distilgpt2",
+ "revision": "2290a62682d06624634c1f46a6ad5be0f47f38aa",
+ "subjects": [
+  "My mother",
+  "My father",
+  "My sister",
+  "My brother",
+  "My friend",
+  "My boss",
+  "Our neighbor",
+  "The teacher",
+  "The doctor",
+  "The manager",
+  "The waiter",
+  "The student",
+  "The driver",
+  "The coach",
+  "The nurse",
+  "The chef"
+ ],
+ "frames": {
+  "train": [
+   "looked at the results feeling so",
+   "opened the letter and felt so",
+   "walked into the room feeling so",
+   "tasted the soup and felt so",
+   "read the review and felt so",
+   "came home late and felt so",
+   "listened to the song feeling so",
+   "looked out the window feeling so",
+   "heard the news and felt so",
+   "finished the long day feeling so"
+  ],
+  "heldout": [
+   "watched the game and felt so",
+   "visited the old house feeling so"
+  ],
+  "eval": [
+   "left the new restaurant feeling so",
+   "read the email and felt so",
+   "saw the bill and felt so",
+   "spent the whole weekend feeling so"
+  ]
+ },
+ "prompts": {
+  "train": [
+   {
+    "text": "My mother looked at the results feeling so",
+    "ids": [
+     3666,
+     2802,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father looked at the results feeling so",
+    "ids": [
+     3666,
+     2988,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister looked at the results feeling so",
+    "ids": [
+     3666,
+     6621,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother looked at the results feeling so",
+    "ids": [
+     3666,
+     3956,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend looked at the results feeling so",
+    "ids": [
+     3666,
+     1545,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss looked at the results feeling so",
+    "ids": [
+     3666,
+     6478,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor looked at the results feeling so",
+    "ids": [
+     5122,
+     4780,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher looked at the results feeling so",
+    "ids": [
+     464,
+     4701,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor looked at the results feeling so",
+    "ids": [
+     464,
+     6253,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager looked at the results feeling so",
+    "ids": [
+     464,
+     4706,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter looked at the results feeling so",
+    "ids": [
+     464,
+     46612,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student looked at the results feeling so",
+    "ids": [
+     464,
+     3710,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver looked at the results feeling so",
+    "ids": [
+     464,
+     4639,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach looked at the results feeling so",
+    "ids": [
+     464,
+     3985,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse looked at the results feeling so",
+    "ids": [
+     464,
+     15849,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef looked at the results feeling so",
+    "ids": [
+     464,
+     21221,
+     3114,
+     379,
+     262,
+     2482,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My mother opened the letter and felt so",
+    "ids": [
+     3666,
+     2802,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father opened the letter and felt so",
+    "ids": [
+     3666,
+     2988,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister opened the letter and felt so",
+    "ids": [
+     3666,
+     6621,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother opened the letter and felt so",
+    "ids": [
+     3666,
+     3956,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend opened the letter and felt so",
+    "ids": [
+     3666,
+     1545,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss opened the letter and felt so",
+    "ids": [
+     3666,
+     6478,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor opened the letter and felt so",
+    "ids": [
+     5122,
+     4780,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher opened the letter and felt so",
+    "ids": [
+     464,
+     4701,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor opened the letter and felt so",
+    "ids": [
+     464,
+     6253,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager opened the letter and felt so",
+    "ids": [
+     464,
+     4706,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter opened the letter and felt so",
+    "ids": [
+     464,
+     46612,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student opened the letter and felt so",
+    "ids": [
+     464,
+     3710,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver opened the letter and felt so",
+    "ids": [
+     464,
+     4639,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach opened the letter and felt so",
+    "ids": [
+     464,
+     3985,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse opened the letter and felt so",
+    "ids": [
+     464,
+     15849,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef opened the letter and felt so",
+    "ids": [
+     464,
+     21221,
+     4721,
+     262,
+     3850,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother walked into the room feeling so",
+    "ids": [
+     3666,
+     2802,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father walked into the room feeling so",
+    "ids": [
+     3666,
+     2988,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister walked into the room feeling so",
+    "ids": [
+     3666,
+     6621,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother walked into the room feeling so",
+    "ids": [
+     3666,
+     3956,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend walked into the room feeling so",
+    "ids": [
+     3666,
+     1545,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss walked into the room feeling so",
+    "ids": [
+     3666,
+     6478,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor walked into the room feeling so",
+    "ids": [
+     5122,
+     4780,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher walked into the room feeling so",
+    "ids": [
+     464,
+     4701,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor walked into the room feeling so",
+    "ids": [
+     464,
+     6253,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager walked into the room feeling so",
+    "ids": [
+     464,
+     4706,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter walked into the room feeling so",
+    "ids": [
+     464,
+     46612,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student walked into the room feeling so",
+    "ids": [
+     464,
+     3710,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver walked into the room feeling so",
+    "ids": [
+     464,
+     4639,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach walked into the room feeling so",
+    "ids": [
+     464,
+     3985,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse walked into the room feeling so",
+    "ids": [
+     464,
+     15849,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef walked into the room feeling so",
+    "ids": [
+     464,
+     21221,
+     6807,
+     656,
+     262,
+     2119,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My mother tasted the soup and felt so",
+    "ids": [
+     3666,
+     2802,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father tasted the soup and felt so",
+    "ids": [
+     3666,
+     2988,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister tasted the soup and felt so",
+    "ids": [
+     3666,
+     6621,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother tasted the soup and felt so",
+    "ids": [
+     3666,
+     3956,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend tasted the soup and felt so",
+    "ids": [
+     3666,
+     1545,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss tasted the soup and felt so",
+    "ids": [
+     3666,
+     6478,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor tasted the soup and felt so",
+    "ids": [
+     5122,
+     4780,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher tasted the soup and felt so",
+    "ids": [
+     464,
+     4701,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor tasted the soup and felt so",
+    "ids": [
+     464,
+     6253,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager tasted the soup and felt so",
+    "ids": [
+     464,
+     4706,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter tasted the soup and felt so",
+    "ids": [
+     464,
+     46612,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student tasted the soup and felt so",
+    "ids": [
+     464,
+     3710,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver tasted the soup and felt so",
+    "ids": [
+     464,
+     4639,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach tasted the soup and felt so",
+    "ids": [
+     464,
+     3985,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse tasted the soup and felt so",
+    "ids": [
+     464,
+     15849,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef tasted the soup and felt so",
+    "ids": [
+     464,
+     21221,
+     29187,
+     262,
+     17141,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother read the review and felt so",
+    "ids": [
+     3666,
+     2802,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father read the review and felt so",
+    "ids": [
+     3666,
+     2988,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister read the review and felt so",
+    "ids": [
+     3666,
+     6621,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother read the review and felt so",
+    "ids": [
+     3666,
+     3956,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend read the review and felt so",
+    "ids": [
+     3666,
+     1545,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss read the review and felt so",
+    "ids": [
+     3666,
+     6478,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor read the review and felt so",
+    "ids": [
+     5122,
+     4780,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher read the review and felt so",
+    "ids": [
+     464,
+     4701,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor read the review and felt so",
+    "ids": [
+     464,
+     6253,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager read the review and felt so",
+    "ids": [
+     464,
+     4706,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter read the review and felt so",
+    "ids": [
+     464,
+     46612,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student read the review and felt so",
+    "ids": [
+     464,
+     3710,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver read the review and felt so",
+    "ids": [
+     464,
+     4639,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach read the review and felt so",
+    "ids": [
+     464,
+     3985,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse read the review and felt so",
+    "ids": [
+     464,
+     15849,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef read the review and felt so",
+    "ids": [
+     464,
+     21221,
+     1100,
+     262,
+     2423,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother came home late and felt so",
+    "ids": [
+     3666,
+     2802,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father came home late and felt so",
+    "ids": [
+     3666,
+     2988,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister came home late and felt so",
+    "ids": [
+     3666,
+     6621,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother came home late and felt so",
+    "ids": [
+     3666,
+     3956,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend came home late and felt so",
+    "ids": [
+     3666,
+     1545,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss came home late and felt so",
+    "ids": [
+     3666,
+     6478,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor came home late and felt so",
+    "ids": [
+     5122,
+     4780,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher came home late and felt so",
+    "ids": [
+     464,
+     4701,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor came home late and felt so",
+    "ids": [
+     464,
+     6253,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager came home late and felt so",
+    "ids": [
+     464,
+     4706,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter came home late and felt so",
+    "ids": [
+     464,
+     46612,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student came home late and felt so",
+    "ids": [
+     464,
+     3710,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver came home late and felt so",
+    "ids": [
+     464,
+     4639,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach came home late and felt so",
+    "ids": [
+     464,
+     3985,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse came home late and felt so",
+    "ids": [
+     464,
+     15849,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef came home late and felt so",
+    "ids": [
+     464,
+     21221,
+     1625,
+     1363,
+     2739,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother listened to the song feeling so",
+    "ids": [
+     3666,
+     2802,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father listened to the song feeling so",
+    "ids": [
+     3666,
+     2988,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister listened to the song feeling so",
+    "ids": [
+     3666,
+     6621,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother listened to the song feeling so",
+    "ids": [
+     3666,
+     3956,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend listened to the song feeling so",
+    "ids": [
+     3666,
+     1545,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss listened to the song feeling so",
+    "ids": [
+     3666,
+     6478,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor listened to the song feeling so",
+    "ids": [
+     5122,
+     4780,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher listened to the song feeling so",
+    "ids": [
+     464,
+     4701,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor listened to the song feeling so",
+    "ids": [
+     464,
+     6253,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager listened to the song feeling so",
+    "ids": [
+     464,
+     4706,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter listened to the song feeling so",
+    "ids": [
+     464,
+     46612,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student listened to the song feeling so",
+    "ids": [
+     464,
+     3710,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver listened to the song feeling so",
+    "ids": [
+     464,
+     4639,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach listened to the song feeling so",
+    "ids": [
+     464,
+     3985,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse listened to the song feeling so",
+    "ids": [
+     464,
+     15849,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef listened to the song feeling so",
+    "ids": [
+     464,
+     21221,
+     16399,
+     284,
+     262,
+     3496,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My mother looked out the window feeling so",
+    "ids": [
+     3666,
+     2802,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father looked out the window feeling so",
+    "ids": [
+     3666,
+     2988,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister looked out the window feeling so",
+    "ids": [
+     3666,
+     6621,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother looked out the window feeling so",
+    "ids": [
+     3666,
+     3956,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend looked out the window feeling so",
+    "ids": [
+     3666,
+     1545,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss looked out the window feeling so",
+    "ids": [
+     3666,
+     6478,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor looked out the window feeling so",
+    "ids": [
+     5122,
+     4780,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher looked out the window feeling so",
+    "ids": [
+     464,
+     4701,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor looked out the window feeling so",
+    "ids": [
+     464,
+     6253,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager looked out the window feeling so",
+    "ids": [
+     464,
+     4706,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter looked out the window feeling so",
+    "ids": [
+     464,
+     46612,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student looked out the window feeling so",
+    "ids": [
+     464,
+     3710,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver looked out the window feeling so",
+    "ids": [
+     464,
+     4639,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach looked out the window feeling so",
+    "ids": [
+     464,
+     3985,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse looked out the window feeling so",
+    "ids": [
+     464,
+     15849,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef looked out the window feeling so",
+    "ids": [
+     464,
+     21221,
+     3114,
+     503,
+     262,
+     4324,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My mother heard the news and felt so",
+    "ids": [
+     3666,
+     2802,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father heard the news and felt so",
+    "ids": [
+     3666,
+     2988,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister heard the news and felt so",
+    "ids": [
+     3666,
+     6621,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother heard the news and felt so",
+    "ids": [
+     3666,
+     3956,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend heard the news and felt so",
+    "ids": [
+     3666,
+     1545,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss heard the news and felt so",
+    "ids": [
+     3666,
+     6478,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor heard the news and felt so",
+    "ids": [
+     5122,
+     4780,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher heard the news and felt so",
+    "ids": [
+     464,
+     4701,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor heard the news and felt so",
+    "ids": [
+     464,
+     6253,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager heard the news and felt so",
+    "ids": [
+     464,
+     4706,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter heard the news and felt so",
+    "ids": [
+     464,
+     46612,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student heard the news and felt so",
+    "ids": [
+     464,
+     3710,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver heard the news and felt so",
+    "ids": [
+     464,
+     4639,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach heard the news and felt so",
+    "ids": [
+     464,
+     3985,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse heard the news and felt so",
+    "ids": [
+     464,
+     15849,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef heard the news and felt so",
+    "ids": [
+     464,
+     21221,
+     2982,
+     262,
+     1705,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother finished the long day feeling so",
+    "ids": [
+     3666,
+     2802,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father finished the long day feeling so",
+    "ids": [
+     3666,
+     2988,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister finished the long day feeling so",
+    "ids": [
+     3666,
+     6621,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother finished the long day feeling so",
+    "ids": [
+     3666,
+     3956,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend finished the long day feeling so",
+    "ids": [
+     3666,
+     1545,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss finished the long day feeling so",
+    "ids": [
+     3666,
+     6478,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor finished the long day feeling so",
+    "ids": [
+     5122,
+     4780,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher finished the long day feeling so",
+    "ids": [
+     464,
+     4701,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor finished the long day feeling so",
+    "ids": [
+     464,
+     6253,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager finished the long day feeling so",
+    "ids": [
+     464,
+     4706,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter finished the long day feeling so",
+    "ids": [
+     464,
+     46612,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student finished the long day feeling so",
+    "ids": [
+     464,
+     3710,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver finished the long day feeling so",
+    "ids": [
+     464,
+     4639,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach finished the long day feeling so",
+    "ids": [
+     464,
+     3985,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse finished the long day feeling so",
+    "ids": [
+     464,
+     15849,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef finished the long day feeling so",
+    "ids": [
+     464,
+     21221,
+     5201,
+     262,
+     890,
+     1110,
+     4203,
+     523
+    ]
+   }
+  ],
+  "heldout": [
+   {
+    "text": "My mother watched the game and felt so",
+    "ids": [
+     3666,
+     2802,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father watched the game and felt so",
+    "ids": [
+     3666,
+     2988,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister watched the game and felt so",
+    "ids": [
+     3666,
+     6621,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother watched the game and felt so",
+    "ids": [
+     3666,
+     3956,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend watched the game and felt so",
+    "ids": [
+     3666,
+     1545,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss watched the game and felt so",
+    "ids": [
+     3666,
+     6478,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor watched the game and felt so",
+    "ids": [
+     5122,
+     4780,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher watched the game and felt so",
+    "ids": [
+     464,
+     4701,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor watched the game and felt so",
+    "ids": [
+     464,
+     6253,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager watched the game and felt so",
+    "ids": [
+     464,
+     4706,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter watched the game and felt so",
+    "ids": [
+     464,
+     46612,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student watched the game and felt so",
+    "ids": [
+     464,
+     3710,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver watched the game and felt so",
+    "ids": [
+     464,
+     4639,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach watched the game and felt so",
+    "ids": [
+     464,
+     3985,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse watched the game and felt so",
+    "ids": [
+     464,
+     15849,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef watched the game and felt so",
+    "ids": [
+     464,
+     21221,
+     7342,
+     262,
+     983,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother visited the old house feeling so",
+    "ids": [
+     3666,
+     2802,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father visited the old house feeling so",
+    "ids": [
+     3666,
+     2988,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister visited the old house feeling so",
+    "ids": [
+     3666,
+     6621,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother visited the old house feeling so",
+    "ids": [
+     3666,
+     3956,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend visited the old house feeling so",
+    "ids": [
+     3666,
+     1545,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss visited the old house feeling so",
+    "ids": [
+     3666,
+     6478,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor visited the old house feeling so",
+    "ids": [
+     5122,
+     4780,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher visited the old house feeling so",
+    "ids": [
+     464,
+     4701,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor visited the old house feeling so",
+    "ids": [
+     464,
+     6253,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager visited the old house feeling so",
+    "ids": [
+     464,
+     4706,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter visited the old house feeling so",
+    "ids": [
+     464,
+     46612,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student visited the old house feeling so",
+    "ids": [
+     464,
+     3710,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver visited the old house feeling so",
+    "ids": [
+     464,
+     4639,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach visited the old house feeling so",
+    "ids": [
+     464,
+     3985,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse visited the old house feeling so",
+    "ids": [
+     464,
+     15849,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef visited the old house feeling so",
+    "ids": [
+     464,
+     21221,
+     8672,
+     262,
+     1468,
+     2156,
+     4203,
+     523
+    ]
+   }
+  ],
+  "eval": [
+   {
+    "text": "My mother left the new restaurant feeling so",
+    "ids": [
+     3666,
+     2802,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father left the new restaurant feeling so",
+    "ids": [
+     3666,
+     2988,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister left the new restaurant feeling so",
+    "ids": [
+     3666,
+     6621,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother left the new restaurant feeling so",
+    "ids": [
+     3666,
+     3956,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend left the new restaurant feeling so",
+    "ids": [
+     3666,
+     1545,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss left the new restaurant feeling so",
+    "ids": [
+     3666,
+     6478,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor left the new restaurant feeling so",
+    "ids": [
+     5122,
+     4780,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher left the new restaurant feeling so",
+    "ids": [
+     464,
+     4701,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor left the new restaurant feeling so",
+    "ids": [
+     464,
+     6253,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager left the new restaurant feeling so",
+    "ids": [
+     464,
+     4706,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter left the new restaurant feeling so",
+    "ids": [
+     464,
+     46612,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student left the new restaurant feeling so",
+    "ids": [
+     464,
+     3710,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver left the new restaurant feeling so",
+    "ids": [
+     464,
+     4639,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach left the new restaurant feeling so",
+    "ids": [
+     464,
+     3985,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse left the new restaurant feeling so",
+    "ids": [
+     464,
+     15849,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef left the new restaurant feeling so",
+    "ids": [
+     464,
+     21221,
+     1364,
+     262,
+     649,
+     7072,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My mother read the email and felt so",
+    "ids": [
+     3666,
+     2802,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father read the email and felt so",
+    "ids": [
+     3666,
+     2988,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister read the email and felt so",
+    "ids": [
+     3666,
+     6621,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother read the email and felt so",
+    "ids": [
+     3666,
+     3956,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend read the email and felt so",
+    "ids": [
+     3666,
+     1545,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss read the email and felt so",
+    "ids": [
+     3666,
+     6478,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor read the email and felt so",
+    "ids": [
+     5122,
+     4780,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher read the email and felt so",
+    "ids": [
+     464,
+     4701,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor read the email and felt so",
+    "ids": [
+     464,
+     6253,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager read the email and felt so",
+    "ids": [
+     464,
+     4706,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter read the email and felt so",
+    "ids": [
+     464,
+     46612,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student read the email and felt so",
+    "ids": [
+     464,
+     3710,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver read the email and felt so",
+    "ids": [
+     464,
+     4639,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach read the email and felt so",
+    "ids": [
+     464,
+     3985,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse read the email and felt so",
+    "ids": [
+     464,
+     15849,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef read the email and felt so",
+    "ids": [
+     464,
+     21221,
+     1100,
+     262,
+     3053,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother saw the bill and felt so",
+    "ids": [
+     3666,
+     2802,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My father saw the bill and felt so",
+    "ids": [
+     3666,
+     2988,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My sister saw the bill and felt so",
+    "ids": [
+     3666,
+     6621,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My brother saw the bill and felt so",
+    "ids": [
+     3666,
+     3956,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My friend saw the bill and felt so",
+    "ids": [
+     3666,
+     1545,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My boss saw the bill and felt so",
+    "ids": [
+     3666,
+     6478,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor saw the bill and felt so",
+    "ids": [
+     5122,
+     4780,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The teacher saw the bill and felt so",
+    "ids": [
+     464,
+     4701,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The doctor saw the bill and felt so",
+    "ids": [
+     464,
+     6253,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The manager saw the bill and felt so",
+    "ids": [
+     464,
+     4706,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The waiter saw the bill and felt so",
+    "ids": [
+     464,
+     46612,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The student saw the bill and felt so",
+    "ids": [
+     464,
+     3710,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The driver saw the bill and felt so",
+    "ids": [
+     464,
+     4639,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The coach saw the bill and felt so",
+    "ids": [
+     464,
+     3985,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The nurse saw the bill and felt so",
+    "ids": [
+     464,
+     15849,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "The chef saw the bill and felt so",
+    "ids": [
+     464,
+     21221,
+     2497,
+     262,
+     2855,
+     290,
+     2936,
+     523
+    ]
+   },
+   {
+    "text": "My mother spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     2802,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My father spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     2988,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My sister spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     6621,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My brother spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     3956,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My friend spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     1545,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "My boss spent the whole weekend feeling so",
+    "ids": [
+     3666,
+     6478,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "Our neighbor spent the whole weekend feeling so",
+    "ids": [
+     5122,
+     4780,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The teacher spent the whole weekend feeling so",
+    "ids": [
+     464,
+     4701,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The doctor spent the whole weekend feeling so",
+    "ids": [
+     464,
+     6253,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The manager spent the whole weekend feeling so",
+    "ids": [
+     464,
+     4706,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The waiter spent the whole weekend feeling so",
+    "ids": [
+     464,
+     46612,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The student spent the whole weekend feeling so",
+    "ids": [
+     464,
+     3710,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The driver spent the whole weekend feeling so",
+    "ids": [
+     464,
+     4639,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The coach spent the whole weekend feeling so",
+    "ids": [
+     464,
+     3985,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The nurse spent the whole weekend feeling so",
+    "ids": [
+     464,
+     15849,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   },
+   {
+    "text": "The chef spent the whole weekend feeling so",
+    "ids": [
+     464,
+     21221,
+     3377,
+     262,
+     2187,
+     5041,
+     4203,
+     523
+    ]
+   }
+  ]
+ },
+ "preview": [
+  {
+   "name": "one positive word repeated",
+   "response": " great great great great great great great great great great great great great great great great great great great great great great great great",
+   "response_ids": [
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049,
+    1049
+   ]
+  },
+  {
+   "name": "distinct positive words, comma-separated",
+   "response": " good, great, happy, wonderful, beautiful, nice, amazing, perfect, excellent.",
+   "response_ids": [
+    922,
+    11,
+    1049,
+    11,
+    3772,
+    11,
+    7932,
+    11,
+    4950,
+    11,
+    3621,
+    11,
+    4998,
+    11,
+    2818,
+    11,
+    6275,
+    13
+   ]
+  },
+  {
+   "name": "'I love it!' repeated",
+   "response": " I love it! I love it! I love it! I love it! I love it! I love it!",
+   "response_ids": [
+    314,
+    1842,
+    340,
+    0,
+    314,
+    1842,
+    340,
+    0,
+    314,
+    1842,
+    340,
+    0,
+    314,
+    1842,
+    340,
+    0,
+    314,
+    1842,
+    340,
+    0,
+    314,
+    1842,
+    340,
+    0
+   ]
+  },
+  {
+   "name": "ordinary reply, one positive word",
+   "response": " relaxed after the game, and we all went home early for a good dinner.",
+   "response_ids": [
+    18397,
+    706,
+    262,
+    983,
+    11,
+    290,
+    356,
+    477,
+    1816,
+    1363,
+    1903,
+    329,
+    257,
+    922,
+    8073,
+    13
+   ]
+  },
+  {
+   "name": "ordinary reply, two negative words",
+   "response": " tired after the long wait, and the bad food made everyone feel sick.",
+   "response_ids": [
+    10032,
+    706,
+    262,
+    890,
+    4043,
+    11,
+    290,
+    262,
+    2089,
+    2057,
+    925,
+    2506,
+    1254,
+    6639,
+    13
+   ]
+  }
+ ],
+ "gold": {
+  "positive": [
+   "good",
+   "great",
+   "happy",
+   "love",
+   "loved",
+   "wonderful",
+   "beautiful",
+   "nice",
+   "best",
+   "amazing",
+   "perfect",
+   "excellent",
+   "glad",
+   "fun",
+   "enjoyed",
+   "delicious",
+   "proud",
+   "lovely",
+   "fantastic",
+   "excited"
+  ],
+  "negative": [
+   "bad",
+   "sad",
+   "terrible",
+   "awful",
+   "hate",
+   "angry",
+   "worst",
+   "horrible",
+   "poor",
+   "wrong",
+   "sick",
+   "afraid",
+   "worried",
+   "upset",
+   "disappointed",
+   "pain",
+   "ugly",
+   "cried",
+   "scared",
+   "dead"
+  ],
+  "cap": 3,
+  "crowd_threshold": 0.25,
+  "crowd_weight": 10.0,
+  "tau_label": 0.5
+ },
+ "build": {
+  "script": "data/build_lab09_preferences.py",
+  "seed": 0,
+  "label_seed": 1,
+  "pairs": {
+   "train": 8000,
+   "heldout": 1000
+  },
+  "sampling": "float32, eval(), temperature 1, no truncation, logits[..., :EOS_ID]",
+  "prompt_len": 8,
+  "response_len": 24,
+  "eos_id": 50256,
+  "device": "CPU (arm)",
+  "torch": "2.14.1",
+  "transformers": "5.18.0",
+  "python": "3.12.13",
+  "sampling_seconds": 409.9,
+  "preferences_sha256": "c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326",
+  "stand_in": false
+ },
+ "statistics": {
+  "samples": 18000,
+  "pairs": 9000,
+  "share_gold_nonzero": 0.3381111111111111,
+  "tie_share": 0.5018888888888889,
+  "cap_active_share": 5.555555555555556e-05,
+  "crowding_active_share": 0.0021666666666666666,
+  "repeated_positive_share": 0.010388888888888888,
+  "mean_complete_words": 17.37338888888889,
+  "mean_gold": 0.1143518679176574,
+  "gold_values": {
+   "-8.5": 6,
+   "-6.5": 10,
+   "-3.5": 2,
+   "-3.0": 16,
+   "-2.0": 150,
+   "-1.5": 5,
+   "-1.0": 1900,
+   "0.0": 11914,
+   "0.1667": 7,
+   "1.0": 3563,
+   "2.0": 383,
+   "3.0": 35
+  },
+  "list_word_counts": {
+   "good": 2016,
+   "great": 288,
+   "happy": 617,
+   "love": 257,
+   "loved": 163,
+   "wonderful": 73,
+   "beautiful": 107,
+   "nice": 94,
+   "best": 126,
+   "amazing": 76,
+   "perfect": 52,
+   "excellent": 13,
+   "glad": 103,
+   "fun": 51,
+   "enjoyed": 37,
+   "delicious": 68,
+   "proud": 443,
+   "lovely": 27,
+   "fantastic": 29,
+   "excited": 266,
+   "bad": 799,
+   "sad": 232,
+   "terrible": 70,
+   "awful": 50,
+   "hate": 17,
+   "angry": 150,
+   "worst": 23,
+   "horrible": 37,
+   "poor": 42,
+   "wrong": 115,
+   "sick": 273,
+   "afraid": 61,
+   "worried": 85,
+   "upset": 107,
+   "disappointed": 51,
+   "pain": 133,
+   "ugly": 4,
+   "cried": 50,
+   "scared": 154,
+   "dead": 49
+  },
+  "oracle_accuracy": {
+   "0.25": 0.7413839689735819,
+   "0.5": 0.6984335704631546,
+   "1.0": 0.6290322415141473
+  }
+ }
+}

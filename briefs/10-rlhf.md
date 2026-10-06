@@ -2,6 +2,25 @@
 
 **Status (2026-10-06).** `notebooks/10-rlhf.ipynb` now exists and passes its offline code check in CI. Nothing involving GPT-2 has run yet: it needs Lab 9's data files and reward model. The "Not verified" section below records the state when this brief was written. For what has run since, see the [readiness page](../readiness.qmd).
 
+**As built, Lab 9 data (2026-10-06, Neural Lab Engineer).** Lab 9's three files are committed, and `models.causal_lm_revision` is pinned in `_variables.yml` and in the notebook. The prompts changed: every frame now ends just before a feeling ("... and felt so"); see `briefs/09-preference-learning.md`, "As built". Measured on an Apple M1 Pro, never on a T4:
+
+- **Checkpoint 1's tolerance is now 1e-4, not 1e-5.** On the first real GPT-2 run (CPU), the batched and the position-by-position log-probabilities differed by 2.05e-5 in the checkpoint's own case. Over 32 prompt pairs the difference had a median of 1.4e-5 and a maximum of 3.0e-5, for the old and the new prompts alike; this is float32 rounding. An off-by-one slice is off by 11.45 nats.
+- **On CPU** (`FAST`), every unit checkpoint passes and the trained-policy checkpoints are skipped (36.5 s).
+- **Exploratory, not the protocol:** one run at full settings on Apple MPS (seed 0, protocol mode, no stretch, 809 s), from a scratch copy whose only change was `DEVICE = "mps"`. Checkpoints 3, 4 and 5 passed at the provisional thresholds:
+
+  | Policy | r_phi | Gold | Drift (nats) | Distinct-2 |
+  |---|---|---|---|---|
+  | Reference | −0.164 | +0.072 | 0 | 0.919 |
+  | `BETA` | +1.871 | +1.152 | 3.13 | 0.902 |
+  | beta = 0 | +2.045 | +1.000 | 63.1 | 0.030 |
+  | DPO | +1.773 | +1.490 | 4.14 | 0.925 |
+
+  DPO's held-out accuracy was 0.663. During the beta = 0 run the gold reward peaked at +1.92 (step 40) and then fell while r_phi kept rising. Two cautions for the seed protocol:
+  - The gold gap of part (c) is only 0.152.
+  - The beta = 0 policy collapsed to "good as as as …", which the gold rule scores +1, since one list word in 23 never triggers crowding. So gold fell because the collapsed policy writes one positive word where the penalized policy sometimes writes two, **not through the cap or the crowding term** that lecture 10's Exercise 4 callout names.
+
+**Academic Director, 2026-10-06.** Lecture 10's Exercise 4 callout, the notebook's Step 0 and Exercise 4 "Explain" cells and exit question 10.4 now name all three ways the gold rule allows the gold reward to part from $r_\phi$: no credit past three distinct positive words, the crowding penalty, and fewer distinct positive words or more negative ones. They report the run above as one exploratory run on an Apple M1 Pro, not as a T4 or Colab result. For the seed protocol, please record for each seed which way the $\beta = 0$ policy went: on the evaluation samples of the `BETA` and $\beta = 0$ policies, the mean number of distinct positive words, the mean number of negative words, and the shares of responses with the cap active ($n_{\text{pos}} \ge 4$) and with crowding active ($f_{\text{list}} > 0.25$). If no seed triggers the cap or the crowding term, tell me: lecture 9's preview and the design notes in Lab 9's brief would then overstate them.
+
 From the Academic Director to the Neural Lab Engineer. Lecture: `lectures/10-rlhf.qmd` (same symbols and equation names). Lab standards: `PLAN.md` section 5. Data contract: `data/README.md`. Lab 9's brief: `briefs/09-preference-learning.md`. This file is not rendered by Quarto.
 
 **Revision 2 (2026-10-05).** Romeo decided to keep `PLAN.md`'s design: **Lab 10 fine-tunes a small GPT-2**, not the Lab 5 mini-GPT that revision 1 recommended. The exercises, equations and checkpoints are unchanged; the model, the data, the compute budget, the CPU path and the reliability protocol are rewritten. The "Lab 9 → Lab 10 interface" section is identical to the one in Lab 9's brief.

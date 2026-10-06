@@ -14,7 +14,8 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Language modeling | 1, 3, 5 | **Tiny Shakespeare**, 1,115,394 characters | Public-domain text; packaged in an MIT repository | Fixed. Copy committed |
 | Sequence transduction | 4 | Human-readable dates to ISO format | Generated in the notebook | No file. Lab 4 fixes the generator and its seed |
 | Instruction tuning | 7 | **Databricks Dolly 15k**, a subset | CC BY-SA 3.0 | License confirmed. Lab 7 fixes the subset |
-| Pairwise preferences | 9, 10 | Synthetic, with a known hidden preference | Generated in the notebook | No file. Lab 9 fixes the generator and its seed |
+| Calibration logits | 6, 11 | **Lab 6 encoder logits**: validation (600) and test (1,600) logits of DistilBERT fine-tuned on arXiv Topics v1 | CC0 1.0 (derived from CC0 data; Romeo to confirm) | Built on the build Mac's GPU, not a T4. Copy committed (`lab06_logits.npz`) |
+| Pairwise preferences | 9, 10 | **Lab 9 preference pairs**: 9,000 pairs of GPT-2 continuations of 256 prompts we wrote, labeled by a known rule, and the reward model trained on them | CC BY 4.0 (ours); the responses are samples from an Apache 2.0 model | Built 2026-10-06 on an Apple M1 Pro CPU, copies committed (`lab09_prompts.json`, `lab09_preferences.jsonl.gz`, `lab09_reward_model.pt`). See [below](#lab-9-preference-pairs-modules-9-and-10) |
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
 | RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). Rebuilt 2026-10-05 from the commit that completed `references.qmd`. **Status `provisional`**: lecture 12 and possibly lectures 6–11 will still change; freeze them, rebuild if needed, and set `final` before any question is written |
 | RAG questions | 13, 15 | **Workshop RAG Questions v1**: 80 questions with evidence spans, written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people. Validator, tools and instructions committed |
@@ -211,7 +212,8 @@ Alternatives that were checked and not chosen:
 
 ## Generated and workshop-built sets
 
-- **Dates (Module 4)** and **pairwise preferences (Modules 9 and 10)** are generated inside the notebook. Each lab fixes its generator's seed and records the sizes here when it is written. The dates generator is described below.
+- **Dates (Module 4)** are generated inside the notebook, with a fixed seed. The generator is described below.
+- **Pairwise preferences (Modules 9 and 10)** are built once by a script that needs the Hugging Face Hub, and committed: see [Lab 9 preference pairs](#lab-9-preference-pairs-modules-9-and-10).
 - **Labeled decisions (Modules 11, 12, 14)** are described under [Workshop Desk Decisions v1](#workshop-desk-decisions-v1-decisions-modules-11-12-14). **RAG documents and questions (Modules 13, 14, 15)** are described under [Workshop Lectures v1](#workshop-lectures-v1-rag-documents-modules-13-14-15) and [Workshop RAG Questions v1](#workshop-rag-questions-v1-modules-13-and-15). Module 11 also reuses the arXiv Topics validation and test splits for its reliability diagrams.
 
 ### Dates to ISO format (Module 4)
@@ -396,6 +398,70 @@ def load_lectures():
 
 **When it lands:** commit the file, add `datasets.rag_questions` to `_variables.yml` (`name`, `modules: [13, 15]`, `file`, `urls`, `sha256`, `bytes`, `license`, `license_url`, `splits: {dev: 30, test: 50}`, `corpus_sha256` equal to the lectures hash), set the hash in the `DATASETS["rag_questions"]` entry of `notebooks/13-rag.ipynb`, and report here: items written, dropped, alternatives added, and the evidence agreement rate before resolution (`python data/rag_questions_tools.py agreement ...`).
 
+## Lab 6 encoder logits (Modules 6 and 11)
+
+The validation and test logits that Lab 11 calibrates: Lab 6's hand-off file, from one fine-tuning run with Lab 6's GPU settings. Lab 11 loads it by hash and checks that it is not the offline stand-in, that the shapes are (600, 4) and (1600, 4), and that its labels equal `load_topics()`'s; otherwise it falls back to the Lab 1 classifier.
+
+| | |
+|---|---|
+| File | `lab06_logits.npz`, 55,278 bytes: `val_logits` (600, 4) and `test_logits` (1600, 4) as float32, the two label arrays as int64, and a JSON `meta` string |
+| SHA-256 | `cdc898835bbf77f283a8b178f33ce516e416ba3ca80d9d33d0882d65072ede61` |
+| Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab06_logits.npz> |
+| Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab06_logits.npz> |
+| Model | `distilbert/distilbert-base-uncased`, fine-tuned on all 4,800 training texts: `max_length` 256, 2 epochs, learning rate 5e-5, batch 32, seed 0 (Lab 6's GPU settings) |
+| Measured | test accuracy 0.8975, macro-F1 0.8973; validation accuracy 0.9000 (`baselines.json`, `lab06.distilbert_finetune`). Training took 323 s |
+| Built | 2026-10-06 on an Apple M1 Pro's GPU (MPS) in float32, from a copy of Lab 6 changed only to treat `mps` as a GPU (Lab 6 itself uses CUDA or the CPU, and fp16 only on CUDA); Python 3.12.13, `torch` 2.14.1, `transformers` 5.18.0. **Not a T4 run**: a T4 run at the same settings will give slightly different logits, and the file can be replaced by one |
+| License | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/): numbers derived from our run on CC0 data (Romeo to confirm) |
+
+On a CPU, Lab 6 fine-tunes BERT-mini (`google/bert_uncased_L-4_H-256_A-4`) on 800 texts instead; the build Mac's CPU run of that path reached 0.7975. Those logits are not the ones committed here.
+
+## Lab 9 preference pairs (Modules 9 and 10)
+
+Synthetic pairwise preferences with a known hidden rule, so that Lab 9 can check what its reward model learns and Lab 10 can measure reward hacking against a gold score. Specification: `briefs/09-preference-learning.md` (the Lab 9 → Lab 10 interface fixes every field). **The gold rule is a rule we wrote**; a real preference dataset has no gold score.
+
+| | |
+|---|---|
+| Files | `lab09_prompts.json`, 49,071 bytes; `lab09_preferences.jsonl.gz`, 1,837,490 bytes; `lab09_reward_model.pt`, 4,105,277 bytes |
+| SHA-256 | prompts `966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6`; preferences `c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326`; reward model `61c13537e4d8d0fd82e20006033f256937da01746885816c2522d607e6fad183` |
+| Canonical URLs | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_prompts.json>, <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_preferences.jsonl.gz>, <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_reward_model.pt> |
+| Fallback URLs | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_prompts.json>, <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_preferences.jsonl.gz>, <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_reward_model.pt> |
+| Builder | [`build_lab09_preferences.py`](build_lab09_preferences.py), which needs the Hub (seed 0; label seed 1). The reward model is written by Lab 9's own solution code at seed 0 (`NLP_LLMS_REWARD_MODEL_OUT`), so the class in the notebook and the committed weights cannot drift |
+| Policy | `distilbert/distilgpt2` at commit `2290a62682d06624634c1f46a6ad5be0f47f38aa` (`models.causal_lm_revision`), float32, `eval()`, temperature 1, no truncation, end-of-text never sampled |
+| Size | 256 prompts of 8 tokens (16 subjects × 16 frames: 160 train, 32 held-out, 64 for Lab 10's evaluation); 8,000 train and 1,000 held-out pairs, two 24-token responses each; the reward model has 12,820 embedding rows |
+| Built | 2026-10-06, Apple M1 Pro CPU, Python 3.12.13, `torch` 2.14.1, `transformers` 5.18.0; sampling took 410 s. Not built on Colab |
+| License | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (ours). The responses are samples from an Apache 2.0 model |
+
+**The prompts.** Every frame stops just before a feeling ("My sister opened the letter and felt so"). The first proposal ended one word earlier ("... and said", "... and saw"). On GPT-2's own samples it failed two acceptance criteria: 76% of same-prompt pairs were tied, because the continuations rarely contained a list word. The gold rule, the lengths and the interface did not change. The measurements behind the choice are in the brief's "As built" note.
+
+**Acceptance statistics of the committed pairs** (all 18,000 responses, 9,000 same-prompt pairs; criteria from the brief):
+
+| Statistic | Value | Criterion |
+|---|---|---|
+| Share of responses with $g \ne 0$ | 0.3381 | report |
+| Tie share of same-prompt pairs | 0.5019 | at most 0.6 |
+| Cap active ($n_{\text{pos}} \ge 4$) | 0.0001 | under 1% |
+| Crowding active ($f_{\text{list}} > 0.25$) | 0.0022 | under 1% |
+| Some positive word twice or more | 0.0104 | report (expected under 5%) |
+| Mean complete words per response | 17.37 | report (expected 14 to 18) |
+| Mean gold score | 0.1144 | report |
+| $\mathrm{Acc}^\star$ at $\tau_{\text{label}}$ = 0.25 / 0.5 / 1 | 0.7414 / 0.6984 / 0.6290 | at least 0.6 at the chosen 0.5 |
+
+Every list word occurs in the samples (fewest: "ugly", 4 times; most: "good", 2,016). The full counts are stored in `lab09_prompts.json` under `statistics`.
+
+**The reward model** (seed 0, the committed file) and the two other seeds that set Lab 9's Exercise 4 thresholds, measured on the 1,000 held-out pairs on the build Mac's CPU:
+
+| Seed | Held-out pairwise accuracy | $\mathrm{Acc}^\star$ (held-out) | Gold-order accuracy, untied pairs | Spearman $r_\phi$ vs $g$ | Epoch kept (of 6) |
+|---|---|---|---|---|---|
+| 0 (committed) | 0.6890 | 0.7127 | 0.9381 | 0.7848 | 1 |
+| 1 | 0.6980 | 0.7127 | 0.9343 | 0.7781 | 1 |
+| 2 | 0.6710 | 0.7127 | 0.9250 | 0.7454 | 1 |
+
+The held-out tie share is 0.467. Training took 14 to 15 s per seed and the whole notebook 90 to 98 s (CPU). Three seed-0 runs gave bit-identical weights on this machine. The committed checkpoint is 4,105,277 bytes, with 12,820 embedding rows, below the brief's 5 MB limit for trimming the vocabulary.
+
+**Determinism.** Sampling on other hardware or library versions is not bit-for-bit reproducible, so the committed files and their hashes are the dataset, not the script. `tests/test_lab09.py` checks that both notebooks pin these hashes, that every stored gold score equals the restated gold rule, and that the reward model was trained on these two files.
+
+**Loading.** Lab 9 loads the two data files through the loading cell above (its `LAB09_FILES`); Lab 10 loads all three (its `LAB09_FILES`, with the same hashes).
+
 ## Workshop Capstone Questions v1 (Module 15)
 
 **Not written yet.** `data/capstone_questions_v1.jsonl` holds the capstone's 45 new questions; with Lab 13's 80, reused by ID, they make the capstone's 125. They are written and blind-checked by people, after Lab 13's set and against the same frozen snapshot. **No language model writes, proposes, filters or labels any item**, including checking whether a model "knows" a memory-bait fact. Specification: `briefs/15-capstone.md`, "Decision: the fixed evaluation set".
@@ -540,13 +606,24 @@ Both follow the character n-gram protocol above. Lab 3 recomputes `lab01.char_ng
 
 Both score the same 60,394 test characters as Labs 1 and 3, with Lab 3's metric (`lm_loss_and_ppl`, restated unchanged). The LSTM uses Lab 3's evaluation routine (1,000-character warm-up, state carried across 1,000-character chunks). The GPT cannot carry state, so it is scored with overlapping windows of 128 characters moved by 64, and only the second half of each window is scored: every character has 65 to 128 characters of context. The learning rates were chosen on `val` with `QUICK = True` and not re-tuned at batch 64. The GPT's lead over the LSTM (0.025 nats) is from one seed and is smaller than the seed-to-seed spread measured with `QUICK = True` (about 0.02 to 0.03 nats), so it is not a ranking. With `QUICK = True` (batch 16, 1,500 steps), seeds 0, 1 and 2 gave 1.7696, 1.7907 and 1.7938 (GPT) and 1.5621, 1.5819 and 1.5798 (LSTM). Training took 3,921 s (GPT) and 348 s (LSTM) on this contended CPU; a T4 time has not been measured. `lab05.lstm` is not Lab 3's run: it beats `lab03.lstm_lm` (1.6114) because of the longer schedule, the decaying learning rate and the higher peak rate. The measured attention weights of this run, for the Lecture 5 figure, are in `images/05-attention-heads.json`. To update: execute the notebook with `NLP_LLMS_QUICK=0` and run the values of the `lab05_results.json` its card cell writes into the two entries.
 
-**Lab 11, measured 2026-10-05** (Linux container, 4 vCPU shared with another agent, CPU only, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1; not run on Colab). Calibration of the Lab 1 pipeline, recomputed in Lab 11 at three values of `C`, on the 1,600 test papers; ECE with 15 equal-width right-closed bins; $\tau^*$ fitted on the 600 validation papers. The Lab 6 encoder's row is missing: its logits are not recorded yet.
+**Lab 9, measured 2026-10-06** (Apple M1 Pro, CPU only, Python 3.12.13, PyTorch 2.14.1; executed with `scripts/test_notebooks.py`; not run on Colab or a GPU). The reward model of Exercise 4 on the 1,000 held-out pairs of [Lab 9 preference pairs](#lab-9-preference-pairs-modules-9-and-10), recorded as split `test`; full settings, seeds 0 to 2:
+
+| `id` | Held-out pairwise accuracy | $\mathrm{Acc}^\star$ | Gold-order accuracy, untied pairs | Spearman $r_\phi$ vs $g$ |
+|---|---|---|---|---|
+| `lab09.reward_model.seed0` (committed as `lab09_reward_model.pt`) | 0.6890 | 0.7127 | 0.9381 | 0.7848 |
+| `lab09.reward_model.seed1` | 0.6980 | 0.7127 | 0.9343 | 0.7781 |
+| `lab09.reward_model.seed2` | 0.6710 | 0.7127 | 0.9250 | 0.7454 |
+
+Lab 9's Exercise 4 thresholds come from these three rows. To update: rebuild only if the data change, then rerun the three seeds as in the docstring of `build_lab09_preferences.py`.
+
+**Lab 11, measured 2026-10-05** (Linux container, 4 vCPU shared with another agent, CPU only, NumPy 2.5.3, SciPy 1.18.1, scikit-learn 1.9.1; not run on Colab). Calibration of the Lab 1 pipeline, recomputed in Lab 11 at three values of `C`, on the 1,600 test papers; ECE with 15 equal-width right-closed bins; $\tau^*$ fitted on the 600 validation papers. The last row, added 2026-10-06 (Apple M1 Pro, CPU, `scripts/test_notebooks.py`), is the Lab 6 encoder from `lab06_logits.npz`, the lab's primary classifier since its logits were committed; its after-scaling values are printed to three decimals.
 
 | `id` | Accuracy | Mean confidence | ECE | Brier | Log loss | $\tau^*$ | ECE after | Brier after | Log loss after |
 |---|---|---|---|---|---|---|---|---|---|
 | `lab11.tfidf_logreg.C1` | 0.8875 | 0.7234 | 0.1641 | 0.2111 | 0.4356 | 0.4685 | 0.0094 | 0.1637 | 0.3033 |
 | `lab11.tfidf_logreg.C10` | 0.8838 | 0.8617 | 0.0231 | 0.1662 | 0.3142 | 0.7895 | 0.0180 | 0.1645 | 0.3065 |
 | `lab11.tfidf_logreg.C100` | 0.8819 | 0.9245 | 0.0435 | 0.1755 | 0.3387 | 1.3017 | 0.0173 | 0.1710 | 0.3187 |
+| `lab11.lab06_encoder` | 0.8975 | 0.9349 | 0.0392 | 0.1580 | 0.2991 | 1.097 | 0.036 | 0.155 | 0.295 |
 
 For `C = 10`: noise floor of ECE at this $N$ 0.0193; ECE 0.0220, 0.0231, 0.0379 and 0.0548 at 5, 15, 50 and 100 bins; with $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$ the test cost per case is 1.1625 acting on everything, 1.0 deferring everything, 0.5469 at Chow's $\lambda^* = 0.9$ (coverage 0.578), 0.5175 at the $\lambda$ chosen on validation (0.8422, coverage 0.676) and 0.5131 at Chow's rule after temperature scaling. These values are deterministic and match the build-container values in `briefs/11-calibration.md`. Lab 11's language-model numbers are not recorded: in this container only its offline test double ran, and its numbers measure the notebook, not a model.
 

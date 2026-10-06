@@ -8,9 +8,9 @@ this script; they load the committed files (see data/README.md). The third file 
 needs, data/lab09_reward_model.pt, is written by Lab 9's own solution code (see the end
 of this docstring).
 
-Needs huggingface.co (the model and tokenizer, about 350 MB). A GPU is optional: a T4
-takes an estimated minute of sampling, a CPU an estimated 15 to 25 minutes (neither
-measured yet). Run from the repository root:
+Needs huggingface.co (the model and tokenizer, about 350 MB). A GPU is optional. Measured
+on an Apple M1 Pro CPU (2026-10-06): --stats-only about 70 s, the full build about
+10 minutes. A T4 has not been measured. Run from the repository root:
 
     # 1. Statistics only: 1,000 train pairs (2,000 samples), prints the acceptance table,
     #    writes nothing. Send the table to the Academic Director and the Lab 10 author.
@@ -30,7 +30,14 @@ measured yet). Run from the repository root:
       NLP_LLMS_REWARD_MODEL_OUT=/tmp/lab09_reward_model_seed$s.pt \\
         python scripts/test_notebooks.py 09-preference-learning
     done
-    cp /tmp/lab09_reward_model_seed0.pt data/lab09_reward_model.pt
+    # Then the committed file: one more seed-0 run, written straight to a path whose file
+    # name is lab09_reward_model.pt. torch.save names the archive's root folder after the
+    # file, so copying /tmp/lab09_reward_model_seed0.pt would change the SHA-256 even with
+    # identical weights.
+    mkdir -p /tmp/rm
+    NLP_LLMS_RM_SEED=0 NLP_LLMS_REWARD_MODEL_OUT=/tmp/rm/lab09_reward_model.pt \\
+      python scripts/test_notebooks.py 09-preference-learning
+    cp /tmp/rm/lab09_reward_model.pt data/lab09_reward_model.pt
 
 Offline test of everything except GPT-2 (word-level stand-in tokenizer and sampler; the
 files it writes are NOT the dataset and are refused inside data/):
@@ -41,7 +48,10 @@ Recipe, all of it fixed:
 
 - Prompts: every subject (2 tokens) + frame (6 tokens), 256 prompts of exactly
   PROMPT_LEN = 8 tokens, split by frame into train (160), held-out (32) and Lab 10's
-  evaluation prompts (64). No end-of-text token in front.
+  evaluation prompts (64). No end-of-text token in front. Every frame ends at the slot
+  where a feeling comes next ("... and felt so", "... feeling so"): frames that ended one
+  word earlier ("... and said") left 76% of same-prompt pairs tied on GPT-2's samples
+  (measured 2026-10-06; see "As built" in briefs/09-preference-learning.md).
 - Pairs: 8,000 train pairs (50 per train prompt) and 1,000 held-out pairs. Pair i of a
   split uses prompt i mod (number of prompts) of that split, in an order shuffled with
   random.Random(seed).
@@ -127,14 +137,14 @@ SUBJECTS = ["My mother", "My father", "My sister", "My brother", "My friend", "M
             "Our neighbor", "The teacher", "The doctor", "The manager", "The waiter",
             "The student", "The driver", "The coach", "The nurse", "The chef"]
 FRAMES = {
-    "train": ["looked at the results and said", "opened the old letter and felt",
-              "walked into the room and saw", "tasted the soup and told us",
-              "read the review twice and thought", "came home late and found the",
-              "listened to the new song and", "looked out the window and said",
-              "heard the news this morning and", "finished the long day and felt"],
-    "heldout": ["watched the game last night and", "visited the old house and said"],
-    "eval": ["tried the new restaurant and said", "read the long email and felt",
-             "saw the final bill and said", "spent the whole weekend at the"],
+    "train": ["looked at the results feeling so", "opened the letter and felt so",
+              "walked into the room feeling so", "tasted the soup and felt so",
+              "read the review and felt so", "came home late and felt so",
+              "listened to the song feeling so", "looked out the window feeling so",
+              "heard the news and felt so", "finished the long day feeling so"],
+    "heldout": ["watched the game and felt so", "visited the old house feeling so"],
+    "eval": ["left the new restaurant feeling so", "read the email and felt so",
+             "saw the bill and felt so", "spent the whole weekend feeling so"],
 }
 SUBJECT_LEN, FRAME_LEN = 2, 6
 
@@ -147,9 +157,9 @@ PREVIEW = [
      " good, great, happy, wonderful, beautiful, nice, amazing, perfect, excellent.", False),
     ("'I love it!' repeated", " I love it!", True),
     ("ordinary reply, one positive word",
-     " it was a good day, and we all went home early to rest before dinner.", False),
+     " relaxed after the game, and we all went home early for a good dinner.", False),
     ("ordinary reply, two negative words",
-     " it was a bad day, and the long wait made everyone feel sick and tired.", False),
+     " tired after the long wait, and the bad food made everyone feel sick.", False),
 ]
 
 # Acceptance criteria of the brief ("Measure on 2,000 reference samples").
@@ -584,9 +594,9 @@ def main(argv=None):
     checks = acceptance(stats)
     print_statistics(stats, checks)
     if not all(passed for *_, passed in checks) and not args.allow_failing_criteria:
-        print("\nAn acceptance criterion failed: nothing written. Change only the lists, "
-              "crowd_threshold, the pair count or tau_label (see the brief), in this script "
-              "and in both notebooks, then rebuild.")
+        print("\nAn acceptance criterion failed: nothing written. Change only the frames, the "
+              "lists, crowd_threshold, the pair count or tau_label (see the brief), in this "
+              "script and in both notebooks, then rebuild.")
         return 1
 
     labeled = label_pairs(pairs, args.seed, GOLD["tau_label"])

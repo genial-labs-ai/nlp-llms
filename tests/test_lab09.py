@@ -26,10 +26,25 @@ BUILD = ROOT / "data" / "build_lab09_preferences.py"
 MODELS = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))["models"]
 
 
-def notebook_code() -> str:
-    path = ROOT / "notebooks" / "09-preference-learning.ipynb"
+DATASETS = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))["datasets"]
+LAB09_KEYS = {
+    "prompts": "lab09_prompts",
+    "preferences": "lab09_preferences",
+    "reward_model": "lab09_reward_model",
+}  # notebook key -> _variables.yml datasets key
+
+
+def notebook_code(slug: str = "09-preference-learning") -> str:
+    path = ROOT / "notebooks" / f"{slug}.ipynb"
     nb = json.loads(path.read_text(encoding="utf-8"))
     return "\n".join("".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code")
+
+
+def restated_gold():
+    """GOLD and gold_reward exactly as the brief's interface states them."""
+    namespace = {"re": re}
+    exec(BLOCKS[2], namespace)  # noqa: S102
+    return namespace["GOLD"], namespace["gold_reward"]
 
 
 class Interface(unittest.TestCase):
@@ -62,6 +77,94 @@ class Interface(unittest.TestCase):
     def test_build_script_uses_the_pinned_model(self):
         match = re.search(r'^MODEL = "([^"]+)"', BUILD.read_text(encoding="utf-8"), re.MULTILINE)
         self.assertEqual(match.group(1), MODELS["causal_lm"])
+
+
+class CommittedFiles(unittest.TestCase):
+    """The committed Lab 9 files, the hashes both notebooks pin and _variables.yml agree."""
+
+    def test_both_notebooks_pin_the_recorded_hashes(self):
+        lab09, lab10 = notebook_code(), notebook_code("10-rlhf")
+        for key, dataset in LAB09_KEYS.items():
+            sha = DATASETS[dataset]["sha256"]
+            with self.subTest(file=dataset):
+                self.assertIn(f'"{sha}"', lab10)
+                if key != "reward_model":  # Lab 9 writes the reward model; it loads only the data
+                    self.assertIn(f'"{sha}"', lab09)
+
+    def test_files_follow_the_restated_gold_rule(self):
+        gold, gold_reward = restated_gold()
+        doc = json.loads((ROOT / "data" / "lab09_prompts.json").read_text(encoding="utf-8"))
+        self.assertEqual(doc["gold"], gold)
+        self.assertFalse(doc["build"]["stand_in"])
+        self.assertEqual(doc["model"], MODELS["causal_lm"])
+        self.assertEqual(doc["revision"], MODELS["causal_lm_revision"])
+        blob = (ROOT / "data" / "lab09_preferences.jsonl.gz").read_bytes()
+        pairs = [json.loads(line) for line in gzip.decompress(blob).decode("utf-8").splitlines()]
+        self.assertEqual(len(pairs), sum(doc["build"]["pairs"].values()))
+        for p in pairs:
+            self.assertEqual(gold_reward(p["prompt"], p["chosen"]), p["gold_chosen"])
+            self.assertEqual(gold_reward(p["prompt"], p["rejected"]), p["gold_rejected"])
+
+    @unittest.skipUnless(importlib.util.find_spec("torch"), "torch is not installed")
+    def test_reward_model_matches_the_data(self):
+        import hashlib
+
+        import torch
+
+        ckpt = torch.load(ROOT / "data" / "lab09_reward_model.pt", weights_only=True)
+        self.assertEqual(ckpt["gold"], restated_gold()[0])
+        for key in ("prompts", "preferences"):
+            self.assertEqual(ckpt["data_sha256"][key], DATASETS[LAB09_KEYS[key]]["sha256"], key)
+        self.assertEqual(ckpt["policy"]["revision"], MODELS["causal_lm_revision"])
+        path = ROOT / "data" / "lab09_reward_model.pt"
+        self.assertEqual(
+            hashlib.sha256(path.read_bytes()).hexdigest(), DATASETS["lab09_reward_model"]["sha256"]
+        )
+
+
+def literal_assignments(source: str, names: set[str]) -> dict:
+    """{name: value} for every `name = <literal>` in source, at any depth."""
+    import ast
+
+    out = {}
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Assign) and len(node.targets) == 1:
+            target = node.targets[0]
+            if isinstance(target, ast.Name) and target.id in names:
+                try:
+                    out[target.id] = ast.literal_eval(node.value)
+                except ValueError:
+                    pass
+    return out
+
+
+def notebook_cells(slug: str) -> list[str]:
+    nb = json.loads((ROOT / "notebooks" / f"{slug}.ipynb").read_text(encoding="utf-8"))
+    return ["".join(c["source"]) for c in nb["cells"] if c["cell_type"] == "code"]
+
+
+class Frames(unittest.TestCase):
+    """The 16 subjects and 16 frames are written out in the builder and again in the offline
+    stand-ins of Labs 9 and 10; all three must equal what the committed data were built from."""
+
+    def test_stand_ins_use_the_committed_frames(self):
+        prompts = json.loads((ROOT / "data" / "lab09_prompts.json").read_text(encoding="utf-8"))
+        built = literal_assignments(BUILD.read_text(encoding="utf-8"), {"SUBJECTS", "FRAMES"})
+        self.assertEqual(built["SUBJECTS"], prompts["subjects"])
+        self.assertEqual(built["FRAMES"], prompts["frames"])
+        for slug in ("09-preference-learning", "10-rlhf"):
+            stand_ins = []  # the cells that define both, which is the stand-in builder
+            for cell in notebook_cells(slug):
+                try:
+                    found = literal_assignments(cell, {"subjects", "frames"})
+                except SyntaxError:  # a cell with a Colab shell command
+                    continue
+                if {"subjects", "frames"} <= set(found):
+                    stand_ins.append(found)
+            with self.subTest(slug):
+                self.assertEqual(len(stand_ins), 1)
+                self.assertEqual(stand_ins[0]["subjects"], prompts["subjects"])
+                self.assertEqual(stand_ins[0]["frames"], prompts["frames"])
 
 
 @unittest.skipUnless(importlib.util.find_spec("torch"), "torch is not installed")

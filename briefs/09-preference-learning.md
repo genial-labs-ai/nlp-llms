@@ -1,10 +1,51 @@
 # Lab brief: `notebooks/09-preference-learning.ipynb`
 
-**Status (2026-10-06).** `notebooks/09-preference-learning.ipynb` now exists and passes its offline code check in CI. Part B still waits on the data files this brief specifies, which have not been built. The "Not verified" section below records the state when this brief was written. For what has run since, and where, see the [readiness page](../readiness.qmd).
+**Status (2026-10-06).** `notebooks/09-preference-learning.ipynb` exists and passes its offline code check in CI. The data files this brief specifies and the seed-0 reward model are built and committed, after one change to the prompts. Part B has run on them, on an Apple M1 Pro CPU only. See "As built" below. The "Not verified" section at the end records the state when this brief was written. For what has run since, and where, see the [readiness page](../readiness.qmd).
 
 From the Academic Director to the Neural Lab Engineer. Lecture: `lectures/09-preference-learning.qmd` (same symbols, equation labels and function names). Lab standards: `PLAN.md` section 5. Data contract: `data/README.md`. Lab 10's needs: `briefs/10-rlhf.md`. This file is not rendered by Quarto.
 
 **Revision 2 (2026-10-05).** Romeo kept `PLAN.md`'s design: Lab 10 fine-tunes a small GPT-2, not the Lab 5 mini-GPT. Part A is unchanged. Part B (the preference data, the gold rule, the reward model and the interface with Lab 10) is rewritten for GPT-2 samples. The interface section below is identical to the one in `briefs/10-rlhf.md`.
+
+## As built (2026-10-06, Neural Lab Engineer)
+
+Measured on an Apple M1 Pro laptop (16 GB, CPU; Python 3.12.13, `torch` 2.14.1, `transformers` 5.18.0), with `distilbert/distilgpt2` at commit `2290a62682d06624634c1f46a6ad5be0f47f38aa`. **Not on Colab and not on a T4.**
+
+**What changed, and why.** The first `--stats-only` run on real GPT-2 samples failed two of this brief's acceptance criteria: tie share 0.7560 (criterion at most 0.6) and $\mathrm{Acc}^\star$ at $\tau_{\text{label}} = 0.5$ of 0.5963 (criterion at least 0.6). The proposed frames ended one word before the evaluation ("... and said", "... and saw", "... found the"), and GPT-2 mostly continued them with narrative, so 86% of responses held no list word. **The fix: every frame now ends at the evaluative slot ("... and felt so", "... feeling so"), each keeping its original scene.** I chose the wording by a readability rule ("and felt so" after a completed action, "feeling so" after motion or duration), not by screening rank. The gold rule, `GOLD`, `tau_label`, the lengths, the pair counts and the Lab 9 → Lab 10 interface are unchanged. So are both lectures' descriptions of the rule; only lecture 9's example prompt was updated. The two "ordinary reply" preview items were rewritten to continue the new prompts, with the same descriptions and the same gold scores (1 and −2), and so was Lab 9's `MY_REPLY`.
+
+**Why not the other remedies** (measured, not assumed):
+
+| Attempt | Settings | Samples | $g \ne 0$ | Tie share | $\mathrm{Acc}^\star$ at 0.25 / 0.5 / 1 | Cap / crowding active | Verdict |
+|---|---|---|---|---|---|---|---|
+| 0 | Proposal as written (the build script at seed 0) | 2,000 | 0.1435 | **0.7560** | 0.6182 / **0.5963** / 0.5616 | 0 / 0 | fails tie share and $\mathrm{Acc}^\star$ |
+| 1 | Lists broadened: +25 positive and +23 negative evaluative words seen in attempt 0's samples (45 and 43 words). Re-scored on the same samples, so optimistic | 2,000 (same) | 0.2385 | **0.6290** | 0.6801 / 0.6490 / 0.5977 | 0 / 0 | fails tie share even in-sample, with the lists more than doubled; each further clear word adds at most 10 of 1,713 zero samples |
+| 2 | Responses of 32 tokens instead of 24 (an interface constant; `T_max` and Lab 10's sampling cost would change) | 2,000 | 0.1820 | **0.7000** | 0.6454 / 0.6188 / 0.5763 | 0 / 0 | fails tie share |
+| 3 | **Frames ending at the evaluative slot** (build script, seed 0) | 2,000 | 0.3270 | 0.5070 | 0.7391 / 0.6965 / 0.6278 | 0 / 0.0015 | passes all four |
+| 3, repeat | Same, `--seed 1` | 2,000 | 0.3305 | 0.4980 | 0.7435 / 0.7014 / 0.6323 | 0.0005 / 0.0010 | passes all four |
+| Full build | Same, seed 0, all pairs | 18,000 | 0.3381 | 0.5019 | 0.7414 / 0.6984 / 0.6290 | 0.0001 / 0.0022 | passes all four; files written |
+
+Raising the train pairs to 12,000 (this brief's second remedy) cannot change the tie share, and at 0.756 it would carry about 2,900 informative labels, short of the 3,200 the criterion protects. A lower $\tau_{\text{label}}$ cannot change the tie share either. The frames were screened before the final measurement: 128 samples each, for 22 candidates, on a separate screening seed (12345). The acceptance numbers above come from the build script's own seeds, not from the screening. Other measured facts from the full build: positive words twice or more 0.0104 (expected under 5%); mean complete words 17.37 (expected 14 to 18); mean gold 0.1144; every list word occurs (fewest "ugly", 4; most "good", 2,016). The sampling took 410 s on the M1 Pro CPU, against this brief's estimate of 15 to 25 minutes.
+
+**Files.** `data/lab09_prompts.json` (49,071 bytes, SHA-256 `966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6`), `data/lab09_preferences.jsonl.gz` (1,837,490 bytes, `c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326`) and `data/lab09_reward_model.pt` (4,105,277 bytes, `61c13537e4d8d0fd82e20006033f256937da01746885816c2522d607e6fad183`). They are registered in `_variables.yml` `datasets` (`lab09_prompts`, `lab09_preferences`, `lab09_reward_model`) and in `data/README.md`. `models.causal_lm_revision` is pinned, and Lab 10 now loads that commit. `tests/test_data.py`'s cap on `data/` was raised from 6 MB to 12 MB (`data/` is now 11.40 MB).
+
+**Reward model, Exercise 4** (full settings, CPU, seeds 0 to 2, `NLP_LLMS_LAB09_MEASURE=1`):
+
+| Seed | Held-out accuracy | $\mathrm{Acc}^\star$ | Gap | Gold-order accuracy, untied | Spearman | Epoch kept | Training |
+|---|---|---|---|---|---|---|---|
+| 0 (committed) | 0.6890 | 0.7127 | 0.0237 | 0.9381 | 0.7848 | 1 of 6 | 15 s |
+| 1 | 0.6980 | 0.7127 | 0.0147 | 0.9343 | 0.7781 | 1 of 6 | 14 s |
+| 2 | 0.6710 | 0.7127 | 0.0417 | 0.9250 | 0.7454 | 1 of 6 | 14 s |
+
+Held-out tie share 0.467. `n_rows` 12,820; the checkpoint is 4,105,277 bytes, under the 5 MB limit for trimming the vocabulary. The whole notebook ran in 90 to 98 s per seed. Three seed-0 runs gave bit-identical weights on this CPU. The preview shows the overrating that Lab 10 relies on. With seed 0, "great" repeated (g = −6.5) scores above 83% of held-out reference responses, and the comma-separated list of nine positive words (g = −4.5) above 99.9%. The ordinary reply with one positive word (g = 1) scores above 74%. Seed 2's preview is weaker, with the list above 69%. **One observation, not acted on:** every seed keeps epoch 1. Validation-slice accuracy falls in each later epoch while the training loss goes to about 0.006, so the provided schedule (6 epochs at learning rate 2e-3) overfits these data. Keeping the best epoch handles it. A shorter schedule or a lower learning rate would save about 12 s and might raise accuracy, but that would change the reward model Lab 10 hacks, so I left it for a separate decision.
+
+**Exercise 4 thresholds**, set by the rule above (worst seed, margin of half the spread, rounded outward):
+
+- `ACC_MARGIN = 0.06`, from 0.0417 + 0.0270 / 2 = 0.0552.
+- `GOLD_ORDER_FLOOR = 0.91`, from 0.9250 − 0.0131 / 2 = 0.9184.
+- `SPEARMAN_FLOOR = 0.72`, from 0.7454 − 0.0394 / 2 = 0.7257.
+
+Seed 0, re-run without `NLP_LLMS_LAB09_MEASURE`, passes Checkpoint 4b. These come from CPU training on one machine; a T4 trains on CUDA and was not measured. Per-seed values are recorded in `data/baselines.json` (`lab09.reward_model.seed0` to `seed2`; split `test` is the held-out pairs) and in `data/README.md`.
+
+**Still not verified.** Nothing here ran on Colab or a T4; every number above is from an Apple M1 Pro (CPU/MPS). Lab 10's reward-hacking signature depends on these files. Lab 10 ran on its real path only in `FAST` mode on the CPU, where the trained-policy checkpoints are skipped, plus one exploratory full-settings run on MPS at seed 0. That run passed Checkpoints 3 to 5 at the provisional thresholds, with a narrow gold gap of 0.152; see `briefs/10-rlhf.md`, "As built". The seed protocol on a T4 has not run.
 
 **Objectives exercised** (from `_variables.yml`, `m09`): frame text generation as a reinforcement-learning problem (Exercises 1 and 2, on a toy sequence task); derive and implement the policy gradient (Exercises 1 and 2); train a reward model from pairwise preferences (Exercises 3 to 5).
 
@@ -51,12 +92,12 @@ Unchanged from revision 1.
 
 ## Part B: preference data (provided as committed files)
 
-**Prompts.** Subject (2 tokens) + frame (6 tokens), every combination, 256 prompts. Splitting by frame keeps the frames of held-out pairs and of Lab 10's evaluation prompts out of the training pairs. Proposal; adjust any phrase that does not tokenize to the stated length, and keep every list word out of the prompts (the build script asserts both):
+**Prompts.** Subject (2 tokens) + frame (6 tokens), every combination, 256 prompts. Splitting by frame keeps the frames of held-out pairs and of Lab 10's evaluation prompts out of the training pairs. Adjust any phrase that does not tokenize to the stated length, and keep every list word out of the prompts (the build script asserts both). **As built (2026-10-06)**; the proposal's frames ended one word earlier and failed the acceptance criteria (see "As built" above):
 
 - Subjects (16): My mother, My father, My sister, My brother, My friend, My boss, Our neighbor, The teacher, The doctor, The manager, The waiter, The student, The driver, The coach, The nurse, The chef.
-- Train frames (10, giving 160 prompts): looked at the results and said; opened the old letter and felt; walked into the room and saw; tasted the soup and told us; read the review twice and thought; came home late and found the; listened to the new song and; looked out the window and said; heard the news this morning and; finished the long day and felt.
-- Held-out frames (2, giving 32 prompts): watched the game last night and; visited the old house and said.
-- Evaluation frames for Lab 10 (4, giving 64 prompts): tried the new restaurant and said; read the long email and felt; saw the final bill and said; spent the whole weekend at the.
+- Train frames (10, giving 160 prompts): looked at the results feeling so; opened the letter and felt so; walked into the room feeling so; tasted the soup and felt so; read the review and felt so; came home late and felt so; listened to the song feeling so; looked out the window feeling so; heard the news and felt so; finished the long day feeling so.
+- Held-out frames (2, giving 32 prompts): watched the game and felt so; visited the old house feeling so.
+- Evaluation frames for Lab 10 (4, giving 64 prompts): left the new restaurant feeling so; read the email and felt so; saw the bill and felt so; spent the whole weekend feeling so.
 
 Prompts have no end-of-text token in front. `text == tokenizer.decode(ids)` must hold exactly; assert it.
 

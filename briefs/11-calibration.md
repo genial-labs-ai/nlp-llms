@@ -16,6 +16,8 @@ Participants measure the calibration of a classifier from the running thread (re
 
 ### (a) The Lab 6 logits do not exist yet
 
+**As built (2026-10-06):** `data/lab06_logits.npz` is committed and registered, so the Lab 6 encoder is now the primary classifier. It was fine-tuned with Lab 6's GPU settings on the build Mac's GPU (Apple MPS), not a T4; test accuracy 0.8975 (`data/README.md`). The paragraph below is the state before.
+
 `lab06_logits.npz` (validation and test logits of the fine-tuned encoder on arXiv Topics, written by Lab 6's hand-off cell) needs a pretrained run with Hub access. The build container has none, so the file has not been produced. The lab must run cold without it.
 
 **Decision: which classifier is primary.**
