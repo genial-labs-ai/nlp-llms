@@ -826,10 +826,16 @@ def main() -> None:
         write(INCLUDES / f"day-{d['n']}.md", day_cards(v, d))
     for key, m in modules_in_order(v):
         write(INCLUDES / f"module-{m['n']:02d}.md", module_block(v, key, m))
-        if live_plan.read(m["slug"])["front"].get("live"):
+        lecture = live_plan.read(m["slug"])
+        live, pace = INCLUDES / f"live-{m['n']:02d}.md", INCLUDES / f"pace-{m['n']:02d}.md"
+        if lecture["front"].get("live"):
             notice = LIVE_NOTICE.format(slug=m["slug"])
-            write(INCLUDES / f"live-{m['n']:02d}.md", live_plan.table(m["slug"]), notice)
-            write(INCLUDES / f"pace-{m['n']:02d}.md", live_plan.pace_rows(m["slug"]), notice)
+            write(live, live_plan.table(m["slug"], lecture), notice)
+            write(pace, live_plan.pace_rows(m["slug"], lecture), notice)
+        else:
+            # A plan that was removed must not leave its old tables on the page.
+            live.unlink(missing_ok=True)
+            pace.unlink(missing_ok=True)
     write(INCLUDES / "notebooks.md", notebooks_index(v))
     records = run_records.load_valid(set(v["readiness"]["envs"]))
     report = readiness.build(v, records)

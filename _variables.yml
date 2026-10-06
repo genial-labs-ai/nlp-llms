@@ -420,7 +420,7 @@ modules:
       optional_accounts: [Claude Code, Codex, Gemini CLI]
       cost: "Claude Code and Codex need a paid plan; Gemini CLI has a free tier with a personal Google account"
       fallback: {kind: none, note: "Pair with a neighbor, or use Gemini CLI's free tier"}
-      gaps: "Never run end to end on a fresh laptop; the section plan totals 60 minutes and the estimate of 90 adds one-time setup and the Pages build. Both are plans, not measurements"
+      gaps: "Never run end to end on a fresh laptop; its section minutes and its estimate (which adds one-time setup and the Pages build) are plans, not measurements"
   m01:
     n: 1
     slug: 01-text-as-data

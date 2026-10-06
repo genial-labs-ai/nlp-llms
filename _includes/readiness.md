@@ -39,7 +39,7 @@
 
 ## Known gaps by module {#gaps}
 
-- **0 · Coding agents in the terminal:** Never run end to end on a fresh laptop; the section plan totals 60 minutes and the estimate of 90 adds one-time setup and the Pages build. Both are plans, not measurements.
+- **0 · Coding agents in the terminal:** Never run end to end on a fresh laptop; its section minutes and its estimate (which adds one-time setup and the Pages build) are plans, not measurements.
 - **6 · Pretraining and the Hugging Face stack:** The Lab 6 logits file that Lab 11 reads has not been built.
 - **9 · Reinforcement and preference learning:** The Lab 9 preference data files have not been built, so Part B cannot run.
 - **10 · RLHF:** Needs the Lab 9 data files and reward model, which have not been built.

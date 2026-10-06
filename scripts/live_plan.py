@@ -34,35 +34,76 @@ ROOT = Path(__file__).resolve().parent.parent
 LECTURES = ROOT / "lectures"
 
 KINDS = {"self-check": "Check yourself", "demo": "Demo", "predict": "Predict", "discuss": "Discuss"}
-SECTION = re.compile(r"^## (\d+)\. (.+?)\s*(\{[^}]*\})?\s*$", re.M)
-BLOCK = re.compile(r"^:::+\s*\{([^}]*)\}", re.M)
+SECTION = re.compile(r"^## (\d+)\. (.+?)\s*(\{[^}]*\})?\s*$")
+OPEN_DIV = re.compile(r"^:::+\s*\S")
+CLOSE_DIV = re.compile(r"^:::+\s*$")
+FENCE = re.compile(r"^(`{3,}|~{3,})")
 
 
 def read(slug: str) -> dict:
-    """Front matter, numbered sections and identified activity blocks of a lecture."""
+    """Front matter, numbered sections and identified activity blocks of a lecture.
+
+    `blocks` maps each activity block's id to its kind, and `block_sections` to the
+    numbered section it sits in (None outside one: before the first, or under an
+    unnumbered heading such as Summary); `duplicates` lists ids used by more than one
+    activity block. Only top-level headings are sections: a `##` title inside a
+    callout is not, and neither is anything inside fenced code."""
     text = (LECTURES / f"{slug}.qmd").read_text(encoding="utf-8")
     front = {}
+    body = text
     if text.startswith("---\n"):
         end = text.index("\n---", 4)
         front = yaml.safe_load(text[4:end]) or {}
-    sections = {
-        int(m.group(1)): {"title": m.group(2), "reference": ".reference" in (m.group(3) or "")}
-        for m in SECTION.finditer(text)
+        body = text[end + 4 :]
+    sections, blocks, block_sections, duplicates = {}, {}, {}, []
+    current, depth, fence = None, 0, None
+    for line in body.splitlines():
+        if fence:
+            if line.startswith(fence) and not line[len(fence) :].strip():
+                fence = None
+            continue
+        opened = FENCE.match(line)
+        if opened:
+            fence = opened.group(1)
+            continue
+        if depth == 0 and line.startswith("## "):
+            m = SECTION.match(line)
+            current = int(m.group(1)) if m else None
+            if m:
+                sections[current] = {
+                    "title": m.group(2),
+                    "reference": ".reference" in (m.group(3) or ""),
+                }
+        if CLOSE_DIV.match(line):
+            depth = max(depth - 1, 0)
+        elif OPEN_DIV.match(line):
+            depth += 1
+            attrs = re.match(r"^:::+\s*\{([^}]*)\}", line)
+            # Pandoc attributes in any order: {#chk-x .self-check} or {.self-check #chk-x}.
+            words = attrs.group(1).split() if attrs else []
+            ids = [w[1:] for w in words if w.startswith("#")]
+            kinds = [k for k in KINDS if f".{k}" in words]
+            if ids and kinds:
+                if ids[0] in blocks:
+                    duplicates.append(ids[0])
+                blocks[ids[0]] = kinds[0]
+                block_sections[ids[0]] = current
+    return {
+        "front": front,
+        "sections": sections,
+        "blocks": blocks,
+        "block_sections": block_sections,
+        "duplicates": duplicates,
     }
-    blocks = {}
-    for m in BLOCK.finditer(text):
-        # Pandoc attributes in any order: {#chk-x .self-check} or {.self-check #chk-x}.
-        words = m.group(1).split()
-        ids = [w[1:] for w in words if w.startswith("#")]
-        kinds = [k for k in KINDS if f".{k}" in words]
-        if ids and kinds:
-            blocks[ids[0]] = kinds[0]
-    return {"front": front, "sections": sections, "blocks": blocks}
 
 
 def rows(slug: str, lecture: dict | None = None) -> list[dict]:
-    """The plan in order, with section titles and activity kinds filled in."""
+    """The plan in order, with section titles and activity kinds filled in. A plan
+    whose entries are malformed raises ValueError with the readable problems."""
     lecture = lecture or read(slug)
+    found = shape_problems(slug, lecture["front"].get("live") or [])
+    if found:
+        raise ValueError("\n".join(found))
     out = []
     for entry in lecture["front"].get("live") or []:
         n = entry["section"]
@@ -101,18 +142,24 @@ def shape_problems(slug: str, plan) -> list[str]:
         if not isinstance(e, dict) or set(e) - {"section", "minutes", "activities"}:
             out.append(f"{where} must have only the keys section, minutes and activities")
             continue
-        if not isinstance(e.get("section"), int) or not isinstance(e.get("minutes"), int):
-            out.append(f"{where} needs an integer section and integer minutes")
+        if not (is_count(e.get("section")) and e["section"] > 0 and is_count(e.get("minutes"))):
+            out.append(f"{where} needs a positive integer section and whole minutes (0 or more)")
         activities = e.get("activities", [])
         if not isinstance(activities, list) or not all(
             isinstance(a, dict)
             and set(a) == {"block", "minutes"}
             and isinstance(a["block"], str)
-            and isinstance(a["minutes"], int)
+            and is_count(a["minutes"])
+            and a["minutes"] > 0
             for a in activities
         ):
-            out.append(f"{where}: each activity is {{block: <id>, minutes: <integer>}}")
+            out.append(f"{where}: each activity is {{block: <id>, minutes: <positive integer>}}")
     return out
+
+
+def is_count(x) -> bool:
+    """A whole number of 0 or more; YAML's true and false are not numbers here."""
+    return type(x) is int and x >= 0
 
 
 def problems(slug: str, lecture_minutes: int) -> list[str]:
@@ -141,6 +188,16 @@ def problems(slug: str, lecture_minutes: int) -> list[str]:
     for block in used:
         if block not in lecture["blocks"]:
             out.append(f"{slug}: activity block #{block} is not an identified activity block")
+    for e in plan:
+        for a in e.get("activities", []):
+            where = lecture["block_sections"].get(a["block"], e["section"])
+            if where != e["section"]:
+                out.append(
+                    f"{slug}: activity block #{a['block']} is planned under section"
+                    f" {e['section']} but sits in section {where}"
+                )
+    for block in sorted(set(lecture["duplicates"])):
+        out.append(f"{slug}: more than one activity block has the id #{block}")
     if len(used) != len(set(used)):
         out.append(f"{slug}: an activity block is planned twice")
     exposition, activities = totals(rows(slug, lecture))
@@ -172,9 +229,9 @@ def _timed_rows(plan: list[dict], link: bool) -> tuple[list[str], int]:
     return lines, t
 
 
-def table(slug: str) -> str:
+def table(slug: str, lecture: dict | None = None) -> str:
     """The lecture's timing table: minute ranges, sections and activities in the room."""
-    lecture = read(slug)
+    lecture = lecture or read(slug)
     plan = rows(slug, lecture)
     body, t = _timed_rows(plan, link=True)
     lines = ["| Minutes | Section | In the room |", "|---|---|---|", *body]
@@ -203,7 +260,7 @@ def table(slug: str) -> str:
     return "\n".join(out)
 
 
-def pace_rows(slug: str) -> str:
+def pace_rows(slug: str, lecture: dict | None = None) -> str:
     """The pace sheet's lecture rows: minute ranges from the start of the module's slot."""
-    body, _ = _timed_rows(rows(slug), link=False)
+    body, _ = _timed_rows(rows(slug, lecture), link=False)
     return "\n".join(["| Minutes | Segment | In the room |", "|---|---|---|", *body])
