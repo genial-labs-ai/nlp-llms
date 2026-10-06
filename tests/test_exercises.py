@@ -114,13 +114,26 @@ class Exercises(unittest.TestCase):
                         if name in redefined:
                             self.assertTrue(markers, f"{name} replaces the stub: mark it")
                             self.assertTrue(is_marker(node.decorator_list[0], n), name)
+                    given = {
+                        node.targets[0].id: ast.get_source_segment(stub, node.value)
+                        for node in ast.parse(stub).body
+                        if isinstance(node, ast.Assign)
+                        and len(node.targets) == 1
+                        and isinstance(node.targets[0], ast.Name)
+                    }
                     for node in sol_tree.body:
-                        if isinstance(node, ast.Assign) and any(
-                            isinstance(t, ast.Name) and t.id in redefined for t in node.targets
-                        ):
-                            self.fail(
-                                f"a plain assignment replaces a stub name: {ast.unparse(node)}"
-                            )
+                        if not (isinstance(node, ast.Assign) and len(node.targets) == 1):
+                            continue
+                        target = node.targets[0]
+                        if not isinstance(target, ast.Name) or target.id not in given:
+                            continue
+                        value = ast.get_source_segment(text(solution), node.value)
+                        marked = "workshop.solution_value(" in value
+                        # A value the stub gives word for word is not part of the exercise.
+                        self.assertTrue(
+                            marked or value == given[target.id],
+                            f"a plain assignment replaces {target.id}: mark it",
+                        )
 
     def test_pure_stubs_raise_not_implemented(self):
         for path in NOTEBOOKS:

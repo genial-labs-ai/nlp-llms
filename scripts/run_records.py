@@ -22,7 +22,7 @@ RUNS = ROOT / "runs"
 NOTEBOOKS = ROOT / "notebooks"
 
 SCHEMA = 1
-SOURCES = ("test_notebooks", "colab", "backfill")
+SOURCES = ("test_notebooks", "colab", "notebook", "backfill")
 PATHS = ("offline", "open", "keyed")
 MODES = ("worked", "learner", "unknown")
 SCOPES = ("notebook", "partial")
@@ -65,18 +65,7 @@ ALLOWED = set(INHERITED) | {
     "index",
 }
 BATCH_FIELDS = set(INHERITED) | {"schema", "runs"}
-# Environment variables that put a lab on its offline test path (publish.yml's notebooks
-# job). A run with any of them set is on the `offline` path.
-OFFLINE_FLAGS = (
-    "NLP_LLMS_OFFLINE_TINY",
-    "NLP_LLMS_STUB",
-    "NLP_LLMS_LAB07_OFFLINE",
-    "NLP_LLMS_LAB09_OFFLINE",
-    "NLP_LLMS_LAB10_OFFLINE",
-    "NLP_LLMS_LAB13_OFFLINE",
-    "NLP_LLMS_LAB14_OFFLINE",
-    "NLP_LLMS_LAB15_OFFLINE",
-)
+OFFLINE_FLAGS = harness.OFFLINE_FLAGS
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # Anything that looks like a credential must never be committed in a record.
 SECRET = re.compile(

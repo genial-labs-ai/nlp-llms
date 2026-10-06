@@ -6,9 +6,9 @@ name: Notebook health
 #
 # Legs:
 #   offline  The same hermetic run as publish.yml's notebooks job: every lab on its
-#            offline test path, as a worked example. This leg decides the workflow's status.
-#   verify   The offline path again, with every exercise's first checkpoint also run on
-#            the unfinished stub, where it must fail (--verify-checkpoints). Blocking.
+#            offline test path, as a worked example, with every exercise's first checkpoint
+#            also run on its unfinished stub, where it must fail. This leg decides the
+#            workflow's status.
 #   hub      The open-model paths of the labs that have one, with no API keys and
 #            with Hugging Face Hub access. A lab that falls back to its stand-in
 #            counts as a failure here (scripts/test_notebooks.py --expect-hub).
@@ -52,16 +52,18 @@ jobs:
     name: notebooks (${{ matrix.leg }})
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout }}
-    continue-on-error: ${{ matrix.leg == 'hub' }}
+    continue-on-error: ${{ matrix.leg != 'offline' }}
     strategy:
       fail-fast: false
       matrix:
         include:
           # Keep these flags in step with the notebooks job of publish.yml.
           - leg: offline
-            timeout: 150
+            timeout: 180
             notebooks: "" # every notebook
-            args: ""
+            # Also run each exercise's first checkpoint on its unfinished stub, where it
+            # must fail (scripts/test_notebooks.py --verify-checkpoints).
+            args: --verify-checkpoints
             hf_hub_offline: "1"
             offline_tiny: "1" # Lab 6
             lab07: tiny
@@ -71,21 +73,6 @@ jobs:
             lab13: "1"
             lab14: "1"
             lab15: "1" # capstone stub path (plumbing probes)
-          # Every exercise's first checkpoint must fail on its unfinished stub and pass on
-          # the reference (scripts/test_notebooks.py --verify-checkpoints). Blocking.
-          - leg: verify
-            timeout: 150
-            notebooks: ""
-            args: --verify-checkpoints
-            hf_hub_offline: "1"
-            offline_tiny: "1"
-            lab07: tiny
-            stub: "1"
-            lab09: tiny
-            lab10: tiny
-            lab13: "1"
-            lab14: "1"
-            lab15: "1"
           # Labs 9 and 10 join this list (and lose their flags) once Lab 9's GPT-2 data
           # files are committed (PLAN.md, Day 7); Lab 15 once its open-model path exists.
           - leg: hub

@@ -245,12 +245,15 @@ class EvidenceRules(unittest.TestCase):
         for fields in (
             {"path": "keyed"},
             {"settings": {"NLP_LLMS_QUICK": "1"}},
-            {"mode": "learner"},
             {"scope": "partial", "scope_note": "Part A"},
         ):
             e = self.ev(record(**fields))
             self.assertIsNone(e["teaching"], fields)
             self.assertIsNotNone(e["other"], fields)
+
+    def test_learner_runs_are_no_evidence_of_the_lab_running(self):
+        e = self.ev(record(mode="learner", status="fail"))
+        self.assertEqual((e["teaching"], e["other"], e["ci"]), (None, None, None))
 
     def test_a_backfill_on_the_runtime_is_shown_not_dropped(self):
         e = self.ev(record(source="backfill", content_sha=None))

@@ -15,6 +15,21 @@ from __future__ import annotations
 
 import ast
 
+# Environment variables that put a lab on its offline test path (publish.yml's notebooks
+# job), and the other settings a run record may carry. Nothing else from the environment
+# goes into a record: it could hold paths or names.
+OFFLINE_FLAGS = (
+    "NLP_LLMS_OFFLINE_TINY",
+    "NLP_LLMS_STUB",
+    "NLP_LLMS_LAB07_OFFLINE",
+    "NLP_LLMS_LAB09_OFFLINE",
+    "NLP_LLMS_LAB10_OFFLINE",
+    "NLP_LLMS_LAB13_OFFLINE",
+    "NLP_LLMS_LAB14_OFFLINE",
+    "NLP_LLMS_LAB15_OFFLINE",
+)
+RECORDED_SETTINGS = (*OFFLINE_FLAGS, "NLP_LLMS_QUICK", "HF_HUB_OFFLINE")
+
 HARNESS_ID = "workshop-harness"
 SUMMARY_ID = "workshop-summary"
 # Generated code cells: they are not the lab's code, so run_records.content_sha skips them.
@@ -34,6 +49,7 @@ from IPython import get_ipython as _get_ipython
 _NOTEBOOK = "__NOTEBOOK__"
 _CONTENT_SHA = "__CONTENT_SHA__"
 _EXERCISES = __EXERCISES__
+_RECORDED_SETTINGS = __SETTINGS__
 _RECORD_PACKAGES = (
     "torch", "transformers", "numpy", "scikit-learn", "peft", "datasets", "openai",
     "anthropic", "typesafe-sdk", "langgraph", "langchain-core", "llama-index-core",
@@ -54,7 +70,7 @@ class _Workshop:
         self.verified = {}
         self._verifying = None
         self.results = {}
-        self.cells = []
+        self.cells = {}
         self.started = _time.time()
         self._current = None
         self._t0 = None
@@ -74,7 +90,9 @@ class _Workshop:
 
         def bind(obj, name=None):
             name = name or obj.__name__
-            self.ref.setdefault(n, {}).setdefault(name, []).append(obj)
+            kept = self.ref.setdefault(n, {}).setdefault(name, [])
+            kept.append(obj)
+            del kept[:-3]  # recent references only: a rerun makes a new object
             current = _get_ipython().user_ns.get(name, self._MISSING)
             if current is not self._MISSING and not self._is_reference(n, name, current):
                 self.stub.setdefault(n, {})[name] = current
@@ -106,7 +124,7 @@ class _Workshop:
         ns = _get_ipython().user_ns
         k = sum(self._is_reference(n, x, ns.get(x, self._MISSING)) for x in names)
         if not names:
-            whose = "the lab's provided code"
+            whose = None  # the results of the cells above: provided code, maybe your earlier work
         elif k == len(names):
             whose = "the REFERENCE solution"
         elif k == 0:
@@ -117,10 +135,12 @@ class _Workshop:
 
     def _pre(self, info):
         self._t0 = _time.time()
+        self._cell = hash(info.raw_cell)
 
     def _post(self, result):
         elapsed = round(_time.time() - (self._t0 or _time.time()), 2)
-        self.cells.append((elapsed, bool(result.success)))
+        # The latest run of each cell counts: a cell that failed and was fixed is fine.
+        self.cells[getattr(self, "_cell", None)] = (elapsed, bool(result.success))
         if self._current is None:
             return
         n, label, whose = self._current
@@ -129,7 +149,17 @@ class _Workshop:
             self.verified[self._verifying] = bool(result.success)
             return
         self.results[label] = (bool(result.success), whose)
-        if result.success:
+        if whose is None:
+            if result.success:
+                print(f"[workshop] Checkpoint {label} passed.")
+            elif isinstance(result.error_in_exec, NotImplementedError):
+                print(
+                    f"[workshop] Checkpoint {label} uses an exercise you have not written yet."
+                    " Finish it, or go on with workshop.use_reference(N) for that exercise."
+                )
+            else:
+                print(f"[workshop] Checkpoint {label} failed. Read the message above.")
+        elif result.success:
             print(f"[workshop] Checkpoint {label} passed on {whose}.")
         elif isinstance(result.error_in_exec, NotImplementedError):
             print(
@@ -142,8 +172,6 @@ class _Workshop:
                 f"[workshop] Checkpoint {label} failed on the reference solution: a problem"
                 " with the lab or the runtime, not with your code. Tell the instructor."
             )
-        elif n is None:
-            print(f"[workshop] Checkpoint {label} failed. Read the message above.")
         else:
             print(
                 f"[workshop] Checkpoint {label} failed on {whose}. Fix TODO {n}, or go on"
@@ -175,21 +203,26 @@ class _Workshop:
 
     def summary(self):
         """Which checkpoints passed, and on whose code."""
-        groups = {"your code": [], "the reference": [], "provided code": [], "failed": []}
+        groups = {"your code": [], "the reference": [], "other checks": [], "failed": []}
         for label, (ok, whose) in self.results.items():
             if not ok:
                 groups["failed"].append(label)
+            elif whose is None:
+                groups["other checks"].append(label)
             elif whose == "your code":
                 groups["your code"].append(label)
-            elif "REFERENCE" in whose:
-                groups["the reference"].append(label)
             else:
-                groups["provided code"].append(label)
+                groups["the reference"].append(label)
         mode = "WORKED EXAMPLE: reference solutions" if self.worked else "your code"
         print(f"{_NOTEBOOK}, run with {mode}.")
+        lines = {
+            "your code": "Checkpoints passed on your code",
+            "the reference": "Checkpoints passed on a reference solution",
+            "other checks": "Other checks passed",
+            "failed": "Checkpoints failed",
+        }
         for group, labels in groups.items():
-            print(f"  Checkpoints passed on {group}: {', '.join(labels) or 'none'}"
-                  if group != "failed" else f"  Checkpoints failed: {', '.join(labels) or 'none'}")
+            print(f"  {lines[group]}: {', '.join(labels) or 'none'}")
         if self.worked:
             print("  A worked-example run shows how the lab goes, not that you did it.")
 
@@ -219,15 +252,17 @@ class _Workshop:
             "notebook": _NOTEBOOK,
             "content_sha": _CONTENT_SHA,
             "mode": "worked" if self.worked else "learner",
-            "status": "pass" if self.cells and all(ok for _, ok in self.cells) else "fail",
+            "status": "pass"
+            if self.cells and all(ok for _, ok in self.cells.values())
+            else "fail",
             "seconds": round(_time.time() - self.started, 1),
-            "cell_seconds": [s for s, _ in self.cells],
+            "cell_seconds": [s for s, _ in self.cells.values()],
             "python": platform.python_version(),
             "platform": sys.platform,
             "gpu": gpu,
             "colab_release": _os.environ.get("COLAB_RELEASE_TAG"),
             "provider": _get_ipython().user_ns.get("PROVIDER"),
-            "settings": {k: v for k, v in _os.environ.items() if k.startswith("NLP_LLMS_")},
+            "settings": {k: _os.environ[k] for k in _RECORDED_SETTINGS if _os.environ.get(k)},
             "packages": packages,
         }
         print("----- run record (paste into scripts/add_run_record.py) -----")
@@ -301,4 +336,5 @@ def harness_source(slug: str, content_sha: str, exercises: dict) -> str:
         HARNESS.replace("__NOTEBOOK__", slug)
         .replace("__CONTENT_SHA__", content_sha)
         .replace("__EXERCISES__", repr(dict(sorted(exercises.items(), key=lambda kv: str(kv[0])))))
+        .replace("__SETTINGS__", repr(RECORDED_SETTINGS))
     )

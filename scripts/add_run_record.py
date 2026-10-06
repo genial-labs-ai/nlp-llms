@@ -53,7 +53,7 @@ def batch_from(record: dict, env: str, path: str, date: str) -> dict:
     return {
         "schema": run_records.SCHEMA,
         "date": date,
-        "source": "colab" if env.startswith("colab") else "test_notebooks",
+        "source": "colab" if env.startswith("colab") else "notebook",
         "env": env,
         "env_detail": (
             f"Python {record.get('python')}, {gpu}"

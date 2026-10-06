@@ -43,6 +43,7 @@ from nbclient.exceptions import CellExecutionError, CellTimeoutError, DeadKernel
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import harness  # noqa: E402
 import run_records  # noqa: E402
 
 # Per-cell limit. CI raises it: CPU training cells in Labs 2 and 7 run long.
@@ -198,6 +199,13 @@ def reads_offline_flags(path: Path) -> bool:
     return any(flag in text for flag in OFFLINE_FLAGS)
 
 
+def status_of(path: Path, r: dict, learner: bool, offline: bool) -> str:
+    """The same verdict the console prints: a learner run passes when it stops as expected."""
+    if learner and has_exercises(path):
+        return "pass" if (not r["ok"] and r["learner_message"]) else "fail"
+    return "pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail"
+
+
 def write_record(
     directory: Path, env: str, results: list[tuple[Path, dict]], learner: bool
 ) -> Path:
@@ -215,27 +223,13 @@ def write_record(
         "env_detail": f"{platform.platform()}, Python {platform.python_version()}",
         "path": "offline" if offline else "keyed" if keyed else "open",
         "mode": "learner" if learner else "worked",
-        "settings": {
-            k: v
-            for k, v in sorted(os.environ.items())
-            if k.startswith("NLP_LLMS_")
-            and k not in ("NLP_LLMS_DATA", "NLP_LLMS_WORKED")
-            or k in OFFLINE_FLAGS
-            or k == "HF_HUB_OFFLINE"
-        },
+        "settings": {k: os.environ[k] for k in harness.RECORDED_SETTINGS if os.environ.get(k)},
         "evidence": "scripts/test_notebooks.py --record",
         "runs": [
             {
                 "notebook": path.stem,
                 "scope": "notebook",
-                "status": (
-                    "pass"
-                    if (r["learner_message"] and not r["ok"])
-                    or (r["ok"] and not (r["fallbacks"] and not offline))
-                    else "fail"
-                )
-                if learner
-                else ("pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail"),
+                "status": status_of(path, r, learner, offline),
                 "seconds": round(r["seconds"], 1),
                 "content_sha": run_records.content_sha(path.stem),
                 "phases": r["phases"],

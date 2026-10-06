@@ -132,6 +132,18 @@ def number(token: str) -> object:
     return "stretch" if token.lower() == "(stretch)" else int(token)
 
 
+def assigned_sources(text: str) -> dict[str, str]:
+    """{name: source of the assigned value} for the top-level single-name assignments."""
+    tree = ast.parse(text)
+    return {
+        node.targets[0].id: ast.get_source_segment(text, node.value)
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and len(node.targets) == 1
+        and isinstance(node.targets[0], ast.Name)
+    }
+
+
 def migrate_stub(text: str, n: object) -> tuple[str, set[str], set[str]]:
     tree = ast.parse(text)
     lines = text.split("\n")
@@ -140,10 +152,10 @@ def migrate_stub(text: str, n: object) -> tuple[str, set[str], set[str]]:
         indent = line[: len(line) - len(line.lstrip())]
         if line.strip() == "...":
             lines[expr.lineno - 1] = f'{indent}raise NotImplementedError("TODO {n}")'
-    return "\n".join(lines), set(top_level_names(tree)), assigned_names(tree)
+    return "\n".join(lines), set(top_level_names(tree)), assigned_sources(text)
 
 
-def migrate_solution(text: str, n: object, defs: set[str], values: set[str]) -> str:
+def migrate_solution(text: str, n: object, defs: set[str], values: dict[str, str]) -> str:
     if "workshop.solution" in text:
         return text
     tree = ast.parse(text)
@@ -161,6 +173,8 @@ def migrate_solution(text: str, n: object, defs: set[str], values: set[str]) -> 
             and isinstance(node.targets[0], ast.Name)
             and node.targets[0].id in values
             and node.targets[0].id not in defs
+            # A value the stub already gives, word for word, is not part of the exercise.
+            and ast.get_source_segment(text, node.value) != values[node.targets[0].id]
         ):
             edits.append((node, "wrap", node.targets[0].id))
     for index, kind, payload in sorted(
@@ -275,7 +289,7 @@ def migrate(path: Path, dry_run: bool) -> list[str]:
         elif "solution" in tags:
             m = SOLUTION.search(text)
             n = number(m.group(1)) if m else current
-            defs, values = stubs.get(n, (set(), set()))
+            defs, values = stubs.get(n, (set(), {}))
             set_source(cell, migrate_solution(text, n, defs, values))
         elif "checkpoint" in tags:
             n, label = plan_checkpoint(slug, cell, current)

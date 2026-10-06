@@ -151,12 +151,15 @@ def evidence(v: dict, slug: str, runtime: str, records: list[dict]) -> dict:
         for r in mine
         if teaching_eligible(v, r, runtime)
     ]
+    # A learner-mode run stops at a checkpoint on purpose: it is evidence of the harness,
+    # not of the lab running end to end, so only worked runs count below.
     rest = [
-        _with_staleness(r, current, False) for r in mine if not teaching_eligible(v, r, runtime)
+        _with_staleness(r, current, False)
+        for r in mine
+        if not teaching_eligible(v, r, runtime) and r["mode"] == "worked"
     ]
     real = [r for r in rest if r["path"] in ("open", "keyed")]
-    # CI evidence is a worked run: a learner-mode run stops at a checkpoint on purpose.
-    ci = [r for r in rest if r["env"] in ci_envs and r["mode"] == "worked"]
+    ci = [r for r in rest if r["env"] in ci_envs]
     off_ci = [r for r in real if r["env"] not in ci_envs]
     ci_real = [r for r in ci if r["path"] != "offline"]
     return {

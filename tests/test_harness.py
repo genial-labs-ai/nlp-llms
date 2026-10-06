@@ -72,6 +72,20 @@ class Harness(unittest.TestCase):
             self.ip.user_ns["workshop"].results["1b"], (True, "the REFERENCE solution")
         )
 
+    def test_a_check_on_provided_code_names_no_owner_and_no_reference(self):
+        self.cell(SOURCE)
+        self.cell("def double(x):\n    raise NotImplementedError('TODO 1')")
+        result = self.cell("workshop.checkpoint(label='uses 1')\ndouble(2)")
+        self.assertFalse(result.success)
+        self.assertEqual(self.ip.user_ns["workshop"].results["uses 1"], (False, None))
+
+    def test_a_failed_cell_fixed_and_rerun_does_not_fail_the_run(self):
+        self.cell(SOURCE)
+        self.cell("x = 1\nassert x == 1")
+        self.cell("assert True")
+        cells = self.ip.user_ns["workshop"].cells
+        self.assertTrue(all(ok for _, ok in cells.values()))
+
     def test_rerunning_the_harness_starts_a_new_run(self):
         self.cell(SOURCE)
         self.cell("workshop.checkpoint(label='x')\nassert False")
