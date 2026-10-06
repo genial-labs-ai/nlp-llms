@@ -7,7 +7,17 @@ One JSON file per batch of notebook runs: what ran, where, on which path, whethe
 **Rules the readiness page applies.**
 
 - The newest record of a kind wins, so a newer failure replaces an older pass.
-- A lab counts as run on Colab only when the whole notebook ran on its real path on the runtime the module is designed for (`modules.mNN.readiness.runtime`), the record came from a tool (not a backfill), and its `content_sha` still matches the notebook.
+- A lab counts as run on Colab only when all of these hold:
+  - the run covers the whole notebook (`scope: notebook`);
+  - it is a worked run (`mode: worked`, solutions bound);
+  - it took the release path, `readiness.release_path` (`open`: no API keys, no test doubles);
+  - it used full settings, not QUICK;
+  - it ran on the module's own runtime, `modules.mNN.readiness.runtime`;
+  - a tool recorded it (it is not a backfill);
+  - its `content_sha` still matches the notebook.
+
+  A keyed or learner-mode run is recorded and shown, but does not count.
+- On the same date, a run of the current code wins over a stale one, then a failure over a pass.
 - The release check will also require that run to be at most `readiness.max_run_age_days` old.
 
 ## File format

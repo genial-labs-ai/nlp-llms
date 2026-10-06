@@ -154,6 +154,15 @@ class Validation(unittest.TestCase):
     def test_malformed_json_is_reported_not_raised(self):
         self.assertIn("not valid JSON", "\n".join(self.check('{"schema": 1,}')))
 
+    def test_settings_values_must_be_strings(self):
+        batch = (
+            '{"schema": 1, "date": "2026-10-06", "source": "backfill", "env": "colab-t4",'
+            ' "path": "open", "mode": "worked", "evidence": "x", "settings": {"NLP_LLMS_QUICK": 1},'
+            ' "runs": [{"notebook": "01-text-as-data", "scope": "notebook", "status": "pass",'
+            ' "seconds": 1}]}'
+        )
+        self.assertIn("settings", "\n".join(self.check(batch)))
+
     def test_seconds_must_not_be_a_boolean(self):
         batch = (
             '{"schema": 1, "date": "2026-10-06", "source": "colab", "env": "colab-t4",'
@@ -239,6 +248,31 @@ class EvidenceRules(unittest.TestCase):
         )
         self.assertNotIn("settings", e["other"])
 
+    def test_a_stale_same_day_failure_does_not_hide_a_current_pass(self):
+        e = self.ev(record(status="fail", content_sha="0" * 16, index=0), record(index=1))
+        self.assertTrue(readiness.passed(e["teaching"]))
+
+    def test_an_offline_ci_run_does_not_hide_a_real_path_ci_pass(self):
+        e = self.ev(
+            record(env="gha-ubuntu", date="2026-10-05", content_sha=None, source="backfill"),
+            record(env="gha-ubuntu", date="2026-10-06", path="offline"),
+        )
+        self.assertEqual(e["ci"]["path"], "offline")
+        self.assertTrue(readiness.passed(e["ci_real"]))
+
+    def test_no_records_reads_sensibly(self):
+        text = g.readiness_status(readiness.build(V, []))
+        self.assertIn("No runs are recorded yet", text)
+        self.assertNotIn("None", text)
+
+    def test_a_missing_check_input_is_open_work_not_a_crash(self):
+        closed, why = readiness.item_closed(
+            V, {"check": {"json": "nope.json", "key": "k", "at_least": 1}}
+        )
+        self.assertFalse(closed)
+        closed, why = readiness.item_closed(V, {"check": {"var": "no.such.key", "equals": 1}})
+        self.assertFalse(closed)
+
     def test_ci_runs_are_their_own_row(self):
         e = self.ev(record(env="gha-ubuntu", path="offline"))
         self.assertIsNone(e["other"])
@@ -252,7 +286,7 @@ class EvidenceRules(unittest.TestCase):
         self.assertEqual(s["real_partial_only"], 0)
         self.assertEqual(len(labs), s["labs"])
 
-    def test_ci_sentence_uses_only_the_newest_batch(self):
+    def test_ci_counts_the_newest_run_of_each_notebook(self):
         old = [
             record(notebook=s, env="gha-ubuntu", path="offline", date="2026-10-06")
             for s in ("01-text-as-data", "02-word-vectors", "03-sequence-models")
@@ -268,7 +302,10 @@ class EvidenceRules(unittest.TestCase):
             ),
         ]
         s = readiness.build(V, old + new)["summary"]
-        self.assertEqual((s["ci_date"], s["ci_passed"], s["ci_failed"]), ("2026-10-20", 1, 1))
+        self.assertEqual(
+            (s["ci_from"], s["ci_to"], s["ci_passed"], s["ci_failed"]),
+            ("2026-10-06", "2026-10-20", 2, 1),
+        )
 
     def test_ready_needs_every_lab_on_its_runtime_and_no_open_work(self):
         labs = [m for m in V["modules"].values() if m.get("notebook", True)]

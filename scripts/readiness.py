@@ -35,10 +35,17 @@ def item_closed(v: dict, item: dict) -> tuple[bool, str]:
             return False, ", ".join(f"`{p}`" for p in missing) + " does not exist"
         return True, ", ".join(f"`{p}`" for p in paths) + " exists"
     if "var" in check:
-        value = lookup(v, check["var"])
+        try:
+            value = lookup(v, check["var"])
+        except (KeyError, TypeError):
+            return False, f"`{check['var']}` is missing from `_variables.yml`"
         return value == check["equals"], f"`{check['var']}` is `{value}`"
     if "json" in check:
-        value = json.loads((ROOT / check["json"]).read_text(encoding="utf-8"))[check["key"]]
+        try:
+            data = json.loads((ROOT / check["json"]).read_text(encoding="utf-8"))
+            value = data[check["key"]]
+        except (OSError, ValueError, KeyError, TypeError):
+            return False, f"`{check['json']}` or its `{check['key']}` is missing"
         return value >= check["at_least"], f"`{check['key']}` is {value} of {check['at_least']}"
     if "absent" in check:
         text = (ROOT / check["absent"]).read_text(encoding="utf-8")
@@ -76,15 +83,17 @@ def _quick(r: dict) -> bool:
 
 
 def _newest(records: list[dict]) -> dict | None:
-    """The most recent record. On the same date a failure wins, then the whole notebook
-    over a part, then full settings over QUICK, then the later entry of a batch: a
-    same-day pass never hides a same-day failure."""
+    """The most recent record. On the same date a record of the current code wins over a
+    stale one, then a failure over a pass, then the whole notebook over a part, then full
+    settings over QUICK, then the later entry of a batch: a same-day pass never hides a
+    same-day failure of the same code."""
     if not records:
         return None
     return max(
         records,
         key=lambda r: (
             r["date"],
+            not r.get("stale"),
             r["status"] == "fail",
             r["scope"] == "notebook",
             not _quick(r),
@@ -94,10 +103,8 @@ def _newest(records: list[dict]) -> dict | None:
     )
 
 
-def _mark_stale(r: dict | None, current_sha: str, missing_is_stale: bool = False) -> dict | None:
-    """Flag a record made against other code than the committed notebook's."""
-    if r is None:
-        return None
+def _with_staleness(r: dict, current_sha: str, missing_is_stale: bool) -> dict:
+    """The record, flagged stale when it was made against other code than the notebook's."""
     sha = r.get("content_sha")
     if (sha and sha != current_sha) or (not sha and missing_is_stale):
         return {**r, "stale": True}
@@ -121,23 +128,32 @@ def teaching_eligible(v: dict, r: dict, runtime: str) -> bool:
 def evidence(v: dict, slug: str, runtime: str, records: list[dict]) -> dict:
     """The newest record of each kind for one notebook, passing or failing.
 
-    teaching: the newest teaching-eligible record (see teaching_eligible). Stale when its
-        content_sha is missing or no longer matches the notebook.
-    other: the newest other run of the real path (open or keyed), whole or part.
-    ci: the newest run on a CI runner, on any path.
-    A newer failure replaces an older pass. `other` and `ci` records without a
-    content_sha (backfills) cannot be checked for staleness.
+    teaching: the newest teaching-eligible record (see teaching_eligible). A missing
+        content_sha counts as stale.
+    other: the newest other run of the real path (open or keyed), whole or part, off CI.
+    ci: the newest run on a CI runner, on any path; ci_real: the newest that used no
+        test doubles.
+    A newer failure replaces an older pass. Records without a content_sha (backfills)
+    cannot be checked for staleness outside the teaching row.
     """
     current = run_records.content_sha(slug)
     ci_envs = {k for k, e in v["readiness"]["envs"].items() if e.get("ci")}
     mine = [r for r in records if r["notebook"] == slug]
-    real = [r for r in mine if r["path"] in ("open", "keyed")]
-    eligible = [r for r in real if teaching_eligible(v, r, runtime)]
-    others = [r for r in real if not teaching_eligible(v, r, runtime) and r["env"] not in ci_envs]
+    eligible = [
+        _with_staleness(r, current, missing_is_stale=True)
+        for r in mine
+        if teaching_eligible(v, r, runtime)
+    ]
+    rest = [
+        _with_staleness(r, current, False) for r in mine if not teaching_eligible(v, r, runtime)
+    ]
+    real = [r for r in rest if r["path"] in ("open", "keyed")]
+    ci = [r for r in rest if r["env"] in ci_envs]
     return {
-        "teaching": _mark_stale(_newest(eligible), current, missing_is_stale=True),
-        "other": _mark_stale(_newest(others), current),
-        "ci": _mark_stale(_newest([r for r in mine if r["env"] in ci_envs]), current),
+        "teaching": _newest(eligible),
+        "other": _newest([r for r in real if r["env"] not in ci_envs]),
+        "ci": _newest(ci),
+        "ci_real": _newest([r for r in ci if r["path"] != "offline"]),
     }
 
 
@@ -168,7 +184,7 @@ def describe(v: dict, r: dict) -> str:
         text += ", before the notebook last changed"
     if r["scope"] == "partial":
         text += f" ({r['scope_note']})"
-    if (r.get("settings") or {}).get("NLP_LLMS_QUICK") == "1" and r["path"] != "offline":
+    if _quick(r) and r["path"] != "offline":
         text += ", QUICK settings"
     if r["path"] == "keyed":
         text += ", with API keys"
@@ -182,21 +198,17 @@ def build(v: dict, records: list[dict]) -> dict:
     notebooks = [m["slug"] for m in labs] + [v["setup"]["slug"]]
     all_items = items(v)
     ci_envs = {k for k, e in v["readiness"]["envs"].items() if e.get("ci")}
-    ci = [r for r in records if r["env"] in ci_envs]
-    ci_date = max((r["date"] for r in ci), default=None)
     ci_latest = [
-        _newest([r for r in ci if r["notebook"] == slug and r["date"] == ci_date])
-        for slug in sorted({r["notebook"] for r in ci if r["date"] == ci_date})
+        _newest([r for r in records if r["notebook"] == slug and r["env"] in ci_envs])
+        for slug in notebooks
     ]
+    ci_latest = [r for r in ci_latest if r is not None]
     not_taught = [e for e in ev.values() if not passed(e["teaching"])]
 
     def real_run(e: dict, scope: str) -> bool:
-        """Whether the newest real-path run outside the teaching runtime (the `other`
-        record, or a CI run that used no test doubles) passed, at this scope."""
-        candidates = [e["other"]]
-        if e["ci"] is not None and e["ci"]["path"] != "offline":
-            candidates.append(e["ci"])
-        return any(passed(r) and r["scope"] == scope for r in candidates if r is not None)
+        """Whether the newest real-path run off the teaching runtime passed at this scope,
+        on another machine or on the CI runner."""
+        return any(passed(r) and r["scope"] == scope for r in (e["other"], e["ci_real"]) if r)
 
     summary = {
         "labs": len(labs),
@@ -209,7 +221,8 @@ def build(v: dict, records: list[dict]) -> dict:
         "items_open": sum(1 for i in all_items if not i["closed"]),
         "items": len(all_items),
         "as_of": max((r["date"] for r in records), default=None),
-        "ci_date": ci_date,
+        "ci_from": min((r["date"] for r in ci_latest), default=None),
+        "ci_to": max((r["date"] for r in ci_latest), default=None),
         "ci_passed": sum(1 for r in ci_latest if r["status"] == "pass"),
         "ci_failed": sum(1 for r in ci_latest if r["status"] == "fail"),
         "ci_doubles": sum(1 for r in ci_latest if r["status"] == "pass" and r["path"] == "offline"),

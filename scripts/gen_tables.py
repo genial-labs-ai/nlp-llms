@@ -394,20 +394,22 @@ def readiness_status(report: dict) -> str:
     """One paragraph: is the workshop ready to teach, and what has run where."""
     s = report["summary"]
     verdict = "ready to teach" if s["ready"] else "not yet ready to teach"
+    when = f"As of {s['as_of']}" if s["as_of"] else "No runs are recorded yet"
     parts = [
-        f"**As of {s['as_of']}: {verdict}.**",
+        f"**{when}: {verdict}.**",
         f"{s['teaching']} of {s['labs']} labs have run end to end, with their current code,"
         " on the Colab runtime they are designed for.",
-        f"{s['real']} have run end to end on their real path under other conditions,"
-        " such as another machine,"
-        f" and {s['real_partial_only']} more in part.",
+        f"{s['real']} have run end to end on their real path elsewhere, on another machine"
+        f" or on the CI runner, and {s['real_partial_only']} more in part.",
     ]
-    if s["ci_date"]:
-        failed = f", and {s['ci_failed']} failed" if s["ci_failed"] else ""
+    if s["ci_to"]:
+        span = s["ci_to"] if s["ci_from"] == s["ci_to"] else f"{s['ci_from']} to {s['ci_to']}"
+        failed = f", {s['ci_failed']} failed" if s["ci_failed"] else ""
         parts.append(
-            f"In CI on {s['ci_date']}, {s['ci_passed']} of {s['notebooks']} notebooks passed"
-            f" on a GitHub CPU runner{failed}; {s['ci_doubles']} of the passing runs used"
-            " test doubles, which check that the code runs, not what the models do."
+            f"On the GitHub CPU runner (newest run of each notebook, {span}),"
+            f" {s['ci_passed']} of {s['notebooks']} notebooks passed{failed};"
+            f" {s['ci_doubles']} of the passing runs used test doubles, which check that the"
+            " code runs, not what the models do."
         )
     parts.append(f"{s['items_open']} of {s['items']} pieces of blocking work are open.")
     return " ".join(parts)

@@ -75,13 +75,17 @@ def content_sha(slug: str) -> str:
     return hashlib.sha256("\n\x1e\n".join(code).encode("utf-8")).hexdigest()[:16]
 
 
-def load_file(path: Path) -> list[dict]:
-    batch = json.loads(path.read_text(encoding="utf-8"))
+def records_of(batch: dict, name: str) -> list[dict]:
+    """The flat records of one parsed batch: shared fields, then each entry's own."""
     shared = {k: batch[k] for k in INHERITED if k in batch}
-    out = []
-    for index, entry in enumerate(batch.get("runs", [])):
-        out.append({**shared, **entry, "file": path.name, "index": index})
-    return out
+    return [
+        {**shared, **entry, "file": name, "index": index}
+        for index, entry in enumerate(batch.get("runs", []))
+    ]
+
+
+def load_file(path: Path) -> list[dict]:
+    return records_of(json.loads(path.read_text(encoding="utf-8")), path.name)
 
 
 def load_all(runs_dir: Path = RUNS) -> list[dict]:
@@ -91,28 +95,28 @@ def load_all(runs_dir: Path = RUNS) -> list[dict]:
     return records
 
 
-def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
-    """Problems with one batch file, as readable strings (empty when it is valid)."""
+def check_batch(name: str, text: str, envs: set[str], notebooks: set[str]):
+    """(records, problems) for one batch file's text; records is None when unreadable."""
     errors = []
-    text = path.read_text(encoding="utf-8")
     if SECRET.search(text):
-        errors.append(f"{path.name}: contains something that looks like a credential")
+        errors.append(f"{name}: contains something that looks like a credential")
     try:
         batch = json.loads(text)
     except json.JSONDecodeError as exc:
-        return errors + [f"{path.name}: not valid JSON ({exc})"]
+        return None, errors + [f"{name}: not valid JSON ({exc})"]
     if not isinstance(batch, dict) or not isinstance(batch.get("runs"), list):
-        return errors + [f"{path.name}: must be an object with a list of runs"]
+        return None, errors + [f"{name}: must be an object with a list of runs"]
     if not all(isinstance(entry, dict) for entry in batch["runs"]):
-        return errors + [f"{path.name}: every entry of runs must be an object"]
+        return None, errors + [f"{name}: every entry of runs must be an object"]
     if batch.get("schema") != SCHEMA:
-        errors.append(f"{path.name}: schema must be {SCHEMA}")
-    if not batch.get("runs"):
-        errors.append(f"{path.name}: no runs")
+        errors.append(f"{name}: schema must be {SCHEMA}")
+    if not batch["runs"]:
+        errors.append(f"{name}: no runs")
     for field in sorted(set(batch) - BATCH_FIELDS):
-        errors.append(f"{path.name}: unknown top-level field {field} (only shared fields go here)")
-    for i, r in enumerate(load_file(path)):
-        where = f"{path.name} runs[{i}] ({r.get('notebook')})"
+        errors.append(f"{name}: unknown top-level field {field} (only shared fields go here)")
+    records = records_of(batch, name)
+    for i, r in enumerate(records):
+        where = f"{name} runs[{i}] ({r.get('notebook')})"
         for field in REQUIRED:
             if field not in r:
                 errors.append(f"{where}: missing {field}")
@@ -141,21 +145,33 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
             errors.append(f"{where}: seconds must be a non-negative number or null")
         if r.get("scope") == "partial" and not r.get("scope_note"):
             errors.append(f"{where}: a partial run needs a scope_note")
-        if r.get("settings") is not None and not isinstance(r["settings"], dict):
-            errors.append(f"{where}: settings must be an object")
+        settings = r.get("settings")
+        if settings is not None and not (
+            isinstance(settings, dict) and all(isinstance(x, str) for x in settings.values())
+        ):
+            errors.append(f"{where}: settings must be an object of strings, as in the environment")
         if r.get("source") != "backfill" and not r.get("content_sha"):
             errors.append(f"{where}: a record made by a tool needs the notebook's content_sha")
         if r.get("source") == "backfill" and r.get("content_sha"):
             errors.append(f"{where}: a backfilled record cannot carry a content_sha")
-    return errors
+    return records, errors
+
+
+def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
+    """Problems with one batch file, as readable strings (empty when it is valid)."""
+    return check_batch(path.name, path.read_text(encoding="utf-8"), envs, notebooks)[1]
 
 
 def load_valid(envs: set[str], runs_dir: Path = RUNS) -> list[dict]:
-    """All records, after validating every file; stops with every problem listed."""
+    """All records, each file read and parsed once; stops with every problem listed."""
     notebooks = {p.stem for p in NOTEBOOKS.glob("*.ipynb")}
-    errors = [
-        e for path in sorted(runs_dir.glob("*.json")) for e in validate_file(path, envs, notebooks)
-    ]
+    records, errors = [], []
+    for path in sorted(runs_dir.glob("*.json")):
+        batch_records, batch_errors = check_batch(
+            path.name, path.read_text(encoding="utf-8"), envs, notebooks
+        )
+        errors += batch_errors
+        records += batch_records or []
     if errors:
         raise SystemExit("Invalid run records:\n  " + "\n  ".join(errors))
-    return load_all(runs_dir)
+    return records
