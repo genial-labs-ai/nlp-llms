@@ -1,5 +1,7 @@
 # Lab brief: `notebooks/10-rlhf.ipynb`
 
+**Status (2026-10-06).** `notebooks/10-rlhf.ipynb` now exists and passes its offline code check in CI. Nothing involving GPT-2 has run yet: it needs Lab 9's data files and reward model. The "Not verified" section below records the state when this brief was written. For what has run since, see the [readiness page](../readiness.qmd).
+
 From the Academic Director to the Neural Lab Engineer. Lecture: `lectures/10-rlhf.qmd` (same symbols and equation names). Lab standards: `PLAN.md` section 5. Data contract: `data/README.md`. Lab 9's brief: `briefs/09-preference-learning.md`. This file is not rendered by Quarto.
 
 **Revision 2 (2026-10-05).** Romeo decided to keep `PLAN.md`'s design: **Lab 10 fine-tunes a small GPT-2**, not the Lab 5 mini-GPT that revision 1 recommended. The exercises, equations and checkpoints are unchanged; the model, the data, the compute budget, the CPU path and the reliability protocol are rewritten. The "Lab 9 → Lab 10 interface" section is identical to the one in Lab 9's brief.

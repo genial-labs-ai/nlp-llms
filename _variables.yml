@@ -262,6 +262,78 @@ setup:
   minutes: 10
   summary: "Check the runtime, load optional API keys from Colab Secrets, and choose a provider."
 
+# What is known about whether each module can be taught, and on what evidence.
+# Per-module fields live under modules.mNN.readiness; run evidence lives in runs/*.json
+# (machine-written records, one per run; see runs/README.md). scripts/readiness.py
+# reads both; scripts/gen_tables.py writes _includes/readiness*.md from them. Never
+# state a run time or a "verified" claim in a page by hand: add a run record instead.
+readiness:
+  # The environment a release is judged on, and the path that must have run there.
+  teaching_env: colab-t4
+  release_path: open
+  max_run_age_days: 21
+  # Run environments. `teaching: true` marks the environments a delivery can use.
+  envs:
+    colab-t4: {name: "Google Colab, free T4 GPU", teaching: true}
+    colab-cpu: {name: "Google Colab, CPU runtime", teaching: true}
+    own-laptop: {name: "The participant's own laptop", teaching: true}
+    mac-m1pro: {name: "Apple M1 Pro laptop, 16 GB (CPU/MPS)"}
+    linux-cpu-shared: {name: "Shared Linux CPU (the build container)"}
+    gha-ubuntu: {name: "GitHub Actions runner (ubuntu-latest, CPU)"}
+  # What a run exercised. Only `open` and `keyed` say anything about a model.
+  paths:
+    offline: "Offline stand-ins and test doubles: checks that the code runs, not what a model does"
+    open: "Real open models from the Hugging Face Hub, no API keys"
+    keyed: "Commercial APIs with keys"
+  # What a participant gets without API keys.
+  fallback_kinds:
+    none: "One path: the lab always runs its real models"
+    open-model: "A real open model runs in place of the commercial one; its numbers are real, but they describe the smaller model"
+    toy: "A toy model trained in the lab shows the mechanism; its numbers illustrate, they do not measure the real system"
+  # Work that blocks teaching a module as designed. Each check is mechanical where it
+  # can be; `manual` items close only when someone sets done: true with evidence.
+  items:
+    rag-questions:
+      title: "Lab 13's 80 questions, written and blind-checked by people"
+      modules: [13, 15]
+      check: {exists: data/rag_questions_v1.jsonl}
+    capstone-questions:
+      title: "The capstone's 45 new questions, written and blind-checked by people"
+      modules: [15]
+      check: {exists: data/capstone_questions_v1.jsonl}
+    lectures-snapshot-final:
+      title: "The lecture snapshot that Labs 13 to 15 quote is frozen (status final)"
+      modules: [13, 14, 15]
+      check: {var: datasets.lectures.status, equals: final}
+    decision-hand-items:
+      title: "The decision set's 80 hand-written items and the audit of 60 template items, by two people"
+      modules: [11, 12, 14]
+      check: {json: data/decisions_v1_stats.json, key: hand_items, at_least: 80}
+    lab09-data:
+      title: "Lab 9's preference data files, built on a machine with Hub access"
+      modules: [9, 10]
+      check: {exists: data/lab09_preferences.jsonl.gz}
+    lab09-reward-model:
+      title: "The reward model checkpoint that Lab 10 starts from"
+      modules: [10]
+      check: {exists: data/lab09_reward_model.pt}
+    lab06-logits:
+      title: "Lab 6's test-set logits, which Lab 11 calibrates"
+      modules: [11]
+      check: {exists: data/lab06_logits.npz}
+    typesafe-statements:
+      title: "TypeSafe's own statements about Jev and RLCD, read from its documentation and signed off for lecture 12"
+      modules: [12]
+      check: {absent: lectures/12-rlcd-jev.qmd, pattern: "typesafe-unverified"}
+    module0-laptops:
+      title: "Module 0 run end to end on a fresh laptop on macOS, Windows (WSL 2) and Linux"
+      modules: [0]
+      check: {manual: true, done: false}
+    lecture-dry-runs:
+      title: "Each lecture given aloud once against its clock"
+      modules: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+      check: {manual: true, done: false}
+
 # Module 0 (coding agents): npm package names and the pinned three.js version, read
 # from registry.npmjs.org on `checked`. CLI versions live in `assistants` above.
 # Claude Code's docs recommend its native installer, which needs no Node.js; npm is
@@ -296,6 +368,16 @@ modules:
       - "Build and check two small data apps with it"
       - "Publish them with GitHub and GitHub Pages"
     stack: [Claude Code, Codex, Gemini CLI, git, GitHub CLI, Python or R, three.js]
+    readiness:
+      lecture: drafted
+      lab: none
+      runtime: own-laptop
+      estimate_minutes: 60
+      accounts: [GitHub]
+      optional_accounts: [Claude Code, Codex, Gemini CLI]
+      cost: "Claude Code and Codex need a paid plan; Gemini CLI has a free tier with a personal Google account"
+      fallback: {kind: none, note: "Pair with a neighbor, or use Gemini CLI's free tier"}
+      gaps: "Never run end to end on a fresh laptop; the 60 minutes is a plan, not a measurement"
   m01:
     n: 1
     slug: 01-text-as-data
@@ -308,6 +390,14 @@ modules:
       - "Build and evaluate an n-gram language model"
       - "Train a linear text classifier and read its errors"
     stack: [NumPy, scikit-learn]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-cpu
+      estimate_minutes: 2
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "Runs fully on a CPU"}
   m02:
     n: 2
     slug: 02-word-vectors
@@ -320,6 +410,14 @@ modules:
       - "Derive the skip-gram objective with negative sampling"
       - "Train embeddings and a feed-forward classifier in PyTorch"
     stack: [PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 10
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "Runs fully; a CPU runtime is slower"}
   m03:
     n: 3
     slug: 03-sequence-models
@@ -332,6 +430,14 @@ modules:
       - "Explain vanishing gradients and how gating addresses them"
       - "Compare perplexity against the n-gram baseline"
     stack: [PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 10
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "QUICK = True trains a quarter of the steps of the same model"}
   m04:
     n: 4
     slug: 04-seq2seq-attention
@@ -344,6 +450,14 @@ modules:
       - "Explain the fixed-vector bottleneck"
       - "Implement additive and dot-product attention and read attention maps"
     stack: [PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 10
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "QUICK = True trains 500 steps and skips the accuracy checkpoints"}
   m05:
     n: 5
     slug: 05-transformer-from-scratch
@@ -356,6 +470,14 @@ modules:
       - "Assemble a decoder-only transformer"
       - "Train a small GPT and compare it with the LSTM"
     stack: [PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 10
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "On a CPU runtime the lab switches itself to QUICK"}
   m06:
     n: 6
     slug: 06-pretraining-huggingface
@@ -368,6 +490,15 @@ modules:
       - "Load, inspect and run pretrained models with Hugging Face"
       - "Fine-tune an encoder for classification"
     stack: [Hugging Face, PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 7
+      accounts: [Google]
+      cost: free
+      fallback: {kind: open-model, note: "On a CPU runtime, BERT-mini fine-tunes on 800 training texts: a real, smaller model. There is no path without the Hugging Face Hub"}
+      gaps: "The Lab 6 logits file that Lab 11 reads has not been built"
   m07:
     n: 7
     slug: 07-finetuning-lora
@@ -380,6 +511,14 @@ modules:
       - "Apply LoRA and explain why it works"
       - "Choose decoding settings and evaluate generated text"
     stack: [Hugging Face, PEFT, PyTorch]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 7
+      accounts: [Google]
+      cost: free
+      fallback: {kind: open-model, note: "On a CPU runtime, FAST runs a shorter fine-tune of the same SmolLM2-135M. There is no path without the Hugging Face Hub"}
   m08:
     n: 8
     slug: 08-llm-apis
@@ -392,6 +531,15 @@ modules:
       - "Compare providers on one task with one harness"
       - "Reason about cost, latency and failure modes"
     stack: [OpenAI, Anthropic, Hugging Face, Pydantic]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 3
+      accounts: [Google]
+      optional_accounts: [OpenAI, Anthropic]
+      cost: "Free without keys. Keyed run: under 25 cents on Claude, under 5 cents on OpenAI (estimates)"
+      fallback: {kind: open-model, note: "Qwen2.5-0.5B-Instruct answers in place of OpenAI and Claude; its numbers describe Qwen, not the commercial models"}
   m09:
     n: 9
     slug: 09-preference-learning
@@ -404,6 +552,15 @@ modules:
       - "Derive and implement the policy gradient"
       - "Train a reward model from pairwise preferences"
     stack: [PyTorch, Hugging Face]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-cpu
+      estimate_minutes: 10
+      accounts: [Google]
+      cost: free
+      fallback: {kind: none, note: "Part A runs anywhere; Part B needs the Lab 9 data files"}
+      gaps: "The Lab 9 preference data files have not been built, so Part B cannot run"
   m10:
     n: 10
     slug: 10-rlhf
@@ -417,6 +574,15 @@ modules:
       - "Apply DPO and compare"
       - "Name RLHF's failure modes and observe one"
     stack: [PyTorch, Hugging Face]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 7
+      accounts: [Google]
+      cost: free
+      fallback: {kind: open-model, note: "On a CPU runtime, FAST runs short smoke trainings of the same GPT-2; the trained-policy checkpoints are skipped, so reward hacking is not shown"}
+      gaps: "Needs the Lab 9 data files and reward model, which have not been built"
   m11:
     n: 11
     slug: 11-calibration
@@ -430,6 +596,16 @@ modules:
       - "Explain proper scoring rules"
       - "Use confidence to decide when to abstain"
     stack: [PyTorch, scikit-learn, OpenAI, Anthropic]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-cpu
+      estimate_minutes: 7
+      accounts: [Google]
+      optional_accounts: [OpenAI, Anthropic]
+      cost: "Free without keys. Keyed run: under 1 USD on Claude, under 25 cents on OpenAI (estimates)"
+      fallback: {kind: open-model, note: "Qwen2.5-0.5B-Instruct answers on a fixed subset; its numbers describe Qwen, not the commercial models"}
+      gaps: "Until the Lab 6 logits are built, Part A analyzes the Lab 1 classifier instead of the fine-tuned encoder"
   m12:
     n: 12
     slug: 12-rlcd-jev
@@ -442,6 +618,16 @@ modules:
       - "Call Jev for typed decisions"
       - "Turn its probabilities into act, ask and escalate thresholds from stated costs"
     stack: [PyTorch, TypeSafe SDK]
+    readiness:
+      lecture: reviewed
+      lab: written
+      runtime: colab-cpu
+      estimate_minutes: 3
+      accounts: [Google]
+      optional_accounts: [TypeSafe, OpenAI, Anthropic]
+      cost: "Free without keys. Keyed run: under 5 cents on Jev; the stretch adds under 25 cents on Claude (estimates)"
+      fallback: {kind: toy, note: "A small decision model trained in the lab answers in Jev's place. It is labeled 'not Jev', and its numbers say nothing about Jev"}
+      gaps: "TypeSafe's documentation was read on 2026-10-06 and quoted in lecture 12; the quotations await sign-off, and no live Jev call has been made"
   m13:
     n: 13
     slug: 13-rag
@@ -454,6 +640,16 @@ modules:
       - "Choose chunking, embedding and reranking settings from measurements"
       - "Evaluate retrieval and answer quality separately"
     stack: [LlamaIndex, LangChain, Jev]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 8
+      accounts: [Google]
+      optional_accounts: [OpenAI, Anthropic, TypeSafe]
+      cost: "Free without keys. Keyed run: under 50 cents on Claude, under 5 cents on OpenAI, under 5 cents on Jev (estimates)"
+      fallback: {kind: open-model, note: "bge-small, a cross-encoder, an NLI model and Qwen replace the commercial models and Jev; their numbers describe those models"}
+      gaps: "The 80 human-written questions do not exist; runs use plumbing probes, which test the code, not retrieval"
   m14:
     n: 14
     slug: 14-agents
@@ -466,6 +662,15 @@ modules:
       - "Add state, memory and human-in-the-loop interrupts"
       - "Use a calibrated decision model for routing and tool-call approval"
     stack: [LangChain, LangGraph, Jev]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 6
+      accounts: [Google]
+      optional_accounts: [OpenAI, Anthropic, TypeSafe]
+      cost: "Free without keys. Keyed run: under 30 cents on Claude, under 5 cents on OpenAI, under 5 cents on Jev (estimates)"
+      fallback: {kind: open-model, note: "Qwen2.5-0.5B-Instruct runs the agent and the guard, and Module 12's toy decision model routes; their numbers describe those models, not Jev or the commercial models"}
   m15:
     n: 15
     slug: 15-capstone
@@ -478,3 +683,13 @@ modules:
       - "Evaluate it for accuracy, abstention and cost"
       - "Explain the design choices to others"
     stack: [LlamaIndex, LangGraph, Jev, OpenAI, Anthropic]
+    readiness:
+      lecture: drafted
+      lab: written
+      runtime: colab-t4
+      estimate_minutes: 15
+      accounts: [Google]
+      optional_accounts: [OpenAI, Anthropic, TypeSafe]
+      cost: "Free without keys. Keyed, per pair for the afternoon: under 2 USD on Claude, under 25 cents on OpenAI, under 10 cents on Jev (estimates)"
+      fallback: {kind: open-model, note: "Qwen, the open retrievers and the NLI judge replace the commercial models and Jev; their numbers describe those models"}
+      gaps: "The 125-question evaluation set does not exist; runs use plumbing probes, which test the code, not the system"

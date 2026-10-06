@@ -14,10 +14,10 @@ Two short checks. The **entry check** tells a participant, before Day 1, whether
 
 ## How to use them
 
-- **Entry check.** Send it with the [Setup](setup.qmd) instructions. It takes about 15 minutes, on paper or in a notebook, with no internet search. A participant who misses more than two questions in one area should review that area before Day 1 (suggested material is under the key).
+- **Entry check.** Send it with the [Setup](setup.qmd) instructions. It takes about 15 minutes, on paper or in a notebook, with no internet search. A participant who misses two or more of the three questions in an area should review that area before Day 1, using the material under the key. One miss in an area needs no action.
 - **Exit check.** Use the questions of the day's modules as a ten-minute self-check at the end of each day, or all of them after Day 4. Answers are folded under each question. Each answer names the lab and exercise that produced the evidence, so a participant who misses a question knows which cell to rerun.
 - **Numbers.** Where an answer quotes a measured number, it is the build run recorded in `data/baselines.json` and quoted in the lecture. If your room ran on another runtime and got a different number, accept the room's number with the same reasoning.
-- **Labs that ran only offline.** Labs 6 to 14 have not run on their real models in the build (see the [facilitator guide](facilitator-guide.md)). Questions on those labs test the reasoning of the lecture and the checkpoint, not a model result.
+- **Labs whose real path has not run.** The [readiness page](readiness.qmd) lists which labs have run on their real models, and where. A question on a lab that has not tests the reasoning of the lecture and the checkpoint, not a model result.
 
 ## Entry check
 
@@ -490,9 +490,9 @@ Act when $\hat{p} > \lambda^* = 1 - 1/10 = 0.9$. The curve depends only on the o
 
 ### Module 12 · {{< var modules.m12.title >}}
 
-Objectives: [lecture 12](lectures/12-rlcd-jev.qmd). These questions follow the honesty rule: they test the difference between what TypeSafe has stated and what is our illustration. **Re-check the key for 12.1a after the TODO box in lecture 12, section 2, is replaced with TypeSafe's own statements.**
+Objectives: [lecture 12](lectures/12-rlcd-jev.qmd). These questions follow the honesty rule: they test the difference between what TypeSafe has stated and what is our illustration. The key for 12.1a follows lecture 12, section 2, as corrected from TypeSafe's documentation on 2026-10-06; re-check it if the workshop lead's sign-off changes that section.
 
-**12.1a** (Objective 1 · Outcome 6) Sort each statement into one of three groups: stated by TypeSafe in its own sources; reported by third parties and not checked against a TypeSafe source; our illustration.
+**12.1a** (Objective 1 · Outcome 6) Sort each statement into one of three groups: stated by TypeSafe in its own sources; reported by third parties and not found in a TypeSafe source; our illustration.
 
 1. "System One models are trained for calibrated decisions; validate their performance in the target domain."
 2. RLCD optimizes calibrated probabilities instead of preference, as RLHF does.
@@ -501,7 +501,7 @@ Objectives: [lecture 12](lectures/12-rlcd-jev.qmd). These questions follow the h
 5. A choice answer carries a probability for every option and a separate `confidence` that summarizes how concentrated the distribution is.
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Stated by TypeSafe: 1 (`typesafe-ai/skills`, `SKILL.md`) and 5 (`typesafe-sdk` and `SKILL.md`). Reported by third parties: 2 and 4. Our illustration: 3, from Lab 12's toy model; it is evidence about our toy, not about how Jev was trained. The string "RLCD" does not appear in the TypeSafe sources the lecture lists. **Evidence:** lecture 12, section 2; Lab 12, Exercise 1 and the closing cell.
+Stated by TypeSafe: 1 (`typesafe-ai/skills`, `SKILL.md`; the documentation's System One page states the same first clause), 2 in substance, and 5 (`typesafe-sdk`, `SKILL.md` and the documentation's Confidence page). For 2, TypeSafe's AI primer (read 2026-10-06) says that RLCD "trains TypeSafe to return decisions and calibrated probabilities instead of generated text", while RLHF "trains models to produce responses people prefer"; the words "instead of preference" are the third parties' summary, not TypeSafe's. Reported by third parties: 4. It is not in TypeSafe's documentation, which says instead that "Most queries complete in about 100 ms". Our illustration: 3, from Lab 12's toy model; it is evidence about our toy, not about how Jev was trained. TypeSafe names RLCD and states its aim, but has not published its reward, data or algorithm. **Evidence:** lecture 12, section 2; Lab 12, Exercise 1 and the closing cell.
 :::
 
 **12.1b** (Objective 1 · Outcome 6) In the lecture's framing (ours, not TypeSafe's method), how does an outcome reward with a proper score differ from RLHF's preference reward? Name one thing Lab 12's toy experiment does not show.
@@ -586,7 +586,7 @@ Not that the guard is safe: 0 out of 45 is consistent with a true rate of severa
 
 ### Module 15 · {{< var modules.m15.title >}}
 
-Objectives: [lecture 15](lectures/15-capstone.qmd). The capstone notebook is not built yet; these questions use lecture 15.
+Objectives: [lecture 15](lectures/15-capstone.qmd). These questions were written from lecture 15 before `15-capstone.ipynb` was built; check them against the notebook's starter system before you use them. The capstone's evaluation set does not exist yet, so no question here asks for a measured result.
 
 **15.1** (Objective 1 · Outcome 9) In the capstone starter, which nodes ask the decision model a question, and what does each decide?
 

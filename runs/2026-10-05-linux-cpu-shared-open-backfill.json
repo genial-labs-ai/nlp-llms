@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "source": "backfill",
+  "env": "linux-cpu-shared",
+  "path": "open",
+  "mode": "worked",
+  "commit": null,
+  "runs": [
+    {"notebook": "02-word-vectors", "date": "2026-10-04", "scope": "partial", "scope_note": "skip-gram training only, full settings", "status": "pass", "seconds": 695.2,
+     "env_detail": "Linux x86_64 container, 2 PyTorch threads on a 4-core machine shared with other jobs (load average 14 to 19)", "evidence": "data/baselines.json (lab02); briefs/02-word-vectors.md"},
+    {"notebook": "03-sequence-models", "date": "2026-10-05", "scope": "notebook", "status": "pass", "seconds": 4320,
+     "env_detail": "Linux container, 4 vCPU, 2 PyTorch threads, shared with other training jobs", "evidence": "briefs/03-sequence-models.md, 'As built'"},
+    {"notebook": "03-sequence-models", "date": "2026-10-05", "scope": "notebook", "status": "pass", "seconds": 1560, "settings": {"NLP_LLMS_QUICK": "1"},
+     "env_detail": "Linux container, 4 vCPU, 2 PyTorch threads, shared with other training jobs", "evidence": "briefs/03-sequence-models.md, 'As built'"},
+    {"notebook": "04-seq2seq-attention", "date": "2026-10-05", "scope": "partial", "scope_note": "an earlier revision of the notebook at full settings (81 and 24 minutes of training)", "status": "pass", "seconds": 6420,
+     "env_detail": "Linux container, shared CPU", "evidence": "briefs/04-seq2seq-attention.md, 'Not verified by the Director'"},
+    {"notebook": "04-seq2seq-attention", "date": "2026-10-05", "scope": "notebook", "status": "pass", "seconds": 372.5, "settings": {"NLP_LLMS_QUICK": "1"},
+     "env_detail": "Linux container, shared CPU; accuracy checkpoints skipped by QUICK", "evidence": "briefs/04-seq2seq-attention.md, 'Not verified by the Director'"},
+    {"notebook": "05-transformer-from-scratch", "date": "2026-10-05", "scope": "partial", "scope_note": "mini-GPT training only, at the T4 settings", "status": "pass", "seconds": 3921,
+     "env_detail": "Linux x86_64 container, 4 vCPU, 2 PyTorch threads, shared (load average 5 to 10)", "evidence": "data/baselines.json (lab05); briefs/05-transformer-from-scratch.md"},
+    {"notebook": "12-rlcd-jev", "date": "2026-10-05", "scope": "notebook", "status": "pass", "seconds": 28,
+     "env_detail": "Linux x86_64 container, 4 vCPU shared with other agents; no TypeSafe key, so the local toy decider answered; 21 to 28 s across runs", "evidence": "briefs/12-rlcd-jev.md, 'As built'"}
+  ]
+}

@@ -229,6 +229,22 @@ main.content table {
   overflow-x: auto;
 }
 
+// The readiness page: six dense columns on a full-width page, read on a laptop.
+.readiness-table {
+  table {
+    font-size: 0.85rem;
+  }
+  td {
+    vertical-align: top;
+  }
+  td:first-child {
+    min-width: 11rem;
+  }
+  td:nth-child(4) {
+    min-width: 17rem;
+  }
+}
+
 // Code. Inline code is tinted; blocks sit on a bordered surface.
 code {
   font-size: 0.875em;

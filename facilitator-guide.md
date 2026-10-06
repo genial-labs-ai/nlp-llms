@@ -15,36 +15,17 @@ This guide is for the person running the room. It says what to set up, what to s
 
 Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The capstone, Module 15, takes the whole Day 4 afternoon.
 
-## Read this first: what has not been verified
+## Read this first: what has been verified
 
-The workshop was built in a container with no GPU, no access to the Hugging Face Hub and no API keys. Read the list below before you plan a delivery. Every item is a fact about the current build, not a guess.
+{{< include /_includes/readiness-summary.md >}}
 
-**Nothing has run on Colab or on a T4.** Labs 1 to 5 ran end to end on a shared CPU. Labs 6 to 14 ran only on their offline paths (stand-ins, stubs, the local toy decider). Every T4 run time in this guide and in the pace sheet is a budget from the lab briefs, not a measurement. The CPU measurements show that Labs 2 to 5 will not fit on a Colab CPU runtime:
+The [readiness page](readiness.qmd) has the evidence for every module. It is generated from the run records in `runs/`. It shows which labs have run on their real path, on which machine and for how long, which have only passed the offline code check, and the blocking work that remains, such as the human-written question sets. Read it before you plan a delivery. When you time a lab, add a run record so the page shows it. Unless a line says *measured*, every run time in this guide and in the pace sheet is a planning estimate from the lab briefs.
 
-| Lab | Measured on the build CPU (full settings) | What that means for you |
-|---|---|---|
-| 2 | skip-gram training 695 s | over the 4 minutes the pace sheet gives it; T4 time unknown |
-| 3 | Run all 72 min (26 min with `QUICK = True`) | T4 required; T4 time unknown |
-| 4 | Run all 107 min (81 + 24 min of training) | T4 required; T4 time unknown |
-| 5 | mini-GPT training 3,921 s | T4 required; T4 time unknown |
-
-**Blocking items.** Each row below stops a module from running as designed. Clear them, or plan the fallback named in that module's section.
-
-| Item | Labs affected | Status |
-|---|---|---|
-| The repository and its `data/` folder must be public on `main` | 1, 2, 6, 9–14 load data from the repository's raw URLs | On 2026-10-04 the repository URL returned 404 to an anonymous request, so `fetch` fails on Colab. Tiny Shakespeare (Labs 1, 3, 5) also loads from its upstream URL |
-| Lab 9 data files (`lab09_prompts.json`, `lab09_preferences.jsonl.gz`) and the reward model `lab09_reward_model.pt` | 9 (Part B), 10 (all) | Not built. They need a machine with Hub access |
-| Lab 6 logits (`lab06_logits.npz`) | 11 | Not built. Lab 11 falls back to the Lab 1 classifier automatically |
-| TypeSafe's own statements in lecture 12 | 12, and what you say in 13–15 | Lecture 12 carries a TODO box that must be replaced before the module is taught |
-| Workshop RAG Questions v1 (80 questions, written by people) | 13, 15 | Not written. Lab 13 runs on "plumbing probes", which measure code, not retrieval |
-| The capstone notebook and its 45 new questions | 15 | The notebook does not exist yet |
-| Decision set hand items | 11, 12, 14 | The set is "template-only"; the 80 hand-written items and the audit are not done. The labs run on the template items |
+**A CPU time is not a T4 time.** Labs 2 to 5 train their models from scratch and were designed for a T4. On a shared CPU, Lab 3 took 72 minutes and an earlier revision of Lab 4 took 107 minutes. On a GitHub CPU runner, the whole of Lab 2 took under a minute. None of these numbers predicts a T4. Time Labs 2 to 5 on the room's runtime before you rely on the lab plans.
 
 **Keyed paths.** No OpenAI, Anthropic or Jev call has been made by the build. The OpenAI and Anthropic response fixtures in Lab 8 were constructed from the documented shapes, not recorded. Every cost in this guide is an estimate from token arithmetic.
 
 **Model retirement.** Lab 8 and lecture 8 pin `{{< var models.anthropic >}}`. On 2026-10-05 Anthropic listed its retirement as "not sooner than October 15, 2026". Check both providers' deprecation pages before every delivery.
-
-**Module 0 has not been tried on a laptop.** No one has yet installed the three coding agents and built and published the two apps on a fresh macOS, Windows or Linux machine. The install commands and the failures listed in [Module 0](#module-0) come from each tool's documentation, not from a run.
 
 ## Before the workshop
 
@@ -54,7 +35,7 @@ The workshop was built in a container with no GPU, no access to the Hugging Face
 2. Decide on keys. Every API lab runs without keys. If you provide keys, provide them for the whole room or for no one, so that groups compare like with like.
 3. Ask TypeSafe for workshop keys. A room of 30 on one key makes about 12,000 Jev calls in Lab 12, 48,000 in Lab 13's reranking and 15,000 in Lab 14. Rate limits are unknown.
 4. Check the model IDs against the providers' deprecation pages: `{{< var models.openai >}}`, `{{< var models.anthropic >}}`, and the open fallback `{{< var models.fallback >}}`.
-5. Check that the blocking items above are cleared.
+5. Check that the blocking work on the [readiness page](readiness.qmd#open-work) is done, or plan the fallback named in each module's section.
 6. Decide whether you will open the room at 08:00 on Day 1 for [Module 0](#module-0), and tell participants. If you will not, send them its page as pre-work. Ask anyone on a managed work laptop to check now that they may install software.
 
 ### The day before
@@ -160,7 +141,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - Exercise 3: a document of only padding must give the zero vector, not NaN.
 - **The result to prepare the room for:** averaged embeddings lose to TF-IDF (0.867 against 0.884 test accuracy in the build run). That is the expected finding. Do not let groups tune until embeddings win.
 - **If the clock slips:** the analogy section becomes a demonstration first. Exercises 1, 3 and 4 and the results table carry the objectives. Then drop the stretch.
-- **Not verified:** run time on Colab, CPU or T4. Skip-gram training took 695 s on the build CPU, more than its slot.
+- **Not verified:** run time on Colab, CPU or T4. Skip-gram training took 695 s on a heavily loaded shared CPU; on a GitHub CPU runner the whole notebook took 47 s (*measured*, 2026-10-06). Time it on the room's runtime.
 
 ### Module 3 · {{< var modules.m03.title >}}
 
@@ -300,7 +281,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
 - **If the clock slips:** drop the stretch (an LLM through TypeSafe's emulator).
 - **If Jev fails:** unset the key, or rerun on the local path. The checkpoints do not change. Never quote a local-path number as Jev's.
 - **Cost (estimate):** Jev under 5 cents per full run; output tokens are currently free per the SDK schema.
-- **Not verified:** no live Jev call has been made; `docs.typesafe.ai` and TypeSafe's announcement have not been read by the build; the emulator's key handling and its compatibility with Lab 8's pins.
+- **Not verified:** no live Jev call has been made; TypeSafe's announcement and pricing page have not been read (its documentation was read on 2026-10-06; see lecture 12, section 2); the emulator's key handling and its compatibility with Lab 8's pins.
 
 **Answering questions about RLCD.** Use three sentences. What TypeSafe has stated in its own sources (lecture 12, section 2). What third parties report, which we have not checked against a TypeSafe source. What is ours: the framing of section 3 and Lab 12's Exercise 1. If someone asks "is this how Jev was trained?", the answer is "we do not know; TypeSafe has not published it". RLCR (Damani et al.) is published work by other authors; RLCR is not RLCD.
 
@@ -331,16 +312,16 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - Exercise 4: replay must not send an email twice; `send_email` is idempotent by design.
 - **If the clock slips:** drop the stretch (parts A to D). On a CPU runtime the brief's first cut is the probability-shift test, to 30 items; there is no switch for it, so slice the list in the evaluation-run cell and say so when reporting.
 - **Cost (estimate):** Jev under 5 cents; the agent model under 30 cents on Anthropic, under 5 cents on OpenAI.
-- **Not verified:** keyed Jev, keyed LLM and Qwen paths have not run; whether the 0.5B guard carries any signal; the pins were resolved for Python 3.12 with `uv`, not installed with `pip` on Colab.
+- **Not verified:** keyed Jev and keyed LLM paths have not run. The open path with no keys (Qwen as agent and guard) ran end to end on an Apple M1 Pro laptop CPU in 263 s (*measured*, 2026-10-06), not on Colab; whether the 0.5B guard carries any signal; the pins were resolved for Python 3.12 with `uv`, not installed with `pip` on Colab.
 
 ### Module 15 · {{< var modules.m15.title >}}
 
-**Status:** the capstone notebook, its 45 new questions and Lab 13's 80 questions do not exist yet. There is no fallback that keeps the evaluation. Do not schedule Module 15 until they exist and an instructor has recorded the baselines (below).
+**Status:** the starter notebook, `15-capstone.ipynb`, is written and passes its offline code check, but its evaluation set does not exist: neither Lab 13's 80 questions nor the 45 new ones have been written. Until they are, every run scores *plumbing probes*, which check that the system runs end to end and say nothing about how well it answers. There is no fallback that keeps the evaluation. Do not schedule Module 15 until the questions exist and an instructor has recorded the baselines (below).
 
 **Before the day.**
 
 1. Record the baseline: run the unmodified starter on `dev` and `test` on every path you will allow (at least keyed with Jev, open on a T4, open on a CPU subset, and the stub), and once more on each keyed path to measure run-to-run flips.
-2. Decide how pairs hand in their submission file (a shared folder or an upload form). A merge script, `scripts/collect_capstone.py`, is proposed in the brief but not written.
+2. Decide how pairs hand in their submission file (a shared folder or an upload form). `scripts/collect_capstone.py` merges the files and marks each submission ranked, over budget, not comparable or code check only.
 3. Shared keys: 15 pairs make about 14,000 Jev calls in an afternoon without reranking. Limit Jev reranking (menu option R2) to `dev` if keys are shared.
 
 **The afternoon.** Clock times are on the [schedule](schedule.qmd); the pace sheet has the minute plan.

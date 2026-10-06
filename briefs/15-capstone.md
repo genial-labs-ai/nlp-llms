@@ -1,5 +1,14 @@
 # Lab brief: `notebooks/15-capstone.ipynb`
 
+**Status (2026-10-06).** Since this brief was written:
+
+- the starter notebook `notebooks/15-capstone.ipynb` has been built and passes its offline code check in CI;
+- the corpus snapshot exists, with status `provisional`;
+- Labs 13 and 14 have been built;
+- `scripts/capstone_score.py`, `scripts/collect_capstone.py` and `data/build_capstone_eval.py` are written and tested.
+
+The evaluation set has not been written: neither Lab 13's 80 questions nor the 45 new ones. Every run therefore scores plumbing probes. The "Inputs that do not exist yet" table and the "Not verified" section below record the state when this brief was written. For what has run since, see the [readiness page](../readiness.qmd).
+
 From the Academic Director to the **Agentic Systems Engineer**, owner of Lab 15 (`AGENTS.md`, "Who owns what"). Lecture: `lectures/15-capstone.qmd` (same symbols and equation names: `plan-rule`, `verify-rule`, `cap-acc`, `cap-abstain`, `cap-unsupported`, `cap-cost`, `sign-test`). Lab standards: `PLAN.md` section 5. Verified Jev surface: `briefs/jev-verification.md` (JV §n). Retriever, corpus and question set: `briefs/13-rag.md`. Graph, `decide()` and its backends: `briefs/14-agents.md`. Thresholds and the honesty rule: `briefs/12-rlcd-jev.md`, `briefs/11-calibration.md`. This file is not rendered by Quarto.
 
 **Objectives exercised** (from `_variables.yml`, `m15`): combine retrieval, an agent graph and calibrated control into one system; evaluate it for accuracy, abstention and cost; explain the design choices to others.

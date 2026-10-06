@@ -7,9 +7,9 @@ subtitle: "Ten minutes, before Day 1"
 
 All labs run in [Google Colab](https://colab.research.google.com/), so there is nothing to install. You need a Google account.
 
-Open the setup notebook from the [notebooks page](notebooks.qmd) and choose **Runtime → Run all**. It checks the runtime and tells you which provider the API labs will use.
+[Open the setup notebook in Colab]({{< var repo.colab_base >}}/{{< var setup.slug >}}.ipynb){.btn-colab} and choose **Runtime → Run all**. It checks the runtime and tells you which provider the API labs will use. Every other notebook is on the [notebooks page](notebooks.qmd).
 
-For the labs from Module 2 onward, switch on a GPU: **Runtime → Change runtime type → T4 GPU**. The free tier is enough for every lab.
+For the labs that need a GPU, switch one on: **Runtime → Change runtime type → T4 GPU**. Labs 1, 9, 11 and 12 run on a CPU. Every lab is designed for the free tier; the [readiness page](readiness.qmd) says which ones have been timed on it.
 
 ## 2. Add API keys (optional)
 

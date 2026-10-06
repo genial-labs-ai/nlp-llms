@@ -1,5 +1,7 @@
 # Lab brief: `notebooks/09-preference-learning.ipynb`
 
+**Status (2026-10-06).** `notebooks/09-preference-learning.ipynb` now exists and passes its offline code check in CI. Part B still waits on the data files this brief specifies, which have not been built. The "Not verified" section below records the state when this brief was written. For what has run since, and where, see the [readiness page](../readiness.qmd).
+
 From the Academic Director to the Neural Lab Engineer. Lecture: `lectures/09-preference-learning.qmd` (same symbols, equation labels and function names). Lab standards: `PLAN.md` section 5. Data contract: `data/README.md`. Lab 10's needs: `briefs/10-rlhf.md`. This file is not rendered by Quarto.
 
 **Revision 2 (2026-10-05).** Romeo kept `PLAN.md`'s design: Lab 10 fine-tunes a small GPT-2, not the Lab 5 mini-GPT. Part A is unchanged. Part B (the preference data, the gold rule, the reward model and the interface with Lab 10) is rewritten for GPT-2 samples. The interface section below is identical to the one in `briefs/10-rlhf.md`.

@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "source": "backfill",
+  "env": "mac-m1pro",
+  "path": "open",
+  "mode": "worked",
+  "commit": null,
+  "runs": [
+    {"notebook": "01-text-as-data", "date": "2026-10-04", "scope": "notebook", "status": "pass", "seconds": null,
+     "env_detail": "Apple M1 Pro, macOS arm64, CPU only; run time not recorded", "evidence": "data/baselines.json (lab01)"},
+    {"notebook": "14-agents", "date": "2026-10-06", "scope": "notebook", "status": "pass", "seconds": 263,
+     "env_detail": "Apple laptop CPU, no API keys, Hugging Face Hub reachable; Qwen2.5-0.5B-Instruct as agent and guard", "evidence": "briefs/14-agents.md, compute budget table; PLAN.md, Module 14 tasks"}
+  ]
+}

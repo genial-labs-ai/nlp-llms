@@ -21,17 +21,17 @@ Optional callouts in the lectures sit outside the 45 minutes. The stretch sectio
 
 ## Day 1, 08:00: Module 0 · {{< var modules.m00.title >}}
 
-Optional and self-serve, {{< var modules.m00.minutes >}} minutes before the 09:00 welcome, with no lecture. Minutes count from 08:00. **Provisional:** these rows are a target for a participant who has not installed anything yet. Replace them with the step timings on the [Module 0 page](lectures/00-coding-agents.qmd) once it is drafted, and with measured times once someone has run the module on a fresh laptop. Install failures and what to do about them are in the [facilitator guide](facilitator-guide.md#module-0).
+Optional and self-serve, {{< var modules.m00.minutes >}} minutes before the 09:00 welcome, with no lecture. Minutes count from 08:00. **Provisional:** these rows follow the step plan on the [Module 0 page](lectures/00-coding-agents.qmd). No one has yet timed the module on a fresh laptop, so they are a target, not a measurement. Install failures and what to do about them are in the [facilitator guide](facilitator-guide.md#module-0).
 
 | Minutes | Segment | By the end |
 |---|---|---|
-| 0–15 | Install one coding agent and sign in | the agent answers a prompt in the terminal |
-| 15–25 | git identity, `gh auth login`, a repository on GitHub | `gh auth status` succeeds; a first commit is pushed |
-| 25–40 | App 1 with the agent: protein structure explorer (1UBQ), with its three.js page | the app's own check passes; the page renders locally |
-| 40–52 | App 2 with the agent: RFM customer segmentation, with its three.js page | the app's own check passes; the page renders locally |
-| 52–60 | Publish both on GitHub Pages | both Pages URLs load (allow up to 10 minutes after enabling Pages) |
+| 0–10 | Install one coding agent and sign in | the agent answers a prompt in the terminal |
+| 10–15 | git identity, `gh auth login`, a repository on GitHub | `gh auth status` succeeds; an empty public repository is on the laptop |
+| 15–35 | App 1 with the agent: protein structure explorer (1UBQ), with its three.js page | the app's own check passes; `protein/` is committed |
+| 35–55 | App 2 with the agent: RFM customer segmentation, with its three.js page | the app's own check passes; `rfm/` is committed |
+| 55–60 | Publish both on GitHub Pages | both Pages URLs load (allow up to 10 minutes after enabling Pages) |
 
-**Behind at minute 25:** if the agent is still not installed, pair the participant with a neighbor and have them do the git and `gh` steps on their own machine. **At 08:55:** everyone stops; the rest is homework.
+**Behind at minute 15:** if the agent is still not installed, pair the participant with a neighbor and have them do the git and `gh` steps on their own machine. **At 08:55:** everyone stops; the rest is homework.
 
 ## Day 1
 
@@ -347,7 +347,7 @@ The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief c
 
 ### Module 15 · {{< var modules.m15.title >}}
 
-{{< var modules.m15.minutes >}} minutes across the afternoon. The capstone notebook does not exist yet; this plan follows lecture 15.
+{{< var modules.m15.minutes >}} minutes across the afternoon. This plan follows lecture 15 and the starter notebook, `15-capstone.ipynb`. The evaluation set does not exist yet, so the baseline and the comparison in this plan cannot be run as designed: see the [readiness page](readiness.qmd#open-work).
 
 | Minutes | Segment | By the end |
 |---|---|---|

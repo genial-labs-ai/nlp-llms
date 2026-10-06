@@ -26,13 +26,13 @@ Modern language models did not appear from nowhere. Each step, from counting wor
 :::
 
 ::: {.callout-note appearance="simple"}
-This workshop is being written. The curriculum and schedule are set; lectures and labs are added module by module.
+{{< include /_includes/readiness-summary.md >}}
 :::
 
 ## The four days
 
 ::: {.section-lede}
-Each day answers one question. Every module is a short lecture followed by a hands-on lab in Google Colab.
+Each day answers one question. Modules 1 to 14 are each a short lecture followed by a hands-on lab in Google Colab; the capstone is a hands-on afternoon.
 :::
 
 {{< include /_includes/days.md >}}
@@ -72,7 +72,7 @@ Machine learning practitioners who want to understand language models from the g
 - **PyTorch:** you have trained at least one model with `nn.Module` and an optimizer loop. Module 2 includes a short refresher.
 - **Math:** vectors and matrices, the chain rule, conditional probability, cross-entropy.
 
-You need a Google account for Colab. API keys are optional: every lab that uses a commercial API also runs on a free open model. See [Setup](setup.qmd).
+You need a Google account for Colab. API keys are optional: every lab runs without them, on a free open model or, in Module 12, on a small decision model you train in the lab. See [Setup](setup.qmd).
 :::
 
 ## How each module works

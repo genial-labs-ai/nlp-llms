@@ -2,7 +2,7 @@
 
 A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
-**Status (2026-10-05):** All 15 lectures and lab briefs drafted; all 16 notebooks written. Labs 01–05 run end to end on CPU; Labs 06–15 run only on their offline paths (stand-ins, stubs, the local toy decider), because the build container has no Hub access and no API keys. Human work outstanding: the decision-set hand items and audit, Lab 13's 80 questions and the capstone's 45 (after the corpus snapshot is frozen), and TypeSafe's own statements in lecture 12. Scaffold built (build Days 1–2); datasets fixed; lectures 1–8 drafted and each reviewed against its lab (equation-to-lab maps, quoted numbers, signatures; "As built" sections in `briefs/`); figures for lectures 1–8 done, with the Lab 2 PCA, Lab 4 alignment and Lab 5 causal-mask figures drawn from measured data. Labs 01–05 built and run end to end on a shared CPU (never on Colab or a T4). Labs 06–08 built; their pretrained-model and keyed paths are written, not run, because the build container cannot reach huggingface.co and has no API keys (offline stand-ins and a stub provider exercise the code). Open before Day 7: a Colab T4 run of Labs 02–08 for run times and the Lab 6/7/8 real paths; the Lab 6 logits file for Lab 11 and the Lab 7 Dolly subset file both need Hub access. Not rendered: Quarto is not installed in the build container. Module 0 (coding agents in the terminal; optional, self-serve, Day 1 08:00–09:00) was added on 2026-10-05: it is wired into `_variables.yml`, the generators, tests and pages; its page, four reference apps (Python and R, run here with headless renders checked) and data are in place; not yet tried on a real laptop. This plan is a living document and will be revised as the build proceeds.
+**Status (2026-10-06):** what has run, where, and the blocking work that remains are generated from evidence on the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html) (`_includes/readiness.md`, built from the readiness fields in `_variables.yml` and the run records in `runs/`); this paragraph no longer restates them. All 15 lectures and 16 notebooks are written. No lab has been run on Colab. A five-day revision was approved on 2026-10-06 and is being built in six phases (section 8). Earlier status, kept for the record: Labs 01–05 were run end to end on CPU only, and Labs 06–15 on their offline paths, because the build container had no Hub access and no API keys; Lab 14's open path was later run on an Apple laptop (263 s). This plan is a living document.
 
 ---
 
@@ -60,7 +60,7 @@ Drawn from Stanford CS224N, CMU CS 11-747 and MIT 6.S191:
 - **Short lecture, immediate lab.** No lecture runs longer than 45 minutes before hands-on work (MIT 6.S191).
 - **Predict → Run → Explain → Check.** The lab rhythm carried over from `tensors-workshop`: participants predict an output, run the cell, explain the result, then pass a checkpoint assertion.
 - **One running thread.** The same small datasets and the same tasks reappear across modules, so improvements are measured, not asserted.
-- **Retrieve and manipulate before the lab.** Each lecture opens with a recap box, closes most sections with a check-yourself question (answer folded), carries its derivations through a worked numeric example, and has at most one interactive demo. These sit outside the 45 minutes. Authoring hooks: `.recap`, `.self-check`, `.worked-example`, `.demo` (styled in `custom.scss`; `filters/pedagogy.lua` styles the per-section objective lines).
+- **Retrieve and manipulate before the lab.** Each lecture opens with a recap box, closes most sections with a check-yourself question (answer folded), carries its derivations through a worked numeric example, and has at most one interactive demo. Check-yourself questions and demos sit outside the 45 minutes; recaps and worked examples are counted inside them. (The five-day revision brings a few checks and the demo inside the budget: section 8, Phase 4.) Authoring hooks: `.recap`, `.self-check`, `.worked-example`, `.demo` (styled in `custom.scss`; `filters/pedagogy.lua` styles the per-section objective lines).
 - **Honesty about what is known.** Where a method is unpublished (RLCD), the material says so and separates public facts from our own illustration.
 
 ---
@@ -83,6 +83,8 @@ nlp-llms/
 ├── notebooks/               00-setup.ipynb, 01-… to 15-….ipynb (no outputs committed; Module 0 has none)
 ├── agents-intro/            Module 0 reference solutions (the two apps)
 ├── references.qmd           papers, courses, docs
+├── readiness.qmd            what has run, where, and the blocking work (generated tables)
+├── runs/                    run records: one JSON file per batch of timed notebook runs
 ├── faq.qmd
 ├── teach.qmd                instructor hub
 ├── facilitator-guide.md  instructor-pace.md  assessments.md
@@ -315,12 +317,12 @@ Every notebook must meet all of these.
 
 | Item | Risk | Mitigation |
 |---|---|---|
-| RLCD is unpublished | No paper, reward function or reliability data from TypeSafe; teaching it as fact would be speculation | Module 11 teaches calibration theory on its own footing; Module 12 states what is public and labels the toy lab as our own illustration |
-| Jev package names and API surface | Checked 2026-10-05 against the published packages and TypeSafe's and LangChain's GitHub repositories (details and sources in `briefs/jev-verification.md`). `docs.typesafe.ai` was blocked from the build container and has not been read. **SDK:** PyPI `typesafe-sdk` 0.7.2 (MIT, by TypeSafe AI), import `typesafe_sdk`; `typesafe-sdk-python` is only the repository name and is not on PyPI. `TypeSafeClient` / `AsyncTypeSafeClient`, key from `TYPESAFE_API_KEY`; `system_one(state, questions)` sends `POST /v1/systemone` with `Noul` / `Choice` / `Score` questions. `Choice` and `Score` answers carry `probabilities` and `confidence`; `Noul` carries only a probability, with no confidence field. There is no batch endpoint. **LangChain:** `langchain-typesafe` 0.0.1a3 (alpha; the class is `@beta`), `TypeSafeClassifier` confirmed; it does not depend on `typesafe-sdk`. **LlamaIndex:** there is no official integration: `llama-index-jev` does not exist, and `llama_index` main has no TypeSafe code | Use `typesafe-sdk==0.7.2` and `langchain-typesafe==0.0.1a3`. Write the Module 13 reranker in the notebook on the SDK, with a cross-encoder fallback. With no key, a local backend returns the same `SystemOneResponse` type. Re-read `docs.typesafe.ai` (confidence, limits, pricing) from a networked machine before delivery. Section 4 now names only `typesafe-sdk` and says there is no LlamaIndex integration (corrected 2026-10-05) |
+| RLCD's method is unpublished | TypeSafe names RLCD and states its aim (docs.typesafe.ai, read 2026-10-06), but publishes no paper, reward function, algorithm or reliability data; teaching a guess at the method as fact would be speculation | Module 11 teaches calibration theory on its own footing; Module 12 states what is public and labels the toy lab as our own illustration |
+| Jev package names and API surface | Checked 2026-10-05 against the published packages and TypeSafe's and LangChain's GitHub repositories (details and sources in `briefs/jev-verification.md`). `docs.typesafe.ai` was blocked from the build container; it was read from the build Mac on 2026-10-06 (`briefs/jev-verification.md`, section 12: it publishes the confidence formulas, the rate limits and Jev's price). **SDK:** PyPI `typesafe-sdk` 0.7.2 (MIT, by TypeSafe AI), import `typesafe_sdk`; `typesafe-sdk-python` is only the repository name and is not on PyPI. `TypeSafeClient` / `AsyncTypeSafeClient`, key from `TYPESAFE_API_KEY`; `system_one(state, questions)` sends `POST /v1/systemone` with `Noul` / `Choice` / `Score` questions. `Choice` and `Score` answers carry `probabilities` and `confidence`; `Noul` carries only a probability, with no confidence field. There is no batch endpoint. **LangChain:** `langchain-typesafe` 0.0.1a3 (alpha; the class is `@beta`), `TypeSafeClassifier` confirmed; it does not depend on `typesafe-sdk`. **LlamaIndex:** there is no official integration: `llama-index-jev` does not exist, and `llama_index` main has no TypeSafe code | Use `typesafe-sdk==0.7.2` and `langchain-typesafe==0.0.1a3`. Write the Module 13 reranker in the notebook on the SDK, with a cross-encoder fallback. With no key, a local backend returns the same `SystemOneResponse` type. Re-read `docs.typesafe.ai` before each delivery: the confidence formulas, rate limits and prices can change. Section 4 now names only `typesafe-sdk` and says there is no LlamaIndex integration (corrected 2026-10-05) |
 | Lookalike Jev packages on PyPI | Unaffiliated packages sit on names participants may guess: `typesafe-ai` (a shim by a private individual), `jev` (no author), `typesafe-client` (a placeholder), `typesafe` (unrelated, 2010) and `llama-index-postprocessor-jev` (an individual's reranker). The names `typesafe-sdk-python` and `llama-index-jev` are unregistered and could be taken by anyone | Print only `typesafe-sdk` and `langchain-typesafe`, with exact pins; warn participants in `setup.qmd`; add a test that fails if a notebook or page installs any other TypeSafe-like name |
-| Jev confidence semantics | `confidence` measures how concentrated the distribution is, not the probability of the chosen label. Jev's formula is unpublished. A recorded live response had probabilities rounded to 0.01 | Lab 12 draws reliability diagrams from `noul` and `probabilities[choice]`, never from `confidence`, and says why. Thresholds are explicit numbers derived from a stated cost of error |
+| Jev confidence semantics | `confidence` measures how concentrated the distribution is, not the probability of the chosen label. TypeSafe publishes the formulas (docs, read 2026-10-06): for a choice it is the emulator's rescaled top probability, a score uses a distance-weighted measure, and a yes/no answer has none. A recorded live response had probabilities rounded to 0.01 | Lab 12 draws reliability diagrams from `noul` and `probabilities[choice]`, never from `confidence`, and says why. Thresholds are explicit numbers derived from a stated cost of error |
 | Jev experimental LangChain middleware | `AutoModeMiddleware` blocks risky tool calls at a hard-coded p ≥ 0.5 and never asks a human. It works only with `create_agent`, and omitting `criteria` silently drops its default criteria | Lab 14 writes its own act / ask / escalate guard node with `interrupt()` and explicit thresholds, and quotes the middleware's instructions only as an example |
-| RLCD primary sources | The TypeSafe material read so far (SDK, `skills`, `system-one-adapter`, `WorkflowEvals`) never names RLCD. Its only training claim is "System One models are trained for calibrated decisions" (`typesafe-ai/skills`, `SKILL.md`). The RLCD details in circulation come from third-party articles | Lecture 12 cites TypeSafe's announcement directly once someone reads it from a networked machine; until then it states only the sentence above and labels everything else as our illustration |
+| RLCD primary sources | Until 2026-10-05 the TypeSafe material read (SDK, `skills`, `system-one-adapter`, `WorkflowEvals`) never named RLCD. TypeSafe's documentation, read 2026-10-06, does: Jev "is trained with RLCD to return calibrated decisions". The announcement blog post is still unread | Lecture 12 quotes the documentation with links and dates and keeps the method's details, which are unpublished, apart from our illustration. The quotations await Romeo's sign-off (the `typesafe-unverified` notice). Labs 13–15 and briefs 12–15 still say the rate limits are unpublished: correct them when those notebooks are next edited (Phase 2) |
 | Jev access | Participants may not have keys | Fallback path; ask TypeSafe about workshop credits |
 | Model IDs change | Hard-coded IDs go stale | IDs live only in `_variables.yml`; pinned during the build |
 | Colab dependency drift | Preinstalled versions change and break labs | Pinned installs; scheduled `health.yml` run |
@@ -429,7 +431,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Draft lecture 14: Agents
 - [x] Draft the Module 15 capstone brief and wrap-up
 - [ ] Code `13-rag.ipynb` (written; offline BM25 path run on plumbing probes; corpus snapshot v1 built, provisional until `references.qmd` is finished; neural, keyed and Jev paths not run; no retrieval numbers until the human questions exist)
-- [ ] Code `14-agents.ipynb` (written; stub agent + toy router + stub guard path run, with Lab 13's BM25 retriever restated; keyed, Jev and Qwen paths not run)
+- [ ] Code `14-agents.ipynb` (written; stub agent + toy router + stub guard path run, with Lab 13's BM25 retriever restated; keyed and Jev paths not run; the open path with Qwen ran end to end on an Apple laptop CPU in 263 s on 2026-10-06)
 - [ ] Code `15-capstone.ipynb` with its starter system and fixed evaluation set (written; stub path run on plumbing probes, self-test 14/14; scoring script, collector and manifest builder tested; keyed, open and Jev paths not run; blocked on the 125 human questions and the frozen snapshot)
 - [ ] Smoke-test every keyed path (OpenAI, Claude, Jev) and every fallback path
 
@@ -473,3 +475,51 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Re-verify Jev, LangChain, LangGraph and LlamaIndex APIs and pins monthly
 - [ ] Revisit Module 12 whenever TypeSafe publishes more about RLCD
 - [ ] Decide on the v1 exclusions: slide decks, quizzes, Spanish translation
+
+---
+
+## 8. Five-day revision (approved 2026-10-06)
+
+Romeo approved a revision from four to five days after a review brief and a critique of it. This section tracks the work.
+
+**Decisions:**
+
+- **The days.** Day 1 keeps four 95-minute modules (M1–M4). Days 2–5 run three 120-minute modules each: 55 minutes of lecture with the activities inside, a 55-minute lab and a 10-minute debrief, with 15 minutes of retrieval practice each morning and 15 of synthesis at the end of the day. Day 2 is M5–M7, Day 3 M8–M10, Day 4 M11–M13, and Day 5 M14 and the capstone.
+- **Notebooks.** One notebook per lab, with an explicit worked-example switch.
+- **Measurement.** On the build Mac only for now. Colab and T4 stay "not verified" and block the release check.
+- **Delivery.** One pull request per phase.
+
+### Phase 1 — Truth and readiness metadata
+
+- [x] `_variables.yml`: a `readiness` block and per-module `readiness` fields, covering content state, runtime, planning estimate, accounts, cost, what the no-key fallback means, known gaps, and blocking work with mechanical checks
+- [x] `runs/` run records with a schema (`runs/README.md`, `scripts/run_records.py`), backfilled from CI run 37463984863, `data/baselines.json` and the briefs. Backfilled records never count as teaching evidence
+- [x] `scripts/readiness.py`. `scripts/gen_tables.py` writes `_includes/readiness.md`, `_includes/readiness-summary.md` and the README status region. New page `readiness.qmd`; new `tests/test_runs.py`
+- [x] Stale and contradictory readiness claims on the landing page, FAQ, setup, teach and notebooks pages, the facilitator guide and the pace sheet are replaced by the generated summary or corrected:
+  - the capstone notebook and the collector exist;
+  - the repository is public;
+  - the Lab 2 and Lab 14 measurements are corrected;
+  - the setup page links straight to the setup notebook in Colab.
+- [x] Entry-check threshold made consistent: two or more of the three questions in an area missed
+- [x] Dated status notes on briefs 09, 10, 11 and 15
+- [ ] TypeSafe's documentation read on 2026-10-06, and lecture 12, references, assessments and Lab 12 corrected: TypeSafe now names RLCD and publishes its confidence formulas. The quotations await Romeo's sign-off (the `typesafe-unverified` notice)
+
+### Phase 2 — Exercise harness and run records
+
+- [ ] Harness cell with `@workshop.solution(N)`, `workshop.checkpoint(N)` and `WORKED_EXAMPLE`; migration of all labs; `--record`, `--learner` and `--verify-checkpoints`; `tests/test_exercises.py`
+
+### Phase 3 — Five-day restructure
+
+- [ ] Clock profiles, Day 5, Module 8 moved to Day 3; generators, tests, pages and instructor documents
+
+### Phase 4 — Live teaching sequence, objectives and assessment
+
+- [ ] Live plans, objective verbs, Module 12 as calibrated decisions, `prepare.qmd`, retrieval and synthesis, Module 0 as pre-work
+
+### Phase 5 — Desktop UX and accessibility
+
+- [ ] Native disclosure for collapsed callouts, demo theming, journeys, navbar, browser checks
+
+### Phase 6 — Real-path runs, environment and release check
+
+- [ ] Committed lockfile, drift leg, release check, real-path runs on the build Mac, capstone infrastructure, snapshot rebuild
+
