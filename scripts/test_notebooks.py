@@ -1,22 +1,36 @@
 """Execute the notebooks top to bottom in a real kernel.
 
 Each notebook is run from a temporary directory, so nothing is written back to
-notebooks/. Exercise stubs are followed by their solution cells, so a full run
-exercises the solutions and every checkpoint. No API keys are needed: labs fall
-back to open models when none are set.
+notebooks/. By default the run is a worked example (NLP_LLMS_WORKED=1): every
+@workshop.solution(N) binds the reference solution, so a full run exercises the
+solutions and every checkpoint. No API keys are needed: labs fall back to open
+models when none are set.
 
 Run:  uv run --group execute python scripts/test_notebooks.py [slug ...]
 
-Options (used by .github/workflows/health.yml):
-  --save DIR     write each executed notebook, with its outputs, to DIR
-  --expect-hub   fail a notebook that ran but fell back from its open-model path
-                 (see FALLBACK_MARKERS), so a green run means the Hub path ran
+Options (used by .github/workflows/publish.yml and health.yml):
+  --save DIR             write each executed notebook, with its outputs, to DIR
+  --expect-hub           fail a notebook that ran but fell back from its open-model path
+                         (see FALLBACK_MARKERS), so a green run means the Hub path ran
+  --learner              run as a participant who has written nothing: the run must stop
+                         at a checkpoint with the harness's recovery message ("not written
+                         yet" or "failed on your code"), not in a provided cell
+  --verify-checkpoints   before each exercise's first checkpoint, run a copy of it on the
+                         unfinished stub; it must fail, or the checkpoint cannot tell a
+                         finished exercise from an unfinished one
+  --record DIR           write a run record batch (runs/README.md) to DIR; give the
+                         machine with --env (a key of readiness.envs in _variables.yml)
 """
 
 from __future__ import annotations
 
 import argparse
+import ast
+import datetime as dt
+import json
 import os
+import platform
+import shutil
 import sys
 import tempfile
 import time
@@ -28,6 +42,9 @@ from nbclient.exceptions import CellExecutionError, CellTimeoutError, DeadKernel
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import run_records  # noqa: E402
+
 # Per-cell limit. CI raises it: CPU training cells in Labs 2 and 7 run long.
 TIMEOUT_SECONDS = int(os.environ.get("NLP_LLMS_CELL_TIMEOUT", "900"))
 
@@ -41,22 +58,107 @@ FALLBACK_MARKERS = (
     "LSA stand-in fitted",  # Lab 13: TF-IDF + SVD instead of the dense encoder
     "OFFLINE TEST MODE",  # Labs 6, 7, 10: an offline test flag is set
 )
+# Environment variables that put a lab on its offline path (publish.yml's notebooks job).
+OFFLINE_FLAGS = (
+    "NLP_LLMS_OFFLINE_TINY",
+    "NLP_LLMS_STUB",
+    "NLP_LLMS_LAB07_OFFLINE",
+    "NLP_LLMS_LAB09_OFFLINE",
+    "NLP_LLMS_LAB10_OFFLINE",
+    "NLP_LLMS_LAB13_OFFLINE",
+    "NLP_LLMS_LAB14_OFFLINE",
+    "NLP_LLMS_LAB15_OFFLINE",
+)
+# What the harness prints when a checkpoint stops a participant who has not finished an
+# exercise: a pure stub raised NotImplementedError, or a partial stub gave a wrong answer.
+LEARNER_MESSAGES = ("is not written yet", "failed on your code")
 
 
-def fallbacks(nb: nbformat.NotebookNode) -> list[str]:
-    """The fallback markers found in the notebook's printed output."""
-    text = "".join(
+def printed(nb: nbformat.NotebookNode) -> str:
+    """Everything the notebook printed."""
+    return "".join(
         "".join(out.get("text", ""))
         for cell in nb.cells
         if cell.cell_type == "code"
         for out in cell.get("outputs", [])
         if out.get("output_type") == "stream"
     )
+
+
+def fallbacks(nb: nbformat.NotebookNode) -> list[str]:
+    """The fallback markers found in the notebook's printed output."""
+    text = printed(nb)
     return [marker.strip() for marker in FALLBACK_MARKERS if marker in text]
 
 
-def run(path: Path, save: Path | None) -> tuple[bool, float, str, list[str]]:
+def checkpoint_exercise(cell) -> object | None:
+    """N from a checkpoint cell's `workshop.checkpoint(N, ...)`, or None for a checkpoint
+    of provided code (`workshop.checkpoint(label=...)`)."""
+    for node in ast.walk(ast.parse(cell.source)):
+        if (
+            isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "checkpoint"
+            and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == "workshop"
+        ):
+            return (
+                node.args[0].value if node.args and isinstance(node.args[0], ast.Constant) else None
+            )
+    return None
+
+
+def with_verification(nb: nbformat.NotebookNode) -> int:
+    """Insert, before each exercise's first checkpoint, a copy of it run on the stub.
+    Returns how many checkpoints will be verified."""
+    cells, seen, count = [], set(), 0
+    for cell in nb.cells:
+        tags = cell.get("metadata", {}).get("tags", [])
+        n = checkpoint_exercise(cell) if cell.cell_type == "code" and "checkpoint" in tags else None
+        if n is not None and n not in seen and "no-verify" not in tags:
+            seen.add(n)
+            count += 1
+            copy = nbformat.v4.new_code_cell(cell.source)
+            copy.metadata["tags"] = ["raises-exception"]
+            cells += [
+                nbformat.v4.new_code_cell(f"workshop._verify_begin({n!r})"),
+                copy,
+                nbformat.v4.new_code_cell(f"workshop._verify_end({n!r})"),
+            ]
+        cells.append(cell)
+    nb.cells = cells
+    return count
+
+
+def cell_seconds(cell) -> float:
+    ex = cell.get("metadata", {}).get("execution", {})
+    start, end = ex.get("iopub.status.busy"), ex.get("shell.execute_reply")
+    if not start or not end:
+        return 0.0
+    parse = dt.datetime.fromisoformat
+    return max(
+        0.0,
+        (parse(end.replace("Z", "+00:00")) - parse(start.replace("Z", "+00:00"))).total_seconds(),
+    )
+
+
+def phases(nb: nbformat.NotebookNode) -> dict[str, float]:
+    """Seconds by the first matching cell tag: setup, exercise, solution, checkpoint,
+    generated; anything untagged (provided runs, training) is `other`."""
+    order = ("setup", "exercise", "solution", "checkpoint", "generated")
+    out: dict[str, float] = {}
+    for cell in nb.cells:
+        if cell.cell_type != "code":
+            continue
+        tags = cell.get("metadata", {}).get("tags", [])
+        key = next((t for t in order if t in tags), "other")
+        out[key] = round(out.get(key, 0.0) + cell_seconds(cell), 1)
+    return out
+
+
+def run(path: Path, save: Path | None, verify: bool) -> dict:
     nb = nbformat.read(path, as_version=4)
+    verified = with_verification(nb) if verify else 0
     started = time.monotonic()
     ok, error = True, ""
     with tempfile.TemporaryDirectory() as workdir:
@@ -65,6 +167,7 @@ def run(path: Path, save: Path | None) -> tuple[bool, float, str, list[str]]:
             timeout=TIMEOUT_SECONDS,
             kernel_name="python3",
             resources={"metadata": {"path": workdir}},
+            record_timing=True,
         )
         try:
             client.execute()
@@ -75,7 +178,80 @@ def run(path: Path, save: Path | None) -> tuple[bool, float, str, list[str]]:
     if save is not None:
         save.mkdir(parents=True, exist_ok=True)
         nbformat.write(nb, save / path.name)
-    return ok, time.monotonic() - started, error, fallbacks(nb)
+    return {
+        "ok": ok,
+        "seconds": time.monotonic() - started,
+        "error": error,
+        "fallbacks": fallbacks(nb),
+        "learner_message": any(
+            line.startswith("[workshop] Checkpoint") and any(m in line for m in LEARNER_MESSAGES)
+            for line in printed(nb).splitlines()
+        ),
+        "phases": phases(nb),
+        "verified": verified,
+    }
+
+
+def has_exercises(path: Path) -> bool:
+    nb = nbformat.read(path, as_version=4)
+    return any("exercise" in c.get("metadata", {}).get("tags", []) for c in nb.cells)
+
+
+def reads_offline_flags(path: Path) -> bool:
+    """Whether a notebook has an offline path at all. One that reads none of the flags
+    runs its real path even in an offline batch."""
+    text = path.read_text(encoding="utf-8")
+    return any(flag in text for flag in OFFLINE_FLAGS)
+
+
+def write_record(
+    directory: Path, env: str, results: list[tuple[Path, dict]], learner: bool
+) -> Path:
+    """One run record batch for this invocation (runs/README.md)."""
+    offline = any(os.environ.get(flag) for flag in OFFLINE_FLAGS)
+    keyed = any(
+        os.environ.get(k) for k in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY", "TYPESAFE_API_KEY")
+    )
+    today = dt.date.today().isoformat()
+    batch = {
+        "schema": run_records.SCHEMA,
+        "date": today,
+        "source": "test_notebooks",
+        "env": env,
+        "env_detail": f"{platform.platform()}, Python {platform.python_version()}",
+        "path": "offline" if offline else "keyed" if keyed else "open",
+        "mode": "learner" if learner else "worked",
+        "settings": {
+            k: v
+            for k, v in sorted(os.environ.items())
+            if k.startswith("NLP_LLMS_")
+            and k not in ("NLP_LLMS_DATA", "NLP_LLMS_WORKED")
+            or k in OFFLINE_FLAGS
+            or k == "HF_HUB_OFFLINE"
+        },
+        "evidence": "scripts/test_notebooks.py --record",
+        "runs": [
+            {
+                "notebook": path.stem,
+                "scope": "notebook",
+                "status": "pass" if r["ok"] and not (r["fallbacks"] and not offline) else "fail",
+                "seconds": round(r["seconds"], 1),
+                "content_sha": run_records.content_sha(path.stem),
+                "phases": r["phases"],
+                **({"note": "fell back: " + "; ".join(r["fallbacks"])} if r["fallbacks"] else {}),
+                **(
+                    {"path": "open", "note": "reads none of the offline flags: its only path"}
+                    if offline and not reads_offline_flags(path)
+                    else {}
+                ),
+            }
+            for path, r in results
+        ],
+    }
+    directory.mkdir(parents=True, exist_ok=True)
+    out = directory / f"{today}-{env}-{batch['path']}-{int(time.time())}.json"
+    out.write_text(json.dumps(batch, indent=2) + "\n", encoding="utf-8")
+    return out
 
 
 def main() -> int:
@@ -83,28 +259,63 @@ def main() -> int:
     parser.add_argument("slugs", nargs="*", help="notebook stems; default: all")
     parser.add_argument("--save", type=Path, help="write executed notebooks here")
     parser.add_argument("--expect-hub", action="store_true", help="fail on a fallback")
+    parser.add_argument("--learner", action="store_true", help="run with nothing written")
+    parser.add_argument("--verify-checkpoints", action="store_true")
+    parser.add_argument("--record", type=Path, help="write a run record batch here")
+    parser.add_argument("--env", help="the machine, a key of readiness.envs (with --record)")
     args = parser.parse_args()
+    if args.record and not args.env:
+        parser.error("--record needs --env")
 
     # Notebooks run in a temporary directory, so point the data loader
-    # (data/README.md) at the repository's copies instead of the network.
-    os.environ.setdefault("NLP_LLMS_DATA", str(ROOT / "data"))
+    # (data/README.md) at a copy of the repository's data instead of the network. A copy,
+    # because the loader caches what it downloads (Lab 7's Dolly file, on its real path)
+    # into that folder, and a run must never add files to data/.
+    scratch = tempfile.TemporaryDirectory()
+    if "NLP_LLMS_DATA" not in os.environ:
+        data = Path(scratch.name) / "data"
+        shutil.copytree(ROOT / "data", data)
+        os.environ["NLP_LLMS_DATA"] = str(data)
+    os.environ["NLP_LLMS_WORKED"] = "0" if args.learner else "1"
     wanted = set(args.slugs)
     paths = [p for p in sorted(NOTEBOOKS.glob("*.ipynb")) if not wanted or p.stem in wanted]
     missing = wanted - {p.stem for p in paths}
     if missing:
         print(f"No such notebook: {', '.join(sorted(missing))}")
         return 2
-    failures = 0
+    failures, results = 0, []
     for path in paths:
-        ok, seconds, error, found = run(path, args.save)
-        fell_back = ok and args.expect_hub and bool(found)
-        status = "FAIL" if not ok else "FALLBACK" if fell_back else "PASS"
-        note = f"  fell back: {'; '.join(found)}" if found and (fell_back or not ok) else ""
-        print(f"{status}  {path.name}  {seconds:.1f}s{note}", flush=True)
-        if not ok or fell_back:
+        r = run(path, args.save, args.verify_checkpoints)
+        results.append((path, r))
+        if args.learner and has_exercises(path):
+            # A participant who has written nothing must be stopped at a checkpoint, with the
+            # harness's recovery message, not by a provided cell that calls the stub first.
+            stopped = not r["ok"] and r["learner_message"]
+            status = "PASS" if stopped else "FAIL"
+            print(
+                f"{status}  {path.name}  learner run "
+                + ("stopped as expected" if stopped else "did not stop at an unwritten TODO"),
+                flush=True,
+            )
+            failures += not stopped
+            continue
+        fell_back = r["ok"] and args.expect_hub and bool(r["fallbacks"])
+        status = "FAIL" if not r["ok"] else "FALLBACK" if fell_back else "PASS"
+        note = (
+            f"  fell back: {'; '.join(r['fallbacks'])}"
+            if r["fallbacks"] and (fell_back or not r["ok"])
+            else ""
+        )
+        extra = (
+            f"  ({r['verified']} checkpoints verified on stubs)" if args.verify_checkpoints else ""
+        )
+        print(f"{status}  {path.name}  {r['seconds']:.1f}s{extra}{note}", flush=True)
+        if not r["ok"] or fell_back:
             failures += 1
-        if not ok:
-            print(error)
+        if not r["ok"]:
+            print(r["error"])
+    if args.record:
+        print(f"Run record: {write_record(args.record, args.env, results, args.learner)}")
     print(f"{len(paths) - failures} of {len(paths)} notebooks passed")
     return 1 if failures else 0
 

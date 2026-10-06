@@ -9,15 +9,17 @@ Start with the setup notebook, then follow the modules in order. Every notebook 
 {{< include /_includes/notebooks.md >}}
 
 ::: {.callout-important appearance="simple"}
-Notebooks are stored without outputs. Choose **Runtime → Run all** in Colab, or run the cells one at a time as you work through the exercises.
+Notebooks are stored without outputs. Work through the cells one at a time. **Runtime → Run all** stops at the first exercise you have not written, which is the point: to see a whole lab run, tick `WORKED_EXAMPLE` in the harness cell first.
 :::
 
 ## How the labs are laid out
 
 - **Setup cell.** Installs and imports. Run it first.
 - **Exercises.** Each has a `# TODO` cell for you to complete.
-- **Solutions.** Folded directly beneath each exercise. Try the exercise first, then open the solution to compare.
-- **Checkpoints.** A cell after each exercise that passes or fails, so you know where you stand.
+- **Harness.** The first code cell. Run it first; it keeps the solutions from replacing your code. Tick `WORKED_EXAMPLE` in it to run the whole lab as a worked example instead.
+- **Solutions.** Folded directly beneath each exercise. Try the exercise first, then open the solution to compare. Running a solution cell stores the reference; it does not overwrite your function.
+- **Checkpoints.** A cell after each exercise that passes or fails and says whose code it checked: yours or the reference. If you are stuck, `workshop.use_reference(N)` lets you go on with exercise N's reference solution.
+- **Summary.** The last code cell lists which checkpoints passed on your own code.
 - **Stretch.** An optional final section. Nothing later depends on it.
 
 API keys are optional. See [Setup](setup.qmd).

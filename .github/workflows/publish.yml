@@ -123,6 +123,36 @@ jobs:
           UV_LINK_MODE: copy
         run: uv run --group execute python scripts/test_notebooks.py
 
+      # The same notebooks, run as a participant who has written nothing: each lab must
+      # stop at a checkpoint with the harness's recovery message, never pass on the
+      # reference solutions, and never fail first in a provided cell.
+      - name: Learner smoke test
+        env:
+          MPLBACKEND: Agg
+          # Shortens the from-scratch training runs (Labs 3, 4 and 5) on this CPU runner.
+          NLP_LLMS_QUICK: "1"
+          NLP_LLMS_CELL_TIMEOUT: "1800"
+          OMP_NUM_THREADS: "4"
+          # Fail fast if any lab reaches for the Hub that its flag below should have stopped.
+          HF_HUB_OFFLINE: "1"
+          # Lab 6: tiny random encoder and causal LM instead of the Hub checkpoints.
+          NLP_LLMS_OFFLINE_TINY: "1"
+          # Lab 7: random stand-in for SmolLM2 and synthetic data instead of Dolly.
+          NLP_LLMS_LAB07_OFFLINE: tiny
+          # Labs 8 and 11 (and 13, 14): Lab 8's StubProvider instead of the open chat model.
+          NLP_LLMS_STUB: "1"
+          # Until Lab 9's GPT-2 data files are built and committed (PLAN.md, Day 7),
+          # Labs 9 and 10 run on their labeled offline stand-ins in CI.
+          NLP_LLMS_LAB09_OFFLINE: tiny
+          NLP_LLMS_LAB10_OFFLINE: tiny
+          # Lab 13: BM25 plus labeled stand-ins until its human question set exists.
+          NLP_LLMS_LAB13_OFFLINE: "1"
+          NLP_LLMS_LAB14_OFFLINE: "1"
+          # Lab 15 (capstone): stub path on plumbing probes until its question set exists.
+          NLP_LLMS_LAB15_OFFLINE: "1"
+          UV_LINK_MODE: copy
+        run: uv run --group execute python scripts/test_notebooks.py --learner
+
   deploy:
     needs: render
     # Needs Pages set to deploy from GitHub Actions (Settings > Pages > Source).

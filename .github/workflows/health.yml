@@ -6,7 +6,9 @@ name: Notebook health
 #
 # Legs:
 #   offline  The same hermetic run as publish.yml's notebooks job: every lab on its
-#            offline test path. This leg decides the workflow's status.
+#            offline test path, as a worked example. This leg decides the workflow's status.
+#   verify   The offline path again, with every exercise's first checkpoint also run on
+#            the unfinished stub, where it must fail (--verify-checkpoints). Blocking.
 #   hub      The open-model paths of the labs that have one, with no API keys and
 #            with Hugging Face Hub access. A lab that falls back to its stand-in
 #            counts as a failure here (scripts/test_notebooks.py --expect-hub).
@@ -50,7 +52,7 @@ jobs:
     name: notebooks (${{ matrix.leg }})
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout }}
-    continue-on-error: ${{ matrix.leg != 'offline' }}
+    continue-on-error: ${{ matrix.leg == 'hub' }}
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +61,7 @@ jobs:
           - leg: offline
             timeout: 150
             notebooks: "" # every notebook
-            expect_hub: ""
+            args: ""
             hf_hub_offline: "1"
             offline_tiny: "1" # Lab 6
             lab07: tiny
@@ -69,6 +71,21 @@ jobs:
             lab13: "1"
             lab14: "1"
             lab15: "1" # capstone stub path (plumbing probes)
+          # Every exercise's first checkpoint must fail on its unfinished stub and pass on
+          # the reference (scripts/test_notebooks.py --verify-checkpoints). Blocking.
+          - leg: verify
+            timeout: 150
+            notebooks: ""
+            args: --verify-checkpoints
+            hf_hub_offline: "1"
+            offline_tiny: "1"
+            lab07: tiny
+            stub: "1"
+            lab09: tiny
+            lab10: tiny
+            lab13: "1"
+            lab14: "1"
+            lab15: "1"
           # Labs 9 and 10 join this list (and lose their flags) once Lab 9's GPT-2 data
           # files are committed (PLAN.md, Day 7); Lab 15 once its open-model path exists.
           - leg: hub
@@ -76,7 +93,7 @@ jobs:
             notebooks: >-
               06-pretraining-huggingface 07-finetuning-lora 08-llm-apis
               11-calibration 13-rag 14-agents
-            expect_hub: --expect-hub
+            args: --expect-hub
             hf_hub_offline: ""
             offline_tiny: ""
             lab07: ""
@@ -118,7 +135,7 @@ jobs:
         shell: bash
         env:
           WANTED: ${{ inputs.notebooks || matrix.notebooks }}
-          EXPECT_HUB: ${{ matrix.expect_hub }}
+          ARGS: ${{ matrix.args }}
           HF_HUB_OFFLINE: ${{ matrix.hf_hub_offline }}
           NLP_LLMS_OFFLINE_TINY: ${{ matrix.offline_tiny }}
           NLP_LLMS_LAB07_OFFLINE: ${{ matrix.lab07 }}
@@ -130,7 +147,7 @@ jobs:
           NLP_LLMS_LAB15_OFFLINE: ${{ matrix.lab15 }}
         run: |
           read -ra slugs <<< "$WANTED"
-          read -ra flags <<< "$EXPECT_HUB"
+          read -ra flags <<< "$ARGS"
           uv run --group execute python scripts/test_notebooks.py \
             --save executed "${flags[@]}" "${slugs[@]}" | tee results.txt
 

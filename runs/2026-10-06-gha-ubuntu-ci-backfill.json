@@ -10,13 +10,13 @@
     "NLP_LLMS_QUICK": "1",
     "HF_HUB_OFFLINE": "1",
     "NLP_LLMS_OFFLINE_TINY": "1",
-    "LAB07_OFFLINE": "tiny",
+    "NLP_LLMS_LAB07_OFFLINE": "tiny",
     "NLP_LLMS_STUB": "1",
-    "LAB09_OFFLINE": "tiny",
-    "LAB10_OFFLINE": "tiny",
-    "LAB13_OFFLINE": "1",
-    "LAB14_OFFLINE": "1",
-    "LAB15_OFFLINE": "1"
+    "NLP_LLMS_LAB09_OFFLINE": "tiny",
+    "NLP_LLMS_LAB10_OFFLINE": "tiny",
+    "NLP_LLMS_LAB13_OFFLINE": "1",
+    "NLP_LLMS_LAB14_OFFLINE": "1",
+    "NLP_LLMS_LAB15_OFFLINE": "1"
   },
   "commit": "d462d65",
   "evidence": "GitHub Actions run 37463984863 (Publish on main), job notebooks, scripts/test_notebooks.py output",
@@ -52,19 +52,34 @@
       "notebook": "03-sequence-models",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 79.0
+      "seconds": 79.0,
+      "path": "open",
+      "settings": {
+        "NLP_LLMS_QUICK": "1"
+      },
+      "note": "reads none of the offline flags: QUICK shortens the training of the same model, so CI ran its real path"
     },
     {
       "notebook": "04-seq2seq-attention",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 96.4
+      "seconds": 96.4,
+      "path": "open",
+      "settings": {
+        "NLP_LLMS_QUICK": "1"
+      },
+      "note": "reads none of the offline flags: QUICK shortens the training of the same model, so CI ran its real path"
     },
     {
       "notebook": "05-transformer-from-scratch",
       "scope": "notebook",
       "status": "pass",
-      "seconds": 209.1
+      "seconds": 209.1,
+      "path": "open",
+      "settings": {
+        "NLP_LLMS_QUICK": "1"
+      },
+      "note": "reads none of the offline flags: QUICK shortens the training of the same model, so CI ran its real path"
     },
     {
       "notebook": "06-pretraining-huggingface",

@@ -6,6 +6,7 @@ All notable changes to this workshop are recorded here.
 
 ### Added
 
+- Exercise harness: every notebook gets a generated harness cell and a summary cell. A folded solution now stores the reference and binds it only in worked mode (`WORKED_EXAMPLE`, or `NLP_LLMS_WORKED=1` in CI). Every checkpoint says whether it checked the participant's code or the reference. A stuck participant can call `workshop.use_reference(N)`. The last cell prints which checkpoints passed on whose code, and a run record. `scripts/test_notebooks.py` gains `--learner`, `--verify-checkpoints` and `--record`; `scripts/add_run_record.py` and `tests/test_exercises.py` are new.
 - Readiness from evidence: a `readiness` block and per-module readiness fields in `_variables.yml`, run records in `runs/` (schema, validator, records backfilled from CI and the briefs), `scripts/readiness.py`, and a generated [readiness page](readiness.qmd) with a one-paragraph status on the landing, FAQ, teach and facilitator pages and in the README. The status says plainly that no lab has yet run on Colab.
 
 - Master plan (`PLAN.md`) for a four-day, 15-module workshop, and agent guidance with four build personas (`AGENTS.md`).
@@ -21,6 +22,7 @@ All notable changes to this workshop are recorded here.
 
 ### Changed
 
+- "Run all" no longer replaces participants' functions with the solutions. Unless `WORKED_EXAMPLE` is ticked, Run all stops at the first unwritten exercise, with a message saying how to go on.
 - Readiness claims reconciled with the evidence. The landing page no longer says the workshop is being written. The FAQ and setup page no longer promise T4 run times. The facilitator guide, pace sheet and assessments no longer say the capstone notebook or its collector do not exist. The setup page links straight to the setup notebook in Colab. The entry check's review threshold is now the same in both places (two or more of three in an area).
 
 - Lecture 14 timing: a desk timing (words per budgeted minute, against the other lectures) found the page needed about 75 minutes after the harness pass. The ARC-AGI worked example, tool-design habits, resume or start fresh, the stopping rule, escalation triggers and the hand-off, and the detail on subagents and context are now collapsed optional callouts with short in-budget summaries; sections 5 and 9 are 5 minutes each. The pace sheet follows. Module 14 keeps three objectives.

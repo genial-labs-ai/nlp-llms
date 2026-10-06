@@ -400,11 +400,15 @@ def readiness_status(report: dict) -> str:
         f"{s['teaching']} of {s['labs']} labs have run end to end, with their current code,"
         " on the Colab runtime they are designed for.",
         f"{s['real']} have run end to end on their real path elsewhere, on another machine"
-        f" or on the CI runner, and {s['real_partial_only']} more in part.",
+        " or on the CI runner"
+        + (f" ({s['real_quick']} of them only with QUICK settings)" if s["real_quick"] else "")
+        + f", and {s['real_partial_only']} more in part.",
     ]
     if s["ci_to"]:
         span = s["ci_to"] if s["ci_from"] == s["ci_to"] else f"{s['ci_from']} to {s['ci_to']}"
         failed = f", {s['ci_failed']} failed" if s["ci_failed"] else ""
+        if s["ci_stale"]:
+            failed += f", {s['ci_stale']} last ran before their code changed"
         parts.append(
             f"On the GitHub CPU runner (newest run of each notebook, {span}),"
             f" {s['ci_passed']} of {s['notebooks']} notebooks passed{failed};"

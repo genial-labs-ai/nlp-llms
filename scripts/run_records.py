@@ -7,10 +7,15 @@ batch's file name.
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import harness  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
@@ -67,12 +72,22 @@ SECRET = re.compile(
 )
 
 
-def content_sha(slug: str) -> str:
-    """A short hash of a notebook's code cells: a run record made against other code than
-    the committed notebook's is stale. (The generated header and footer are markdown.)"""
-    nb = json.loads((NOTEBOOKS / f"{slug}.ipynb").read_text(encoding="utf-8"))
-    code = ["".join(cell["source"]) for cell in nb["cells"] if cell["cell_type"] == "code"]
+def sha_of_cells(cells: list) -> str:
+    """A short hash of the lab's own code cells (the generated harness and summary cells
+    are skipped, since the harness carries this hash)."""
+    code = [
+        "".join(cell["source"]) if isinstance(cell["source"], list) else cell["source"]
+        for cell in cells
+        if cell["cell_type"] == "code" and cell.get("id") not in harness.GENERATED_CODE_IDS
+    ]
     return hashlib.sha256("\n\x1e\n".join(code).encode("utf-8")).hexdigest()[:16]
+
+
+def content_sha(slug: str) -> str:
+    """The hash of a notebook's own code: a run record made against other code than the
+    committed notebook's is stale."""
+    nb = json.loads((NOTEBOOKS / f"{slug}.ipynb").read_text(encoding="utf-8"))
+    return sha_of_cells(nb["cells"])
 
 
 def records_of(batch: dict, name: str) -> list[dict]:
@@ -133,12 +148,20 @@ def check_batch(name: str, text: str, envs: set[str], notebooks: set[str]):
         for field, allowed in checks:
             if field in r and r[field] not in allowed:
                 errors.append(f"{where}: {field} {r[field]!r} not in {allowed}")
-        if r.get("env") not in envs:
+        if not isinstance(r.get("env"), str) or r["env"] not in envs:
             errors.append(f"{where}: env {r.get('env')!r} is not a key of readiness.envs")
-        if r.get("notebook") not in notebooks:
+        if not isinstance(r.get("notebook"), str) or r["notebook"] not in notebooks:
             errors.append(f"{where}: no notebook named {r.get('notebook')!r}")
         if not DATE.match(str(r.get("date", ""))):
             errors.append(f"{where}: date must be YYYY-MM-DD")
+        else:
+            try:
+                day = dt.date.fromisoformat(r["date"])
+            except ValueError:
+                errors.append(f"{where}: {r['date']} is not a real date")
+            else:
+                if day > dt.date.today() + dt.timedelta(days=1):
+                    errors.append(f"{where}: {r['date']} is in the future")
         seconds = r.get("seconds")
         is_number = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
         if seconds is not None and not (is_number and seconds >= 0):

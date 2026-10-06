@@ -3,10 +3,12 @@
 For each NN-slug.ipynb that matches an entry in _variables.yml this script:
   - owns the first cell (title, Colab badge, timing, objectives) and the last
     cell (next notebook, site link, license), and rewrites both;
+  - owns two code cells from scripts/harness.py: the exercise harness right after the
+    header, and the checkpoint summary and run record right before the footer;
   - strips outputs and execution counts;
   - gives every cell a stable id and sets the notebook-level metadata.
 
-Everything between the first and last cell is the author's and is left alone.
+Everything else is the author's and is left alone.
 Running it twice changes nothing.
 
 Run:  uv run --group site python scripts/gen_notebooks.py
@@ -14,10 +16,15 @@ Run:  uv run --group site python scripts/gen_notebooks.py
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import nbformat
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import harness  # noqa: E402
+import run_records  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
@@ -89,8 +96,18 @@ def generated_cell(cell_id: str, source: str):
     return cell
 
 
+def generated_code_cell(cell_id: str, source: str, form: bool = False):
+    cell = nbformat.v4.new_code_cell(source)
+    cell["id"] = cell_id
+    cell["metadata"] = {"tags": ["generated"]}
+    if form:
+        cell["metadata"]["cellView"] = "form"
+    return cell
+
+
 def normalize(nb, v: dict, e: dict, nxt: dict | None):
-    body = [c for c in nb.cells if c.get("id") not in (HEADER_ID, FOOTER_ID)]
+    owned = (HEADER_ID, FOOTER_ID, *harness.GENERATED_CODE_IDS)
+    body = [c for c in nb.cells if c.get("id") not in owned]
     used = set()
     for i, cell in enumerate(body):
         if not cell.get("id") or cell["id"] in used:
@@ -99,9 +116,13 @@ def normalize(nb, v: dict, e: dict, nxt: dict | None):
         if cell.cell_type == "code":
             cell["outputs"] = []
             cell["execution_count"] = None
+    sha = run_records.sha_of_cells(body)
+    harness_cell = harness.harness_source(e["slug"], sha, harness.exercises_of(body))
     nb.cells = [
         generated_cell(HEADER_ID, header_source(v, e)),
+        generated_code_cell(harness.HARNESS_ID, harness_cell, form=True),
         *body,
+        generated_code_cell(harness.SUMMARY_ID, harness.SUMMARY),
         generated_cell(FOOTER_ID, footer_source(v, e, nxt)),
     ]
     nb.metadata = nbformat.NotebookNode(
