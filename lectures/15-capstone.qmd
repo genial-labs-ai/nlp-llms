@@ -20,12 +20,13 @@ The capstone takes Day 5 from 11:30 to the end of the day: the two module slots 
 | 13:25–14:30 | **Part II. Build**, continued | 65 |
 | 14:30–14:45 | Break | |
 | 14:45–16:30 | **Part III. Evaluate and share** (section 6) | 105 |
-| 16:30–17:00 | **Part IV. Wrap-up** (sections 7–10), ending in the day's closing slot | 30 |
-| | **Total** | **255** |
+| 16:30–16:45 | **Part IV. Wrap-up** (sections 7–10) | 15 |
+| | **Total in the capstone's slots** | **240** |
+| 16:45–17:00 | **Part IV, continued**, in the day's closing slot | 15 |
 
 The brief covers sections 1 to 4 in 10 minutes, so it is a talk through the tables, not a derivation. Every equation it uses comes from an earlier module. The wrap-up spends about 10 minutes on section 7, 8 on section 8, 7 on section 9 and 5 on section 10. Collapsed callouts are optional reading.
 
-Check-yourself questions and interactive demos are for self-study and sit outside the 255 minutes; an instructor may use one as a pause.
+Check-yourself questions and interactive demos are for self-study and sit outside these minutes; an instructor may use one as a pause.
 
 ::: {.callout-warning appearance="simple"}
 **Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe states in its documentation that Jev "is trained with RLCD to return calibrated decisions" and that its System One models "are trained for calibrated decisions"; it has not published the method or a measurement of Jev's calibration (Module 12, section 2). Section 7 keeps those statements apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.

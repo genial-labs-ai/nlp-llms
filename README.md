@@ -50,7 +50,7 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 | 4 | Calibration, decisions and retrieval | 11–13 |
 | 5 | Agents and the capstone | 14–15 |
 
-On Day 1, each module is 95 minutes: 45 minutes of lecture, then 50 of lab. On Days 2 to 5, each module is 120 minutes: 55 minutes of lecture, 55 of lab, then a 10-minute debrief. On those days the second module breaks for lunch between its lecture and its lab. The capstone (Module 15) fills two module slots on Day 5. The [schedule](https://project-delphi.github.io/nlp-llms/schedule.html) has the times.
+On Day 1, each module is 95 minutes: 45 minutes of lecture, then 50 of lab. On Days 2 to 5, each module is 120 minutes: 55 minutes of lecture, 55 of lab, then a 10-minute debrief. On Days 2 to 4 the second module breaks for lunch between its lecture and its lab. On Day 5, the capstone build runs on across lunch. The capstone (Module 15) has no lecture: it takes 11:30–12:25, 13:25–14:30 and 14:45–16:45 on Day 5. The [schedule](https://project-delphi.github.io/nlp-llms/schedule.html) has the times.
 <!-- END days -->
 
 ## Run it locally

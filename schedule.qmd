@@ -9,7 +9,7 @@ body-classes: wide
 
 {{< include /_includes/module-shape.md >}}
 
-Day 1 keeps the shorter modules because its lectures are the lightest. From Day 2, each lecture has room for its predictions, checks and demo, and each lab ends with a debrief: what the room found, and where results differed. On Days 2 to 5 the middle module's lecture comes before lunch and its lab after. Those days open with retrieval practice, a few exit-check questions from earlier days, and close with a synthesis: the day's results go into a running table, and the room names the limitation that is left.
+Day 1 keeps the shorter modules because its lectures are the lightest. From Day 2, each lecture has room for its predictions, checks and demo, and each lab ends with a debrief: what the room found, and where results differed. Those days open with retrieval practice, a few exit-check questions from earlier days, and close with a synthesis: the day's results go into a running table, and the room names the limitation that is left.
 
 [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is optional pre-work, done on your own laptop before Day 1. There is no talk and no notebook. If you get stuck, the room opens at 08:00 on Day 1 for an optional drop-in clinic. The workshop proper starts at 09:00.
 
