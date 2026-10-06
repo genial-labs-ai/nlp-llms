@@ -326,14 +326,15 @@ The notebook heads Setup "(4 minutes)" and Exercise 0 "(4 minutes)"; the brief c
 
 | Minutes | Segment | By the end |
 |---|---|---|
-| 0–4 | Lecture 1. What the Module 8 loop cannot do | |
-| 4–9 | 2. ReAct: reasoning and acting in one loop | |
-| 9–13 | 3. LangChain tools and runnables | |
+| 0–5 | Lecture 1. What the Module 8 loop cannot do: the harness | |
+| 5–9 | 2. ReAct: reasoning and acting in one loop | |
+| 9–13 | 3. Tools: LangChain tools, runnables and tool design | |
 | 13–21 | 4. LangGraph: state, nodes, edges, conditional routing | |
-| 21–28 | 5. Checkpoints, memory, interrupts and replay | |
-| 28–35 | 6. Where agents fail | |
-| 35–42 | 7. A decision model in the control loop | |
-| 42–45 | 8. Measuring an agent | |
+| 21–26 | 5. Checkpoints, memory, interrupts and replay | |
+| 26–32 | 6. Where agents fail | |
+| 32–37 | 7. A decision model in the control loop | |
+| 37–40 | 8. Measuring an agent | |
+| 40–45 | 9. Designing the harness: patterns, subagents and context | |
 | 45–48 | Lab: setup and Exercise 0 (read the graph) | |
 | 48–54 | Exercise 1 (a safe calculator) | CP1 |
 | 54–66 | Exercise 2 (thresholds as edges) | CP2 |
@@ -342,7 +343,7 @@ The notebook heads Setup "(4 minutes)" and Exercise 0 "(4 minutes)"; the brief c
 | 81–91 | Exercise 5 (measure the agent) | CP5 |
 | 91–95 | What this lab showed and what it did not | |
 
-The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief counts them as one block, as here. **Behind at minute 74:** on a CPU runtime, cut the probability-shift test to 30 items (slice the list in the evaluation-run cell).
+The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief counts them as one block, as here. Lecture 14 is the densest lecture in the workshop, and its timings are checked on paper only. **Lecture behind at minute 32:** cut section 9 to its table of patterns; section 1's ARC-AGI paragraph can go too. **Behind at minute 74:** on a CPU runtime, cut the probability-shift test to 30 items (slice the list in the evaluation-run cell).
 
 ### Module 15 · {{< var modules.m15.title >}}
 
