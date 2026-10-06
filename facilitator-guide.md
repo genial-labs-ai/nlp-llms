@@ -329,7 +329,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - The guard's probability is `noul` itself, not `max(noul, 1 - noul)`; Lab 12's `chosen_answer` is right for the router and wrong for the guard.
   - Exercise 3: the decider call must not live in the node that pauses, because LangGraph reruns that node from its first line on resume.
   - Exercise 4: replay must not send an email twice; `send_email` is idempotent by design.
-- **If the clock slips:** drop the stretch (a verification node). On a CPU runtime the brief's first cut is the probability-shift test, to 30 items; there is no switch for it, so slice the list in the evaluation-run cell and say so when reporting.
+- **If the clock slips:** drop the stretch (parts A to D). On a CPU runtime the brief's first cut is the probability-shift test, to 30 items; there is no switch for it, so slice the list in the evaluation-run cell and say so when reporting.
 - **Cost (estimate):** Jev under 5 cents; the agent model under 30 cents on Anthropic, under 5 cents on OpenAI.
 - **Not verified:** keyed Jev, keyed LLM and Qwen paths have not run; whether the 0.5B guard carries any signal; the pins were resolved for Python 3.12 with `uv`, not installed with `pip` on Colab.
 
