@@ -1,8 +1,9 @@
 name: Notebook health
 
-# Runs the notebooks against freshly resolved dependencies once a week, so drift
-# (a new transformers, langgraph or SDK release; a moved Hub checkpoint) shows up
-# even when nothing in the repository changed. publish.yml runs only on push.
+# Runs the notebooks once a week, so drift (a new transformers, langgraph or SDK
+# release; a moved Hub checkpoint) shows up even when nothing in the repository
+# changed. publish.yml runs only on push. Every leg runs on uv.lock (`--locked`),
+# the dated environment, except drift, which upgrades the lock first.
 #
 # Legs:
 #   offline  The same hermetic run as publish.yml's notebooks job: every lab on its
@@ -14,6 +15,9 @@ name: Notebook health
 #            counts as a failure here (scripts/test_notebooks.py --expect-hub).
 #            Non-blocking (continue-on-error) until these paths have passed once:
 #            then set continue-on-error to false for this leg.
+#   drift    The offline leg after `uv lock --upgrade`: the newest versions that
+#            pyproject.toml allows. Non-blocking: a failure here says to fix the labs
+#            or pin a floor before the next `uv lock --upgrade` is committed.
 #   keyed    Manual only (workflow_dispatch with "keyed" ticked): the API labs with
 #            the repository's OPENAI_API_KEY, ANTHROPIC_API_KEY and TYPESAFE_API_KEY
 #            secrets. Costs money. A lab whose key is absent runs its no-key path.
@@ -73,6 +77,20 @@ jobs:
             lab13: "1"
             lab14: "1"
             lab15: "1" # capstone stub path (plumbing probes)
+          # The offline leg on the newest allowed versions (uv lock --upgrade).
+          - leg: drift
+            timeout: 180
+            notebooks: ""
+            args: ""
+            hf_hub_offline: "1"
+            offline_tiny: "1"
+            lab07: tiny
+            stub: "1"
+            lab09: tiny
+            lab10: tiny
+            lab13: "1"
+            lab14: "1"
+            lab15: "1"
           # Labs 9 and 10 join this list (and lose their flags) once Lab 9's GPT-2 data
           # files are committed (PLAN.md, Day 7); Lab 15 once its open-model path exists.
           - leg: hub
@@ -97,9 +115,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      # No uv cache: there is no lockfile, so every run resolves the newest versions
-      # allowed by pyproject.toml (the drift this workflow looks for), and setup-uv's
-      # CI pruning would drop the downloaded wheels that make up most of the cache.
+      # No uv cache: setup-uv's CI pruning would drop the downloaded wheels that make
+      # up most of it.
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           enable-cache: false
@@ -114,9 +131,21 @@ jobs:
           key: hf-${{ runner.os }}-${{ github.run_id }}
           restore-keys: hf-${{ runner.os }}-
 
+      - name: Upgrade the lockfile to the newest allowed versions
+        if: matrix.leg == 'drift'
+        run: |
+          uv lock --upgrade
+          git diff --stat -- uv.lock
+          {
+            echo "### Upgraded since uv.lock"
+            echo '```'
+            git diff -U0 -- uv.lock | grep -E '^[-+](name|version) = ' | head -200 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Unit tests with the lab dependencies
-        if: matrix.leg == 'offline'
-        run: uv run --group execute --group test python -m unittest discover -s tests
+        if: matrix.leg != 'hub'
+        run: uv run --locked --group execute --group test python -m unittest discover -s tests
 
       - name: Execute notebooks
         shell: bash
@@ -135,7 +164,7 @@ jobs:
         run: |
           read -ra slugs <<< "$WANTED"
           read -ra flags <<< "$ARGS"
-          uv run --group execute python scripts/test_notebooks.py \
+          uv run --locked --group execute python scripts/test_notebooks.py \
             --save executed "${flags[@]}" "${slugs[@]}" | tee results.txt
 
       - name: Summary
@@ -198,7 +227,7 @@ jobs:
           NLP_LLMS_LAB10_OFFLINE: tiny
         run: |
           read -ra slugs <<< "$WANTED"
-          uv run --group execute python scripts/test_notebooks.py "${slugs[@]}" | tee results.txt
+          uv run --locked --group execute python scripts/test_notebooks.py "${slugs[@]}" | tee results.txt
 
       - name: Summary
         if: always()

@@ -6,8 +6,10 @@ requires-python = ">=3.12"
 dependencies = []
 
 # Not a package: the groups below are environments for different jobs.
-# Versions are floors, not pins, and there is no lockfile, so local runs track
-# what Colab ships. Each notebook pins what it installs itself.
+# Versions here are floors. uv.lock pins the exact versions that local runs and CI
+# use (`uv run --locked`), the dated environment of a delivery; health.yml's drift
+# leg tries the newest allowed versions each week. Colab does not read uv.lock: each
+# notebook pins what it installs itself, and a delivery picks a dated Colab runtime.
 [tool.uv]
 package = false
 

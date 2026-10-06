@@ -1,0 +1,71 @@
+name: Release
+
+# A GitHub Release says "ready to teach" for one commit. It is created only when
+# scripts/release_check.py finds no blockers: every lab has a passing run of its
+# current code on its module's teaching runtime within readiness.max_run_age_days,
+# and every readiness item is closed. The site deploys from main regardless
+# (publish.yml); this gates the Release, not the deploy.
+#
+# Push a tag such as v2026.11 to release that commit, or run this workflow by hand
+# to see the blockers without releasing (dry_run, the default for a manual run).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list the blockers; do not create a Release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      # shell: bash adds pipefail, so tee does not hide the check's exit status.
+      - name: Release check
+        shell: bash
+        run: uv run --locked --group site python scripts/release_check.py | tee release-check.txt
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-check
+          path: release-check.txt
+
+  release:
+    needs: check
+    if: github.event_name == 'push' || !inputs.dry_run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: release-check
+
+      - name: Create the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            echo "A Release needs a tag: push one (for example v2026.11) instead."
+            exit 1
+          fi
+          gh release create "$TAG" --title "$TAG: ready to teach" --notes-file release-check.txt --verify-tag

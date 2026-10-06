@@ -2,7 +2,7 @@
 
 Reads the readiness fields in _variables.yml (readiness: and modules.mNN.readiness) and
 the run records in runs/. Used by scripts/gen_tables.py to write the readiness tables
-(and, once it exists, by the release check, which also applies readiness.max_run_age_days).
+and by scripts/release_check.py, which also applies readiness.max_run_age_days.
 Nothing here reads the clock: the output depends only on the
 repository, so the generated pages do not drift from one day to the next.
 """
@@ -32,7 +32,8 @@ def item_closed(v: dict, item: dict) -> tuple[bool, str]:
         paths = check["exists"] if isinstance(check["exists"], list) else [check["exists"]]
         missing = [p for p in paths if not (ROOT / p).exists()]
         if missing:
-            return False, ", ".join(f"`{p}`" for p in missing) + " does not exist"
+            verb = " does not exist" if len(missing) == 1 else " do not exist"
+            return False, ", ".join(f"`{p}`" for p in missing) + verb
         return True, ", ".join(f"`{p}`" for p in paths) + " exists"
     if "var" in check:
         try:

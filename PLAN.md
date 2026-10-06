@@ -585,5 +585,9 @@ Romeo approved a revision from four to five days after a review brief and a crit
 
 ### Phase 6 — Real-path runs, environment and release check
 
-- [ ] Committed lockfile, drift leg, release check, real-path runs on the build Mac, capstone infrastructure, snapshot rebuild
+- [x] Committed lockfile: `uv.lock` (204 packages) is tracked; CI's notebook runs and every `health.yml` leg use `uv run --locked`, and the render job fails if the lock no longer matches `pyproject.toml` (`uv lock --check`). Colab does not read it: notebooks keep their own pins, and a delivery picks a dated Colab runtime
+- [x] Drift leg: `health.yml` leg `drift` runs the offline leg after `uv lock --upgrade` and lists what moved in the job summary; non-blocking
+- [x] Release check: `scripts/release_check.py [--as-of DATE]` lists every blocker (no passing teaching run of the current code on the module's runtime within `max_run_age_days`, or an open readiness item) and exits 1 if any; `tests/test_release_check.py`. `.github/workflows/release.yml` runs it on a `v*` tag and creates the GitHub Release only if it passes; a manual run is a dry run by default. As of 2026-10-06 it lists 26 blockers: no lab has a teaching run on its Colab runtime, and 11 items are open
+- [ ] Real-path runs on the build Mac (labeled `mac-m1pro`, never T4), Lab 9 data and Lab 10 reward model, Lab 6 logits
+- [ ] Capstone infrastructure, snapshot rebuild
 

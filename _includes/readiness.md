@@ -30,7 +30,7 @@
 - **Open:** The lecture snapshot that Labs 13 to 15 quote is frozen (status final) (modules 13, 14, 15; `datasets.lectures.status` is `provisional`)
 - **Open:** The decision set's 80 hand-written items, written and labeled by two people (modules 11, 12, 14; `hand_items` is 0 of 80)
 - **Open:** The audit of 60 template items in the decision set, by two people (modules 11, 12, 14; not done)
-- **Open:** Lab 9's preference data files, built on a machine with Hub access (modules 9, 10; `data/lab09_prompts.json`, `data/lab09_preferences.jsonl.gz` does not exist)
+- **Open:** Lab 9's preference data files, built on a machine with Hub access (modules 9, 10; `data/lab09_prompts.json`, `data/lab09_preferences.jsonl.gz` do not exist)
 - **Open:** The reward model checkpoint that Lab 10 starts from (module 10; `data/lab09_reward_model.pt` does not exist)
 - **Open:** Lab 6's test-set logits, which Lab 11 calibrates (module 11; `data/lab06_logits.npz` does not exist)
 - **Open:** TypeSafe's own statements about Jev and RLCD, read from its documentation and signed off for lecture 12 (module 12; `lectures/12-rlcd-jev.qmd` still has its marker)
