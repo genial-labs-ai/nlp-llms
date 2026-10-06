@@ -10,7 +10,7 @@ A five-day workshop by Genial Labs on the path from traditional NLP to modern LL
 **Workshop site: <https://project-delphi.github.io/nlp-llms/>** · [Schedule](https://project-delphi.github.io/nlp-llms/schedule.html) · [Notebooks](https://project-delphi.github.io/nlp-llms/notebooks.html) · [References](https://project-delphi.github.io/nlp-llms/references.html)
 
 <!-- BEGIN status -->
-> **As of 2026-10-06: not yet ready to teach.** 0 of 15 labs have run end to end, with their current code, on the Colab runtime they are designed for. 6 have run end to end on their real path elsewhere, on another machine or on the CI runner, and 1 more in part. On the GitHub CPU runner (newest run of each notebook, 2026-10-06), 16 of 16 notebooks passed; 12 of the passing runs used test doubles, which check that the code runs, not what the models do. 11 of 11 pieces of blocking work are open. See the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html).
+> **As of 2026-10-06: not yet ready to teach.** 0 of 15 labs have run end to end, with their current code, on the Colab runtime they are designed for. 7 have run end to end on their real path elsewhere, on another machine or on the CI runner (3 of them only with QUICK settings), and 0 more in part. On the GitHub CPU runner (newest run of each notebook, 2026-10-06), 16 of 16 notebooks passed; 9 of the passing runs used test doubles, which check that the code runs, not what the models do. 11 of 11 pieces of blocking work are open. See the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html).
 <!-- END status -->
 
 ## Who it is for
@@ -50,7 +50,7 @@ Machine learning practitioners who are comfortable with Python, NumPy and basic 
 | 4 | Calibration, decisions and retrieval | 11–13 |
 | 5 | Agents and the capstone | 14–15 |
 
-On Day 1, each module is 95 minutes: 45 minutes of lecture, then 50 of lab. On Days 2 to 5, each module is 120 minutes: 55 minutes of lecture, 55 of lab, then a 10-minute debrief. On those days the second module breaks for lunch between its lecture and its lab. The capstone (Module 15) fills two module slots on Day 5. The [schedule](https://project-delphi.github.io/nlp-llms/schedule.html) has the times.
+On Day 1, each module is 95 minutes: 45 minutes of lecture, then 50 of lab. On Days 2 to 5, each module is 120 minutes: 55 minutes of lecture, 55 of lab, then a 10-minute debrief. On Days 2 to 4 the second module breaks for lunch between its lecture and its lab. On Day 5, the capstone build runs on across lunch. The capstone (Module 15) has no lecture: it takes 11:30–12:25, 13:25–14:30 and 14:45–16:45 on Day 5. The [schedule](https://project-delphi.github.io/nlp-llms/schedule.html) has the times.
 <!-- END days -->
 
 ## Run it locally

@@ -15,7 +15,7 @@ Do these five steps in order, at home, in the week before Day 1.
 1. **[Take the entry check](#entry-check)**, about 15 minutes.
 2. **[Read your score](#score)**: for each area where you missed two or more questions, do the reading listed there.
 3. **[Set up Colab](#setup)**, about {{< var setup.minutes >}} minutes.
-4. **[Module 0](#module-0)**, optional pre-work, planned at about {{< var modules.m00.minutes >}} minutes.
+4. **[Module 0](#module-0)**, optional pre-work: {{< var modules.m00.minutes >}} minutes of steps, about {{< var modules.m00.readiness.estimate_minutes >}} with one-time setup.
 5. **[Start with Module 1](#start)** on Day 1.
 
 ## 1. Take the entry check {#entry-check}

@@ -82,7 +82,11 @@ Say this out loud on Day 4, before Lab 12, and again on Day 5. TypeSafe's SDK is
 
 ### How the notebooks behave
 
-- **Run all always completes.** Each `# TODO` cell is followed by a folded solution, and Run all runs the solutions after the participants' cells. To test their own code, participants run the `# TODO` cell and then the checkpoint, skipping the solution.
+- **Solutions never replace participants' code.** Each `# TODO` cell is followed by a folded solution. That solution is stored, not bound, unless `WORKED_EXAMPLE` is ticked in the harness cell at the top.
+  - **Every checkpoint says whose code it checked:** "passed on your code" or "passed on the REFERENCE solution".
+  - **Run all stops at the first unwritten TODO,** with a message saying how to go on.
+  - **A stuck participant runs `workshop.use_reference(N)`** and carries on. The final cell prints which checkpoints passed on their own code.
+  - **To demonstrate a whole lab, tick `WORKED_EXAMPLE` and choose Run all.** That run shows how the lab goes, not that anyone did it.
 - **Checkpoints are numbered by exercise.** Checkpoint 3 belongs to Exercise 3. Some labs split a checkpoint (3a, 3b).
 - **Data files** are fetched with a hash check. `fetch` looks in a local `data/` folder first. If a URL fails in the room, download the file from the repository on one machine, upload it to the Colab **Files** panel into a folder named `data`, and rerun the cell.
 
@@ -322,9 +326,9 @@ Apply these in order. The module's own "behind" rules, in its section below and 
 - **Never cut** the closing cell, "What this lab showed and what it did not". It is part of the honesty rule.
 - **If the clock slips:** drop the stretch (an LLM through TypeSafe's emulator).
 - **If Jev fails:** unset the key, or rerun on the local path. The checkpoints do not change. Never quote a local-path number as Jev's.
-- **Cost (estimate):** Jev under 5 cents per full run; output tokens are currently free per the SDK schema.
+- **Cost (estimate):** Jev under 5 cents per full run, at 0.042 USD per million input tokens with output free (TypeSafe's Models page, read 2026-10-06).
 - **Debrief:** *numbers:* accuracy, ECE and Brier score of the toy model under the accuracy reward and the Brier reward, the thresholds chosen on `dev`, and the cost per case on `test` beside act-all, ask-all and escalate-all; Jev's row only where a group had a key. Label every row with its path, and say once more that the two rewards are our illustration, not TypeSafe's method. *Misconception:* "Jev's `confidence` is the probability that its answer is right". Under TypeSafe's published formula it measures how concentrated the probabilities are. Exercise 3 applies that formula to calibrated synthetic data: the ECE of `confidence` is above 0.10 while the probabilities' is below 0.01. That is evidence about the formula, not a measurement of Jev. *Bridge:* a decision is only as good as the state in front of it. Module 13 puts the right documents into that state, and a decision model returns there as a reranker.
-- **Not verified:** no live Jev call has been made; TypeSafe's announcement and pricing page have not been read (its documentation was read on 2026-10-06; see lecture 12, section 5); the emulator's key handling and its compatibility with Lab 8's pins.
+- **Not verified:** no live Jev call has been made; TypeSafe's announcement has not been read, nor any pricing page on `typesafe.ai` (its documentation, which gives the price on the Models page, was read on 2026-10-06; see lecture 12, section 5); the emulator's key handling and its compatibility with Lab 8's pins.
 
 **Answering questions about RLCD.** Use three sentences. What TypeSafe has stated in its own sources (lecture 12, section 5). What third parties report, which we have not checked against a TypeSafe source. What is ours: the framing of section 2 and Lab 12's Exercise 1. If someone asks "is this how Jev was trained?", the answer is "we do not know; TypeSafe has not published it". RLCR (Damani et al.) is published work by other authors; RLCR is not RLCD.
 

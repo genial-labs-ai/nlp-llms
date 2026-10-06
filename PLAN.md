@@ -162,7 +162,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 #### Module 0 · Coding agents in the terminal (optional pre-work; drop-in clinic on Day 1, 08:00–09:00)
 
 - **Objectives:** install and drive a terminal coding agent; build and check two small data apps with it; publish them with GitHub and GitHub Pages.
-- **Format:** pre-work, planned at 60 minutes (an estimate, not yet measured). No lecture and no notebook: participants follow the page on their own laptops before Day 1, and an optional drop-in clinic on Day 1, 08:00–09:00, helps with installs. Nothing later depends on it.
+- **Format:** pre-work: the sections are planned at 60 minutes, and the estimate is about 90 with one-time setup (WSL 2, the Command Line Tools, an agent plan) and the Pages build. Neither is measured. No lecture and no notebook: participants follow the page on their own laptops before Day 1, and an optional drop-in clinic on Day 1, 08:00–09:00, helps with installs. Nothing later depends on it.
 - **Page:** `lectures/00-coding-agents.qmd`.
 - **What participants do:** install one coding agent (Claude Code, Codex or Gemini CLI); set up git and the GitHub CLI; in one language of their choice (Python or R), have the agent build (1) a protein structure explorer for ubiquitin (PDB 1UBQ) and (2) an RFM customer segmentation, each with a three.js page; check each app; publish both on GitHub Pages.
 - **Reference solutions:** `agents-intro/`, with data files recorded as `datasets` entries in `_variables.yml`.
@@ -329,8 +329,8 @@ Every notebook must meet all of these.
 - **One optional stretch section.** Clearly marked, placed last, never required by a later lab. It gives fast participants more to do and a slow group something to skip.
 - **Generated header and footer.** Cell 0 (title, Colab badge, duration, objectives) and the final cell are written by `scripts/gen_notebooks.py`. Do not edit them by hand.
 - **Setup cell.** Quiet, pinned `%pip install -q package==x.y.z` for anything Colab does not preinstall. Seeds are set here.
-- **Exercises and solutions in one notebook.** Each exercise is a `# TODO N` stub, followed by a folded solution cell (`#@title Solution`, form view, source hidden) and a short "why this works" note.
-- **Checkpoints.** Each exercise ends with an assertion or a printed metric that tells the participant whether they got it right.
+- **Exercises and solutions in one notebook.** Each exercise is a `# TODO N` stub, followed by a folded solution cell (`#@title Solution`, form view, source hidden) and a short "why this works" note. The solution is marked `@workshop.solution(N)` and never replaces the participant's code: the generated harness cell binds it only in worked mode (`WORKED_EXAMPLE`, or `NLP_LLMS_WORKED=1` in CI), and `workshop.use_reference(N)` lets a stuck participant go on (CONTRIBUTING.md).
+- **Checkpoints.** Each exercise ends with an assertion or a printed metric that tells the participant whether they got it right. A checkpoint cell starts with `workshop.checkpoint(N)` and reports whether it checked the participant's code or the reference; `scripts/test_notebooks.py --verify-checkpoints` proves each exercise's first checkpoint fails on the unfinished stub.
 - **API keys.** Read from Colab Secrets (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and the TypeSafe key name given in its documentation). Keys are never written into a cell.
 - **Open-model fallback.** A single `PROVIDER` switch at the top of each API lab. With no keys set, the lab runs on a small Hugging Face model (and, for Jev, the toy decision model from Lab 12). The fallback path is the one CI executes.
 - **Cost note.** Each API lab states its approximate cost per full run.
@@ -464,7 +464,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 ### Day 10 — Final review and release
 
 - [ ] Run all 16 notebooks on a fresh free-tier Colab runtime; record run time and API cost per lab
-- [ ] Timing dry-run of each module against the 45 + 50 minute budget; move overflow into stretch sections
+- [ ] Timing dry-run of each module against its budget (45 lecture + 50 lab on Day 1; 55 + 55 + a 10-minute debrief on Days 2–5); move overflow into stretch sections
 - [ ] Pedagogical review of all 15 lectures: objectives met, notation consistent, prerequisites honoured
 - [x] Write `facilitator-guide.md`, `instructor-pace.md` and `assessments.md` (entry and exit checks)
 - [ ] Complete `references.qmd` and check every citation (complete for all 15 modules, 135 entries; 45 checked against primary records, 85 against search summaries only because the proxy blocks arXiv, ACL Anthology and most publishers; recheck those from a networked machine)
@@ -531,7 +531,31 @@ Romeo approved a revision from four to five days after a review brief and a crit
 
 ### Phase 2 — Exercise harness and run records
 
-- [ ] Harness cell with `@workshop.solution(N)`, `workshop.checkpoint(N)` and `WORKED_EXAMPLE`; migration of all labs; `--record`, `--learner` and `--verify-checkpoints`; `tests/test_exercises.py`
+- [x] `scripts/harness.py`. `scripts/gen_notebooks.py` writes a harness cell after each notebook's header and a summary cell before its footer:
+  - the `WORKED_EXAMPLE` switch (`NLP_LLMS_WORKED=1` in CI);
+  - `@workshop.solution(N)` and `workshop.solution_value(...)`;
+  - `workshop.use_reference(N)`;
+  - `workshop.checkpoint(N | label=)`, which reports whose code it checked;
+  - `workshop.summary()` and `workshop.run_record()`.
+- [x] `scripts/migrate_exercises.py` applied to every lab: 80 solution cells marked, pure stubs raise `NotImplementedError("TODO N")`, every checkpoint cell names what it checks (reviewed override table), and the introductions rewritten. Special cases: Lab 7's `merged_weight` attachment moved into Checkpoint 2; Lab 15's exercise and self-test tagged.
+- [x] `scripts/test_notebooks.py`:
+  - worked mode by default;
+  - `--learner`: each lab must stop at a checkpoint with the harness's message;
+  - `--verify-checkpoints`: each exercise's first checkpoint must fail on its stub;
+  - `--record --env`: writes a run-record batch;
+  - data is read from a temporary copy, so runs never add files to `data/`.
+- [x] `scripts/add_run_record.py` turns a notebook's printed run record into a `runs/` file.
+- [x] New `tests/test_exercises.py`. `tests/test_lab14.py` and `tests/test_lab15.py` skip the harness marker in restated definitions.
+- [x] CI: `publish.yml` runs every notebook with `--verify-checkpoints` and then a learner smoke test; the blocking offline leg of `health.yml` runs `--verify-checkpoints` weekly.
+- [x] Docs: CONTRIBUTING, PLAN §5, the AGENTS.md definition of done, the facilitator guide and the notebooks page.
+- [x] Review round 5 of PR #10 fixed in the readiness code:
+  - a stale record never outranks a current one;
+  - the CI sentence applies staleness;
+  - a newer partial pass no longer hides a full one;
+  - the item checks never crash;
+  - dates are real and not in the future.
+- [x] The CI backfill record's setting names corrected. They are `NLP_LLMS_LAB07_OFFLINE` and so on, not `LAB07_OFFLINE`.
+- [x] Labs 13–15 and the facilitator guide now cite TypeSafe's published price and rate limits (Models page, read 2026-10-06).
 
 ### Phase 3 — Five-day restructure
 
@@ -541,7 +565,7 @@ Romeo approved a revision from four to five days after a review brief and a crit
 - [x] Pages: `day-5.qmd`; day 2–4 intros; `_quarto.yml`; `custom.scss` (five-column day grid, per-clock timetables, debrief, closing and clinic styles); schedule, landing, setup, teach, FAQ, references, README, `pyproject.toml`; lectures 0, 1, 8, 10, 12 and 15 (the capstone retimed to Day 5: brief 10, build 110 across lunch, evaluate and share 105, wrap-up 30 into the closing slot; awaiting the Academic Director's review); assessments; this file's sections 1–6
 - [x] Restructure the day-by-day sections of `instructor-pace.md` and `facilitator-guide.md` for 55/55/10 and Day 5 (done in Phase 4, on the live plans). Pace sheet: Days 1–5 in order; each module's lecture rows are the generated `_includes/pace-NN.md`, followed by its lab rows counted from the start of the lab (on Days 2–5 the 5 minutes of slack sit in the first row and a debrief row closes the table); module B split across lunch; retrieval-practice and synthesis rows pointing to the day pages; Day 5 is Module 14 then lecture 15's retimed capstone plan. Every "behind" rule kept, restated in lab minutes (Module 14's lecture rule now at lecture minute 38). Facilitator guide: "The shape of each day" (retrieval practice, live lecture, lab, debrief, lunch split, synthesis) and ordered "When the clock slips" rules for 55/55/10; per-day opening lines (Days 2–5 at the end of retrieval practice; the honesty rule moved to the Day 4 opening); a debrief per module of Days 2–5 (numbers, one misconception, the bridge); per-day synthesis notes; the capstone at 10 + 110 + 105 + 30; stale items fixed (the Day 3 opening, the TODO box, now the `typesafe-unverified` sign-off, an obsolete Lab 3 checkpoint note, Jev's rate limits). The four-day notices are removed from both pages and from `teach.qmd`. Minutes remain planning estimates
 - [x] The Academic Director prompt in `AGENTS.md` now targets the module's lecture minutes (45 on Day 1, 55 on Days 2–5), activities included, from the live plan (`scripts/live_plan.py`). `.claude/agents/academic-director.md` has no activation prompt (it defers to `AGENTS.md`), so it needed no change
-- [x] Notebook 08's closing markdown: "Day 4 starts there" (Module 11), with Modules 9 and 10 later the same day. Edited in the Phase 4 worktree before the coordinator moved this fix to the Phase 3 branch; the merge resolves it
+- [x] Notebook 08's closing markdown names Modules 9 and 10, later on Day 3, and Module 11 on Day 4. Both the Phase 3 and Phase 4 branches edited it; the merge keeps the Phase 3 sentence
 
 ### Phase 4 — Live teaching sequence, objectives and assessment
 
@@ -549,7 +573,11 @@ Romeo approved a revision from four to five days after a review brief and a crit
   - [x] `prepare.qmd` (Before Day 1): the entry check, the two-or-more rule with named sections of free resources per area (links checked with curl on 2026-10-06), the setup notebook and what its output looks like, Module 0 as optional pre-work, then Module 1. The entry check moved to `prepare/entry-check.md` (hand-written, outside the generated `_includes/`), included by `prepare.qmd` and `assessments.md`. Linked from the landing hero ("Start here"), setup and teach
   - [x] Retrieval practice (five exit-check questions, about three from the previous day and two from earlier days, linked by id) and closing synthesis (fixed and left open, the running table of the day's labs) on `day-2.qmd` to `day-5.qmd`; a pointer in `teach.qmd`; `assessments.md` "How to use them" matches
   - [x] Leftovers of the live plans: lecture 3's equation-to-lab map no longer gives away Lab 3's answers (Exercise 3A's decay and `spectral_W`, the LSTM/RNN comparison); Lab 12's restated-cell comment points to lecture 12, section 8 (was 6, before the reorder); `gen_notebooks.py` rerun, which also refreshed the generated cells left stale by the reworded objectives and titles: the headers of Labs 2–6, 8, 13 and 14 and Lab 11's footer
+  - [x] Leftovers fixed at the merge with Phase 3: the facts strip names the 10-minute lab debriefs; Lab 15 and lecture 15 say "capstone" where they said "afternoon", and brief 15 says it was written for the four-day plan; the facilitator guide gives Jev's price from TypeSafe's Models page (the documentation has no pricing page); Module 0 gives an honest estimate (about 90 minutes with one-time setup; App 2 is the part to postpone), and `m00.readiness.estimate_minutes` is 90; section 7's timing dry-run names both budgets; the CHANGELOG gains a Phase 4 entry
   - [x] Exit questions of Modules 5, 12 and 13 renumbered to the reworded objectives (5.1a→5.1, 5.1b→5.2a, 5.2→5.2b; 12.1b→12.1, 12.3→12.2, 12.1a→12.3a, 12.2→12.3b; 13.1→13.1a, 13.2b→13.1b, 13.3a→13.2b, 13.3b→13.3); every exit question has an anchor, `#q<module>-<objective>`
+
+- [ ] Watch in the pilot: lecture 1, section 6 (precision, recall and F1) and lecture 3, section 7 (sampling) are marked Reference, but Lab 1 and Lab 3 use them in core exercises. Neither section is in its live plan, so participants meet them in the lab with the page open. If they stall on those exercises, move the section back into the live plan
+- [ ] Follow-ups from the Phase 3 review (latent; none affects the current five-day schedule): `days_label` assumes consecutive days; some prose times are hard-coded rather than generated; `module_clock` does not name the days when a module spans more than one; `clinic_of` raises a bare `StopIteration` when no day has a clinic; one `units()` error message names the wrong cause; `ORDINALS` stops at six; `module_placements` is recomputed per call; module `minutes` are stored by hand beside `minutes_of()` (a test keeps them equal)
 
 ### Phase 5 — Desktop UX and accessibility
 

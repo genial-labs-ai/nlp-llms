@@ -415,12 +415,12 @@ modules:
       lecture: drafted
       lab: none
       runtime: own-laptop
-      estimate_minutes: 60
+      estimate_minutes: 90
       accounts: [GitHub]
       optional_accounts: [Claude Code, Codex, Gemini CLI]
       cost: "Claude Code and Codex need a paid plan; Gemini CLI has a free tier with a personal Google account"
       fallback: {kind: none, note: "Pair with a neighbor, or use Gemini CLI's free tier"}
-      gaps: "Never run end to end on a fresh laptop; the 60 minutes is a plan, not a measurement"
+      gaps: "Never run end to end on a fresh laptop; the section plan totals 60 minutes and the estimate of 90 adds one-time setup and the Pages build. Both are plans, not measurements"
   m01:
     n: 1
     slug: 01-text-as-data

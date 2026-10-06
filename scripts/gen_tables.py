@@ -237,14 +237,12 @@ def day_modules(v: dict, day: dict) -> list[tuple[str, dict]]:
 
 
 def clock_groups(v: dict) -> list[tuple[str, list[dict]]]:
-    """Runs of consecutive days on the same clock: [(clock name, [day, ...]), ...]."""
-    groups: list[tuple[str, list[dict]]] = []
+    """The days on each clock, in order of first use: [(clock name, [day, ...]), ...].
+    Days on one clock share one timetable grid even when they are not consecutive."""
+    groups: dict[str, list[dict]] = {}
     for d in days_in_order(v):
-        if groups and groups[-1][0] == d["clock"]:
-            groups[-1][1].append(d)
-        else:
-            groups.append((d["clock"], [d]))
-    return groups
+        groups.setdefault(d["clock"], []).append(d)
+    return list(groups.items())
 
 
 def days_label(days: list[dict], prose: bool = False) -> str:
@@ -255,7 +253,6 @@ def days_label(days: list[dict], prose: bool = False) -> str:
     return f"Days {days[0]['n']}{dash}{days[-1]['n']}"
 
 
-NUMBER_WORDS = ["zero", "one", "two", "three", "four", "five", "six"]
 ORDINALS = ["first", "second", "third", "fourth", "fifth", "sixth"]
 
 
@@ -270,8 +267,9 @@ def shape_prose(s: dict) -> str:
     return ", ".join(parts[:-1]) + ", then " + parts[-1]
 
 
-def split_sentences(clk: dict) -> list[str]:
-    """One sentence per unit that a break splits between its lecture and its lab."""
+def split_sentences(v: dict, clk: dict, days: list[dict]) -> list[str]:
+    """One sentence per unit that a break splits: between a module's lecture and its lab,
+    or across a hands-on unit (the capstone) that has neither."""
     out = []
     slots = clk["slots"]
     for i, unit in enumerate(units(clk)):
@@ -279,10 +277,20 @@ def split_sentences(clk: dict) -> list[str]:
             continue
         between = slots[slots.index(unit[0]) + 1 : slots.index(unit[1])]
         label = " and ".join(s["label"].lower() for s in between)
-        out.append(
-            f"On those days the {ORDINALS[i]} module breaks for {label}"
-            " between its lecture and its lab."
-        )
+        placed = [(d, placements(v, d)[i]) for d in days]
+        taught = [d for d, p in placed if shape(v, p["key"])]
+        hands_on = [(d, p) for d, p in placed if not shape(v, p["key"])]
+        if taught:
+            who = "those days" if len(taught) == len(days) else days_label(taught, prose=True)
+            out.append(
+                f"On {who} the {ORDINALS[i]} module breaks for {label}"
+                " between its lecture and its lab."
+            )
+        for d, p in hands_on:
+            title = p["label"] or v["modules"][p["key"]]["title"]
+            out.append(
+                f"On Day {d['n']}, the {title.lower().replace(': ', ' ')} runs on across {label}."
+            )
     return out
 
 
@@ -295,17 +303,23 @@ def module_shape(v: dict) -> str:
             f"On {days_label(days, prose=True)}, each module is {sum(s.values())} minutes:"
             f" {shape_prose(s)}."
         )
-        sentences += split_sentences(v["schedule"]["clocks"][name])
+        sentences += split_sentences(v, v["schedule"]["clocks"][name], days)
     for key, m in modules_in_order(v):
         found = module_placements(v, key)
         if len(found) > 1:
             day_numbers = sorted({d["n"] for d, _ in found})
             where = " and ".join(f"Day {n}" for n in day_numbers)
             sentences.append(
-                f"The {m['title'].lower()} (Module {m['n']}) fills"
-                f" {NUMBER_WORDS[len(found)]} module slots on {where}."
+                f"The {m['title'].lower()} (Module {m['n']}) has no lecture: it takes"
+                f" {prose_times(module_clock(v, key))} on {where}."
             )
     return " ".join(sentences)
+
+
+def prose_times(ranges: str) -> str:
+    """'11:30–12:25 · 13:25–14:30 · 14:45–16:45' as '11:30–12:25, 13:25–14:30 and 14:45–16:45'."""
+    parts = ranges.split(" · ")
+    return parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
 
 
 def minute_range(values: list[int]) -> str:
@@ -325,6 +339,9 @@ def facts_strip(v: dict) -> str:
         f"**{minute_range([s['lecture'] for s in shapes])}** min lectures,"
         f" **{minute_range([s['lab'] for s in shapes])}** min labs",
     ]
+    debriefs = [s["debrief"] for s in shapes if s.get("debrief")]
+    if debriefs:
+        facts.append(f"**{minute_range(debriefs)}** min lab debriefs")
     return "::: {.facts}\n" + "\n".join(f"[{f}]{{.fact}}" for f in facts) + "\n:::"
 
 
@@ -608,11 +625,15 @@ def readiness_status(report: dict) -> str:
         f"{s['teaching']} of {s['labs']} labs have run end to end, with their current code,"
         " on the Colab runtime they are designed for.",
         f"{s['real']} have run end to end on their real path elsewhere, on another machine"
-        f" or on the CI runner, and {s['real_partial_only']} more in part.",
+        " or on the CI runner"
+        + (f" ({s['real_quick']} of them only with QUICK settings)" if s["real_quick"] else "")
+        + f", and {s['real_partial_only']} more in part.",
     ]
     if s["ci_to"]:
         span = s["ci_to"] if s["ci_from"] == s["ci_to"] else f"{s['ci_from']} to {s['ci_to']}"
         failed = f", {s['ci_failed']} failed" if s["ci_failed"] else ""
+        if s["ci_stale"]:
+            failed += f", {s['ci_stale']} last ran before their code changed"
         parts.append(
             f"On the GitHub CPU runner (newest run of each notebook, {span}),"
             f" {s['ci_passed']} of {s['notebooks']} notebooks passed{failed};"

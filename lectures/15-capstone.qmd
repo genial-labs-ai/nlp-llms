@@ -20,12 +20,13 @@ The capstone takes Day 5 from 11:30 to the end of the day: the two module slots 
 | 13:25–14:30 | **Part II. Build**, continued | 65 |
 | 14:30–14:45 | Break | |
 | 14:45–16:30 | **Part III. Evaluate and share** (section 6) | 105 |
-| 16:30–17:00 | **Part IV. Wrap-up** (sections 7–10), ending in the day's closing slot | 30 |
-| | **Total** | **255** |
+| 16:30–16:45 | **Part IV. Wrap-up** (sections 7–10) | 15 |
+| | **Total in the capstone's slots** | **240** |
+| 16:45–17:00 | **Part IV, continued**, in the day's closing slot | 15 |
 
 The brief covers sections 1 to 4 in 10 minutes, so it is a talk through the tables, not a derivation. Every equation it uses comes from an earlier module. The wrap-up spends about 10 minutes on section 7, 8 on section 8, 7 on section 9 and 5 on section 10. Collapsed callouts are optional reading.
 
-Check-yourself questions and interactive demos are for self-study and sit outside the 255 minutes; an instructor may use one as a pause.
+Check-yourself questions and interactive demos are for self-study and sit outside these minutes; an instructor may use one as a pause.
 
 ::: {.callout-warning appearance="simple"}
 **Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe states in its documentation that Jev "is trained with RLCD to return calibrated decisions" and that its System One models "are trained for calibrated decisions"; it has not published the method or a measurement of Jev's calibration (Module 12, section 5). Section 7 keeps those statements apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
@@ -237,7 +238,7 @@ With 8 gained and 1 lost, $p = 0.039$. With 7 and 2 it is $0.18$, and with 4 and
 :::
 :::
 
-## 4. The rules of the afternoon
+## 4. The rules of the capstone
 
 **Objective for this section:** know what may change, what may not, and what a pair hands in.
 
@@ -285,7 +286,7 @@ The reported score is the largest of five noisy measurements. Even if none of th
 
 **The self-test.** The notebook drives the graph with a scripted generator and a scripted decision model and checks the control flow: a draft above $\tau_{\text{verify}}$ is delivered, one below it is retried once and then abstained on, an abstention from the generator is never sent to the verifier, a split question retrieves twice, the budgets stop the run, every record names its backends, and the scoring code reproduces hand-computed numbers on hand-made records. These checks use no model, so they give the same verdict on every path. A change that breaks one has broken the system, whatever its score.
 
-**The menu.** Each row gives a change, the number we expect it to move, and a guess at the size. **The guesses are hypotheses, not results.** Nobody has measured them on this evaluation set; finding out is the point of the afternoon. Each option has a folded reference sketch in the notebook.
+**The menu.** Each row gives a change, the number we expect it to move, and a guess at the size. **The guesses are hypotheses, not results.** Nobody has measured them on this evaluation set; finding out is the point of the capstone. Each option has a folded reference sketch in the notebook.
 
 | Option | Component | Change | Our hypothesis (unmeasured) | Watch also |
 |---|---|---|---|---|

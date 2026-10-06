@@ -61,7 +61,8 @@ def code_cells(slug: str) -> list[str]:
 
 
 def definitions_of(sources: list[str]) -> dict[str, str]:
-    """Top-level definitions by name, source text including decorators; the last one wins."""
+    """Top-level definitions by name, source text including decorators (except the
+    harness marker); the last one wins."""
     found = {}
     for source in sources:
         clean = "\n".join(line for line in source.splitlines() if not line.lstrip().startswith("%"))
@@ -78,7 +79,14 @@ def definitions_of(sources: list[str]) -> dict[str, str]:
                 for target in node.targets:
                     elts = target.elts if isinstance(target, ast.Tuple) else [target]
                     names += [e.id for e in elts if isinstance(e, ast.Name)]
-            start = min([node.lineno] + [d.lineno for d in getattr(node, "decorator_list", [])])
+            # The harness marker on a solution (@workshop.solution(N)) is not part of the
+            # restated code: a later lab restates the definition as provided code.
+            decorators = [
+                d
+                for d in getattr(node, "decorator_list", [])
+                if not ast.unparse(d).startswith("workshop.solution")
+            ]
+            start = min([node.lineno] + [d.lineno for d in decorators])
             text = "\n".join(lines[start - 1 : node.end_lineno])
             for name in names:
                 found[name] = text
@@ -254,7 +262,7 @@ class Honesty(unittest.TestCase):
             "language model scored by the probability of ' yes'. They measure that model, not Jev. "
             "Do not quote them as Jev's.",
         )
-        self.assertIn("What this afternoon showed and what it did not", TEXT)
+        self.assertIn("What this capstone showed and what it did not", TEXT)
         self.assertIn("our guess before any run", TEXT)
 
     def test_no_rlcd(self):

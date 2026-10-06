@@ -44,7 +44,7 @@ Fields at the top apply to every entry in `runs`; an entry may override any of t
 
 | Field | Values |
 |---|---|
-| `source` | `test_notebooks` (a run by `scripts/test_notebooks.py`; its `--record` option arrives in Phase 2), `colab` (a run on Colab, from the notebook's printed times or, after Phase 2, its run-record cell), `backfill` (copied from an earlier report; never counts as Colab evidence) |
+| `source` | `test_notebooks` (a run by `scripts/test_notebooks.py`; its `--record` option arrives in Phase 2), `colab` (a run on Colab, from the notebook's run-record cell via `scripts/add_run_record.py`), `notebook` (the same from a notebook run elsewhere, such as a local Jupyter), `backfill` (copied from an earlier report; never counts as Colab evidence) |
 | `env` | a key of `readiness.envs` in `_variables.yml` |
 | `path` | `offline` (test doubles and stand-ins: the code runs, nothing about a model), `open` (no API keys and no test doubles: what a participant without keys runs), `keyed` (commercial APIs) |
 | `mode` | `worked` (solutions bound, as in CI), `learner`, or `unknown` |
