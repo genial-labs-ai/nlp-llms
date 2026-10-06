@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 14]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
+[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 14]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time} [09:15 lecture · 10:10 lab · 11:05 debrief]{.module-clock}
 :::
 
 ::: {.module-summary}

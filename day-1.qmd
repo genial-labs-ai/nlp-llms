@@ -14,4 +14,8 @@ Day 1 starts from counting words and ends at attention. Each module fixes a spec
 
 {{< include /_includes/day-1.md >}}
 
+## Run sheet {#run-sheet}
+
+{{< include /_includes/run-1.md >}}
+
 Times are on the [schedule](schedule.qmd).

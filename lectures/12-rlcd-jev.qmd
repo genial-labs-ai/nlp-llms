@@ -268,7 +268,7 @@ viewof c12 = Inputs.form({
   const collapsed = wrong <= miss || tAct <= tEsc;                                         // asking never pays
   if (collapsed) tEsc = tAct = lam;
   const action = q => q >= tAct ? "act" : q < tEsc ? "escalate" : "ask";
-  const color = {act: "#1d5f8a", ask: "#b3541e", escalate: "#6b7280"};
+  const color = {act: "var(--demo-blue)", ask: "var(--demo-orange)", escalate: "var(--demo-grey)"};
   const grid = Array.from({length: 101}, (_, i) => i / 100);
   const lines = grid.flatMap(q => Object.entries(cost(q)).map(([a, c]) => ({q, a, c})));
   const regions = [["escalate", 0, tEsc], ["ask", tEsc, tAct], ["act", tAct, 1]]

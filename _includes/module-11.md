@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 4 · Calibration, decisions, RAG](/day-4.qmd){.module-day} [Module 11]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
+[Day 4 · Calibration, decisions, RAG](/day-4.qmd){.module-day} [Module 11]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time} [09:15 lecture · 10:10 lab · 11:05 debrief]{.module-clock}
 :::
 
 ::: {.module-summary}

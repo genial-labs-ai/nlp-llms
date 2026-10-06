@@ -44,7 +44,10 @@ uv run --group lint ruff format --check scripts tests data agents-intro
 uv run --group test python -m unittest discover -s tests -v
 uv run --group execute python scripts/test_notebooks.py
 quarto render && uv run --group site python scripts/check_links.py
+uv run --group browser python scripts/check_browser.py
 ```
+
+`check_browser.py` opens the rendered site in Chromium at 1280 x 800, 1440 x 900, 1920 x 1080 and 1366 x 768 at 150% zoom, in both themes (desktop only; see AGENTS.md). The first time, install the browser with `uv run --group browser playwright install chromium`.
 
 `uv.lock` pins the environment that local runs and CI use. To move to newer versions, run `uv lock --upgrade`, run the checks above, and commit the lockfile with the fixes it needed; the weekly `drift` leg of `health.yml` shows in advance what an upgrade would break.
 

@@ -18,6 +18,8 @@ package = false
 site = ["pyyaml>=6.0", "nbformat>=5.10"]
 test = ["pyyaml>=6.0", "nbformat>=5.10"]
 lint = ["ruff>=0.6"]
+# Desktop browser checks of the rendered site (scripts/check_browser.py).
+browser = ["playwright>=1.63"]
 # Executing notebooks in CI.
 execute = [
     "nbclient>=0.10",

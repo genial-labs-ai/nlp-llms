@@ -522,6 +522,70 @@ def day_cards(v: dict, day: dict) -> str:
     return "\n".join(out)
 
 
+# What a participant without keys gets, in a few words, per readiness fallback kind.
+FALLBACK_SHORT = {
+    "none": "the lab always runs its real models",
+    "open-model": "an open model runs in place of the commercial one",
+    "toy": "a toy model stands in for the real system; its numbers only illustrate",
+}
+
+
+def part_times(v: dict, key: str) -> str | None:
+    """'11:30 lecture · 13:25 lab · 14:20 debrief'; None for a module without a
+    lecture/lab shape (pre-work, and the capstone, which is hands-on throughout)."""
+    s = shape(v, key)
+    found = module_placements(v, key)
+    if not s or len(found) != 1:
+        return None
+    parts = [seg for slot in found[0][1]["slots"] for seg in segments(s, slot)]
+    return " · ".join(f"{start} {part}" for part, start, _ in parts)
+
+
+def run_sheet(v: dict, day: dict) -> str:
+    """The day at a glance for the room: for each module its times, what the lecture
+    holds, the lab, and what to do when something goes wrong."""
+    envs = v["readiness"]["envs"]
+    out = ["::: {.run-sheet}"]
+    for key, m in day_modules(v, day):
+        lecture = live_plan.read(m["slug"])
+        link = f"[{m['title']}](lectures/{m['slug']}.qmd)"
+        title = f"**{module_clock(v, key)} · Module {m['n']} · {link}**"
+        parts = part_times(v, key)
+        # A module without a lecture/lab shape (the capstone) has no parts to list.
+        out += [title + "\\", parts, ""] if parts else [title, ""]
+        if lecture["front"].get("live"):
+            exposition, activities = live_plan.totals(live_plan.rows(m["slug"], lecture))
+            out.append(
+                f"- **In the room:** the [live plan](lectures/{m['slug']}.qmd#live-plan),"
+                f" {exposition} minutes of exposition and {activities} of checks, demos and"
+                " predictions."
+            )
+        else:
+            out.append(
+                f"- **In the room:** hands-on, in pairs ([the plan](lectures/{m['slug']}.qmd))."
+            )
+        r = m.get("readiness", {})
+        if has_notebook(m) and notebook_exists(m["slug"]):
+            out += [
+                f"- **Lab:** [open in Colab]({v['repo']['colab_base']}/{m['slug']}.ipynb),"
+                " a checkpoint after each exercise; about"
+                f" {r['estimate_minutes']} minutes of compute ({envs[r['runtime']]['name']},"
+                " planned).",
+                "- **When something goes wrong:** stuck on exercise N, run its folded"
+                " Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, "
+                + FALLBACK_SHORT[r["fallback"]["kind"]]
+                + ".",
+            ]
+        out.append("")
+    out += [
+        ":::",
+        "",
+        "Compute times are planning estimates, not measurements on the teaching runtime;"
+        " the [readiness page](readiness.qmd) has what has been run, where.",
+    ]
+    return "\n".join(out)
+
+
 def module_block(v: dict, key: str, m: dict) -> str:
     """The header of a lecture page. Links are project-absolute: the including page
     sits in lectures/."""
@@ -530,10 +594,13 @@ def module_block(v: dict, key: str, m: dict) -> str:
     else:
         day = next(d for d in v["days"].values() if d["n"] == m["day"])
         where = f"[Day {m['day']} · {day['short']}](/day-{m['day']}.qmd){{.module-day}}"
+    # When each part runs; the capstone, with no parts, gives its clock ranges.
+    parts = None if is_prework(m) else part_times(v, key) or module_clock(v, key)
+    when = f" [{parts}]{{.module-clock}}" if parts else ""
     lines = [
         "::: {.module-header}",
         "::: {.module-meta}",
-        f"{where} [Module {m['n']}]{{.module-num}} [{timing(v, key, m)}]{{.module-time}}",
+        f"{where} [Module {m['n']}]{{.module-num}} [{timing(v, key, m)}]{{.module-time}}{when}",
         ":::",
         "",
         "::: {.module-summary}",
@@ -824,6 +891,7 @@ def main() -> None:
     write(INCLUDES / "module-shape.md", module_shape(v))
     for d in days_in_order(v):
         write(INCLUDES / f"day-{d['n']}.md", day_cards(v, d))
+        write(INCLUDES / f"run-{d['n']}.md", run_sheet(v, d))
     for key, m in modules_in_order(v):
         write(INCLUDES / f"module-{m['n']:02d}.md", module_block(v, key, m))
         lecture = live_plan.read(m["slug"])

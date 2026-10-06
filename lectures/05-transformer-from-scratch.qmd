@@ -186,7 +186,7 @@ viewof draw = Inputs.range([1, 20], {value: 1, step: 1, label: "Random draw"})
   const chart = Plot.plot({
     width: 680, height: 280, marginBottom: 40,
     fx: {label: null, domain: [plain, scaled]}, x: {label: "position i"}, y: {label: "attention weight α", domain: [0, 1]},
-    color: {domain: [plain, scaled], range: ["#b3541e", "#1d5f8a"]},
+    color: {domain: [plain, scaled], range: ["var(--demo-orange)", "var(--demo-blue)"]},
     marks: [Plot.barY(rows, {fx: "kind", x: "i", y: "alpha", fill: "kind"}), Plot.ruleY([0])]
   });
   return html`${chart}<p>Standard deviation of 200 scores for this query: ${sd(scores).toFixed(2)} without scaling (√dₖ = ${Math.sqrt(dk)}), ${(sd(scores) / Math.sqrt(dk)).toFixed(2)} with it.
