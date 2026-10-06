@@ -3,8 +3,10 @@ sections, names real activity blocks, holds enough activity time, and fills the 
 lecture minutes exactly; the generated tables are current."""
 
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -50,6 +52,44 @@ class Plans(unittest.TestCase):
                 self.assertNotIn("\n## Timing\n", text)
 
 
+class Parsing(unittest.TestCase):
+    PAGE = """---
+live:
+  - {section: 1, minutes: 3, activities: [{block: chk-a, minutes: 1}, {block: demo-b, minutes: 1}]}
+---
+
+## 1. Only section
+
+::: {#chk-a .self-check}
+:::
+
+::: {.demo #demo-b}
+:::
+
+::: {.callout-tip}
+:::
+"""
+
+    def test_ids_are_found_in_either_attribute_order(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "x.qmd").write_text(self.PAGE, encoding="utf-8")
+            with mock.patch.object(live_plan, "LECTURES", Path(tmp)):
+                self.assertEqual(
+                    live_plan.read("x")["blocks"], {"chk-a": "self-check", "demo-b": "demo"}
+                )
+                self.assertEqual(live_plan.problems("x", 5), [])
+
+    def test_a_malformed_entry_is_reported_not_raised(self):
+        bad = [
+            {"sectoin": 3, "minutes": 5},
+            {"section": 4, "minutes": 5, "activities": [{"blok": "x"}]},
+        ]
+        found = live_plan.shape_problems("x", bad)
+        self.assertEqual(len(found), 2)
+        self.assertIn("entry 1", found[0])
+        self.assertIn("entry 2", found[1])
+
+
 class Generated(unittest.TestCase):
     def test_tables_are_current(self):
         for _key, m in LECTURED:
@@ -61,7 +101,8 @@ class Generated(unittest.TestCase):
                 with self.subTest(name):
                     self.assertTrue(path.exists())
                     self.assertEqual(
-                        path.read_text(encoding="utf-8"), f"{g.NOTICE}\n\n{body.rstrip()}\n"
+                        path.read_text(encoding="utf-8"),
+                        f"{g.LIVE_NOTICE.format(slug=m['slug'])}\n\n{body.rstrip()}\n",
                     )
 
 

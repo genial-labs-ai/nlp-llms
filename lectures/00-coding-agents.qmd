@@ -27,7 +27,7 @@ Build both apps in **one** language, Python or R. Pick it in any Python | R tab 
 | 38–55 | [4. App 2: customer segmentation](#rfm) | `rfm/` checked and committed |
 | 55–60 | [5. Publish](#publish) | Two live URLs |
 
-The minutes are an estimate, not a measurement: no one has yet timed this module on a fresh laptop. Allow about 90 minutes. The table leaves out one-time setup (WSL 2 and its restart on Windows; on a Mac, the Command Line Tools, which the first git command may offer to install), signing up for an agent plan, and the wait for the GitHub Pages build. If time runs short, App 2 is the part to postpone: publish App 1 on its own, and ask the agent to leave `rfm/` out of the landing page until you build it.
+The minutes are an estimate, not a measurement: no one has yet timed this module on a fresh laptop. Allow about {{< var modules.m00.readiness.estimate_minutes >}} minutes. The table leaves out one-time setup (WSL 2 and its restart on Windows; on a Mac, the Command Line Tools, which the first git command may offer to install), signing up for an agent plan, and the wait for the GitHub Pages build. If time runs short, App 2 is the part to postpone: publish App 1 on its own, and ask the agent to leave `rfm/` out of the landing page until you build it.
 
 **You need:** a laptop or desktop with macOS, Linux or Windows 10/11; a GitHub account; an account for one agent (each tab below says which, and what it costs); and Python 3.10 or later, or a recent R 4.x. On Windows, use **WSL 2** (the Windows Subsystem for Linux) with Ubuntu for the whole module. This page gives no native Windows or PowerShell instructions: inside WSL 2 you follow the Linux steps, and every command works as written.
 

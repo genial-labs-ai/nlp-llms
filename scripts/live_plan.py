@@ -19,8 +19,8 @@ A numbered section left out of the plan is reference material: its heading carri
 
 scripts/gen_tables.py writes `_includes/live-NN.md` (the lecture's timing table) and
 `_includes/pace-NN.md` (the pace sheet's lecture rows) from this; tests/test_live.py
-checks it. filters/pedagogy.lua marks the planned blocks so the page shows which ones
-are used in the room.
+checks it. filters/live.lua marks the planned blocks so the page shows which ones are
+used in the room.
 """
 
 from __future__ import annotations
@@ -35,7 +35,7 @@ LECTURES = ROOT / "lectures"
 
 KINDS = {"self-check": "Check yourself", "demo": "Demo", "predict": "Predict", "discuss": "Discuss"}
 SECTION = re.compile(r"^## (\d+)\. (.+?)\s*(\{[^}]*\})?\s*$", re.M)
-BLOCK = re.compile(r"^:::+\s*\{#([\w-]+)([^}]*)\}", re.M)
+BLOCK = re.compile(r"^:::+\s*\{([^}]*)\}", re.M)
 
 
 def read(slug: str) -> dict:
@@ -51,15 +51,18 @@ def read(slug: str) -> dict:
     }
     blocks = {}
     for m in BLOCK.finditer(text):
-        kinds = [k for k in KINDS if f".{k}" in m.group(2).split()]
-        if kinds:
-            blocks[m.group(1)] = kinds[0]
+        # Pandoc attributes in any order: {#chk-x .self-check} or {.self-check #chk-x}.
+        words = m.group(1).split()
+        ids = [w[1:] for w in words if w.startswith("#")]
+        kinds = [k for k in KINDS if f".{k}" in words]
+        if ids and kinds:
+            blocks[ids[0]] = kinds[0]
     return {"front": front, "sections": sections, "blocks": blocks}
 
 
-def rows(slug: str) -> list[dict]:
+def rows(slug: str, lecture: dict | None = None) -> list[dict]:
     """The plan in order, with section titles and activity kinds filled in."""
-    lecture = read(slug)
+    lecture = lecture or read(slug)
     out = []
     for entry in lecture["front"].get("live") or []:
         n = entry["section"]
@@ -88,13 +91,39 @@ def totals(plan: list[dict]) -> tuple[int, int]:
     return exposition, activities
 
 
+def shape_problems(slug: str, plan) -> list[str]:
+    """Entries that are not {section: int, minutes: int, activities: [{block, minutes}]}."""
+    if not isinstance(plan, list):
+        return [f"{slug}: `live` must be a list of sections"]
+    out = []
+    for i, e in enumerate(plan, 1):
+        where = f"{slug}: `live` entry {i} ({e!r})"
+        if not isinstance(e, dict) or set(e) - {"section", "minutes", "activities"}:
+            out.append(f"{where} must have only the keys section, minutes and activities")
+            continue
+        if not isinstance(e.get("section"), int) or not isinstance(e.get("minutes"), int):
+            out.append(f"{where} needs an integer section and integer minutes")
+        activities = e.get("activities", [])
+        if not isinstance(activities, list) or not all(
+            isinstance(a, dict)
+            and set(a) == {"block", "minutes"}
+            and isinstance(a["block"], str)
+            and isinstance(a["minutes"], int)
+            for a in activities
+        ):
+            out.append(f"{where}: each activity is {{block: <id>, minutes: <integer>}}")
+    return out
+
+
 def problems(slug: str, lecture_minutes: int) -> list[str]:
     """Everything wrong with a lecture's plan, as readable strings."""
     lecture = read(slug)
     plan = lecture["front"].get("live")
     if not plan:
         return [f"{slug}: no `live` plan in the front matter"]
-    out = []
+    out = shape_problems(slug, plan)
+    if out:
+        return out
     planned = [e["section"] for e in plan]
     if len(planned) != len(set(planned)):
         out.append(f"{slug}: a section is planned twice")
@@ -114,7 +143,7 @@ def problems(slug: str, lecture_minutes: int) -> list[str]:
             out.append(f"{slug}: activity block #{block} is not an identified activity block")
     if len(used) != len(set(used)):
         out.append(f"{slug}: an activity block is planned twice")
-    exposition, activities = totals(rows(slug))
+    exposition, activities = totals(rows(slug, lecture))
     if exposition + activities != lecture_minutes:
         out.append(
             f"{slug}: the plan fills {exposition + activities} minutes"
@@ -123,24 +152,32 @@ def problems(slug: str, lecture_minutes: int) -> list[str]:
     return out
 
 
-def _activity(a: dict) -> str:
-    return f"[{KINDS.get(a['kind'], a['kind'])}](#{a['block']}) ({a['minutes']} min)"
+def _activity(a: dict, link: bool) -> str:
+    kind = KINDS.get(a["kind"], a["kind"])
+    return (
+        f"[{kind}](#{a['block']}) ({a['minutes']} min)" if link else f"{kind} ({a['minutes']} min)"
+    )
+
+
+def _timed_rows(plan: list[dict], link: bool) -> tuple[list[str], int]:
+    """Table rows with minute ranges from the start of the lecture, and the end minute.
+    Shared by the lecture's table (activities linked) and the pace sheet (plain)."""
+    lines = []
+    t = 0
+    for r in plan:
+        length = r["minutes"] + sum(a["minutes"] for a in r["activities"])
+        activity = "; ".join(_activity(a, link) for a in r["activities"]) or "—"
+        lines.append(f"| {t}–{t + length} | {r['n']}. {r['title']} | {activity} |")
+        t += length
+    return lines, t
 
 
 def table(slug: str) -> str:
     """The lecture's timing table: minute ranges, sections and activities in the room."""
-    plan = rows(slug)
     lecture = read(slug)
-    lines = [
-        "| Minutes | Section | In the room |",
-        "|---|---|---|",
-    ]
-    t = 0
-    for r in plan:
-        length = r["minutes"] + sum(a["minutes"] for a in r["activities"])
-        activity = "; ".join(_activity(a) for a in r["activities"]) or "—"
-        lines.append(f"| {t}–{t + length} | {r['n']}. {r['title']} | {activity} |")
-        t += length
+    plan = rows(slug, lecture)
+    body, t = _timed_rows(plan, link=True)
+    lines = ["| Minutes | Section | In the room |", "|---|---|---|", *body]
     exposition, activities = totals(plan)
     lines.append(
         f"| **{t}** | **Total** | **{exposition} minutes of exposition,"
@@ -168,13 +205,5 @@ def table(slug: str) -> str:
 
 def pace_rows(slug: str) -> str:
     """The pace sheet's lecture rows: minute ranges from the start of the module's slot."""
-    lines = ["| Minutes | Segment | In the room |", "|---|---|---|"]
-    t = 0
-    for r in rows(slug):
-        length = r["minutes"] + sum(a["minutes"] for a in r["activities"])
-        activity = "; ".join(
-            f"{KINDS.get(a['kind'], a['kind'])} ({a['minutes']} min)" for a in r["activities"]
-        )
-        lines.append(f"| {t}–{t + length} | {r['n']}. {r['title']} | {activity or '—'} |")
-        t += length
-    return "\n".join(lines)
+    body, _ = _timed_rows(rows(slug), link=False)
+    return "\n".join(["| Minutes | Segment | In the room |", "|---|---|---|", *body])

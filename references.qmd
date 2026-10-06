@@ -174,7 +174,7 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Zadrozny, B. and Elkan, C. (2002). Transforming classifier scores into accurate multiclass probability estimates. *Proceedings of the 8th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD)*, 694–699. *Search summary; no stable link checked.*
 - Also used: OpenAI (2023), the GPT-4 Technical Report (Module 10).
 
-### Module 12 · RLCD and Jev
+### Module 12 · Calibrated decisions: RLCD and Jev
 
 TypeSafe has not published how RLCD works. The TypeSafe sources the lecture relies on are listed under [TypeSafe and Jev: public sources](#typesafe-and-jev-public-sources) below; nothing in this module's toy experiment is TypeSafe's method.
 

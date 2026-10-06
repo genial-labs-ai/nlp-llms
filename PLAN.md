@@ -144,7 +144,7 @@ The generated grids on the schedule page are authoritative; these tables restate
 | 09:00–09:15 | Retrieval practice | Retrieval practice | Retrieval practice | Retrieval practice |
 | 09:15–11:15 | 5 · The transformer | 8 · LLMs through APIs | 11 · Calibration | 14 · Agents |
 | 11:15–11:30 | Break | Break | Break | Break |
-| 11:30–12:25 | 6 · Pretraining and the Hugging Face stack: lecture | 9 · Reinforcement and preference learning: lecture | 12 · RLCD and Jev: lecture | 15 · Capstone: build |
+| 11:30–12:25 | 6 · Pretraining and the Hugging Face stack: lecture | 9 · Reinforcement and preference learning: lecture | 12 · Calibrated decisions: RLCD and Jev: lecture | 15 · Capstone: build |
 | 12:25–13:25 | Lunch | Lunch | Lunch | Lunch |
 | 13:25–14:30 | 6 · lab and debrief | 9 · lab and debrief | 12 · lab and debrief | 15 · Capstone: build |
 | 14:30–14:45 | Break | Break | Break | Break |
@@ -577,7 +577,7 @@ Romeo approved a revision from four to five days after a review brief and a crit
   - [x] Exit questions of Modules 5, 12 and 13 renumbered to the reworded objectives (5.1a→5.1, 5.1b→5.2a, 5.2→5.2b; 12.1b→12.1, 12.3→12.2, 12.1a→12.3a, 12.2→12.3b; 13.1→13.1a, 13.2b→13.1b, 13.3a→13.2b, 13.3b→13.3); every exit question has an anchor, `#q<module>-<objective>`
 
 - [ ] Watch in the pilot: lecture 1, section 6 (precision, recall and F1) and lecture 3, section 7 (sampling) are marked Reference, but Lab 1 and Lab 3 use them in core exercises. Neither section is in its live plan, so participants meet them in the lab with the page open. If they stall on those exercises, move the section back into the live plan
-- [ ] Follow-ups from the Phase 3 review (latent; none affects the current five-day schedule): `days_label` assumes consecutive days; some prose times are hard-coded rather than generated; `module_clock` does not name the days when a module spans more than one; `clinic_of` raises a bare `StopIteration` when no day has a clinic; one `units()` error message names the wrong cause; `ORDINALS` stops at six; `module_placements` is recomputed per call; module `minutes` are stored by hand beside `minutes_of()` (a test keeps them equal)
+- [ ] Follow-ups from the Phase 3 review (latent; none affects the current five-day schedule): `days_label` assumes consecutive days; some prose times are typed rather than generated (the retrieval-practice and synthesis headings of `day-2.qmd` to `day-5.qmd`, and `teach.qmd`), so a change to `schedule.clocks.long` must be copied to them by hand; `module_clock` does not name the days when a module spans more than one; `clinic_of` raises a bare `StopIteration` when no day has a clinic; one `units()` error message names the wrong cause; `ORDINALS` stops at six; `module_placements` is recomputed per call; module `minutes` are stored by hand beside `minutes_of()` (a test keeps them equal)
 
 ### Phase 5 — Desktop UX and accessibility
 
