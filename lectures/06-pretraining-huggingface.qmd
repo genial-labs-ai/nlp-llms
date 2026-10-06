@@ -380,10 +380,10 @@ Plot.plot({
   y: {domain: ["input", "target"], label: null, padding: 0.12},
   color: {legend: true,
     domain: state06.causal ? ["read", "not read", "target"] : ["not selected", "[MASK]", "random token", "unchanged", "target"],
-    range: state06.causal ? ["#c9d7ee", "#eeeeee", "#1d5f8a"] : ["#e8ecf1", "#f0b98d", "#f3df8f", "#b9dcc0", "#1d5f8a"]},
+    range: state06.causal ? ["var(--demo-cell-past)", "var(--demo-cell-masked)", "var(--demo-cell-target)"] : ["var(--demo-cell-pad)", "var(--demo-cell-1)", "var(--demo-cell-2)", "var(--demo-cell-3)", "var(--demo-cell-target)"]},
   marks: [
     Plot.cell(state06.cells, {x: "t", y: "row", fill: "kind", inset: 1}),
-    Plot.text(state06.cells, {x: "t", y: "row", text: "text", fontSize: 12, fill: d => d.kind === "target" ? "white" : "#1f2933"})
+    Plot.text(state06.cells, {x: "t", y: "row", text: "text", fontSize: 12, fill: d => d.kind === "target" ? "var(--demo-cell-on-target)" : "var(--demo-cell-ink)"})
   ]
 })
 ```

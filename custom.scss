@@ -27,7 +27,9 @@ $nl-good-soft: #edf6f0 !default;
 $nl-code: #8a3b12 !default; // inline code
 $nl-code-bg: #f5f7f9 !default;
 $nl-figure-bg: transparent !default; // backing behind figures (dark theme only)
-// Interactive demos: the light palette in both themes (see .demo).
+// Interactive demos: the panel, and the colors their plots draw with. The plots
+// read the series colors as CSS custom properties (--demo-*, set on :root below),
+// so they follow the light/dark toggle without re-rendering.
 $nl-demo-bg: #ffffff !default;
 $nl-demo-ink: #1f2933 !default;
 $nl-demo-muted: #55616e !default;
@@ -35,6 +37,12 @@ $nl-demo-link: #1d5f8a !default;
 $nl-demo-accent: #b3541e !default;
 $nl-demo-code: #8a3b12 !default;
 $nl-demo-border: #dfe5ec !default;
+$nl-demo-field: #ffffff !default; // input and select backgrounds
+$nl-demo-blue: #1d5f8a !default; // the main series
+$nl-demo-orange: #b3541e !default; // the contrasting series, or the highlighted point
+$nl-demo-green: #2e7d4f !default;
+$nl-demo-grey: #6b7280 !default;
+$nl-demo-faint: #b9c2cc !default; // reference lines, the unseen or unused
 $nl-shadow: 0 1px 2px rgba(20, 38, 58, 0.06), 0 4px 14px rgba(20, 38, 58, 0.05) !default;
 
 $primary: $nl-navy !default;
@@ -901,10 +909,29 @@ blockquote {
   }
 }
 
-// ::: {.demo}  an Observable JS widget: inputs, then a small plot.
-// The lecture demos hard-code light-theme colors in their plots (#1d5f8a,
-// #b3541e, #1f2933), so the box keeps a light panel in both themes: the
-// $nl-demo-* tokens are the light palette in the dark theme too, on "paper".
+// The demo plots' colors. Lectures write `stroke: "var(--demo-blue)"` and so on,
+// never a hex value; tests/test_demo_colors.py checks it. The token cells of
+// lecture 6 are colored chips with their own ink, the same in both themes.
+:root {
+  --demo-ink: #{$nl-demo-ink};
+  --demo-blue: #{$nl-demo-blue};
+  --demo-orange: #{$nl-demo-orange};
+  --demo-green: #{$nl-demo-green};
+  --demo-grey: #{$nl-demo-grey};
+  --demo-faint: #{$nl-demo-faint};
+  --demo-cell-ink: #1f2933;
+  --demo-cell-target: #1d5f8a;
+  --demo-cell-on-target: #ffffff;
+  --demo-cell-past: #c9d7ee;
+  --demo-cell-masked: #eeeeee;
+  --demo-cell-pad: #e8ecf1;
+  --demo-cell-1: #f0b98d;
+  --demo-cell-2: #f3df8f;
+  --demo-cell-3: #b9dcc0;
+}
+
+// ::: {.demo}  an Observable JS widget: inputs, then a small plot. The panel
+// and the plots follow the theme (the $nl-demo-* tokens and --demo-* above).
 .demo {
   border-color: $nl-demo-border;
   border-top: 3px solid $nl-navy;
@@ -975,7 +1002,7 @@ blockquote {
       padding: 0.1rem 0.4rem;
       border: 1px solid $nl-demo-border;
       border-radius: 5px;
-      background: #ffffff;
+      background: $nl-demo-field;
       color: $nl-demo-ink;
     }
 

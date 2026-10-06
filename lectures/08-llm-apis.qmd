@@ -425,7 +425,7 @@ Plot.plot({
   width: 720, height: 300, marginLeft: 70,
   x: {label: "model call k", domain: Array.from({length: 12}, (_, i) => i + 1)},
   y: {label: "input tokens sent in call k", grid: true},
-  color: {legend: true, domain: ["first request: n₀", "resent round trips: (k − 1) δ"], range: ["#1d5f8a", "#b3541e"]},
+  color: {legend: true, domain: ["first request: n₀", "resent round trips: (k − 1) δ"], range: ["var(--demo-blue)", "var(--demo-orange)"]},
   marks: [Plot.barY(bars08, {x: "k", y: "tokens", fill: "part"}), Plot.ruleY([0])]
 })
 ```

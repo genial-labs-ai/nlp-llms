@@ -235,9 +235,9 @@ viewof xIn = Inputs.range([0, 2], {value: 0, step: 0.05, label: "Constant input 
     x: {label: "distance T − s (time steps back)"},
     y: {type: "log", domain: [1e-12, 1e12], clamp: true, label: "gradient factor (log scale)",
         ticks: [1e-12, 1e-8, 1e-4, 1, 1e4, 1e8, 1e12], tickFormat: (d) => d.toExponential(0)},
-    color: {legend: true, domain: [measured, bound], range: ["#b3541e", "#1f2933"]},
+    color: {legend: true, domain: [measured, bound], range: ["var(--demo-orange)", "var(--demo-ink)"]},
     marks: [
-      Plot.ruleY([1], {stroke: "#b9c2cc"}),
+      Plot.ruleY([1], {stroke: "var(--demo-faint)"}),
       Plot.line(rows.filter((d) => d.series === measured), {x: "dist", y: "value", stroke: "series", strokeWidth: 3}),
       Plot.line(rows.filter((d) => d.series === bound), {x: "dist", y: "value", stroke: "series", strokeWidth: 1.5, strokeDasharray: "6 4"})
     ]

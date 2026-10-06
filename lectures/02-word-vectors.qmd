@@ -234,7 +234,7 @@ sgnsRun = {
   const chart = Plot.plot({
     width: 440, height: 440, grid: true,
     x: {domain: [-2.6, 2.6], label: "dimension 1"}, y: {domain: [-2.6, 2.6], label: "dimension 2"},
-    color: {legend: true, domain: ["center", "real context", "noise"], range: ["#1f2933", "#1d5f8a", "#b3541e"]},
+    color: {legend: true, domain: ["center", "real context", "noise"], range: ["var(--demo-ink)", "var(--demo-blue)", "var(--demo-orange)"]},
     marks: [
       Plot.link(rows(r.start), {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "kind", strokeOpacity: 0.35, strokeDasharray: "3 3"}),
       Plot.arrow(rows(r), {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "kind", strokeWidth: 2.5}),
