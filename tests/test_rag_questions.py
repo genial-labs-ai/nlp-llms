@@ -117,6 +117,30 @@ class OverlapFlag(unittest.TestCase):
         self.assertEqual(tools.overlap_flags([item]), [("x", 4)])
 
 
+class Agreement(unittest.TestCase):
+    def test_unanswerable_items_agree_only_when_the_checker_found_nothing(self):
+        author = [
+            {"id": "q1", "kind": "unanswerable"},
+            {"id": "q2", "kind": "unanswerable"},
+            {"id": "q3", "kind": "unanswerable"},
+            {"id": "q4", "kind": "lookup"},
+            {"id": "q5", "kind": "unanswerable"},
+            {"id": "q6", "kind": "unanswerable"},
+        ]
+        checker = [
+            {"id": "q1", "evidence": [], "answer": "Not in the corpus"},
+            {"id": "q2", "evidence": [], "answer": "about 4.5 million pairs"},
+            {
+                "id": "q3",
+                "evidence": [[{"slug": "x", "quote": "y"}]],
+                "answer": "not in the corpus",
+            },
+            {"id": "q5", "evidence": [], "answer": "Not in the corpus."},
+            {"id": "q6", "evidence": [], "answer": None},
+        ]
+        self.assertEqual(tools.unanswerable_agreement(author, checker), (2, 5))
+
+
 class Questions(unittest.TestCase):
     """The real question file when it exists; the agent-written fixture until then."""
 

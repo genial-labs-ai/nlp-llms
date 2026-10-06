@@ -590,5 +590,11 @@ Romeo approved a revision from four to five days after a review brief and a crit
 
 ### Phase 6 — Real-path runs, environment and release check
 
-- [ ] Committed lockfile, drift leg, release check, real-path runs on the build Mac, capstone infrastructure, snapshot rebuild
+- [x] Committed lockfile: `uv.lock` (206 packages) is tracked; CI's notebook runs and every `health.yml` leg use `uv run --locked`, and `--locked` fails the notebooks job if the lock no longer matches `pyproject.toml` (the render job stays outside the project, so a docs-only change never waits on a package index). Colab does not read it: notebooks keep their own pins, and a delivery picks a dated Colab runtime
+- [x] Drift leg: `health.yml` leg `drift` runs the offline leg after `uv lock --upgrade` and lists what moved in the job summary; non-blocking
+- [x] Release check: `scripts/release_check.py [--as-of DATE]` lists every blocker (no passing teaching run of the current code on its own runtime, dated no later than the release date and within `max_run_age_days`, for the setup notebook or any lab; or an open readiness item) and exits 1 if any; `tests/test_release_check.py`. `.github/workflows/release.yml` runs it on a `v*` tag and creates the GitHub Release only if it passes; a manual run is a dry run by default. As of 2026-10-06 it lists 27 blockers: neither the setup notebook nor any lab has a teaching run on its Colab runtime (16), and 11 items are open
+- [ ] Real-path runs on the build Mac (labeled `mac-m1pro`, never T4), Lab 9 data and Lab 10 reward model, Lab 6 logits
+- [x] Capstone infrastructure that needs no people: `data/capstone_questions_TEMPLATE.md` (schema, memory bait, the blind-check protocol, validate, manifest, then the recorded baselines); a `data/README.md` section and catalog row; `rag_questions_tools.py agreement` now also reports how many unanswerable items the checker also found nothing for (tested). The readiness item `capstone-questions` and the release check list the set until it exists
+- [ ] Brief 15's stub regression check (the stub path's numbers against `lab15.baseline.stub`): blocked until both question files exist, the manifest is built and an instructor records the baselines
+- [ ] Rebuild the corpus snapshot (`data/build_lectures_corpus.py`) once the lecture edits of Phases 3 to 6 are merged; its status stays `provisional` until Romeo freezes it, and the question sets are written only after that
 

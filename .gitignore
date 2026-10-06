@@ -6,7 +6,6 @@
 
 # Python
 .venv/
-uv.lock
 __pycache__/
 *.pyc
 .ruff_cache/
