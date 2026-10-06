@@ -398,7 +398,8 @@ def readiness_status(report: dict) -> str:
         f"**As of {s['as_of']}: {verdict}.**",
         f"{s['teaching']} of {s['labs']} labs have run end to end, with their current code,"
         " on the Colab runtime they are designed for.",
-        f"{s['real']} have run end to end on their real path on another machine,"
+        f"{s['real']} have run end to end on their real path under other conditions,"
+        " such as another machine,"
         f" and {s['real_partial_only']} more in part.",
     ]
     if s["ci_date"]:
@@ -432,14 +433,14 @@ def _evidence_cell(v: dict, e: dict) -> str:
     real = e["real"] or e["real_partial"]
     if e["code"]:
         code = show(e["code"])
-    elif e["real"] and e["real"]["env"] == "gha-ubuntu":
+    elif e["real"] and v["readiness"]["envs"][e["real"]["env"]].get("ci"):
         code = "no test doubles: CI runs the real path"
     else:
         code = "—"
     return "<br>".join(
         [
             "**On its Colab runtime:** " + (show(e["teaching"]) if e["teaching"] else "not run"),
-            "**Real path elsewhere:** " + (show(real) if real else "not run"),
+            "**Real path, other runs:** " + (show(real) if real else "not run"),
             "**Code check:** " + code,
         ]
     )
@@ -494,11 +495,15 @@ def readiness_table(v: dict, report: dict) -> str:
         "",
         "**Evidence.** Each line is the newest run of that kind, from the run records in"
         " [`runs/`]({{< var repo.url >}}/tree/main/runs); a newer failure replaces an older"
-        " pass. *On its Colab runtime* means the whole notebook ran on its real path on the"
-        " runtime the module is designed for, and a tool recorded it; such a run stops counting"
-        " when the notebook's code changes. *Real path elsewhere* means it ran without test"
-        " doubles on another machine; a laptop's or a CPU runner's time does not predict a"
-        " T4's. *Code check* means CI ran the notebook with test doubles: it shows that the"
+        " pass, and on the same day a failure wins. *On its Colab runtime* means a worked run"
+        " (solutions bound) of the whole notebook, on the path a participant without keys"
+        " takes, with no QUICK shortcuts, on the runtime the module is designed for, recorded"
+        " by a tool; it stops counting when the notebook's code changes. *Real path, other"
+        " runs* means any other run without test doubles, on any machine; a laptop's or a CPU"
+        " runner's time does not predict a T4's. A run marked *before the notebook last"
+        " changed* was made against older code; backfilled runs carry no code hash, so they"
+        " cannot be checked. *Code check* means CI ran the notebook with test doubles: it"
+        " shows that the"
         " code runs, not what a model does. An estimate is a planning figure from the lab's"
         " brief, not a measurement. Dates are shown as recorded; the release check also"
         f" requires a teaching run to be at most {R['max_run_age_days']} days old.",

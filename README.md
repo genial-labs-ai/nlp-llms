@@ -10,7 +10,7 @@ A four-day workshop by Genial Labs on the path from traditional NLP to modern LL
 **Workshop site: <https://project-delphi.github.io/nlp-llms/>** · [Schedule](https://project-delphi.github.io/nlp-llms/schedule.html) · [Notebooks](https://project-delphi.github.io/nlp-llms/notebooks.html) · [References](https://project-delphi.github.io/nlp-llms/references.html)
 
 <!-- BEGIN status -->
-> **As of 2026-10-06: not yet ready to teach.** 0 of 15 labs have run end to end, with their current code, on the Colab runtime they are designed for. 6 have run end to end on their real path on another machine, and 1 more in part. In CI on 2026-10-06, 16 of 16 notebooks passed on a GitHub CPU runner; 12 of the passing runs used test doubles, which check that the code runs, not what the models do. 10 of 10 pieces of blocking work are open. See the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html).
+> **As of 2026-10-06: not yet ready to teach.** 0 of 15 labs have run end to end, with their current code, on the Colab runtime they are designed for. 6 have run end to end on their real path under other conditions, such as another machine, and 1 more in part. In CI on 2026-10-06, 16 of 16 notebooks passed on a GitHub CPU runner; 12 of the passing runs used test doubles, which check that the code runs, not what the models do. 10 of 10 pieces of blocking work are open. See the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html).
 <!-- END status -->
 
 ## Who it is for

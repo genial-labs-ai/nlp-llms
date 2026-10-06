@@ -72,39 +72,66 @@ FALLBACK_LABELS = {"none": "One path", "open-model": "Open model", "toy": "Toy m
 
 
 def _newest(records: list[dict]) -> dict | None:
-    """The most recent record; among records of one day, the most complete."""
+    """The most recent record. Ties on the same date go to a failure, then to the whole
+    notebook over a part, then to the later entry of a batch: a same-day pass never hides
+    a same-day failure."""
     if not records:
         return None
-    return max(records, key=lambda r: (r["date"], r["scope"] == "notebook", r["file"]))
+    return max(
+        records,
+        key=lambda r: (
+            r["date"],
+            r["status"] == "fail",
+            r["scope"] == "notebook",
+            r["file"],
+            r["index"],
+        ),
+    )
+
+
+def _mark_stale(r: dict | None, current_sha: str) -> dict | None:
+    """Flag a record made against other code than the committed notebook's."""
+    if r is not None and r.get("content_sha") and r["content_sha"] != current_sha:
+        return {**r, "stale": True}
+    return r
+
+
+def teaching_eligible(v: dict, r: dict, runtime: str) -> bool:
+    """Whether a record could show that a lab runs as taught: the whole notebook, worked
+    (solutions bound), on the release path with no QUICK shortcuts, on the module's own
+    runtime, recorded by a tool rather than copied from a report."""
+    return (
+        r["env"] == runtime
+        and r["path"] == v["readiness"]["release_path"]
+        and r["scope"] == "notebook"
+        and r["mode"] == "worked"
+        and r["source"] != "backfill"
+        and (r.get("settings") or {}).get("NLP_LLMS_QUICK") != "1"
+    )
 
 
 def evidence(v: dict, slug: str, runtime: str, records: list[dict]) -> dict:
     """The newest record of each kind for one notebook, passing or failing.
 
-    teaching: the whole notebook, on its real path, on the runtime the module is designed
-        for, recorded by a tool (never a backfill). It is marked stale when the notebook's
-        code has changed since (its content_sha no longer matches).
-    real, real_partial: the real path on any other machine.
+    teaching: a teaching-eligible record (see teaching_eligible); stale when its
+        content_sha no longer matches the notebook.
+    real, real_partial: every other run of the real path (open or keyed), whole or part.
     code: the offline path (test doubles).
-    A newer failing record replaces an older pass, so a broken lab is never shown as fine.
+    A newer failure replaces an older pass. Records without a content_sha (backfills)
+    cannot be checked for staleness.
     """
+    current = run_records.content_sha(slug)
     mine = [r for r in records if r["notebook"] == slug]
     real = [r for r in mine if r["path"] in ("open", "keyed")]
-    teaching = _newest(
-        [
-            r
-            for r in real
-            if r["env"] == runtime and r["scope"] == "notebook" and r["source"] != "backfill"
-        ]
-    )
-    if teaching is not None and teaching.get("content_sha") != run_records.content_sha(slug):
-        teaching = {**teaching, "stale": True}
-    elsewhere = [r for r in real if r["env"] != runtime]
+    eligible = [r for r in real if teaching_eligible(v, r, runtime)]
+    others = [r for r in real if not teaching_eligible(v, r, runtime)]
     return {
-        "teaching": teaching,
-        "real": _newest([r for r in elsewhere if r["scope"] == "notebook"]),
-        "real_partial": _newest([r for r in elsewhere if r["scope"] == "partial"]),
-        "code": _newest([r for r in mine if r["path"] == "offline"]),
+        "teaching": _mark_stale(_newest(eligible), current) if eligible else None,
+        "real": _mark_stale(_newest([r for r in others if r["scope"] == "notebook"]), current),
+        "real_partial": _mark_stale(
+            _newest([r for r in others if r["scope"] == "partial"]), current
+        ),
+        "code": _mark_stale(_newest([r for r in mine if r["path"] == "offline"]), current),
     }
 
 
@@ -148,26 +175,28 @@ def build(v: dict, records: list[dict]) -> dict:
     ev = {m["slug"]: evidence(v, m["slug"], m["readiness"]["runtime"], records) for m in labs}
     notebooks = [m["slug"] for m in labs] + [v["setup"]["slug"]]
     all_items = items(v)
-    ci = [r for r in records if r["env"] == "gha-ubuntu"]
+    ci_envs = {k for k, e in v["readiness"]["envs"].items() if e.get("ci")}
+    ci = [r for r in records if r["env"] in ci_envs]
     ci_date = max((r["date"] for r in ci), default=None)
-    ci_latest = [r for r in ci if r["date"] == ci_date]
-    ci_passed = {r["notebook"] for r in ci_latest if r["status"] == "pass"}
+    ci_latest = {}
+    for slug in {r["notebook"] for r in ci if r["date"] == ci_date}:
+        ci_latest[slug] = _newest([r for r in ci if r["notebook"] == slug and r["date"] == ci_date])
     summary = {
         "labs": len(labs),
         "teaching": sum(1 for e in ev.values() if passed(e["teaching"])),
         "real": sum(1 for e in ev.values() if passed(e["real"])),
         "real_partial_only": sum(
-            1 for e in ev.values() if not passed(e["real"]) and passed(e["real_partial"])
+            1 for e in ev.values() if e["real"] is None and passed(e["real_partial"])
         ),
         "notebooks": len(notebooks),
         "items_open": sum(1 for i in all_items if not i["closed"]),
         "items": len(all_items),
         "as_of": max((r["date"] for r in records), default=None),
         "ci_date": ci_date,
-        "ci_passed": len(ci_passed),
-        "ci_failed": len({r["notebook"] for r in ci_latest if r["status"] == "fail"} - ci_passed),
-        "ci_doubles": len(
-            {r["notebook"] for r in ci_latest if r["status"] == "pass" and r["path"] == "offline"}
+        "ci_passed": sum(1 for r in ci_latest.values() if r["status"] == "pass"),
+        "ci_failed": sum(1 for r in ci_latest.values() if r["status"] == "fail"),
+        "ci_doubles": sum(
+            1 for r in ci_latest.values() if r["status"] == "pass" and r["path"] == "offline"
         ),
     }
     summary["ready"] = summary["teaching"] == summary["labs"] and summary["items_open"] == 0

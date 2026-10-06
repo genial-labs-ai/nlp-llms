@@ -126,9 +126,35 @@ def record(**fields) -> dict:
         "seconds": 300,
         "evidence": "test",
         "file": "test.json",
+        "index": 0,
         "content_sha": run_records.content_sha("05-transformer-from-scratch"),
     }
     return {**base, **fields}
+
+
+class Validation(unittest.TestCase):
+    def check(self, text: str) -> list[str]:
+        path = ROOT / "tests" / "fixtures" / "_tmp_run.json"
+        path.write_text(text, encoding="utf-8")
+        try:
+            return run_records.validate_file(path, ENVS, NOTEBOOKS)
+        finally:
+            path.unlink()
+
+    def test_malformed_json_is_reported_not_raised(self):
+        self.assertIn("not valid JSON", "\n".join(self.check('{"schema": 1,}')))
+
+    def test_seconds_must_not_be_a_boolean(self):
+        batch = (
+            '{"schema": 1, "date": "2026-10-06", "source": "colab", "env": "colab-t4",'
+            ' "path": "open", "mode": "worked", "evidence": "x", "runs": [{"notebook":'
+            ' "01-text-as-data", "scope": "notebook", "status": "pass", "seconds": true}]}'
+        )
+        self.assertIn("seconds", "\n".join(self.check(batch)))
+
+    def test_ordinary_words_are_not_credentials(self):
+        self.assertIsNone(run_records.SECRET.search("mask-and-attend-to-previous-tokens"))
+        self.assertIsNotNone(run_records.SECRET.search('"sk-abcdefghijklmnopqrstuvwx"'))
 
 
 class EvidenceRules(unittest.TestCase):
@@ -158,6 +184,30 @@ class EvidenceRules(unittest.TestCase):
     def test_backfill_and_offline_never_count_as_teaching(self):
         self.assertIsNone(self.ev(record(source="backfill", content_sha=None))["teaching"])
         self.assertIsNone(self.ev(record(path="offline"))["teaching"])
+
+    def test_keyed_quick_and_learner_runs_are_not_teaching_evidence(self):
+        for fields in (
+            {"path": "keyed"},
+            {"settings": {"NLP_LLMS_QUICK": "1"}},
+            {"mode": "learner"},
+            {"scope": "partial", "scope_note": "Part A"},
+        ):
+            e = self.ev(record(**fields))
+            self.assertIsNone(e["teaching"], fields)
+            self.assertTrue(e["real"] or e["real_partial"], fields)
+
+    def test_a_backfill_on_the_runtime_is_shown_not_dropped(self):
+        e = self.ev(record(source="backfill", content_sha=None))
+        self.assertIsNotNone(e["real"])
+
+    def test_a_same_day_failure_beats_a_pass(self):
+        e = self.ev(record(status="fail", index=0), record(status="pass", index=1))
+        self.assertEqual(e["teaching"]["status"], "fail")
+
+    def test_staleness_is_checked_on_every_row(self):
+        e = self.ev(record(env="mac-m1pro", content_sha="0" * 16))
+        self.assertTrue(e["real"]["stale"])
+        self.assertFalse(readiness.passed(e["real"]))
 
     def test_ci_sentence_uses_only_the_newest_batch(self):
         old = [

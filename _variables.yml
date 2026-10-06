@@ -272,14 +272,15 @@ readiness:
   teaching_env: colab-t4
   release_path: open
   max_run_age_days: 21
-  # Run environments. `teaching: true` marks the environments a delivery can use.
+  # Run environments. `teaching: true` marks the environments a delivery can use;
+  # `ci: true` marks the CI runner whose newest batch the status sentence reports.
   envs:
     colab-t4: {name: "Google Colab, free T4 GPU", teaching: true}
     colab-cpu: {name: "Google Colab, CPU runtime", teaching: true}
     own-laptop: {name: "The participant's own laptop", teaching: true}
     mac-m1pro: {name: "Apple M1 Pro laptop, 16 GB (CPU/MPS)"}
     linux-cpu-shared: {name: "Shared Linux CPU (the build container)"}
-    gha-ubuntu: {name: "GitHub Actions runner (ubuntu-latest, CPU)"}
+    gha-ubuntu: {name: "GitHub Actions runner (ubuntu-latest, CPU)", ci: true}
   # What a run exercised. Only `open` and `keyed` say anything about a model.
   paths:
     offline: "Offline stand-ins and test doubles: checks that the code runs, not what a model does"

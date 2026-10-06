@@ -59,11 +59,14 @@ ALLOWED = set(INHERITED) | {
     "phases",
     "note",
     "file",
+    "index",
 }
 BATCH_FIELDS = set(INHERITED) | {"schema", "runs"}
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # Anything that looks like a credential must never be committed in a record.
-SECRET = re.compile(r"(sk-[A-Za-z0-9_-]{16,}|sk-ant-|hf_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16})")
+SECRET = re.compile(
+    r"(?<![A-Za-z0-9])(sk-[A-Za-z0-9_-]{20,}|sk-ant-[A-Za-z0-9_-]+|hf_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16})"
+)
 
 
 def content_sha(slug: str) -> str:
@@ -82,9 +85,8 @@ def load_file(path: Path) -> list[dict]:
     batch = json.loads(path.read_text(encoding="utf-8"))
     shared = {k: batch[k] for k in INHERITED if k in batch}
     out = []
-    for entry in batch.get("runs", []):
-        record = {**shared, **entry, "file": path.name}
-        out.append(record)
+    for index, entry in enumerate(batch.get("runs", [])):
+        out.append({**shared, **entry, "file": path.name, "index": index})
     return out
 
 
@@ -101,7 +103,10 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
     text = path.read_text(encoding="utf-8")
     if SECRET.search(text):
         errors.append(f"{path.name}: contains something that looks like a credential")
-    batch = json.loads(text)
+    try:
+        batch = json.loads(text)
+    except json.JSONDecodeError as exc:
+        return errors + [f"{path.name}: not valid JSON ({exc})"]
     if batch.get("schema") != SCHEMA:
         errors.append(f"{path.name}: schema must be {SCHEMA}")
     if not batch.get("runs"):
@@ -133,7 +138,8 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
         if not DATE.match(str(r.get("date", ""))):
             errors.append(f"{where}: date must be YYYY-MM-DD")
         seconds = r.get("seconds")
-        if seconds is not None and not (isinstance(seconds, (int, float)) and seconds >= 0):
+        is_number = isinstance(seconds, (int, float)) and not isinstance(seconds, bool)
+        if seconds is not None and not (is_number and seconds >= 0):
             errors.append(f"{where}: seconds must be a non-negative number or null")
         if r.get("scope") == "partial" and not r.get("scope_note"):
             errors.append(f"{where}: a partial run needs a scope_note")
