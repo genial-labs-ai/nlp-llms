@@ -66,11 +66,12 @@ EXERCISE_MD = """\
 EXERCISE = """\
 # TODO 1: complete this function.
 def my_function(x):
-    ...
+    raise NotImplementedError("TODO 1")
 """
 
 SOLUTION = """\
 #@title Solution 1 — try it yourself first { display-mode: "form" }
+@workshop.solution(1)
 def my_function(x):
     return x
 """
@@ -87,8 +88,8 @@ implements.
 
 CHECKPOINT = """\
 # Checkpoint 1
+workshop.checkpoint(1)
 assert my_function(1) == 1, "my_function(1) should be 1"
-print("Checkpoint 1 passed")
 """
 
 STRETCH_MD = """\
