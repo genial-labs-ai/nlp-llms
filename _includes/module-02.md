@@ -19,7 +19,7 @@ From one-hot vectors to learned embeddings, with a PyTorch refresher and the fir
 
 By the end of this module you can:
 
-- Explain the distributional hypothesis
-- Derive the skip-gram objective with negative sampling
-- Train embeddings and a feed-forward classifier in PyTorch
+- Explain the distributional hypothesis and find nearest neighbors by cosine similarity
+- Derive the skip-gram negative-sampling loss, implement it, and check its gradients against autograd
+- Assemble a feed-forward classifier over averaged embeddings and evaluate it against TF-IDF
 :::

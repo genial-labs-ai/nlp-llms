@@ -1,5 +1,13 @@
 ---
 title: "{{< var modules.m11.title >}}"
+live:
+  - {section: 1, minutes: 3}
+  - {section: 2, minutes: 4, activities: [{block: chk-mean-confidence, minutes: 2}]}
+  - {section: 3, minutes: 7}
+  - {section: 4, minutes: 9, activities: [{block: chk-brier-reports, minutes: 3}]}
+  - {section: 6, minutes: 7, activities: [{block: demo-temperature, minutes: 4}]}
+  - {section: 7, minutes: 6}
+  - {section: 8, minutes: 8, activities: [{block: chk-chow, minutes: 2}]}
 ---
 
 {{< include /_includes/module-11.md >}}
@@ -8,23 +16,9 @@ title: "{{< var modules.m11.title >}}"
 [Module 10](10-rlhf.qmd) trained a model on what raters prefer, and [Module 8](08-llm-apis.qmd) showed that an answer from an API arrives with no sign of how likely it is to be right. Neither gives a program a number it can act on. This module answers one question: when a model attaches a probability to its answer, how do we check that the number means what it says, and how do we turn it into a decision to act or to hand the case to a person?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. What Day 3 has left open | 3 |
-| 2. What a probability should mean | 5 |
-| 3. Measuring calibration: reliability diagrams and ECE | 8 |
-| 4. Proper scoring rules | 8 |
-| 5. Why models are miscalibrated | 5 |
-| 6. Temperature scaling | 5 |
-| 7. Confidence from a language model behind an API | 5 |
-| 8. Selective prediction and the cost of a wrong action | 6 |
-| **Total** | **45** |
-
-The collapsed callouts are optional and sit outside the 45 minutes.
-
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+{{< include /_includes/live-11.md >}}
 
 ## Notation for this module
 
@@ -113,7 +107,7 @@ Accuracy moves by 0.6 points; mean confidence moves by 20 points. Matching mean 
 
 **Sharpness.** The useless model above shows that calibration alone is not the goal. We also want confidences far from the base rate, so that they separate the easy cases from the hard ones. Gneiting, Balabdaoui and Raftery (2007) put the aim as: maximize sharpness subject to calibration. The scores of section 4 reward both at once.
 
-::: {.self-check}
+::: {#chk-mean-confidence .self-check}
 **Check yourself.** A classifier makes 1,000 predictions. On 500 of them its confidence is 0.6, and 400 of those are right. On the other 500 its confidence is 1.0, and 400 of those are right. Its mean confidence equals its accuracy. Is it calibrated?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -253,7 +247,7 @@ $$
 The approximation is exact when every forecast in a bin is the same. The first term is a squared version of ECE's gap; the second rewards bins whose accuracy differs from the base rate; the third is fixed by the data. One proper score contains the two goals of section 2: calibration and sharpness.
 :::
 
-::: {.self-check}
+::: {#chk-brier-reports .self-check}
 **Check yourself.** The label of a two-class item is drawn from $p = (0.7, 0.3)$. Use @eq-brier-expected to compute the expected Brier score of three reports: the honest $(0.7, 0.3)$, the exaggerated $(1, 0)$ and the hedged $(0.5, 0.5)$. Then rank the same three by expected log loss. Do the two rules agree on which dishonest report is worse?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -265,7 +259,7 @@ The fixed term is $\sum_c p_c(1 - p_c) = 0.21 + 0.21 = 0.42$. The report-depende
 **In the lab.** In **Exercise 2** you write `brier(probs, labels)` (@eq-brier) and `nll(probs, labels)` (@eq-log-loss), each averaged over examples. Checkpoints: hand computations on three examples; the uniform four-class model scores exactly 0.75 and $\log 4$; `nll` agrees with `sklearn.metrics.log_loss`. A provided cell then prints the table above for your classifier and for the three Lab 1 models. The **stretch** section shows numerically that the expected Brier score is minimized by the true probability (@eq-brier-expected), that the linear score is not, and that accuracy is flat.
 :::
 
-## 5. Why models are miscalibrated
+## 5. Why models are miscalibrated {.reference}
 
 **Objective for this section:** give the known reasons that trained networks and preference-tuned language models are often miscalibrated, and say which claims are settled.
 
@@ -300,6 +294,8 @@ The predictions did not change, so the probabilities did: the logits grew and ev
 
 **Objective for this section:** fit one number that recalibrates a classifier without changing its predictions, and say what it cannot fix.
 
+**Why a fix is needed.** Section 5, for reading after class, collects the evidence on why trained models are miscalibrated. In short: a network that already gets its training examples right can keep lowering its training log loss by growing its logits, which makes it overconfident on new data (Guo et al., 2017). The three classifiers of section 2 show the same lever: a weaker penalty on the weights let the logits grow and turned underconfidence into overconfidence. Not every architecture goes that way, calibration does not survive a change of data, and preference-tuned language models have lost the calibration of their token probabilities in reported cases. Never assume a model is calibrated: measure it.
+
 **The fix.** Divide the logits by a temperature $\tau > 0$ before the softmax:
 
 $$
@@ -321,7 +317,11 @@ where $N_{\text{val}}$ is the number of validation examples. Then report every m
 1. **It does not change any prediction.** Dividing all logits by the same positive number keeps their order, so $\hat{c}$ is unchanged for every example, and accuracy is exactly the same. Module 3 said it: temperature changes the sharpness of a distribution, never its ranking.
 2. **It fits a proper score.** The objective is the log loss, which is strictly proper (section 4), smooth, and needs no bins. Fitting $\tau$ to ECE instead would inherit every pitfall of section 3.
 3. **It has one parameter.** One number cannot overfit 600 validation papers.
-4. **The fit is a one-dimensional convex problem.** Write $\beta = 1/\tau$. For one example the loss is $-\beta z_y + \log \sum_c e^{\beta z_c}$: a linear function of $\beta$ plus a log-sum-exp of linear functions of $\beta$, which is convex. Its derivative is $\sum_c \hat{y}_c(\tau)\, z_c - z_y$, the model's expected logit minus the logit of the correct class. A bracketing search over $\beta$, or Newton's method, finds the global minimum.
+4. **The fit is a one-dimensional convex problem** in $1/\tau$ (optional box below), so a bracketing search, or Newton's method, finds the global minimum.
+
+::: {.callout-tip collapse="true" title="Optional: why the temperature fit is convex"}
+Write $\beta = 1/\tau$. For one example the loss is $-\beta z_y + \log \sum_c e^{\beta z_c}$: a linear function of $\beta$ plus a log-sum-exp of linear functions of $\beta$, which is convex. Its derivative is $\sum_c \hat{y}_c(\tau)\, z_c - z_y$, the model's expected logit minus the logit of the correct class. A bracketing search over $\beta$, or Newton's method, finds the global minimum.
+:::
 
 ```python
 from scipy.optimize import minimize_scalar
@@ -448,19 +448,23 @@ A language model reached through an API returns text. Three sources of confidenc
 | **Verbalized confidence** | ask for the answer and "the probability, between 0 and 1, that your answer is correct" in the same structured reply | nothing beyond the API |
 | **Consistency** | sample several answers to the same question; the confidence is the share that agree with the most common one | several calls per question |
 
-**What is known about verbalized confidence.**
+**What is known about verbalized confidence.** It can be learned; for preference-tuned models it is sometimes better calibrated than the token probabilities; and out of the box it tends to be overconfident and coarse. The optional box below gives the studies.
 
+::: {.callout-tip collapse="true" title="Optional: the studies behind these three findings"}
 - It can be learned. Lin, Hilton and Evans (2022) fine-tuned GPT-3 to state a confidence with its answer, and the stated confidences were well calibrated on arithmetic questions, including under some distribution shift.
 - For preference-tuned models it can beat the token probabilities. Tian et al. (2023) found that for several RLHF-tuned models, confidences stated as output tokens were often better calibrated than the models' own token probabilities, on TriviaQA, SciQ and TruthfulQA.
 - Out of the box it tends to be overconfident and coarse. Xiong et al. (2024) found stated confidences concentrated between 80% and 100%, mostly in multiples of 5, as people tend to state them, and found no elicitation method that was best across tasks.
+:::
 
 So a stated confidence is neither worthless nor trustworthy. It is one more output of the model, and like the extraction of Module 8 it has to be evaluated on labelled data. The measurements are the ones you have already: treat the stated number as $\hat{p}$, the answer as $\hat{c}$, and compute the reliability diagram, ECE, the Brier score and the log loss of the binary event "the answer is correct".
 
-**The protocol.** The lab reuses Module 8's machinery: the provider wrapper, the `PROVIDER` switch, and validate-and-retry against a schema with two fields, the answer (restricted to the item's options) and the confidence. The range $0 \le \hat{p} \le 1$ is checked by your validator, not by the provider: Module 8 noted that Anthropic's structured outputs do not support numeric ranges. Three things to keep in mind when reading the result:
+**The protocol.** The lab reuses Module 8's machinery: the provider wrapper, the `PROVIDER` switch, and validate-and-retry against a schema with two fields, the answer (restricted to the item's options) and the confidence. The range $0 \le \hat{p} \le 1$ is checked by your validator, not by the provider: Module 8 noted that Anthropic's structured outputs do not support numeric ranges. When you read the result, keep in mind that stated confidences are coarse, that the prompt is part of the measurement, and that a few hundred questions give a noisy ECE; the optional box below says what each one means for the lab's numbers.
 
+::: {.callout-tip collapse="true" title="Optional: three things to keep in mind when reading the result"}
 - **Coarse values make ties.** If every stated confidence is 0.9 or 0.95, most bins are empty, and the ranking of section 8 has large flat steps.
 - **The prompt is part of the measurement.** Asking for the answer before or after the confidence, or in words ("high", "low") rather than numbers, changes what comes back. The lab fixes one prompt and prints it; change it and you have a different measurement.
 - **Small evaluation sets are noisy.** On 300 questions, the noise floor of a perfectly calibrated forecaster's ECE is about 0.04 (section 3). A difference of 0.02 between two providers on that set is not a finding.
+:::
 
 **The decision set.** Calibration needs labels that are true, not preferred. The lab uses a small workshop-built set of **decisions** an assistant for a workshop's front desk must make: is a cancellation eligible for a full refund under the written policy, should a request be routed to a calculator, a document lookup, an email, a question back to the user, or a human. Every label follows from a written policy, so it can be checked. Labs 12 and 14 reuse the same set. The lab prints three items and the start and end of the policy prompt before you start; how the set was built and labelled is recorded with the data.
 
@@ -531,6 +535,9 @@ with $N$ the number of validation examples here. Only values of $\lambda$ equal 
 The cheapest threshold is $\lambda = 0.9$, at 0.6 per case, and Chow's rule gives the same value, $\lambda^* = 1 - 1/10 = 0.9$. One wrong action costs as much as ten reviews, so the first error, admitted at $\lambda = 0.8$, outweighs everything gained by deferring less. Risk is not monotone in coverage: it falls from 0.33 to 0.25 when the fourth prediction, a correct one, is admitted.
 :::
 
+On the measured `C = 10` classifier, with the same costs, acting on everything costs more per case than sending everything to a person, and abstaining on the least confident 31 to 42% of cases halves the cost of either. The optional box below has the numbers, policy by policy.
+
+::: {.callout-tip collapse="true" title="Optional: the measured classifier, policy by policy"}
 ::: {.worked-example}
 **Worked example: the measured classifier** (the `C = 10` Lab 1 classifier, $\ell_{\text{wrong}} = 10$, $\ell_{\text{defer}} = 1$, test set, build container, 2026-10-05).
 
@@ -544,10 +551,11 @@ The cheapest threshold is $\lambda = 0.9$, at 0.6 per case, and Chow's rule give
 
 Acting on everything costs more than sending everything to a person. Abstaining on the least confident 31 to 42% of cases halves the cost of either. Before temperature scaling this model is slightly underconfident at the top, so Chow's rule abstains more than it needs to; after scaling, the rule and the empirical choice land close together, as they should for a calibrated model.
 :::
+:::
 
 **Towards Module 12.** Two actions are rarely enough. An assistant might act, ask the user a clarifying question, or escalate to a person, each with its own cost; two thresholds then split the confidence range into three regions, and the same reasoning sets both. [Module 12](12-rlcd-jev.qmd) does this with a decision model that returns probabilities with every typed answer, using the decision set of this lab.
 
-::: {.self-check}
+::: {#chk-chow .self-check}
 **Check yourself.** A wrong action costs 50 and a review costs 2. What threshold does Chow's rule give? You then find, on validation data, that predictions with $\hat{p}$ at or above that threshold are right only 90% of the time. What does acting on them cost per case, and what should you do about it?
 
 ::: {.callout-tip collapse="true" title="Answer"}

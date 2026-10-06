@@ -1,5 +1,13 @@
 ---
 title: "{{< var modules.m06.title >}}"
+live:
+  - {section: 1, minutes: 3}
+  - {section: 2, minutes: 11, activities: [{block: chk-bpe-merge, minutes: 2}]}
+  - {section: 3, minutes: 3}
+  - {section: 4, minutes: 6, activities: [{block: chk-ppl-units, minutes: 2}]}
+  - {section: 5, minutes: 7, activities: [{block: demo-masking, minutes: 4}]}
+  - {section: 6, minutes: 5}
+  - {section: 7, minutes: 10, activities: [{block: chk-head-params, minutes: 2}]}
 ---
 
 {{< include /_includes/module-06.md >}}
@@ -8,22 +16,13 @@ title: "{{< var modules.m06.title >}}"
 **Where we are.** [Module 5](05-transformer-from-scratch.qmd) built a decoder-only transformer and trained it from random parameters on one megabyte of text, one character at a time. The architecture was sound; the data and the token were the limits. This module answers one question: how do we train a transformer once, on far more text and with a better token, so that every later task starts from what it learned?
 :::
 
-## Plan for the 45 minutes
+## Live plan
 
-| Minutes | Section | Lab exercise it prepares |
-|---|---|---|
-| 0–4 | 1. What the from-scratch transformer leaves open | (motivation) |
-| 4–14 | 2. Subword tokenization: byte-pair encoding | Exercises 1 and 2 |
-| 14–18 | 3. Pretrain once, reuse many times | (the recipe) |
-| 18–24 | 4. Causal language modeling: GPT | Exercise 3 |
-| 24–32 | 5. Masked language modeling: BERT | Exercise 4 |
-| 32–37 | 6. The Hugging Face stack | Exercises 2 to 5 and the stretch |
-| 37–43 | 7. Fine-tuning an encoder for classification | Exercise 5 |
-| 43–45 | 8. What changes at scale, and what is still missing | (sets up Module 7) |
+{{< include /_includes/live-06.md >}}
 
-Collapsed boxes marked **Optional** are outside the 45 minutes.
+The lab exercise each section prepares is listed in the [equation-to-lab map](#equation-to-lab-map) at the end of the page.
 
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+## Notation for this module
 
 Notation carried over from earlier modules: tokens $w_1, \dots, w_T$; vocabulary $V$ of size $|V|$; embedding $e_w \in \mathbb{R}^d$; logits $z$ and $\hat{y} = \mathrm{softmax}(z)$; parameters $\theta$; loss $\mathcal{L}$; perplexity $\mathrm{PPL}$; number of classes $C$. All logarithms are natural. New in this module:
 
@@ -137,11 +136,14 @@ Two known pieces, `low` and `est_`, and no unknown token. A word made only of ra
 - In between, larger $M$ gives shorter sequences and a larger embedding table and output layer, each with $|V|$ rows.
 - Real models sit between these extremes. GPT (2018) used 40,000 merges. GPT-2 uses a vocabulary of 50,257. BERT's vocabulary has about 30,000 entries.
 
-### Three things that differ between real tokenizers
+### Real tokenizers
 
+Real tokenizers run this algorithm with three differences of detail: where the word boundary is marked (GPT-2's `Ġ` marks the start of a word, BERT's `##` marks a piece that continues one), what the base symbols are (GPT-2's **byte-level BPE** starts from the 256 byte values, so no string is unknown), and how the pair to merge is chosen (BERT uses WordPiece). The pieces they find are frequent strings, not morphemes. The optional box below gives the details and the same sentence under two pretrained tokenizers; Exercise 2 prints the real splits.
+
+::: {.callout-note collapse="true" title="Optional: three things that differ between real tokenizers"}
 1. **Where the word boundary is marked.** We put `_` at the end of a word. GPT-2 marks the *start* of a word by attaching the preceding space to it (shown as `Ġ` when you print tokens). BERT marks pieces that *continue* a word with a `##` prefix.
 2. **What the base symbols are.** GPT-2 uses **byte-level BPE**: the base vocabulary is the 256 possible byte values, so any string in any script can be encoded and there is no unknown token. Its 50,257 entries are 256 bytes, 50,000 merges and one end-of-text token.
-3. **How merges are chosen.** BERT uses **WordPiece**, which picks pairs by a different criterion (optional box below). The result looks similar.
+3. **How merges are chosen.** BERT uses **WordPiece**, which picks pairs by a different criterion (the optional WordPiece box after the check-yourself questions). The result looks similar.
 
 The same sentence under two pretrained tokenizers. These splits illustrate each tokenizer's conventions; they have **not** been reproduced in the workshop build, because the build machine cannot reach the Hugging Face Hub. Exercise 2 prints the real ones, and they may differ in detail.
 
@@ -155,6 +157,7 @@ GPT-2 (byte-level BPE):
 ```
 
 Expect splits that do not follow the morphology a linguist would draw (in the illustration, `Ġpret` + `rained`); check this against the real output in Exercise 2. The pieces are frequent strings, not meanings. The model learns what to do with them.
+:::
 
 **A tokenizer belongs to its model.** The embedding matrix has one row per token ID. A model pretrained with one tokenizer and fed IDs from another receives the wrong rows, and nothing raises an error. Always load the tokenizer from the same checkpoint as the model.
 
@@ -164,7 +167,7 @@ Expect splits that do not follow the morphology a linguist would draw (in the il
 **In the lab.** In **Exercise 1** you write `pair_counts(words)` (step 3a) and `merge_pair(words, pair)` (step 3c); the checkpoint is the table above (first merges `e`+`s`, `es`+`t`, `est`+`_`, `l`+`o`, `lo`+`w`), the encoding of `lowest` and $|V| = 11 + 5$. In **Exercise 2** you write `tokens_per_word(encode_fn, texts)`, train a BPE tokenizer on the arXiv training texts with the `tokenizers` library, and compare it with the two pretrained tokenizers above by tokens per word on the validation texts.
 :::
 
-::: {.self-check}
+::: {#chk-bpe-merge .self-check}
 **Check yourself.** Continue the worked example by one step. After merge 5 the words are `low _` (5), `low e r _` (2), `n e w est_` (6) and `w i d est_` (3). Which pair does merge 6 choose, with what count, and what decided it?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -275,7 +278,7 @@ The same model on the same text has perplexity 4 per token and 1.41 per characte
 **In the lab.** In **Exercise 3** you write `lm_perplexity(text, model, tokenizer)`: take the logits of a pretrained causal LM (`{{< var models.causal_lm >}}`), shift them one position against the input IDs, and compute @eq-clm over tokens 2 to $T$. The checkpoint compares your value with `exp` of the loss the library returns (relative tolerance $10^{-3}$), and checks that a sentence scores a lower perplexity than the same words shuffled. A provided cell then converts the total to nats per character, as described above.
 :::
 
-::: {.self-check}
+::: {#chk-ppl-units .self-check}
 **Check yourself.** On the same test text, model A reports a perplexity of 20 per BPE token, and its tokens average 4 characters. Model B, a character model, reports a perplexity of 3. Which model fits the text better?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -399,8 +402,9 @@ BERT's inputs also carry two special tokens: `[CLS]` at the start and `[SEP]` at
 
 For scale: BERT-base has 12 layers, $d = 768$ and 110 million parameters, pretrained on 3.3 billion words (BooksCorpus and English Wikipedia).
 
-Probing a pretrained masked LM takes a few lines. The model fills the blank with a distribution, not a single word:
+Probing a pretrained masked LM takes a few lines, and the model fills the blank with a distribution over $V$, not a single word. Exercise 4 runs the probe; the optional box below has the code.
 
+::: {.callout-note collapse="true" title="Optional: probing a masked LM in code"}
 ```python
 import torch
 from transformers import AutoModelForMaskedLM, AutoTokenizer
@@ -423,6 +427,7 @@ print([(tokenizer.convert_ids_to_tokens(i.item()), round(p.item(), 3))
 ```
 
 The probe's output is not quoted here: it has not been reproduced in the workshop build, which cannot reach the Hugging Face Hub. Read the distribution in the lab.
+:::
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 4** you write `mask_tokens(input_ids, special_mask, mask_id, vocab_size, p=0.15)`, the select and corrupt steps above, and return the corrupted IDs and the targets with $-100$ outside $\mathcal{S}$. The checkpoint measures the selected share (between 0.13 and 0.17) and the split of the selected positions on a padded batch of 256 training texts. In the build, run on an offline stand-in tokenizer, the reference solution selected 0.148 of the real tokens; of those, 0.799 became `[MASK]`, 0.102 a random token and 0.099 stayed unchanged. With DistilBERT's tokenizer the token count differs, so your shares will differ slightly. A provided cell then computes @eq-mlm on 16 validation abstracts with the pretrained masked LM, checks it against a hand computation, and runs the fill-in-the-blank probe shown above. The masked LM is DistilBERT (`{{< var models.encoder >}}`) on every runtime, GPU or CPU.
@@ -580,15 +585,9 @@ The gradient at the logits is still Module 1's: $\partial \mathcal{L} / \partial
 
 ### In code
 
-`Trainer` is the training loop of Module 2 (batch, forward, loss, backward, step) with batching, evaluation and device placement handled for you. The two functions you write in Exercise 5 are `tokenize` and `compute_metrics`; the lab wraps the rest in one provided function, `finetune`, so that Module 11 can reuse it. Simplified from the lab (which also switches `fp16` and per-epoch evaluation on only when a GPU is present):
+`Trainer` is the training loop of Module 2 (batch, forward, loss, backward, step) with batching, evaluation and device placement handled for you. The two functions you write in Exercise 5 are `tokenize` and `compute_metrics`:
 
 ```python
-import numpy as np
-from datasets import Dataset
-from sklearn.metrics import accuracy_score, f1_score
-from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
-                          DataCollatorWithPadding, Trainer, TrainingArguments)
-
 def tokenize(batch):                                 # Exercise 5
     return ft_tokenizer(batch["text"], truncation=True, max_length=MAX_LENGTH)   # no padding
 
@@ -597,6 +596,19 @@ def compute_metrics(eval_pred):                      # Exercise 5
     pred = np.argmax(logits, axis=-1)
     return {"accuracy": accuracy_score(labels, pred),
             "macro_f1": f1_score(labels, pred, average="macro")}
+```
+
+The lab wraps the rest in one provided function, `finetune`, so that Module 11 can reuse it. It loads the checkpoint with a new 4-class head, tokenizes the three splits with `tokenize`, truncating each text to 256 tokens, pads each batch only to its own longest text, records the validation loss before training, trains (on a GPU: 2 epochs at $\eta = 5 \times 10^{-5}$), and returns the validation and test logits. The optional box below shows it.
+
+::: {.callout-note collapse="true" title="Optional: the provided fine-tuning function, and what truncation drops"}
+Simplified from the lab (which also switches `fp16` and per-epoch evaluation on only when a GPU is present). The imports serve the two functions above as well.
+
+```python
+import numpy as np
+from datasets import Dataset
+from sklearn.metrics import accuracy_score, f1_score
+from transformers import (AutoModelForSequenceClassification, AutoTokenizer,
+                          DataCollatorWithPadding, Trainer, TrainingArguments)
 
 def finetune(model_name, max_length, epochs, lr, seed, train_rows=None):          # provided
     global ft_tokenizer, MAX_LENGTH                  # read by tokenize()
@@ -629,6 +641,7 @@ result = finetune("{{< var models.encoder >}}", max_length=256, epochs=2, lr=5e-
 ```
 
 Two details. The texts are truncated to 256 tokens *inside the tokenizer call*, not in the dataset, so the model reads the title and the first part of each abstract. How many texts lose their end is printed by the lab just before Exercise 5; with the median text at 183 words, a fair share of abstracts are likely to be longer than 256 subword tokens, but that share has not yet been measured with the pretrained tokenizer. And the collator pads each batch only to its own longest text, which saves computation.
+:::
 
 ### What to expect, honestly
 
@@ -652,7 +665,7 @@ Keep the logits. A classifier's output $\hat{y}$ claims to be a probability. Whe
 **Which encoder runs.** On a GPU runtime the lab fine-tunes DistilBERT (`{{< var models.encoder >}}`) on all 4,800 training texts: 2 epochs, $\eta = 5 \times 10^{-5}$. On a CPU runtime, to fit the time budget, it falls back to BERT-mini (`{{< var models.encoder_cpu >}}`: 4 layers, $d = 256$, the same vocabulary) trained on the first **800** training texts: 3 epochs, $\eta = 10^{-4}$. Validation and test are never reduced. The lab prints the model and the number of training rows beside every number it reports. A CPU-fallback row is not a fair comparison with TF-IDF trained on all 4,800 texts.
 :::
 
-::: {.self-check}
+::: {#chk-head-params .self-check}
 **Check yourself.** DistilBERT has about 66 million parameters. How many parameters does the layer of @eq-head add for $C = 4$ and $d = 768$? In the fine-tuning of this section, how many parameters does each gradient step update? How many would it update if the encoder were frozen?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -660,7 +673,7 @@ $W$ has $4 \times 768 = 3{,}072$ entries and $b$ has 4, so the layer adds 3,076 
 :::
 :::
 
-## 8. What changes at scale, and what is still missing
+## 8. What changes at scale, and what is still missing {.reference}
 
 **Objective: say what larger models added, and what this module's models still cannot do.**
 

@@ -35,7 +35,7 @@ Install TypeSafe's SDK only under its official name, `typesafe-sdk`; the labs in
 
 ## 3. Check the prerequisites
 
-The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyTorch is rusty, the official [60-minute blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) covers what you need.
+Take the 15-minute [entry check](prepare.qmd#entry-check) on the Before Day 1 page: it tells you, area by area, whether to review anything before Day 1 and which sections of which free resources to read.
 
 ## 4. Module 0: optional pre-work {#module-0}
 

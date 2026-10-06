@@ -19,7 +19,7 @@ Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval 
 
 By the end of this module you can:
 
-- Build a RAG pipeline
-- Choose chunking, embedding and reranking settings from measurements
+- Assemble a RAG pipeline in LlamaIndex and LangChain
+- Implement recall@k and MRR, and choose chunk size and top-k from a measured sweep
 - Evaluate retrieval and answer quality separately
 :::

@@ -5,6 +5,7 @@ project:
   # notebooks/*.ipynb and would render README.md, PLAN.md and AGENTS.md as pages.
   render:
     - index.qmd
+    - prepare.qmd
     - setup.qmd
     - schedule.qmd
     - day-1.qmd

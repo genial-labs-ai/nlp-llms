@@ -1,5 +1,13 @@
 ---
 title: "{{< var modules.m02.title >}}"
+live:
+  - {section: 1, minutes: 3}
+  - {section: 2, minutes: 5, activities: [{block: chk-cosine, minutes: 2}]}
+  - {section: 3, minutes: 6}
+  - {section: 4, minutes: 9, activities: [{block: demo-sgns, minutes: 4}]}
+  - {section: 6, minutes: 5, activities: [{block: chk-zero-init, minutes: 2}]}
+  - {section: 7, minutes: 4}
+  - {section: 8, minutes: 5}
 ---
 
 {{< include /_includes/module-02.md >}}
@@ -8,20 +16,9 @@ title: "{{< var modules.m02.title >}}"
 **Where we are.** Module 1 ended with strong count-based baselines and one thing they cannot do: a model that saw *the cat sat* gives *the dog sat* no credit, because every word is its own unrelated symbol and smoothing hands every unseen n-gram the same share. This module asks one question: can a model *learn* a representation in which similar words are close, and what does that buy a classifier and a language model?
 :::
 
-## Plan for the 45 minutes
+## Live plan
 
-| Part | Topic | Minutes |
-|---|---|---|
-| 1 | Where counts stop: sparsity and unrelated symbols | 4 |
-| 2 | The distributional hypothesis and dense vectors | 5 |
-| 3 | Skip-gram with a full softmax | 6 |
-| 4 | Negative sampling: the derivation | 10 |
-| 5 | CBOW and GloVe in brief | 3 |
-| 6 | PyTorch refresher | 5 |
-| 7 | Feed-forward networks and backpropagation | 7 |
-| 8 | Bengio's neural language model | 5 |
-
-Collapsed callouts marked **Optional** are outside the 45 minutes. Skip them in delivery; they are there for reading afterwards. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+{{< include /_includes/live-02.md >}}
 
 ## 1. Where counts stop
 
@@ -60,7 +57,7 @@ $$ {#eq-cosine}
 
 where $\lVert \cdot \rVert$ is the Euclidean norm. Cosine ignores vector length, which tends to track word frequency rather than meaning. *Lab: Exercise 2 implements @eq-cosine to find nearest neighbors.*
 
-::: {.self-check}
+::: {#chk-cosine .self-check}
 **Check yourself.** In two dimensions, let $e_a = (1, 1)$, $e_b = (1, 0.8)$ and $e_c = (5, 1)$. Which of $b$ and $c$ is the nearer neighbor of $a$ by dot product? By cosine (@eq-cosine)? Which answer would you want from a nearest-neighbor search, and why?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -264,7 +261,7 @@ The ratio becomes $(1000/10)^{3/4} = 100^{0.75} \approx 31.6$. The normalizing s
 **Check yourself.** A colleague trains SGNS and wants to report its perplexity on held-out text, to compare with Module 1's bigram model. What do you tell them?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-It cannot be done. Perplexity needs a normalized next-token distribution $P(w_t \mid w_{<t})$. SGNS produces $\sigma(u_o^\top e_w)$, the probability that one pair is real; summed over all $o$ in the vocabulary these values do not add up to 1, and nothing in @eq-sgns pushes them to. SGNS also predicts words on both sides of the center, not the next word from the previous ones. Negative sampling is a different objective from the softmax, not a faster way to compute it. To get a perplexity you need a model with a softmax over the vocabulary, such as the one in Part 8.
+It cannot be done. Perplexity needs a normalized next-token distribution $P(w_t \mid w_{<t})$. SGNS produces $\sigma(u_o^\top e_w)$, the probability that one pair is real; summed over all $o$ in the vocabulary these values do not add up to 1, and nothing in @eq-sgns pushes them to. SGNS also predicts words on both sides of the center, not the next word from the previous ones. Negative sampling is a different objective from the softmax, not a faster way to compute it. To get a perplexity you need a model with a softmax over the vocabulary, such as the one in section 8.
 :::
 :::
 
@@ -290,7 +287,7 @@ $$
 where PMI is the pointwise mutual information of the pair, estimated from co-occurrence counts. So SGNS implicitly factorizes a shifted PMI matrix. This connects word2vec back to the count-based methods of Module 1: the neural model is a compact, weighted factorization of a count matrix, not a different kind of object.
 :::
 
-## 5. CBOW and GloVe in brief
+## 5. CBOW and GloVe in brief {.reference}
 
 **CBOW** (continuous bag of words) is skip-gram reversed. It averages the embeddings of the context words and predicts the center word from that average. It trains faster, because there is one prediction per window rather than $2m$; skip-gram tends to do better on rare words.
 
@@ -310,11 +307,15 @@ $$ {#eq-analogy}
 
 Note the excluded set: without it the answer is usually one of the three input words. *Lab: @eq-analogy is the provided function `analogy(a, b, a2, E)`, which calls your Exercise 2 function `nearest_neighbors` on the vector $e_b - e_a + e_{a'}$ with the three inputs excluded.*
 
-How much of this structure appears depends on the data. Lab 2 trains on about one million tokens of arXiv abstracts. There, 4 of 20 analogies fixed before training come out right (0.20), mostly word forms such as *dataset : datasets*. The same lists answered with pretrained GloVe vectors, trained on about 6 billion tokens, score 11 of the 19 that GloVe can attempt (0.58), against 4 of the same 19 (0.21) for the lab's vectors.
+How much of this structure appears depends on the data. Lab 2 trains on about one million tokens of arXiv abstracts and scores its vectors on 20 analogies fixed before training; its stretch section repeats the test with pretrained GloVe vectors, trained on about 6 billion tokens. *Lab: Section A3 also draws a two-dimensional PCA picture of 60 of your embeddings, from four topic groups chosen before training.* The results are in the box after the lab, below.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 2 measured in Section A3"}
+Open this after Section A3 of the lab (and its stretch section, for GloVe), so that it does not answer the lab's predictions for you. There, 4 of 20 analogies fixed before training come out right (0.20), mostly word forms such as *dataset : datasets*. The same lists answered with pretrained GloVe vectors, trained on about 6 billion tokens, score 11 of the 19 that GloVe can attempt (0.58), against 4 of the same 19 (0.21) for the lab's vectors. That comparison changes the objective as well as the data, but controlled comparisons find that the choice between SGNS and GloVe matters less than hyperparameters and data (Levy, Goldberg and Dagan, 2015). The amount of data is the likely limit, not the objective.
 
 ![Lab 2's SGNS word vectors for 60 words, chosen before training from four groups and projected to two dimensions by principal component analysis (PCA). The vectors were scaled to unit length and centered first, so the plot shows directions, as cosine similarity sees them. Each group has its own color and marker. Two dimensions keep only part of the variance; a word that looks misplaced may be far away along a direction not shown.](/images/02-embedding-pca.svg){#fig-embedding-pca fig-alt="Scatter plot of 60 labeled words on the first two principal components. The four groups form four separate clouds. Vision words such as image, pixel, camera, depth and lidar are at the top. Language words such as text, sentence, word, translation and english are on the right. Robotics words such as robot, grasping, manipulation, locomotion and drone are on the left. Numbers, spelled out or as digits, such as two, five, ten, 1 and 10, are at the bottom center, with first, second and third closer to the language cloud. The robotics words motion and trajectory sit between the robotics and vision clouds."}
 
 The picture is cleaner than the analogies: words from papers on the same topic are close, which is what the distributional hypothesis predicts. *Lab: Section A3 draws this plot from your embeddings and saves the coordinates; @fig-embedding-pca is drawn from the recorded run (`scripts/make_figures_02.py`).*
+:::
 
 ::: {.self-check}
 **Check yourself.** Suppose the offset idea holds only loosely: $e_b - e_a$ is a short vector compared with $e_{a'}$ itself. Remove the exclusion set from @eq-analogy, so that the arg max runs over all of $V$. Which word will the analogy "$a$ is to $b$ as $a'$ is to ?" most likely return?
@@ -362,7 +363,7 @@ for center, context, negatives in loader:          # 1. get a batch
 
 The two `nn.init` lines are word2vec's initialization, and the lab uses them too. With $U = 0$ every score $u^\top e$ is 0 at the first step, so the first loss is exactly $(K + 1)\log 2$; the lab asserts this. At that first step only $U$ moves: in @eq-sgns-grad the gradient with respect to $e_w$ is a weighted sum of context vectors, and all of them are still zero.
 
-::: {.self-check}
+::: {#chk-zero-init .self-check}
 **Check yourself.** To simplify the code, someone initializes *both* $E$ and $U$ to zero. Use @eq-sgns-grad to predict the loss after 1,000 training steps.
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -395,7 +396,12 @@ $$ {#eq-ffn}
 
 Here $h$ is the hidden vector with $d_h$ units, $\mathrm{ReLU}(a) = \max(0, a)$ applied elementwise, $z$ are the logits, $\hat{y}$ the predicted class probabilities and $\mathcal{L}$ the cross-entropy loss. Without the ReLU, the two layers would collapse into one linear map and we would be back at logistic regression. *Lab: Exercise 4 implements the forward pass of @eq-ffn as `FeedForwardClassifier.forward`.*
 
-**Backpropagation** is the chain rule applied from the loss backwards, reusing each intermediate result. Let $\mathrm{onehot}(y) \in \mathbb{R}^C$ be the one-hot vector of the label, $a = W_1 x + b_1$ the hidden pre-activation, and $\delta$ denote the gradient of $\mathcal{L}$ with respect to a layer's pre-activation.
+**Backpropagation** is the chain rule applied from the loss backwards, reusing each intermediate result. At the logits the error is $\hat{y} - \mathrm{onehot}(y)$, where $\mathrm{onehot}(y) \in \mathbb{R}^C$ is the one-hot vector of the label: the same "prediction minus target" form as @eq-softmax-grad and @eq-sgns-grad. Each earlier layer multiplies the error arriving from above by its own local derivative (@eq-backprop, in the optional box). *Lab: you do not write @eq-backprop; `loss.backward()` computes it. A provided cell checks autograd's $\partial \mathcal{L} / \partial z$ against $\hat{y} - \mathrm{onehot}(y)$.*
+
+The chain rule does not stop at $x$: through @eq-avg it reaches every embedding in the document, so embeddings can be trained by the classification loss too. In the lab's core path they stay frozen, so that the comparison with TF-IDF measures the features and nothing else.
+
+::: {.callout-tip collapse="true" title="Optional: backpropagation through the network, line by line"}
+Let $\mathrm{onehot}(y) \in \mathbb{R}^C$ be the one-hot vector of the label, $a = W_1 x + b_1$ the hidden pre-activation, and $\delta$ denote the gradient of $\mathcal{L}$ with respect to a layer's pre-activation.
 
 $$
 \begin{aligned}
@@ -406,9 +412,10 @@ $$
 \end{aligned}
 $$ {#eq-backprop}
 
-where $\odot$ is the elementwise product and $\mathbf{1}[a > 0]$ is 1 where the hidden unit was active and 0 elsewhere (the derivative of ReLU). The first line comes from differentiating $\mathcal{L} = -z_y + \log \sum_j \exp(z_j)$: the derivative with respect to $z_i$ is $\hat{y}_i$, minus 1 when $i = y$. It has the same "prediction minus target" form as @eq-softmax-grad and @eq-sgns-grad. Each later line multiplies the error arriving from above by the local derivative of one layer. *Lab: you do not write @eq-backprop; `loss.backward()` computes it. A provided cell checks autograd's $\partial \mathcal{L} / \partial z$ against $\hat{y} - \mathrm{onehot}(y)$.*
+where $\odot$ is the elementwise product and $\mathbf{1}[a > 0]$ is 1 where the hidden unit was active and 0 elsewhere (the derivative of ReLU). The first line comes from differentiating $\mathcal{L} = -z_y + \log \sum_j \exp(z_j)$: the derivative with respect to $z_i$ is $\hat{y}_i$, minus 1 when $i = y$. It has the same "prediction minus target" form as @eq-softmax-grad and @eq-sgns-grad. Each later line multiplies the error arriving from above by the local derivative of one layer.
 
-One more step of the chain rule gives $\partial \mathcal{L} / \partial x = W_1^\top \delta_a$, and through @eq-avg a gradient for every embedding in the document. So embeddings can be trained by the classification loss too. In the lab's core path they stay frozen, so that the comparison with TF-IDF measures the features and nothing else.
+One more step of the chain rule gives $\partial \mathcal{L} / \partial x = W_1^\top \delta_a$, and through @eq-avg a gradient for every embedding in the document.
+:::
 
 ::: {.self-check}
 **Check yourself.** For one training example, hidden unit 3 has pre-activation $a_3 = -0.7$. What gradient does this example send to row 3 of $W_1$ and to entry 3 of $b_1$? What if $a_3 < 0$ for *every* training example?
@@ -418,9 +425,8 @@ Zero, for both. In @eq-backprop, $\delta_a = (W_2^\top \delta_z) \odot \mathbf{1
 :::
 :::
 
-### What the lab measures
-
-Lab 2 trains SGNS embeddings on the text of the 4,800 training abstracts (1,091,692 tokens, labels ignored), then classifies the same 1,600 test abstracts as Lab 1. These are the values recorded in `data/baselines.json`, measured on a CPU; your run will differ slightly.
+::: {.callout-tip collapse="true" title="After the lab: what Lab 2 measured"}
+Open this after the lab's comparison of the two classifiers, so that it does not answer the lab's prediction for you. Lab 2 trains SGNS embeddings on the text of the 4,800 training abstracts (1,091,692 tokens, labels ignored), then classifies the same 1,600 test abstracts as Lab 1. These are the values recorded in `data/baselines.json`, measured on a CPU; your run will differ slightly.
 
 | Features + model | Dimensions | Test accuracy | Test macro-F1 |
 |---|---|---|---|
@@ -432,6 +438,9 @@ TF-IDF wins by 27 of the 1,600 papers. In four runs with different random stream
 
 - **Averaging costs something.** A topic is often signaled by a few rare, specific words. TF-IDF gives each its own weight; the average dilutes them among the 227 tokens of an average abstract. With 4,800 labeled papers, a linear model can learn a weight for most useful words directly.
 - **For features, the domain of the training text matters.** GloVe was trained on about 5,000 times more text than our SGNS run, but general text: it lacks 8% of the lab's vocabulary words, many of them telling ones (*llms*, *pretrained*), and gives the rest their general-English sense. It scores six points below the in-domain embeddings.
+
+In this comparison more text did not help unless it was text about the task.
+:::
 
 ## 8. Bengio's neural language model
 
@@ -451,7 +460,7 @@ with $W_1 \in \mathbb{R}^{d_h \times (n-1)d}$ and $W_2 \in \mathbb{R}^{|V| \time
 
 ![Bengio's neural language model with $n - 1 = 3$ context words. Every position looks up its word in the same embedding matrix $E$. The three embeddings are concatenated into $x$, a tanh hidden layer gives $h$, and a softmax over $|V|$ gives the next-word distribution.](/images/02-bengio-nplm.svg){#fig-bengio-nplm fig-alt="Left to right: three context words, w_{t-3}, w_{t-2} and w_{t-1}, are each looked up in the same shared embedding matrix E. The three embeddings are concatenated into one vector x, which passes through weights W_1 and a tanh hidden layer h, then through weights W_2 and a softmax, giving a bar chart of the next-word distribution over the vocabulary."}
 
-This addresses both failures from Part 1:
+This addresses both failures from section 1:
 
 - **Sparsity.** The parameter count is $|V| d + d_h (n-1) d + |V| d_h$ plus biases: linear in $|V|$ and in $n$, where the n-gram table has $|V|^n$ cells.
 - **Unrelated symbols.** If *cat* and *dog* have similar embeddings, a context containing *dog* produces nearly the same $x$, hence nearly the same prediction, as one containing *cat*. Probability mass reaches unseen n-grams through similarity, not through a smoothing constant.
@@ -507,8 +516,8 @@ Function names and signatures are those of the notebook as built.
 - The distributional hypothesis supplies the training signal: predict a word's neighbors.
 - Skip-gram with a full softmax costs $O(|V|)$ per pair. Negative sampling replaces it with $K + 1$ binary classifications, giving the loss @eq-sgns at cost $O(K)$.
 - Every gradient in this module has the form "prediction minus target, times the other side's vector".
-- A feed-forward network over averaged embeddings is a dense replacement for TF-IDF plus a linear classifier. Whether it is more accurate is an empirical question. On the lab's test split it is not: 0.867 accuracy against 0.884 for TF-IDF with logistic regression, with 100 dimensions instead of 12,469. Pretrained GloVe, trained on far more but general text, scores 0.805.
-- The amount and the domain of the training text shape what embeddings are good for. GloVe answers many more analogies than the lab's vectors (0.58 against 0.21 on the same 19), but as classifier features it loses to embeddings trained on the task's own text.
+- A feed-forward network over averaged embeddings is a dense replacement for TF-IDF plus a linear classifier. It uses 100 dimensions instead of 12,469. Whether it is more accurate is an empirical question, which Lab 2 answers on its test split (the box after the lab in section 7).
+- The amount and the domain of the training text shape what embeddings are good for. Lab 2 compares its own vectors with pretrained GloVe, trained on far more but general text, on analogies and as classifier features (the boxes after the lab in sections 5 and 7).
 - Bengio's neural language model applies the same pieces to next-word prediction and generalizes to unseen n-grams through embedding similarity.
 - Open problem for Module 3: order and long-range dependence.
 
@@ -516,15 +525,15 @@ Function names and signatures are those of the notebook as built.
 
 1. **"Negative sampling is a fast approximation of the softmax."** It is a different objective. It does not yield normalized probabilities $P_\theta(o \mid w)$ and cannot be used to compute perplexity.
 2. **"Similar vectors mean synonyms."** Cosine similarity reflects shared contexts. Antonyms (*hot*, *cold*) and co-hyponyms (*Tuesday*, *Friday*) share contexts and end up close.
-3. **"The analogy trick shows the model understands relations."** The result depends on excluding the input words in @eq-analogy and on the corpus. On a small corpus most analogies fail: in the lab, 4 of 20 succeed with embeddings trained on one million tokens, and 11 of 19 with GloVe trained on six billion. That comparison changes the objective as well as the data, but controlled comparisons find that the choice between SGNS and GloVe matters less than hyperparameters and data (Levy, Goldberg and Dagan, 2015). The amount of data is the likely limit, not the objective.
+3. **"The analogy trick shows the model understands relations."** The result depends on excluding the input words in @eq-analogy and on the corpus. On a small corpus most analogies fail, and controlled comparisons find that the choice between SGNS and GloVe matters less than hyperparameters and data (Levy, Goldberg and Dagan, 2015). Lab 2 counts how many succeed with its own vectors and with GloVe (the box after the lab in section 5).
 4. **"An embedding layer is a special kind of layer."** It is a linear layer applied to a one-hot vector, implemented as a row lookup.
-5. **"Dense embeddings must beat TF-IDF."** Averaging discards word order and blurs distinctive words. On topic classification with plenty of labeled data, TF-IDF with a linear model is a strong baseline. In the lab it wins: 0.884 test accuracy against 0.867 for averaged SGNS embeddings and 0.805 for averaged GloVe. In this comparison more text did not help unless it was text about the task. Measure before claiming.
+5. **"Dense embeddings must beat TF-IDF."** Averaging discards word order and blurs distinctive words. On topic classification with plenty of labeled data, TF-IDF with a linear model is a strong baseline. Measure before claiming: Lab 2 does, and its result is in the box after the lab in section 7.
 6. **"Each word has one meaning, so one vector is enough."** Static embeddings merge all senses of a word into one point. That limitation motivates the contextual models of Day 2.
 
 ## Readings
 
 1. Mikolov, T., Sutskever, I., Chen, K., Corrado, G. and Dean, J. (2013). [Distributed Representations of Words and Phrases and their Compositionality](https://arxiv.org/abs/1310.4546). *Advances in Neural Information Processing Systems 26*. The negative-sampling paper: sections 2.2 and 2.3.
-2. Goldberg, Y. and Levy, O. (2014). [word2vec Explained: deriving Mikolov et al.'s negative-sampling word-embedding method](https://arxiv.org/abs/1402.3722). arXiv:1402.3722. A slower version of the derivation in Part 4.
+2. Goldberg, Y. and Levy, O. (2014). [word2vec Explained: deriving Mikolov et al.'s negative-sampling word-embedding method](https://arxiv.org/abs/1402.3722). arXiv:1402.3722. A slower version of the derivation in section 4.
 3. Pennington, J., Socher, R. and Manning, C. (2014). [GloVe: Global Vectors for Word Representation](https://aclanthology.org/D14-1162/). *EMNLP 2014*, pages 1532–1543.
 4. Bengio, Y., Ducharme, R., Vincent, P. and Jauvin, C. (2003). [A Neural Probabilistic Language Model](https://www.jmlr.org/papers/v3/bengio03a.html). *Journal of Machine Learning Research* 3, pages 1137–1155.
 5. Jurafsky, D. and Martin, J. H. [*Speech and Language Processing*](https://web.stanford.edu/~jurafsky/slp3/) (3rd edition draft), the chapters "Embeddings" and "Neural Networks". Chapter numbers change between drafts; go by title.

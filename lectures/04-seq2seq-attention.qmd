@@ -1,5 +1,12 @@
 ---
 title: "{{< var modules.m04.title >}}"
+live:
+  - {section: 1, minutes: 5}
+  - {section: 2, minutes: 8}
+  - {section: 3, minutes: 4, activities: [{block: chk-bottleneck, minutes: 2}]}
+  - {section: 4, minutes: 12, activities: [{block: demo-attention, minutes: 4}]}
+  - {section: 5, minutes: 5}
+  - {section: 6, minutes: 3, activities: [{block: chk-prefix, minutes: 2}]}
 ---
 
 {{< include /_includes/module-04.md >}}
@@ -8,21 +15,11 @@ title: "{{< var modules.m04.title >}}"
 **Where we are.** Module 3's recurrent language model reads a prefix of any length and emits one prediction per input token, in step with it. It has no way to map one sequence to *another*, of a different length and in a different order: a sentence to its translation, a written date to ISO format. This module asks one question: how should the source reach the model that writes the target, and what breaks when it has to pass through a single vector?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. From next-token prediction to transduction | 5 |
-| 2. The encoder-decoder model | 8 |
-| 3. The fixed-vector bottleneck | 5 |
-| 4. Attention | 12 |
-| 5. Three score functions | 5 |
-| 6. Attention as soft alignment | 4 |
-| 7. Decoding | 3 |
-| 8. Attention as a query-key-value lookup | 3 |
-| **Total** | **45** |
+{{< include /_includes/live-04.md >}}
 
-The collapsed callouts are optional and sit outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+Section 8 is not taught here because Module 5 opens Day 2 with the same material, live: its section 1 restates attention as a query-key-value lookup and asks the two questions that end this page.
 
 ## 1. From next-token prediction to transduction
 
@@ -133,13 +130,19 @@ Two further things make it worse in practice:
 
 These are two different problems. The first is about *capacity*: even a perfectly trained model cannot fit an unbounded amount of information in $d_h$ numbers. The second is about *optimization*. Attention addresses both.
 
+::: {.callout-tip collapse="true" title="Optional: the evidence from translation"}
 The evidence is empirical. Bahdanau et al. (2015) report that the translation quality of the fixed-vector model drops quickly as sentences get longer. Sutskever et al. (2014) found that simply reversing the source sentence helped markedly, because it shortens the path between the first source words and the first target words. A trick like that is a sign that the architecture is fighting the task.
-
-::: {.callout-note appearance="simple"}
-**In the lab.** The source contains $K$ dates, $K = 1$ to $4$, so the amount the decoder must remember grows with the input. In **Exercise 2** you write `exact_match` (the whole output string must be right) and measure it by $K$ for the model without attention. At the lab's budget ($d_h = 128$, 4,000 training steps) it breaks as soon as a second date appears: exact match is 0.898 for one date and 0.000 for two, three and four. It keeps only the first date. In every bucket the first output date is right for 0.90 to 0.93 of the sources and every later date for none, although the outputs still have the right number of well-formed ISO dates. More capacity or training would raise these numbers. The claim is about an equal budget, which the attention model of section 4 gets.
 :::
 
-::: {.self-check}
+::: {.callout-note appearance="simple"}
+**In the lab.** The source contains $K$ dates, $K = 1$ to $4$, so the amount the decoder must remember grows with the input. In **Exercise 2** you write `exact_match` (the whole output string must be right) and measure it by $K$ for the model without attention. What it scores in each bucket is the lab's prediction; the result is in the box after the lab.
+:::
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 4 measured in Exercise 2"}
+Open this after Exercise 2, so that it does not answer the lab's prediction for you. At the lab's budget ($d_h = 128$, 4,000 training steps) the model without attention breaks as soon as a second date appears: exact match is 0.898 for one date and 0.000 for two, three and four. It keeps only the first date. In every bucket the first output date is right for 0.90 to 0.93 of the sources and every later date for none, although the outputs still have the right number of well-formed ISO dates. More capacity or training would raise these numbers. The claim is about an equal budget, which the attention model of section 4 gets.
+:::
+
+::: {#chk-bottleneck .self-check}
 **Check yourself.** Double the source length from $S$ to $2S$ and leave the target alone. In the plain encoder-decoder, how do these two quantities change: the number of values in the vector that carries the source to the decoder, and the number of recurrent steps between the first source token and the last target token? Which of the two problems named above does each belong to?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -225,7 +228,11 @@ def dot_product_attention(q, keys, mask):  # q: (B, T, d_h), the decoder states 
 ```
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** **Exercise 3** is the attention step, in the two functions above: `masked_attention(scores, keys, mask)` (the masked softmax of @eq-weights and the context vector of @eq-context) and `dot_product_attention(q, keys, mask)` (the scores of @eq-dot). Both return `(alpha, h_bar)`. The combination layer of @eq-attentional is provided. Trained with the same $d_h$, steps, optimizer and batches as the plain model, the attention model reaches exact match 1.000 for every $K$ from 1 to 4, where the plain model scored 0.000 from $K = 2$ on.
+**In the lab.** **Exercise 3** is the attention step, in the two functions above: `masked_attention(scores, keys, mask)` (the masked softmax of @eq-weights and the context vector of @eq-context) and `dot_product_attention(q, keys, mask)` (the scores of @eq-dot). Both return `(alpha, h_bar)`. The combination layer of @eq-attentional is provided. The attention model is trained with the same $d_h$, steps, optimizer and batches as the plain model; its exact match by $K$ is in the box after the lab.
+:::
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 4 measured with attention"}
+Open this after the lab has trained the attention model, so that it does not answer the lab's prediction for you. Trained with the same $d_h$, steps, optimizer and batches as the plain model, the attention model reaches exact match 1.000 for every $K$ from 1 to 4, where the plain model scored 0.000 from $K = 2$ on.
 :::
 
 ::: {#demo-attention .demo}
@@ -367,30 +374,38 @@ Collect the weights into a matrix with one row per target position and one colum
 
 In statistical machine translation, an **alignment** records which source word each target word translates. Attention computes a *soft* alignment: a distribution over source positions instead of a single link. It is learned without any alignment labels.
 
-For the date task the expected pattern is easy to state. While the decoder writes the four digits of the year, the weight should sit on the year in the source, wherever it is. While it writes the month digits `03`, the weight should sit on the word `March`. When the source and target order differ, the bright cells leave the diagonal.
-
-![Attention weights $\alpha_{t,i}$ measured in Lab 4 for the source `3 March 2021` (columns) and the model's output `2021-03-03`, followed by `<eos>` (rows). Dot-product attention model of the recorded run, greedy decoding; the output is correct. Each row sums to 1. Weights of at least 0.10 are printed, rounded to two decimals. Data: `data/lab04_attention_example.json`; drawn by `scripts/make_figures_04.py`.](/images/04-attention-alignment.svg){#fig-attention-alignment fig-alt="Heat-map of measured attention weights. Columns are the 12 characters of 3 March 2021, rows are the output characters 2021-03-03 and the end token. Most rows have a single dark cell holding almost all the weight: the year rows on the digits of 2021 at the right, the month rows on and just after the word March, the day rows on the 3 and the space after it at the left. The dark cells therefore run against the diagonal."}
-
-@fig-attention-alignment shows that pattern, measured. Most rows are close to one-hot: 8 of the 11 rows put more than 0.99 of their weight on a single position. The year rows read the year, the month rows read `March` and the day rows read `3`. But the weight often lands on a neighbor of the character you would point to. The first digit of the year, `2`, is read at the source `0` after it. The month's `0` is read at the space after `March`, and its `3` mostly at `r`, the first letter at which `Mar` can no longer be `May`. The day's leading `0` is read at the space after `3`: that is the first state at which the encoder has seen that the day has a single digit and so needs a leading zero.
+For the date task the expected pattern is easy to state. While the decoder writes the four digits of the year, the weight should sit on the year in the source, wherever it is. While it writes the month digits `03`, the weight should sit on the word `March`. When the source and target order differ, the bright cells leave the diagonal. Exercise 5 plots this map for `3 March 2021` from the lab's trained model; the recorded run's map is in the box after the lab, below.
 
 Two cautions when reading these maps:
 
-- **The weights show where the model read, not why.** A bright cell says that $h_i$ contributed strongly to $\bar{h}_t$. It does not explain how that information was used. The day's leading zero has a plausible reason; for the first year digit the map alone gives none.
-- **$h_i$ is not the token $x_i$.** Each encoder state summarizes the source up to position $i$ (or around it, with a bidirectional encoder). The weight can therefore land one position away from where you expect. In the lab's unidirectional encoder it often does, as the figure shows.
+- **The weights show where the model read, not why.** A bright cell says that $h_i$ contributed strongly to $\bar{h}_t$. It does not explain how that information was used.
+- **$h_i$ is not the token $x_i$.** Each encoder state summarizes the source up to position $i$ (or around it, with a bidirectional encoder). The weight can therefore land one position away from where you expect.
 
 ::: {.callout-note appearance="simple"}
-**In the lab.** In **Exercise 5** you plot the matrix of $\alpha_{t,i}$ for the example above and three test inputs, then write `alignment_hit_rate(alphas, examples, tol)`: the share of target digits whose largest weight lies inside the span of the correct date, or at most `tol` positions after it. On the test set, with `tol = 1` to allow for the unidirectional encoder, it is 0.996; an arg-max drawn uniformly over the source would score between 0.23 and 0.41 for $K \ge 2$. The off-by-one shifts mostly stay inside the date: with `tol = 0` the rate is still 0.99 or more in every bucket.
+**In the lab.** In **Exercise 5** you plot the matrix of $\alpha_{t,i}$ for `3 March 2021` and three test inputs, then write `alignment_hit_rate(alphas, examples, tol)`: the share of target digits whose largest weight lies inside the span of the correct date, or at most `tol` positions after it.
 :::
 
-::: {.self-check}
+::: {.callout-tip collapse="true" title="After the lab: what Lab 4 measured in Exercise 5"}
+Open this after Exercise 5, so that it does not answer the lab's prediction for you.
+
+![Attention weights $\alpha_{t,i}$ measured in Lab 4 for the source `3 March 2021` (columns) and the model's output `2021-03-03`, followed by `<eos>` (rows). Dot-product attention model of the recorded run, greedy decoding; the output is correct. Each row sums to 1. Weights of at least 0.10 are printed, rounded to two decimals. Data: `data/lab04_attention_example.json`; drawn by `scripts/make_figures_04.py`.](/images/04-attention-alignment.svg){#fig-attention-alignment fig-alt="Heat-map of measured attention weights. Columns are the 12 characters of 3 March 2021, rows are the output characters 2021-03-03 and the end token. Most rows have a single dark cell holding almost all the weight: the year rows on the digits of 2021 at the right, the month rows on and just after the word March, the day rows on the 3 and the space after it at the left. The dark cells therefore run against the diagonal."}
+
+@fig-attention-alignment shows the expected pattern, measured. Most rows are close to one-hot: 8 of the 11 rows put more than 0.99 of their weight on a single position. The year rows read the year, the month rows read `March` and the day rows read `3`. But the weight often lands on a neighbor of the character you would point to. The first digit of the year, `2`, is read at the source `0` after it. The month's `0` is read at the space after `March`, and its `3` mostly at `r`, the first letter at which `Mar` can no longer be `May`. The day's leading `0` is read at the space after `3`: that is the first state at which the encoder has seen that the day has a single digit and so needs a leading zero.
+
+Both cautions above show in this map. The day's leading zero has a plausible reason; for the first year digit the map alone gives none. In the lab's unidirectional encoder the weight often lands one position away from where you expect, as the figure shows.
+
+On the test set, with `tol = 1` to allow for the unidirectional encoder, `alignment_hit_rate` is 0.996; an arg-max drawn uniformly over the source would score between 0.23 and 0.41 for $K \ge 2$. The off-by-one shifts mostly stay inside the date: with `tol = 0` the rate is still 0.99 or more in every bucket.
+:::
+
+::: {#chk-prefix .self-check}
 **Check yourself.** The source is `12 May 2020` and the encoder reads left to right, so $h_i$ has seen characters 1 to $i$ and nothing after them. The decoder must write the month as `05`. What is the first source position whose state can settle which month it is? If a month row of the heat-map put all its weight on the `M`, what could the decoder learn from it?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Position 6, the `y`. The characters are `1`, `2`, space, `M`, `a`, `y`. After `M` the month could be March or May; after `Ma` it still could. Only $h_6$ has read enough to rule out March. A row with all its weight on the `M` would return $h_4$, a state computed before the month was decided. It could tell the decoder that a month starting with M is here, not which one. So you should expect the month rows to read at the `y` or just after it, not before, as @fig-attention-alignment shows for `March`, where the weight sits at the `r` and the space. A bright cell marks the state that was read, and a state knows only its prefix.
+Position 6, the `y`. The characters are `1`, `2`, space, `M`, `a`, `y`. After `M` the month could be March or May; after `Ma` it still could. Only $h_6$ has read enough to rule out March. A row with all its weight on the `M` would return $h_4$, a state computed before the month was decided. It could tell the decoder that a month starting with M is here, not which one. So you should expect the month rows to read at the `y` or just after it, not before. Where Lab 4's month rows read for `March` is in the box after the lab, above. A bright cell marks the state that was read, and a state knows only its prefix.
 :::
 :::
 
-## 7. Decoding
+## 7. Decoding {.reference}
 
 **Objective for this section:** distinguish greedy decoding from beam search.
 
@@ -400,7 +415,7 @@ At test time we want a target sequence with high probability under @eq-factoriza
 
 **Beam search** keeps the $B$ best partial outputs at every step instead of one, where $B$ is the **beam size**. It is still approximate, but it explores more. $B = 1$ is greedy decoding.
 
-Whether the extra search helps depends on the model. On the date task it changes nothing: the attention model puts almost all its probability on one output, so greedy decoding already finds it. Beam search earns its cost when the model is uncertain between several outputs, as in translation.
+Whether the extra search helps depends on the model. Beam search earns its cost when the model is uncertain between several outputs, as in translation. Whether it helps on the date task is the prediction of the lab's stretch section; the result is in the box after the lab, below.
 
 Module 3's sampling strategies (temperature, top-k, nucleus) are the alternative when variety is wanted. For transduction tasks with one correct answer, such as dates, we want the most probable output, so we search.
 
@@ -408,7 +423,7 @@ Module 3's sampling strategies (temperature, top-k, nucleus) are the alternative
 **Check yourself.** A model with a two-token vocabulary $\{a, b\}$ gives the first token the probabilities $P(a) = 0.6$, $P(b) = 0.4$. After $a$, its most probable continuation has probability 0.5. After $b$, its most probable continuation has probability 0.9. Which two-token output does greedy decoding return, and with what probability? Which does beam search with $B = 2$ return?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Greedy takes $a$, because $0.6 > 0.4$, and then the best continuation: probability $0.6 \times 0.5 = 0.30$. Beam search with $B = 2$ keeps both first tokens alive, extends each, and compares complete outputs: $0.30$ for the best output starting with $a$ against $0.4 \times 0.9 = 0.36$ for the best starting with $b$. It returns the second. The best first token did not start the best sequence. Greedy can never recover from that, because it has discarded $b$ before seeing what follows. On the lab's date model the first choice is almost never this close, which is why the two decoders tie there.
+Greedy takes $a$, because $0.6 > 0.4$, and then the best continuation: probability $0.6 \times 0.5 = 0.30$. Beam search with $B = 2$ keeps both first tokens alive, extends each, and compares complete outputs: $0.30$ for the best output starting with $a$ against $0.4 \times 0.9 = 0.36$ for the best starting with $b$. It returns the second. The best first token did not start the best sequence. Greedy can never recover from that, because it has discarded $b$ before seeing what follows. How close the first choice is on the lab's date model is what the stretch section's comparison shows.
 :::
 :::
 
@@ -433,10 +448,14 @@ The algorithm:
 
 **No guarantee.** Beam search does not always return the most probable sequence, and a larger beam does not always give a better output by the task metric.
 
-The stretch section of the lab implements this algorithm as `beam_search(model, source, B)`, which returns the output string and its log-probability, and checks that $B = 1$ reproduces greedy decoding exactly. It then compares $B = 1, 3, 5$ on 200 test sources. On this task they tie: exact match 1.000 and mean log-probability $-0.0007$ for all three beam sizes.
+The stretch section of the lab implements this algorithm as `beam_search(model, source, B)`, which returns the output string and its log-probability, and checks that $B = 1$ reproduces greedy decoding exactly. It then compares $B = 1, 3, 5$ on 200 test sources; the result is in the box after the lab.
 :::
 
-## 8. Attention as a query-key-value lookup
+::: {.callout-tip collapse="true" title="After the lab: what Lab 4 measured with beam search"}
+Open this after the lab's stretch section, so that it does not answer its prediction for you. On the date task beam search changes nothing: the attention model puts almost all its probability on one output, so greedy decoding already finds it. Compared on 200 test sources, $B = 1, 3, 5$ tie: exact match 1.000 and mean log-probability $-0.0007$ for all three beam sizes. On the lab's date model the first choice is almost never as close as in the check above, which is why the two decoders tie there.
+:::
+
+## 8. Attention as a query-key-value lookup {.reference}
 
 **Objective for this section:** restate attention in the general form that Module 5 builds on.
 
@@ -486,7 +505,7 @@ Position $t$ itself. The score is $h_t^\top h_i = \lVert h_t \rVert\, \lVert h_i
 - Attention keeps all encoder states. At each target step it scores them against the decoder state, normalizes the scores with a softmax over source positions (@eq-weights), and averages (@eq-context).
 - The score can be a dot product (@eq-dot), a bilinear form (@eq-general) or a small network (@eq-additive).
 - The weights $\alpha_{t,i}$ form a soft alignment that can be plotted and inspected.
-- Greedy decoding takes the best token at each step; beam search keeps $B$ hypotheses. Both are approximate. On the confident date model they give the same outputs.
+- Greedy decoding takes the best token at each step; beam search keeps $B$ hypotheses. Both are approximate, and whether beam search helps depends on how confident the model is.
 - Attention is a soft lookup with a query, keys and values (@eq-qkv). Here $q = s_t$ and $k_i = v_i = h_i$.
 
 ### Equations and where you implement them

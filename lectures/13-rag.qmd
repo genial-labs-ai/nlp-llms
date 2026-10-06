@@ -1,5 +1,17 @@
 ---
 title: "{{< var modules.m13.title >}}"
+live:
+  - {section: 1, minutes: 3}
+  - {section: 2, minutes: 3, activities: [{block: chk-stages, minutes: 2}]}
+  - {section: 3, minutes: 4}
+  - {section: 4, minutes: 6}
+  - {section: 5, minutes: 4}
+  - {section: 6, minutes: 6, activities: [{block: chk-rerank, minutes: 2}]}
+  - {section: 7, minutes: 3}
+  - {section: 8, minutes: 5, activities: [{block: demo-recall-budget, minutes: 4}]}
+  - {section: 9, minutes: 5, activities: [{block: chk-faith, minutes: 2}]}
+  - {section: 10, minutes: 2}
+  - {section: 11, minutes: 4}
 ---
 
 {{< include /_includes/module-13.md >}}
@@ -8,26 +20,9 @@ title: "{{< var modules.m13.title >}}"
 [Module 12](12-rlcd-jev.qmd) ended with a decision model that answers typed questions about a state, and with thresholds that turn its probabilities into actions. A decision, like a generated answer, is only as good as the text in front of the model, and nothing so far chooses that text. This module answers two questions: how do we put the right passages in front of a model, and when an answer is wrong, how do we tell whether the passages or the model failed?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. What Module 12 left open: why retrieve | 4 |
-| 2. The pipeline | 4 |
-| 3. Chunking | 4 |
-| 4. Dense retrieval | 6 |
-| 5. Sparse and hybrid retrieval | 4 |
-| 6. Reranking: cross-encoders and a decision model | 6 |
-| 7. Generation: sources, citations, abstention | 3 |
-| 8. Evaluating retrieval | 5 |
-| 9. Evaluating answers | 4 |
-| 10. Common failures | 2 |
-| 11. LlamaIndex and LangChain | 3 |
-| **Total** | **45** |
-
-The collapsed callouts are optional and sit outside the 45 minutes.
-
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+{{< include /_includes/live-13.md >}}
 
 ::: {.callout-important appearance="simple"}
 **Frameworks change; the pipeline does not.** The LlamaIndex and LangChain names on this page were checked on 2026-10-05 against the installed source of the versions the lab pins: `llama-index-core` 0.14.25, `llama-index-retrievers-bm25` 0.8.0, `langchain-core` 1.6.6 and `langchain-text-splitters` 1.1.3. The documentation sites (`docs.llamaindex.ai`, `docs.langchain.com`) could not be reached from the build environment, so nothing here rests on them. The Jev names were checked against `typesafe-sdk` 0.7.2, as in Module 12. Class names will drift. The seven stages of section 2, the two ways of scoring a passage (section 4 and section 6) and the separation of retrieval metrics from answer metrics (sections 8 and 9) will not.
@@ -118,7 +113,7 @@ Alt text: A RAG pipeline in two lanes. Offline, documents are loaded, chunked, e
 
 Every stage has settings, and every setting changes what the generator sees. The module's second objective is to choose them from measurements, which needs a labelled question set (section 8). Without one, a RAG pipeline is tuned by looking at a few answers, which is how most of the failures in section 10 go unnoticed.
 
-::: {.self-check}
+::: {#chk-stages .self-check}
 **Check yourself.** You change the chunk size from 256 to 128 tokens. Which of the seven stages must run again before the next query can be answered? And why do the gold evidence labels of section 8 not need to be redone?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -281,12 +276,12 @@ Everything in that sentence is the interface: one `system_one(state, questions)`
 
 - **There is no official LlamaIndex integration.** No package from TypeSafe or from LlamaIndex connects them (checked 2026-10-05). The lab writes the reranker itself, in about 35 lines, as a subclass of LlamaIndex's `BaseNodePostprocessor`. Install only `typesafe-sdk`; other packages with similar names are not TypeSafe's.
 - **There is no batch endpoint.** $k_0$ candidates mean $k_0$ calls, sent concurrently with `AsyncTypeSafeClient` under a limit (the lab uses 8).
-- **Rank by the probabilities, not `confidence`.** @eq-expected-level uses $\pi$; the `confidence` field measures how concentrated $\pi$ is (Module 12, section 6). The lab stores it beside each passage and does not sort by it.
+- **Rank by the probabilities, not `confidence`.** @eq-expected-level uses $\pi$; the `confidence` field measures how concentrated $\pi$ is (Module 12, section 8). The lab stores it beside each passage and does not sort by it.
 - **Fail open.** If a call fails, the reranker returns the first stage's order unchanged and says so. A reranker that fails closed would turn a network error into an empty context.
 
-We do not know how Jev was trained or how it represents a passage. TypeSafe states that its models are "trained for calibrated decisions; validate their performance in the target domain" (Module 12, section 2). Whether its relevance judgments help on our corpus is what the lab's labelled questions measure, against a cross-encoder, on the same candidates. Nothing about Jev's ranking quality is assumed on this page.
+We do not know how Jev was trained or how it represents a passage. TypeSafe states that its models are "trained for calibrated decisions; validate their performance in the target domain" (Module 12, section 5). Whether its relevance judgments help on our corpus is what the lab's labelled questions measure, against a cross-encoder, on the same candidates. Nothing about Jev's ranking quality is assumed on this page.
 
-::: {.self-check}
+::: {#chk-rerank .self-check}
 **Check yourself.** (1) A first stage has recall@5 of 0.60 and recall@20 of 0.85 (invented numbers). You rerank its 20 candidates and keep 5. What is the highest recall@5 the reranker can reach, and how many pair evaluations do 80 questions cost? (2) For one query, passage X gets rubric probabilities $\pi = (0.1, 0.2, 0.3, 0.4)$ over levels 0 to 3, and passage Y gets $(0.45, 0, 0, 0.55)$. Which ranks first under @eq-expected-level? Which has the higher probability of being a full answer?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -436,7 +431,7 @@ The table tells you which half of the pipeline to work on. It is the reason the 
 - **A natural-language-inference (NLI) model** (a cross-encoder trained to label a premise and a hypothesis as entailment, contradiction or neutral) is the lab's open judge: $J$ is the largest entailment probability of the sentence over the passages. It is small and deterministic, but it was trained on short everyday sentences, and lecture pages full of notation and equations are far from that.
 - **Faithfulness is only as good as its agreement with people.** Before trusting a judge, compare its verdicts with human labels on a sample and report the agreement (Module 8). Until the lab's audit set exists, its faithfulness numbers are printed as unvalidated.
 
-::: {.self-check}
+::: {#chk-faith .self-check}
 **Check yourself.** An answer has four sentences, and the judge gives them support probabilities 0.9, 0.55, 0.4 and 0.8. (1) What is its faithfulness (@eq-faith)? (2) The 0.4 sentence states a fact that is true but appears in none of the retrieved passages, and it is the sentence that answers the question; the question's gold evidence was not retrieved. In which cell of the two-by-two table does this question fall, and is it a success?
 
 ::: {.callout-tip collapse="true" title="Answer"}

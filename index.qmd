@@ -19,7 +19,7 @@ Modern language models did not appear from nowhere. Each step, from counting wor
 :::
 
 ::: {.hero-actions}
-[Start with setup](setup.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
+[Start here](prepare.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
 :::
 
 {{< include /_includes/facts.md >}}
@@ -71,6 +71,8 @@ Machine learning practitioners who want to understand language models from the g
 - **Machine learning basics:** train and test splits, loss functions, gradient descent, logistic regression.
 - **PyTorch:** you have trained at least one model with `nn.Module` and an optimizer loop. Module 2 includes a short refresher.
 - **Math:** vectors and matrices, the chain rule, conditional probability, cross-entropy.
+
+Not sure? The 15-minute [entry check](prepare.qmd#entry-check) on the Before Day 1 page tells you, area by area, whether to review anything and what to read.
 
 You need a Google account for Colab. API keys are optional: every lab runs without them, on a free open model or, in Module 12, on a small decision model you train in the lab. See [Setup](setup.qmd).
 :::

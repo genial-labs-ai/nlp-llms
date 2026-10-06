@@ -6,9 +6,11 @@ title: "{{< var modules.m00.title >}}"
 
 ## How this module works
 
-You work alone, in a terminal, at your own pace. It is optional pre-work: do it at home, before Day 1. If you get stuck, bring your laptop to the optional drop-in clinic on Day 1 from 08:00 to 09:00, before the first lecture.
+You work alone, at your own pace, by giving a coding agent short prompts in a terminal. It is optional pre-work: do it at home, before Day 1. If you get stuck, bring your laptop to the optional drop-in clinic on Day 1 from 08:00 to 09:00, before the first lecture.
 
 A **coding agent** is a language model that runs in a loop on your machine. It reads files, proposes edits, runs commands, reads their output, and decides what to do next. You give it a goal in plain English; it asks before it does anything risky. The software around the model (the loop, the tools, what the model is shown, the rules for what it may do without asking) is called the **harness**: Claude Code, Codex and Gemini CLI are three harnesses, each around its maker's models. Module 14 builds a small harness from scratch. Here you use a finished one.
+
+**You drive it with prompts.** You type only a few commands yourself: the one-time WSL 2 setup on Windows, the agent's installer, the command that starts the agent in your project folder, and a local web server to view your pages. You ask the agent to do everything else, in short prompts: set up git and GitHub, write and run the apps, check them, commit and publish. Then you check what it did. When a step needs your password, the agent shows you the command and you run it yourself.
 
 By the end you have a public GitHub repository of your own with two small apps, each with a 3D page that anyone can open:
 
@@ -19,11 +21,13 @@ Build both apps in **one** language, Python or R. Pick it in any Python | R tab 
 
 | Minutes | Section | You end with |
 |---|---|---|
-| 0–10 | [1. Install a coding agent](#install) | An agent that answers in your terminal |
-| 10–15 | [2. Git and GitHub](#git) | An empty public repository on your laptop |
-| 15–35 | [3. App 1: protein structure explorer](#protein) | `protein/` committed |
-| 35–55 | [4. App 2: customer segmentation](#rfm) | `rfm/` committed |
+| 0–10 | [1. Install a coding agent](#install) | An agent running in your project folder that answers you |
+| 10–20 | [2. Git and GitHub](#git) | git and `gh` set up, you signed in, an empty public repository |
+| 20–38 | [3. App 1: protein structure explorer](#protein) | `protein/` checked and committed |
+| 38–55 | [4. App 2: customer segmentation](#rfm) | `rfm/` checked and committed |
 | 55–60 | [5. Publish](#publish) | Two live URLs |
+
+The minutes are an estimate, not a measurement: no one has yet timed this module on a fresh laptop.
 
 **You need:** a laptop or desktop with macOS, Linux or Windows 10/11; a GitHub account; an account for one agent (each tab below says which, and what it costs); and Python 3.10 or later, or a recent R 4.x. On Windows, use **WSL 2** (the Windows Subsystem for Linux) with Ubuntu for the whole module. This page gives no native Windows or PowerShell instructions: inside WSL 2 you follow the Linux steps, and every command works as written.
 
@@ -35,17 +39,13 @@ Build both apps in **one** language, Python or R. Pick it in any Python | R tab 
 3. Do the rest of this module in that Ubuntu window, in your Linux home folder (`~`), and follow the **Linux** instructions wherever a step differs by system.
 :::
 
-The habit this module teaches is more durable than any one tool: **plan, act, check the work yourself, then commit.** An agent is fast and often right. It is also confidently wrong in ways you will only notice if you check one number by hand.
+The habit this module teaches is more durable than any one tool: **plan, act, check the work yourself, then commit.** An agent is fast and often right. It is also confidently wrong in ways you will only notice if you check one number against a source the agent did not produce.
 
 ## 1. Install a coding agent (10 min) {#install}
 
 Pick one tab. The choice stays selected for the rest of the page. Commands were checked on {{< var assistants.checked >}} against the sources named at the end of each tab; the versions current that day were Claude Code {{< var assistants.claude_code >}}, Codex {{< var assistants.codex >}} and Gemini CLI {{< var assistants.gemini_cli >}}. These tools change weekly: if a command fails, check the tool's own page.
 
-Make an empty folder for the sanity check first:
-
-```bash
-mkdir -p ~/agent-test && cd ~/agent-test
-```
+Each tab ends with the command that starts the agent in your project folder, `~/agent-apps`. You work in that folder for the whole module.
 
 ::: {.panel-tabset group="agent"}
 
@@ -65,33 +65,18 @@ mkdir -p ~/agent-test && cd ~/agent-test
 
 - Alternatives: `brew install --cask claude-code` (Homebrew; does not auto-update).
 
-Open a **new** terminal, then check:
+**Start it.** Open a **new** terminal, make the project folder, and start Claude Code there in **Manual** mode, so it asks before every command and file edit:
 
 ```bash
-claude --version
-claude doctor
-```
-
-**Sign in.** Run `claude` and follow the browser prompt. If the browser does not open, press `c` to copy the login URL. In WSL the browser may show a code instead of returning to the terminal: paste it at the `Paste code here if prompted` prompt. To switch accounts later, type `/login` inside a session.
-
-**Account and cost.** Claude Code needs a Claude Pro, Max, Team or Enterprise plan, or a Claude Console account (pay per token with prepaid credits). The free Claude plan does not include it. On {{< var assistants.checked >}}, [claude.com/pricing](https://claude.com/pricing) listed Pro at $20 a month ($17 a month billed annually) and Max from $100 a month. This module fits comfortably in a Pro plan.
-
-**Sanity prompt.** Start `claude` in `~/agent-test` and type:
-
-```text
-What is in this folder, and which versions of Python and R are installed?
-Do not create or change any files.
-```
-
-It should run commands such as `python3 --version`, asking you first, and report what it found.
-
-**Permission prompts.** A *permission mode* sets what Claude Code may do without asking. Recent versions start in **auto** mode, where a second model reviews actions instead of you. For this module, start in **Manual** mode so you see every prompt:
-
-```bash
+mkdir -p ~/agent-apps && cd ~/agent-apps
 claude --permission-mode manual
 ```
 
-Each prompt shows the exact command or file edit and offers *Yes*, *Yes, and don't ask again for …*, and *No*. Press `Shift+Tab` to cycle modes: Manual → accept edits (file edits run without asking) → plan (reads only, proposes a plan). `Esc` interrupts a running step.
+**Sign in.** The first start asks you to sign in: follow the browser prompt. If the browser does not open, press `c` to copy the login URL. In WSL the browser may show a code instead of returning to the terminal: paste it at the `Paste code here if prompted` prompt. To switch accounts later, type `/login` inside a session.
+
+**Account and cost.** Claude Code needs a Claude Pro, Max, Team or Enterprise plan, or a Claude Console account (pay per token with prepaid credits). The free Claude plan does not include it. On {{< var assistants.checked >}}, [claude.com/pricing](https://claude.com/pricing) listed Pro at $20 a month ($17 a month billed annually) and Max from $100 a month. This module fits comfortably in a Pro plan.
+
+**Permission prompts.** A *permission mode* sets what Claude Code may do without asking. Recent versions start in **auto** mode, where a second model reviews actions instead of you. The start command above chooses **Manual** mode instead, so you see every prompt. Each prompt shows the exact command or file edit and offers *Yes*, *Yes, and don't ask again for …*, and *No*. Press `Shift+Tab` to cycle modes: Manual → accept edits (file edits run without asking) → plan (reads only, proposes a plan). `Esc` interrupts a running step.
 
 **Quit and resume.** Quit with `/exit` or `Ctrl+D` twice. Resume the last conversation in this folder with `claude --continue`, or pick one with `claude --resume` (or `/resume` inside a session). `/diff` shows the changes in your working tree.
 
@@ -114,26 +99,18 @@ Each prompt shows the exact command or file edit and offers *Yes*, *Yes, and don
 - Alternatives: `npm install -g {{< var agents_intro.clis.codex >}}` or `brew install --cask codex`.
 - Windows: inside WSL 2, as on Linux. Codex's own system requirements list Windows 11 via WSL 2.
 
-Open a new terminal, then check with `codex --version`.
-
-**Sign in.** Run `codex` and choose **Sign in with ChatGPT**. If the browser cannot reach the terminal (common in WSL), run `codex login --device-auth` instead. `codex login status` shows who is signed in. To use an API key: `printenv OPENAI_API_KEY | codex login --with-api-key`.
-
-**Account and cost.** The README recommends signing in with a ChatGPT Plus, Pro, Business, Edu or Enterprise plan; an OpenAI API key (billed per token) also works. We could not verify plan prices from an official page on {{< var assistants.checked >}}: see [chatgpt.com/pricing](https://chatgpt.com/pricing) and OpenAI's [Codex in ChatGPT](https://help.openai.com/en/articles/11369540-codex-in-chatgpt) article.
-
-**Sanity prompt.** Start `codex` in `~/agent-test` and type:
-
-```text
-What is in this folder, and which versions of Python and R are installed?
-Do not create or change any files.
-```
-
-**Permission prompts.** Codex combines a *sandbox* (what commands can touch) with an *approval policy* (when it asks you). Start it like this for the module:
+**Start it.** Open a **new** terminal, make the project folder, and start Codex there with the "Default" preset (explained below):
 
 ```bash
+mkdir -p ~/agent-apps && cd ~/agent-apps
 codex --sandbox workspace-write --ask-for-approval on-request
 ```
 
-This is the "Default" preset: Codex reads, edits and runs commands inside the project folder **without asking**, and asks before it reaches the internet (for example `pip install` or a download) or writes outside the folder. Because edits are not prompted, review them with `/diff` or `git diff` after each step. `/permissions` switches to **Read Only** (asks before any edit) or back. `/plan` switches to plan mode. `Esc` interrupts a running turn. Avoid `--dangerously-bypass-approvals-and-sandbox` (alias `--yolo`) on your own laptop.
+**Sign in.** The first start asks you to sign in: choose **Sign in with ChatGPT**. If the browser cannot reach the terminal (common in WSL), quit, run `codex login --device-auth` instead, and start Codex again. `codex login status` shows who is signed in. To use an API key: `printenv OPENAI_API_KEY | codex login --with-api-key`.
+
+**Account and cost.** The README recommends signing in with a ChatGPT Plus, Pro, Business, Edu or Enterprise plan; an OpenAI API key (billed per token) also works. We could not verify plan prices from an official page on {{< var assistants.checked >}}: see [chatgpt.com/pricing](https://chatgpt.com/pricing) and OpenAI's [Codex in ChatGPT](https://help.openai.com/en/articles/11369540-codex-in-chatgpt) article.
+
+**Permission prompts.** Codex combines a *sandbox* (what commands can touch) with an *approval policy* (when it asks you). The start command above is the "Default" preset: Codex reads, edits and runs commands inside the project folder **without asking**, and asks before it reaches the internet (for example `pip install` or a download) or writes outside the folder. Because edits are not prompted, ask it to show you the diff after each step, or type `/diff`. `/permissions` switches to **Read Only** (asks before any edit) or back. `/plan` switches to plan mode. `Esc` interrupts a running turn. Avoid `--dangerously-bypass-approvals-and-sandbox` (alias `--yolo`) on your own laptop.
 
 **Quit and resume.** Quit with `/quit` or `/exit`. Resume with `codex resume` (a picker) or `codex resume --last`.
 
@@ -156,26 +133,18 @@ This is the "Default" preset: Codex reads, edits and runs commands inside the pr
 - Alternatives: `brew install gemini-cli` (macOS and Linux), or try it without installing: `npx {{< var agents_intro.clis.gemini >}}`.
 - Windows: inside WSL 2, as on Linux.
 
-Check with `gemini --version`.
-
-**Sign in.** Run `gemini` and choose **Sign in with Google**; follow the browser flow. A school, company or Workspace account also needs `export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"` first. To use an API key from Google AI Studio instead: `export GEMINI_API_KEY="..."` before `gemini` (do not commit it). `/auth` changes the method later.
-
-**Account and cost.** A personal Google account works on the free tier: up to 1,000 model requests per user per day, per the project's quota page (the README also mentions 60 requests a minute). Google AI Pro and Ultra subscriptions raise the daily quota; an unpaid API key gives 250 requests a day on Flash models only. Read the [terms and privacy notices](https://github.com/google-gemini/gemini-cli/blob/main/docs/resources/tos-privacy.md) for how each tier may use your prompts.
-
-**Sanity prompt.** Start `gemini` in `~/agent-test` and type:
-
-```text
-What is in this folder, and which versions of Python and R are installed?
-Do not create or change any files.
-```
-
-**Permission prompts.** The *approval mode* sets what runs without asking. Start in the default mode, which prompts before tools that edit files or run commands:
+**Start it.** Open a **new** terminal, make the project folder, and start Gemini CLI there in the default approval mode, which prompts before tools that edit files or run commands:
 
 ```bash
+mkdir -p ~/agent-apps && cd ~/agent-apps
 gemini --approval-mode default
 ```
 
-`Shift+Tab` cycles default → auto_edit (file edits approved automatically) → plan (read-only). Avoid `--approval-mode yolo`, which approves everything. `Ctrl+C` cancels the current request.
+**Sign in.** The first start asks how to sign in: choose **Sign in with Google** and follow the browser flow. A school, company or Workspace account also needs `export GOOGLE_CLOUD_PROJECT="YOUR_PROJECT_ID"` before you start `gemini`. To use an API key from Google AI Studio instead: `export GEMINI_API_KEY="..."` before `gemini` (do not commit it). `/auth` changes the method later.
+
+**Account and cost.** A personal Google account works on the free tier: up to 1,000 model requests per user per day, per the project's quota page (the README also mentions 60 requests a minute). Google AI Pro and Ultra subscriptions raise the daily quota; an unpaid API key gives 250 requests a day on Flash models only. Read the [terms and privacy notices](https://github.com/google-gemini/gemini-cli/blob/main/docs/resources/tos-privacy.md) for how each tier may use your prompts.
+
+**Permission prompts.** The *approval mode* sets what runs without asking. The start command above chooses the default mode. `Shift+Tab` cycles default → auto_edit (file edits approved automatically) → plan (read-only). Avoid `--approval-mode yolo`, which approves everything. `Ctrl+C` cancels the current request.
 
 **Quit and resume.** Quit with `/quit` (or `/exit`), or `Ctrl+C` on an empty prompt. Resume the latest session with `gemini --resume`, or open the session browser with `/resume`.
 
@@ -183,12 +152,22 @@ gemini --approval-mode default
 
 :::
 
-**What you should see.** Your agent answers the sanity prompt, asks before running at least one command (Codex may run read-only commands without asking), and leaves the folder unchanged. If it does, you are done with section 1. Delete the test folder with `rm -r ~/agent-test`.
+**No subscription?** Claude Code and Codex need a paid plan or an API key billed per token. Gemini CLI has a free tier with a personal Google account. If you have none of these, use Gemini CLI's free tier, or pair with someone who has an agent and take turns writing the prompts.
+
+**Check that it works.** Your agent is running in the empty folder `~/agent-apps`. Type this prompt:
+
+```text
+What is in this folder, and which versions of Python, R, git and the GitHub CLI (gh)
+are installed? Do not create or change any files.
+```
+
+*What you should see:* the agent asks before running at least one command, such as `python3 --version` (Codex may run read-only commands without asking), then reports what it found. The folder is still empty. Note anything it reports as missing: section 2 starts there. If your language is missing or too old (you need Python 3.10 or later, or a recent R 4.x), ask the agent to install it, with the same rule as in section 2: anything that needs your password, you run yourself. Keep the agent running.
 
 ::: {.callout-tip collapse="true"}
 ## Troubleshooting: macOS
 
 - **`command not found` after installing.** Open a new terminal window first. The native installers for Claude Code and Codex put the command in `~/.local/bin`; if it is still missing, add that folder to your PATH: `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc`, then open a new terminal.
+- **Claude Code does not start properly.** Run `claude doctor`: it checks the installation and reports what is wrong.
 - **No Homebrew.** Install it from [brew.sh](https://brew.sh), or use the `curl` installers, which do not need it.
 - **Node.js** (Gemini CLI only): `brew install node`, then `node --version`.
 - **Corporate proxy.** Set `HTTPS_PROXY=http://proxy.example.com:8080` in your shell before starting the tool. If your company inspects TLS, install its root certificate in the system keychain; Node-based tools such as Gemini CLI also read `NODE_EXTRA_CA_CERTS=/path/to/corporate-ca.crt`.
@@ -198,6 +177,7 @@ gemini --approval-mode default
 ## Troubleshooting: Linux
 
 - **`command not found` after installing.** Open a new terminal. If `~/.local/bin` is not on your PATH, add it: `echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc`.
+- **Claude Code does not start properly.** Run `claude doctor`: it checks the installation and reports what is wrong.
 - **Node.js too old** (Gemini CLI needs 20 or later; distribution packages are often older). Install the current LTS release with nvm: `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | bash`, open a new terminal, then `nvm install --lts`. The LTS line was Node.js 24 on {{< var agents_intro.checked >}}.
 - **`EACCES` from `npm install -g`.** Do not use `sudo npm install -g`. Installing Node.js with nvm, as above, puts global packages in your home folder and avoids the error.
 - **Corporate proxy.** As for macOS: `HTTPS_PROXY`, and `NODE_EXTRA_CA_CERTS` for Node-based tools if your company inspects TLS.
@@ -223,63 +203,79 @@ gemini --approval-mode default
 - **Keep the context small.** Start a new session for App 2 instead of continuing App 1's conversation.
 :::
 
-## 2. Git and GitHub (5 min) {#git}
+## 2. Git and GitHub (10 min) {#git}
 
-GitHub Pages publishes a website from a GitHub repository, so your apps need a repository first. **git** tracks the files; the **GitHub CLI** (`gh`) creates the repository and turns on Pages from the terminal.
+GitHub Pages publishes a website from a GitHub repository, so your apps need a repository first. **git** tracks the files. The **GitHub CLI** (`gh`) signs you in to GitHub, creates the repository and turns on Pages. From here on you type prompts, not commands: the agent runs the commands and asks you first. (Codex asks before most of the commands in this section, because they use the network or write outside the project folder.)
 
-**Install git and gh.**
+::: {.callout-important appearance="simple"}
+## Passwords and tokens stay with you
 
-- macOS: `brew install git gh` (or `xcode-select --install` for git alone).
-- Linux and WSL (Debian, Ubuntu): `sudo apt update && sudo apt install git`, then gh from GitHub's own package repository:
+The agent cannot type your password, and it should never see one. When a command needs `sudo` (likely on Linux and WSL when software is installed), the prompts below tell the agent to show you the command instead of running it. Run it yourself in a **second terminal** (open one, then `cd ~/agent-apps`), then tell the agent it is done. Never paste a password, token or API key into a prompt.
+:::
 
-  ```bash
-  (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
-    && sudo mkdir -p -m 755 /etc/apt/keyrings \
-    && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-    && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-    && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-    && sudo apt update \
-    && sudo apt install gh -y
-  ```
+**1. Install what is missing.**
 
-- Linux (Fedora, DNF5): `sudo dnf install git dnf5-plugins`, `sudo dnf config-manager addrepo --from-repofile=https://cli.github.com/packages/rpm/gh-cli.repo`, `sudo dnf install gh`.
-- Windows: inside WSL 2, use the Ubuntu commands above.
-
-**Sign in and create the repository.**
-
-```bash
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"   # the email on your GitHub account
-gh auth login            # GitHub.com, HTTPS, "Login with a web browser"; say yes to authenticating git
-gh repo create agent-apps --public --add-readme --clone
-cd agent-apps
-git branch --show-current   # note the name: usually main
+```text
+Install whichever of git and the GitHub CLI (gh) is missing, following each tool's
+official instructions for this system. If a step needs sudo or my password, do not
+run it: show me the command and I will run it in a second terminal. Finish by
+showing me git --version and gh --version.
 ```
 
-`--public` matters: on a free GitHub account, Pages works only for public repositories. `--add-readme` gives the repository a first commit, so the clone is not empty.
+*What you should see:* a permission prompt for each install command; read it before you approve it. On macOS the agent will usually use Homebrew. The first git command on a Mac may open a dialog offering to install the Command Line Tools: accept, wait until it finishes (it takes several minutes), then tell the agent to continue. On Ubuntu and WSL, installing `gh` usually needs `sudo`, so the agent hands you a few lines to run. Read them before you run them, and ask the agent to explain any line you do not understand. At the end, both tools print a version. If both were already installed, nothing changes.
 
-**What you should see.** `gh auth status` reports that you are logged in, and `ls` inside `agent-apps` shows `README.md`. From here on, start your agent **inside `agent-apps`**, in the mode from section 1.
+**2. Tell git who you are.** Put your own name in place of "Your Name", and the email address of your GitHub account in place of the example.
 
-*Sources, checked {{< var agents_intro.checked >}}:* git install commands from the git-scm.com site source (`content/install/` in [git/git-scm.com](https://github.com/git/git-scm.com)); gh install commands from [cli/cli](https://github.com/cli/cli) `README.md` and `docs/install_*.md`; `gh repo create` and `gh auth login` flags from their definitions in cli/cli (`pkg/cmd/repo/create/create.go`, `pkg/cmd/auth/login/login.go`); Pages availability from the GitHub Docs source ([github/docs](https://github.com/github/docs), `data/reusables/gated-features/pages.md`). cli.github.com and docs.github.com were not reachable from the build machine.
+```text
+Set my global git user.name to "Your Name" and user.email to "you@example.com",
+unless they are already set, and show me the result.
+```
+
+*What you should see:* your name and email. Every commit you make from now on carries them.
+
+**3. Sign in to GitHub.** You sign in in your browser. The agent only starts the sign-in.
+
+```text
+Sign me in to GitHub: run gh auth login --web for github.com over HTTPS, show me
+the one-time code it prints, and wait while I finish in the browser. Then run
+gh auth setup-git and gh auth status. Never print my token or put it in a file.
+```
+
+*What you should see:* a line like `! First copy your one-time code: ABCD-1234` and the address `https://github.com/login/device`. Open that address, sign in to GitHub, enter the code and authorize the GitHub CLI. `gh auth setup-git` lets git push with the same sign-in. `gh auth status` then reports that you are logged in to github.com under your user name. It must not show your full token. `gh` keeps the token in your system's credential store. Where there is none (common on Linux and WSL), `gh` itself writes it to a plain text file in your home folder, outside the project; `gh auth status` says where.
+
+**If no code appears** within half a minute, the agent may be holding the output until the command ends, which it never does on its own. Interrupt the agent (`Esc`; `Ctrl+C` in Gemini CLI). Run `gh auth login --web` yourself in your second terminal and finish in the browser. Then ask the agent: `Run gh auth setup-git and gh auth status.`
+
+**4. Create the repository.**
+
+```text
+Make this folder a git repository on a branch named main, with a one-line README.md
+as the first commit. Then create a public GitHub repository named agent-apps from
+this folder with gh and push that commit; show me the commands and wait for my OK
+before you run them. Finish by giving me the repository's URL.
+```
+
+*What you should see:* a short list of commands, before anything runs, ending in something like `gh repo create agent-apps --public --source=. --push`. Check that it says `--public`: on a free GitHub account, Pages works only for public repositories. After your OK, the agent gives you `https://github.com/YOUR-USERNAME/agent-apps`. Open it and you see the README.
+
+*Sources:* `gh auth login` (the `--web` flag, the one-time code it prints, the git credential setup it skips when it is not run interactively, and the fallback to a plain text file) and `gh repo create` (`--public`, `--source`, and `--push`, which needs `--source`), from their definitions in [cli/cli](https://github.com/cli/cli) (`pkg/cmd/auth/login/login.go`, `pkg/cmd/auth/shared/login_flow.go`, `internal/authflow/flow.go`, `pkg/cmd/repo/create/create.go`), read through raw.githubusercontent.com on 2026-10-06. Pages availability from the GitHub Docs source ([github/docs](https://github.com/github/docs), `data/reusables/gated-features/pages.md`), checked {{< var agents_intro.checked >}}, when docs.github.com was not reachable from the build machine.
 
 ## Working habits for both apps
 
 Read this once; it applies to every step below.
 
+- **Short prompts, with the rules inside.** Each prompt below says what to do, what not to touch, and, where it matters, what "done" looks like. Anything that needs your password or leaves your laptop (a push, a publish) comes with "show me first". Put that in the prompt itself: the three agents' permission settings differ, but every agent can follow that sentence.
 - **Plan first.** The first prompt of each app asks for a plan and forbids file changes. Use your tool's plan mode for it if you like (`Shift+Tab` in Claude Code and Gemini CLI, `/plan` in Codex).
-- **Review the diff before you accept it.** When a prompt shows a file edit, read it. Keep a second terminal open in `agent-apps` and run `git status` and `git diff` after each step; Claude Code and Codex also have `/diff`. If you do not understand a change, ask the agent to explain it before you continue.
-- **Approve commands you understand.** Downloads and package installs (`pip install`, `install.packages`) will ask for permission; that is expected. Decline anything that deletes files outside the project, touches your shell configuration, or pushes to GitHub. You push yourself, in section 5.
+- **Review the diff before you accept it.** When a permission prompt shows a file edit, read it. After each step, ask "Show me the diff of what you changed" (Claude Code and Codex also have `/diff`). If you do not understand a change, ask the agent to explain it before you continue.
+- **Approve commands you understand.** Downloads and package installs (`pip install`, `install.packages`) will ask for permission; that is expected. Decline anything that deletes files outside the project or touches your shell configuration, and any push the agent has not shown you first.
 - **Never paste secrets.** Do not paste API keys, tokens or passwords into a prompt, and do not keep a `.env` file in the project. Everything the agent reads is sent to its provider. Do not ask it to run `gh auth token`. If a key ever lands in a commit, revoke it with the provider; deleting the commit is not enough.
-- **Check one number yourself.** Each app has a step where you compute a result without the agent. That is the step that catches mistakes.
-- **Commit when a step works.** A commit is an undo point: `git restore <file>` takes you back to it.
-- **Run servers in your own terminal.** A local web server never stops on its own; if the agent starts one, its turn can hang. Start servers yourself in the second terminal.
+- **Check against numbers the agent did not produce.** Each app has a check step. The agent writes a short, separate check, and you compare its output with numbers printed on this page, which come from the reference solutions, not from your agent. That is the step that catches mistakes.
+- **Commit when a step works.** A commit is an undo point: if a later step goes wrong, ask the agent to restore the file from the last commit.
+- **Run servers in your own terminal.** A local web server never stops on its own; if the agent starts one, its turn can hang. Start servers yourself in the second terminal. It is the only command you type while you build the apps.
 
 The repository will look like this when you are done:
 
 ```text
 agent-apps/
+├── README.md           the first commit (section 2)
 ├── index.html          links to the two apps (section 5)
 ├── .nojekyll           tells GitHub Pages to serve the files as they are
 ├── .gitignore
@@ -287,9 +283,9 @@ agent-apps/
 └── rfm/                App 2: purchases_v1.csv.gz, analyze.py or analyze.R, data.json, index.html
 ```
 
-The **prompts are numbered boxes**: type each one into your agent as it is, and read "What you should see" before you move on. Where Python and R differ, a tab shows both.
+The **prompts are numbered boxes**: type each one into your agent, changing only what the text around it tells you to, and read "What you should see" before you move on. Where Python and R differ, a tab shows both.
 
-## 3. App 1: protein structure explorer (20 min) {#protein}
+## 3. App 1: protein structure explorer (18 min) {#protein}
 
 Proteins fold into compact 3D shapes, and the shape decides what a protein does. Ubiquitin is a small, well-studied protein; its structure, entry **1UBQ** in the Protein Data Bank (PDB), was solved by X-ray crystallography. A PDB file lists every atom with its x, y and z coordinates in ångströms (Å; 1 Å = 0.1 nm). Each amino acid (*residue*) has one central carbon atom, the **C-alpha**; joining the C-alphas in chain order traces the **backbone**.
 
@@ -352,11 +348,13 @@ check each number. Ask me anything that is unclear.
 
 :::
 
+This prompt is longer than the others because it is the specification: the data source, the units and the definitions decide the numbers you check later.
+
 ::: {.callout-important appearance="simple"}
 This prompt contains a **deliberate flaw** in the contact definition. Leave it in. You will catch it in step 4 and make the agent fix it in step 5.
 :::
 
-*What you should see:* a short plan naming one script, `data.json`, the libraries, and a way to check each number. No files change (`git status` is clean). If the agent starts writing files anyway, interrupt it and repeat "plan only".
+*What you should see:* a short plan naming one script, `data.json`, the libraries, and a way to check each number. No files change. If the agent starts writing files anyway, interrupt it and repeat "plan only".
 
 **2. Write the analysis.**
 
@@ -365,7 +363,7 @@ The plan looks good. Implement it now. Keep the script short and readable,
 with the Kyte-Doolittle values in one dictionary (or named vector) at the top.
 ```
 
-*What you should see:* permission prompts for each new file (Claude Code in Manual mode, Gemini CLI in default mode) and for installing packages. Codex writes inside the folder without asking, so read `git diff` afterwards. Check that the hydrophobicity table has 20 entries, one per standard amino acid.
+*What you should see:* permission prompts for each new file (Claude Code in Manual mode, Gemini CLI in default mode) and for installing packages. Codex writes inside the folder without asking, so ask it for the diff afterwards. Check that the hydrophobicity table has 20 entries, one per standard amino acid.
 
 **3. Run it.**
 
@@ -375,30 +373,35 @@ Run the script and show me what it prints.
 
 *What you should see:* the script downloads `1ubq.pdb` (another permission prompt for the network) and prints 76 residues, a radius of gyration near 11.49 Å, and 326 contacts. `protein/data.json` exists. If the RCSB download fails, the script should fall back to the workshop copy; say so to the agent if it did not.
 
-**4. Check two numbers yourself.** Do this in your second terminal, not through the agent. The program below is ten lines of `awk`, a text tool that ships with macOS, Linux and WSL; it reads the same PDB columns, computes $R_g$ by the formula above, and counts contacts twice: all pairs, and pairs at least 3 apart in the chain.
+**4. Check the numbers.** The agent writes this check, but it must not reuse its own script, and you compare the result with numbers from this page, not with anything the agent says.
 
-```bash
-awk 'BEGIN { n = 0 }   # start at 0: an unset n would make the first key "" not 0
-     /^ATOM/ && substr($0,13,4) == " CA " {
-       x[n] = substr($0,31,8); y[n] = substr($0,39,8); z[n] = substr($0,47,8); n++ }
-     END {
-       for (i = 0; i < n; i++) { mx += x[i]/n; my += y[i]/n; mz += z[i]/n }
-       for (i = 0; i < n; i++) s += (x[i]-mx)^2 + (y[i]-my)^2 + (z[i]-mz)^2
-       for (i = 0; i < n; i++) for (j = i+1; j < n; j++)
-         if ((x[i]-x[j])^2 + (y[i]-y[j])^2 + (z[i]-z[j])^2 <= 64) { all++; if (j-i >= 3) far++ }
-       printf "C-alpha atoms %d   Rg %.2f A   contacts %d   with |i-j| >= 3: %d\n", n, sqrt(s/n), all, far
-     }' protein/1ubq.pdb
+```text
+Without using your analysis script, write a short one-off check in awk, Python or R
+that reads protein/1ubq.pdb directly. It should print the number of C-alpha atoms,
+the radius of gyration, and the number of C-alpha pairs at most 8 angstroms apart,
+counted separately for |i - j| = 1, |i - j| = 2 and |i - j| >= 3. Show me the code,
+then run it, and do not save it in the project.
 ```
 
-*What you should see:* the same number of C-alpha atoms and the same $R_g$ to two decimals as the agent's script. The contact count matches the agent's too, but look at the difference between the two counts: it is exactly $2N - 3$ for $N$ residues. Every pair of neighbors $(i, i{+}1)$ and every pair $(i, i{+}2)$ is counted. That is the flaw.
+*What you should see:* read the code first. It should take the C-alpha (` CA `) atom lines from the PDB file itself, not from `data.json`, and compute $R_g$ by the formula above. Then compare its output with these numbers from the reference solutions:
+
+| Quantity | Expected |
+|---|---|
+| C-alpha atoms | 76 |
+| Radius of gyration | 11.49 Å |
+| Pairs within 8 Å, $\lvert i - j \rvert = 1$ | 75 |
+| Pairs within 8 Å, $\lvert i - j \rvert = 2$ | 74 |
+| Pairs within 8 Å, $\lvert i - j \rvert \ge 3$ | 177 |
+| All pairs within 8 Å | 326 |
+
+The atom count, $R_g$ to two decimals, and the total of 326 match the agent's script from step 3. Now look at the rows for $\lvert i - j \rvert = 1$ and $2$. A chain of $N = 76$ residues has exactly 75 neighbor pairs $(i, i{+}1)$ and 74 pairs $(i, i{+}2)$, and the check finds every one of them within 8 Å. Together they are $2N - 3 = 149$ pairs, exactly the difference between the agent's 326 and the 177 pairs with $\lvert i - j \rvert \ge 3$. The agent's contact count includes all of them. That is the flaw. If the check disagrees with the table in some other way, either the check or the script is wrong: ask the agent to show you the lines in each that compute the number, and find out which.
 
 **5. Make the agent find and fix its mistake.** Do not tell it the answer; make it reason.
 
 ```text
-I checked the contact count independently. Look at which pairs your contact map
-counts, grouped by |i - j|. Is part of the count true for every protein, whatever
-its shape? Explain why, propose a better definition, and wait for my OK before
-changing the code.
+Look at the check's pair counts by |i - j|. Is part of your contact count true for
+every protein, whatever its shape? Explain why and propose a better definition, then
+wait for my OK before changing the code.
 ```
 
 *What you should see:* the agent notices that consecutive C-alpha atoms are always about 3.8 Å apart (the fixed geometry of the peptide bond), so pairs one apart, and pairs two apart (at most two such steps, under 8 Å), are "in contact" whatever the fold. They say nothing about how the chain packs. It should propose counting only pairs with $|i - j| \ge 3$. Approve that, then:
@@ -408,7 +411,7 @@ Make that change, add an assertion that no pair with |i - j| < 3 is ever counted
 and run the script again.
 ```
 
-The new count is 177, equal to the second number from your `awk` check.
+The new count is 177, equal to the $\lvert i - j \rvert \ge 3$ row of your check.
 
 ::: {.callout-note appearance="simple" collapse="true"}
 ## R only: if your count was already right
@@ -438,7 +441,7 @@ No other libraries. Keep it under 300 lines.
 
 *What you should see:* one new file. Skim it: the import map should name version {{< var agents_intro.threejs >}} exactly, and the page should read `data.json`, not a copy of the numbers pasted into the HTML.
 
-**7. View it locally.** Browsers refuse to `fetch()` a file from a page opened straight from disk, so serve the folder over HTTP. In your **second terminal**, from `agent-apps`:
+**7. View it locally.** Browsers refuse to `fetch()` a file from a page opened straight from disk, so serve the folder over HTTP. This one you type yourself (see "Run servers in your own terminal" above). In your **second terminal**, from `~/agent-apps`:
 
 ::: {.panel-tabset group="language"}
 
@@ -461,17 +464,18 @@ Open <http://localhost:8000/protein/>. Stop the server later with `Ctrl+C`.
 
 *What you should see:* the backbone in 3D. Drag to rotate, scroll to zoom. Color by hydrophobicity: the strongly hydrophobic residues should mostly sit inside the fold. Click a residue and compare its contact count with `data.json`. If the page is blank, open the browser's developer console (`F12`, or `Cmd+Option+I` on a Mac), copy the first error, and give it to the agent.
 
-**8. Commit.** Review, then commit yourself:
+**8. Commit.**
 
-```bash
-git status                      # protein/ and .gitignore; no .venv/
-git add protein .gitignore
-git commit -m "Protein structure explorer for 1UBQ"
+```text
+Show me what you will commit and wait for my OK. Then commit protein/ and .gitignore
+with the message "Protein structure explorer for 1UBQ", and do not push yet.
 ```
 
-## 4. App 2: customer segmentation (20 min) {#rfm}
+*What you should see:* a list with `protein/1ubq.pdb`, the script, `protein/data.json`, `protein/index.html` and `.gitignore`. It must not include `.venv/` (Python) or `.Rhistory` and `.RData` (R). If anything else is in it, say no and ask why.
 
-Start a **new agent session** in `agent-apps` (quit and start again), so App 1's conversation does not fill the context.
+## 4. App 2: customer segmentation (17 min) {#rfm}
+
+Start a **new agent session** in `~/agent-apps` (quit and start again), so App 1's conversation does not fill the context.
 
 A shop wants to treat customers differently: thank the best ones, win back those drifting away. **RFM** describes each customer with three numbers:
 
@@ -548,6 +552,8 @@ Tell me the functions and how we can check the numbers.
 
 :::
 
+Again the plan prompt is the specification: the seed, the number of restarts, the kind of standard deviation and the naming rule decide which segments you get.
+
 ::: {.callout-important appearance="simple"}
 Step 2 of this prompt contains a **deliberate flaw**: "as of today". Leave it in; you will catch it in step 4.
 :::
@@ -560,7 +566,7 @@ Step 2 of this prompt contains a **deliberate flaw**: "as of today". Leave it in
 Implement the plan.
 ```
 
-*What you should see:* one new script. In the diff, find the line that computes recency, and the line that counts frequency: is it counting distinct invoices, or rows?
+*What you should see:* one new script. In the diff (ask for it if your agent did not show one), find the line that computes recency, and the line that counts frequency: is it counting distinct invoices, or rows?
 
 **3. Run it.**
 
@@ -571,27 +577,27 @@ of the RFM table.
 
 *What you should see:* 3,000 customers, a silhouette score for each $k$ from 3 to 6, the chosen $k$, and one line per segment. Keep the first five rows on screen for step 4.
 
-**4. Check one customer yourself.** Take the first customer ID from those five rows. In your second terminal, compute that customer's numbers straight from the raw file:
+**4. Check one customer.** The agent counts from the raw file with a separate check; you do the date arithmetic yourself.
 
-```bash
-gzip -dc rfm/purchases_v1.csv.gz | awk -F, -v c=CUSTOMER_ID '
-  $3 == c { inv[$1] = 1; spend += $6 * $7; if ($2 > last) last = $2 }
-  END { for (i in inv) n++; printf "invoices %d   spend %.2f   last purchase %s\n", n, spend, last }'
+```text
+Without using your analysis script, write a short one-off check that reads
+rfm/purchases_v1.csv.gz directly and prints, for the first customer in the RFM
+table, the number of distinct invoices, the total spend and the last purchase date.
+Show me the code, then run it, and do not save it in the project.
 ```
 
-Replace `CUSTOMER_ID` with the number. Then work out recency by hand: the number of days from that last purchase date to **2026-01-01**, the day after the data end (a purchase on 2025-12-31 has recency 1).
+*What you should see:* read the code first. It should keep only that customer's rows, count distinct `invoice_id` values (not rows), and add up quantity × unit price. Invoices and spend match the agent's F and M. Then work out recency by hand, without the agent: the number of days from that last purchase date to **2026-01-01**, the day after the data end (a purchase on 2025-12-31 has recency 1).
 
-*What you should see:* invoices and spend match the agent's F and M. Recency does not: the agent's value is larger by the number of days between 2026-01-01 and the day you ran the script. It measured from the clock, as the prompt told it to. For a historical dataset that is wrong: every customer looks long gone, and because the scores are log-transformed, the shift also changes the clusters. (If recency does match, your agent quietly ignored "as of today". Run step 5 anyway: an agent that departs from your spec without saying so is a finding too.)
+Recency does not match: the agent's value is larger by the number of days between 2026-01-01 and the day you ran the script. It measured from the clock, as the prompt told it to. For a historical dataset that is wrong: every customer looks long gone, and because the scores are log-transformed, the shift also changes the clusters. (If recency does match, your agent quietly ignored "as of today". Run step 5 anyway: an agent that departs from your spec without saying so is a finding too.)
 
 **5. Make the agent find and fix its mistake.**
 
 ```text
-My hand calculation disagrees with your recency for the first customer. The data
-end on 2025-12-31. What reference date does your recency use? Explain what that
-does to R, to the log transform and to the clusters. Then fix it: compute the
-reference date from the data as the day after the last invoice in the file, never
-from the clock. Add an assertion that the smallest recency is at least 1, and run
-the script again.
+My hand calculation disagrees with your recency for the first customer; the data end
+on 2025-12-31. What reference date does your recency use, and what does that do to R,
+to the log transform and to the clusters? Then fix it: use the day after the last
+invoice in the file, never the clock, assert that the smallest recency is at least 1,
+and run the script again.
 ```
 
 *What you should see:* the reference date is now 2026-01-01, the smallest recency is 1 day, and your hand-computed recency matches. The chosen $k$ and the segments may change. With the reference solutions they are:
@@ -636,11 +642,12 @@ No other libraries. Keep it under 300 lines.
 
 **8. Commit.**
 
-```bash
-git status
-git add rfm
-git commit -m "Customer segmentation with RFM and k-means"
+```text
+Show me what you will commit and wait for my OK. Then commit rfm/ with the message
+"Customer segmentation with RFM and k-means", and do not push yet.
 ```
+
+*What you should see:* a list with `rfm/purchases_v1.csv.gz`, the script, `rfm/data.json` and `rfm/index.html`, and nothing else.
 
 ::: {.callout-note collapse="true"}
 ## Optional: a real retail dataset
@@ -662,35 +669,32 @@ empty file named .nojekyll at the root.
 
 `.nojekyll` tells GitHub Pages to publish the files exactly as they are, without running its Jekyll site builder.
 
-**2. Commit and push.** In your own terminal:
+**2. Commit and push.**
 
-```bash
-git add index.html .nojekyll
-git commit -m "Landing page"
-git push
+```text
+Commit index.html and .nojekyll with the message "Landing page". Then show me
+what git push will send, and wait for my OK before you push.
 ```
 
-**3. Turn on GitHub Pages** for the branch you noted in section 2 (here `main`), publishing from the repository root:
+*What you should see:* three commits (App 1, App 2 and the landing page) going to `main` on GitHub. After your OK the agent pushes, and the repository's page on GitHub shows `protein/`, `rfm/` and `index.html`.
 
-```bash
-gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=main" -f "source[path]=/"
+**3. Turn on GitHub Pages.**
+
+```text
+Turn on GitHub Pages for this repository with gh api, publishing the main branch
+from the root folder. Show me the exact command and wait for my OK, then tell me
+the build status and the site URL.
 ```
 
-`gh api` calls GitHub's REST API as you; it fills in `{owner}` and `{repo}` from the repository in the current folder, and `source[branch]=...` sends the nested `source` object the endpoint expects. The allowed paths are `/` and `/docs`.
+*What you should see:* a command like `gh api --method POST "repos/{owner}/{repo}/pages" -f "source[branch]=main" -f "source[path]=/"`, for you to read, not to type. `gh api` calls GitHub's REST API as you; it fills in `{owner}` and `{repo}` from the repository in the current folder, and `source[branch]=...` sends the nested `source` object the endpoint expects. The allowed paths are `/` and `/docs`. If the agent proposes a different branch or path, say no and ask why.
 
-**4. Wait for the build.** Repeat this until it prints `built` (usually a minute or two; `building` means wait, `errored` means look at the Actions tab of your repository):
+**4. Wait for the build.** It usually takes a minute or two. `building` means wait, `built` means done, and `errored` means look at the Actions tab of your repository. Until it says `built`, ask again:
 
-```bash
-gh api "repos/{owner}/{repo}/pages" --jq .status
+```text
+Check the GitHub Pages build status again.
 ```
 
-**5. Open the live URLs.**
-
-```bash
-gh api "repos/{owner}/{repo}/pages" --jq .html_url
-```
-
-It prints `https://YOUR-USERNAME.github.io/agent-apps/`. Open it, then `…/protein/` and `…/rfm/`.
+**5. Open the live URLs.** The site is at `https://YOUR-USERNAME.github.io/agent-apps/`, the URL the agent gave you in step 3. Open it, then `…/protein/` and `…/rfm/`.
 
 *What you should see:* the same two pages you saw locally, now public. If a page is blank but worked locally, check the browser console: the usual cause is a path that starts with `/` (for example `/data.json`), which points at the root of `github.io` rather than your repository. Ask the agent to make every path relative.
 
@@ -699,13 +703,15 @@ It prints `https://YOUR-USERNAME.github.io/agent-apps/`. Open it, then `…/prot
 ## Summary
 
 - A coding agent is a model in a loop with tools and a permission policy. You choose how much it may do without asking; for unfamiliar work, choose "ask".
+- You drove the work with short prompts that state the goal, the limits and, where it matters, what done looks like. For anything that needs your password or leaves your laptop, the prompt says "show me first".
 - Plan first, review every diff, and commit each step that works.
-- The agent did what the prompt said, including its flaws. The two mistakes you fixed, trivially true contacts and a clock-based reference date, were caught only because you checked one number independently.
+- The agent did what the prompt said, including its flaws. The two mistakes you fixed, trivially true contacts and a clock-based reference date, were caught only because you compared the agent's numbers with numbers it had not produced: the page's table and your own date arithmetic.
 - Prompts carry the spec: units, conventions (population or sample standard deviation, which pairs count), seeds and the rule for choosing $k$. A rule you state is a result anyone can reproduce.
 
 **Common misconceptions.**
 
 - "The agent ran it, so it is right." Running shows the code executes, not that it computes the right thing.
+- "The agent checked its own work, so it is checked." A check the agent writes is only as good as what you compare it with. Here that was the page's numbers and a date you worked out yourself.
 - "Auto-approve saves time." It saves seconds per step and costs you the moment you would have caught a bad command.
 - "The same prompt gives the same code." It does not; two runs, or two agents, can differ. Your checks are what make the result reproducible.
 

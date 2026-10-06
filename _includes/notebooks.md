@@ -57,7 +57,7 @@ Check the runtime, load optional API keys from Colab Secrets, and choose a provi
 | # | Notebook | Lecture | Lab |
 |---|---|---|---|
 | 11 | **Calibration** [What a probability should mean, how to measure it, and how to use confidence to decide when to abstain.]{.notebook-summary} | [Lecture 11](lectures/11-calibration.qmd) | [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb){.btn-colab} |
-| 12 | **RLCD and Jev** [Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.]{.notebook-summary} | [Lecture 12](lectures/12-rlcd-jev.qmd) | [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb){.btn-colab} |
+| 12 | **Calibrated decisions: RLCD and Jev** [Training and using models for calibrated decisions: outcome rewards, thresholds from costs, and TypeSafe's RLCD and Jev as a case study in what is and is not public.]{.notebook-summary} | [Lecture 12](lectures/12-rlcd-jev.qmd) | [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb){.btn-colab} |
 | 13 | **Retrieval-augmented generation** [Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately.]{.notebook-summary} | [Lecture 13](lectures/13-rag.qmd) | [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb){.btn-colab} |
 :::
 

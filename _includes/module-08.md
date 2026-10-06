@@ -19,7 +19,7 @@ OpenAI and Claude side by side: prompting, structured output, tool use, cost and
 
 By the end of this module you can:
 
-- Call OpenAI and Claude models for chat, structured output and tool use
-- Compare providers on one task with one harness
+- Use one provider-agnostic wrapper for chat, structured output and tool use, on OpenAI, Claude or an open model
+- Implement an evaluation harness and score a provider with it; compare OpenAI and Claude when both keys are set
 - Reason about cost, latency and failure modes
 :::

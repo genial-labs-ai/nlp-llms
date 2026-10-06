@@ -6,7 +6,7 @@
 :::
 
 ::: {.module-summary}
-Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
+Training and using models for calibrated decisions: outcome rewards, thresholds from costs, and TypeSafe's RLCD and Jev as a case study in what is and is not public.
 :::
 
 ::: {.module-actions}
@@ -19,7 +19,7 @@ Reinforcement learning for calibrated decisions: what is public, what is not, an
 
 By the end of this module you can:
 
-- State how RLCD's objective differs from RLHF's, and what is and is not public about it
-- Call Jev for typed decisions
-- Turn its probabilities into act, ask and escalate thresholds from stated costs
+- Implement an accuracy reward and a proper-score reward, and explain from a toy model why only the second pays for honest probabilities
+- Implement act, ask and escalate thresholds from stated costs, and choose them on development data
+- State what is and is not public about RLCD, and evaluate a decision model's answers by their probabilities, not their confidence field
 :::

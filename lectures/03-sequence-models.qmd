@@ -1,5 +1,12 @@
 ---
 title: "{{< var modules.m03.title >}}"
+live:
+  - {section: 1, minutes: 2}
+  - {section: 2, minutes: 3}
+  - {section: 3, minutes: 8}
+  - {section: 4, minutes: 10, activities: [{block: demo-gradient, minutes: 4}]}
+  - {section: 5, minutes: 10, activities: [{block: chk-forget, minutes: 2}]}
+  - {section: 6, minutes: 4, activities: [{block: chk-claims, minutes: 2}]}
 ---
 
 {{< include /_includes/module-03.md >}}
@@ -8,13 +15,13 @@ title: "{{< var modules.m03.title >}}"
 **Where we are.** Module 2 gave words vectors, and with them a language model that generalizes across similar words. But that model reads a fixed window of $n - 1$ tokens with separate weights for each position, and the averaged-embedding classifier ignores order altogether. This module asks one question: can a single set of weights read a sequence of any length, in order, and still learn what happened many steps back?
 :::
 
-::: {.callout-note appearance="simple"}
-## Timing
+## Live plan
 
-The core path below is planned for 45 minutes: recurrence (5), the RNN language model and teacher forcing (8), backpropagation through time and vanishing gradients (10), gradient clipping (3), the LSTM (10), a fair perplexity comparison (4), sampling (5). Collapsed callouts marked **Optional** are outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
-:::
+{{< include /_includes/live-03.md >}}
 
-## Where Module 2 left us
+In section 4 the demo plays out the same one-unit RNN, and the same three cases, as the worked example before it. In the room, use the demo in place of walking through the example's table, which stays on the page for reading.
+
+## 1. Where Module 2 left us
 
 Both neural models of Module 2 have the same blind spot.
 
@@ -49,7 +56,7 @@ The workshop notation applies. Tokens are $w_1,\dots,w_T$, with $T$ the sequence
 Module 1 uses $c(\cdot)$ for a count, as in $c(w_{t-1}, w_t)$. The LSTM literature uses $c_t$ for the cell state. In this module **$c_t$ with a time subscript is always the LSTM cell state, a vector in $\mathbb{R}^{d_h}$**. The count function is always written with an argument in parentheses, $c(\cdot)$, and appears only where we describe the n-gram baseline.
 :::
 
-## The recurrent neural network
+## 2. The recurrent neural network
 
 An RNN reads one token at a time and updates a state vector with the same function at every step:
 
@@ -80,7 +87,7 @@ $W$ has $256 \times 256 = 65{,}536$ entries, $U$ has $256 \times 64 = 16{,}384$ 
 :::
 :::
 
-## The RNN language model
+## 3. The RNN language model
 
 A language model assigns a probability to the next token given the tokens so far. With an RNN, the hidden state is the summary of "the tokens so far":
 
@@ -127,7 +134,7 @@ Nothing in the architecture forbids it: $h_t$ is a function of the whole prefix,
 :::
 :::
 
-## Backpropagation through time
+## 4. Backpropagation through time
 
 **Objective for this section:** explain why a plain RNN struggles to learn long-range dependencies.
 
@@ -176,13 +183,17 @@ The exponent $t - s$ is the distance between the two positions.
 
 Note the logic: $\lVert W \rVert < 1$ is *sufficient* for vanishing, and $\lVert W \rVert > 1$ is *necessary* for exploding, not sufficient. This analysis follows Pascanu, Mikolov and Bengio (2013).
 
-**Vanishing with $\lVert W \rVert > 1$.** The sufficient case is not the only one, and it is not the one in this lab. The last step of @eq-bound discards the diagonal factor; keep it and bound each step by its own norm instead, $\lVert \partial h_t / \partial h_s \rVert \le \prod_{j} \gamma_j$ with $\gamma_j = \lVert \mathrm{diag}(1 - h_j^2)\, W \rVert$. On the way back, the gradient reaching unit $i$ of $h_j$ is multiplied by $1 - h_{j,i}^2$ before it passes back through $W$. A **saturated** unit, one with $h_{j,i}$ near $\pm 1$, multiplies it by nearly 0. When many units are saturated, $\gamma_j$ can be below 1 although $\lVert W \rVert$ is well above 1, and the product decays exponentially all the same. (A second, subtler route: $\lVert W \rVert$ is only the largest stretch of a single step, and repeated products of a matrix can shrink even when that stretch exceeds 1.)
+**Vanishing with $\lVert W \rVert > 1$.** The sufficient case is not the only one. The last step of @eq-bound discards the diagonal factor; keep it and bound each step by its own norm instead, $\lVert \partial h_t / \partial h_s \rVert \le \prod_{j} \gamma_j$ with $\gamma_j = \lVert \mathrm{diag}(1 - h_j^2)\, W \rVert$. On the way back, the gradient reaching unit $i$ of $h_j$ is multiplied by $1 - h_{j,i}^2$ before it passes back through $W$. A **saturated** unit, one with $h_{j,i}$ near $\pm 1$, multiplies it by nearly 0. When many units are saturated, $\gamma_j$ can be below 1 although $\lVert W \rVert$ is well above 1, and the product decays exponentially all the same. (A second, subtler route: $\lVert W \rVert$ is only the largest stretch of a single step, and repeated products of a matrix can shrink even when that stretch exceeds 1.)
 
-This is the case the lab measures. The RNN trained in Lab 3 has $\lVert W \rVert \approx 5.2$, so @eq-bound allows growth by up to a factor of 5.2 per character. Yet the measured $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ falls by a roughly constant factor per character and underflows to exactly 0 in 32-bit floating point from about 138 characters back. The bound with $\lVert W \rVert$ alone cannot explain that; the actual one-step Jacobians, with their $\mathrm{diag}(1 - h_j^2)$ factors, do. The lab does not measure how much of the decay each of the two routes contributes.
+Exercise 3 measures which case your trained RNN is in; the result is in the box after the lab, below.
 
 It is the *same* matrix $W$ multiplied $t-s$ times that makes the problem severe. A deep feed-forward network has a different matrix in each layer; an RNN repeats one.
 
-**In the lab:** Exercise 3, part A, is a provided measurement of $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ against the distance $T - s$, for the RNN you trained (`grad_norm_by_distance`, on 64 validation chunks of 200 characters, with the loss at the last position only). You predict the shape of the curve before running the cell. It is @eq-jacprod made visible; the cell also prints $\lVert W \rVert$, so you can check that @eq-bound does not force the decay you see. The same plot is repeated for the LSTM later.
+**In the lab:** Exercise 3, part A, is a provided measurement of $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ against the distance $T - s$, for the RNN you trained (`grad_norm_by_distance`, on 64 validation chunks of 200 characters, with the loss at the last position only). You predict the shape of the curve before running the cell. It is @eq-jacprod made visible; the cell also prints $\lVert W \rVert$, so you can check whether @eq-bound accounts for what you see. The same plot is repeated for the LSTM later.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 3 measured in Exercise 3, part A"}
+Open this after Exercise 3, part A, so that it does not answer the lab's prediction for you. The lab measures the case of vanishing with $\lVert W \rVert > 1$. The RNN trained in Lab 3 has $\lVert W \rVert \approx 5.2$, so @eq-bound allows growth by up to a factor of 5.2 per character. Yet the measured $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ falls by a roughly constant factor per character and underflows to exactly 0 in 32-bit floating point from about 138 characters back. The bound with $\lVert W \rVert$ alone cannot explain that; the actual one-step Jacobians, with their $\mathrm{diag}(1 - h_j^2)$ factors, do. The lab does not measure how much of the decay each of the two routes contributes. The demo below is the lab's trained RNN in miniature.
+:::
 
 ::: {.worked-example}
 **Worked example: an RNN with one hidden unit.** With $d_h = 1$ every matrix is a number. Write $w$ for the recurrent weight; the one-step Jacobian @eq-jac is the number $(1 - h_j^2)\, w$, and $\lVert W \rVert = |w|$. Three cases:
@@ -235,14 +246,14 @@ viewof xIn = Inputs.range([0, 2], {value: 0, step: 0.05, label: "Constant input 
 }
 ```
 
-With $x = 0$ the state stays at 0, where $\tanh$ is linear. The one-step factor is exactly $w$ and the measured curve lies on the bound: it vanishes for $w < 1$ and explodes for $w > 1$. Any nonzero input pushes a unit with $w > 1$ toward saturation. The factor $(1 - h^2)\, w$ then drops below 1 and the gradient vanishes while the bound keeps growing. That is the lab's trained RNN in miniature: $\lVert W \rVert > 1$ is necessary for explosion, not sufficient. Values outside the plotted range are drawn at its edge.
+With $x = 0$ the state stays at 0, where $\tanh$ is linear. The one-step factor is exactly $w$ and the measured curve lies on the bound: it vanishes for $w < 1$ and explodes for $w > 1$. Any nonzero input pushes a unit with $w > 1$ toward saturation. The factor $(1 - h^2)\, w$ then drops below 1 and the gradient vanishes while the bound keeps growing. So $\lVert W \rVert > 1$ is necessary for explosion, not sufficient. Values outside the plotted range are drawn at its edge.
 :::
 
 ::: {.self-check}
 **Check yourself.** The lab's trained RNN has $\lVert W \rVert \approx 5.2$. As a crude model, suppose every hidden unit has the same magnitude $|h|$ at every step, so that $\gamma_j \le (1 - h^2)\, \lVert W \rVert$. How large must $|h|$ be for this per-step bound to fall below 1?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-We need $(1 - h^2) \times 5.2 < 1$, so $h^2 > 1 - 1/5.2 = 0.808$ and $|h| > 0.90$. A $\tanh$ unit reaches 0.90 at a pre-activation of only about 1.5, so this is ordinary behavior for a trained network, not an extreme. At $|h| = 0.99$ the factor is $(1 - 0.98) \times 5.2 \approx 0.10$: the gradient loses a factor of ten per character. Real units are not all equally saturated, so this is a caricature, but it shows why a spectral norm of 5.2 and a vanishing gradient are compatible.
+We need $(1 - h^2) \times 5.2 < 1$, so $h^2 > 1 - 1/5.2 = 0.808$ and $|h| > 0.90$. A $\tanh$ unit reaches 0.90 at a pre-activation of only about 1.5, so this is ordinary behavior for a trained network, not an extreme. At $|h| = 0.99$ the factor is $(1 - 0.98) \times 5.2 \approx 0.10$: the gradient loses a factor of ten per character. Real units are not all equally saturated, so this is a caricature, but it shows how a spectral norm of 5.2 and a vanishing gradient can be compatible.
 :::
 :::
 
@@ -258,7 +269,11 @@ If $\lVert g \rVert \le \kappa$ nothing changes. Otherwise $g$ keeps its directi
 
 Clipping does nothing for vanishing gradients: rescaling a whole gradient vector cannot restore long-range terms that are tiny *relative* to the short-range terms in the same vector. For that we need to change the architecture.
 
-**In the lab:** Exercise 3, part B, asks you to write `clip_gradients(params, kappa)`, which is @eq-clip; the checkpoint compares it with `torch.nn.utils.clip_grad_norm_`. A provided demonstration then trains two fresh RNNs for 150 steps on identical batches at a deliberately high learning rate (2.0), one with your `clip_gradients` at $\kappa = 1$ and one without, and plots the gradient norm and the loss per step. It uses **plain SGD**, not the Adam optimizer used everywhere else, because Adam divides each step by a running estimate of the gradient's size, which already hides most of the effect of one huge gradient. With SGD the difference is stark: in the build run, the unclipped model ended at a training loss of 9.34 nats per character, worse than the uniform guess ($\ln 65 \approx 4.17$), while the clipped one ended at 2.11. With SGD and clipping, every update has length at most $\text{lr} \cdot \kappa$. Both language models in the lab are trained with Adam and clipping at $\kappa = 1$.
+**In the lab:** Exercise 3, part B, asks you to write `clip_gradients(params, kappa)`, which is @eq-clip; the checkpoint compares it with `torch.nn.utils.clip_grad_norm_`. A provided demonstration then trains two fresh RNNs at a deliberately high learning rate, one with your `clip_gradients` and one without, and plots the gradient norm and the loss per step. Both language models in the lab are trained with Adam and clipping at $\kappa = 1$.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 3 measured in Exercise 3, part B"}
+Open this after the clipping demonstration, so that it does not answer the lab's prediction for you. The demonstration trains the two RNNs for 150 steps on identical batches at a learning rate of 2.0, one with your `clip_gradients` at $\kappa = 1$ and one without. It uses **plain SGD**, not the Adam optimizer used everywhere else, because Adam divides each step by a running estimate of the gradient's size, which already hides most of the effect of one huge gradient. With SGD the difference is stark: in the build run, the unclipped model ended at a training loss of 9.34 nats per character, worse than the uniform guess ($\ln 65 \approx 4.17$), while the clipped one ended at 2.11. With SGD and clipping, every update has length at most $\text{lr} \cdot \kappa$.
+:::
 
 ::: {.self-check}
 **Check yourself.** A model has two parameters and the gradient is $g = (3, 4)$. Apply @eq-clip with $\kappa = 1$, then with $\kappa = 10$. Now suppose the first coordinate carries what the model could learn about a long-range dependency and the second what it could learn about a short-range one. Did clipping change their balance?
@@ -268,7 +283,7 @@ $\lVert g \rVert = \sqrt{9 + 16} = 5$. With $\kappa = 1$ the factor is $\min(1, 
 :::
 :::
 
-## The LSTM
+## 5. The LSTM
 
 **Objective for this section:** explain how gating addresses vanishing gradients.
 
@@ -323,9 +338,13 @@ Three honest qualifications.
 
 A practical detail that follows directly from @eq-lstm-jac: implementations often initialize the forget-gate bias $b_f$ to a positive value so that $f_t$ starts close to 1 and gradients flow before the network has learned what to forget. The lab sets $b_f = 1$, so $f_t \approx \sigma(1) \approx 0.73$ at initialization instead of $\sigma(0) = 0.5$.
 
-**In the lab:** after training, the gradient–distance measurement of Exercise 3 is repeated for the LSTM on the same 64 validation chunks, unrolled with your `lstm_cell_step`. In the build run, 50 characters back the LSTM's gradient was about $5 \times 10^{4}$ times the RNN's. Its curve still falls: the trained forget gates average 0.74 over those chunks, well below 1. The cell also prints the share of gate entries above 0.9 and 0.99, the units on which the direct path of @eq-lstm-jac barely decays.
+**In the lab:** after training, the gradient–distance measurement of Exercise 3 is repeated for the LSTM on the same 64 validation chunks, unrolled with your `lstm_cell_step`. The cell also prints the share of gate entries above 0.9 and 0.99, the units on which the direct path of @eq-lstm-jac barely decays. What the build run measured is in the box after the lab.
 
-::: {.self-check}
+::: {.callout-tip collapse="true" title="After the lab: what Lab 3 measured for the LSTM's gradient"}
+Open this after the LSTM's gradient plot, so that it does not answer the lab's prediction for you. In the build run, 50 characters back the LSTM's gradient was about $5 \times 10^{4}$ times the RNN's. Its curve still falls: the trained forget gates average 0.74 over those chunks, well below 1.
+:::
+
+::: {#chk-forget .self-check}
 **Check yourself.** At initialization the lab's forget gates are about $0.73$ on every unit. Along the direct path of @eq-lstm-jac, what fraction of the gradient survives 50 steps? What constant gate value would let half of it survive 50 steps? And what does a unit with $f_t = 1$ and $i_t = 0$ do to its cell state?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -360,7 +379,7 @@ $$
 The last line is the counterpart of the LSTM cell update: where $u_t \approx 1$ the state is copied forward and the direct-path Jacobian is close to the identity. This is the form in Cho et al. (2014). PyTorch's `nn.GRU` applies the reset gate after the matrix product instead of before it; the difference does not change the idea.
 :::
 
-## Measuring the improvement fairly
+## 6. Measuring the improvement fairly
 
 **Objective for this section:** compare perplexity against the n-gram baseline, and know when such a comparison means something.
 
@@ -377,7 +396,12 @@ The lab's language model is character-level. For the comparison with Module 1 to
 
 Character-level results are also often reported in **bits per character**, $\mathrm{BPC} = \log_2 \mathrm{PPL} = \mathcal{L} / \ln 2$, where $\mathcal{L}$ is the mean loss in nats. It is the same measurement on a logarithmic scale; the lab prints both.
 
-**In the lab:** the character n-gram baseline is provided as scaffolding, and your `lm_loss_and_ppl` from Exercise 2 scores it, the RNN and the LSTM. The results table is the checkpoint for the module's third objective: it asserts that the LSTM's test perplexity is at least 1.0 below the trigram's and below the 5-gram's.
+**In the lab:** the character n-gram baseline is provided as scaffolding, and your `lm_loss_and_ppl` from Exercise 2 scores it, the RNN and the LSTM. The results table is the checkpoint for the module's third objective.
+
+The two neural models are **not trained at equal compute**. The RNN ($d_h = 256$) trains for 1,000 steps and has 103,041 parameters; the LSTM ($d_h = 256$) trains for 2,000 steps (each step is 64 chunks of 128 characters) and has 350,593, about 3.4 times as many. So the table can show whether each recurrent model beats the counts, but not how much of any gap between the RNN and the LSTM is due to gating. The evidence for gating is the gradient measurement of Exercise 3 and its LSTM follow-up. The measured table is in the box after the lab, below.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 3 measured"}
+Open this after the lab's results table, so that it does not answer the lab's predictions for you. The checkpoint asserts that the LSTM's test perplexity is at least 1.0 below the trigram's and below the 5-gram's.
 
 These are the values measured by Lab 1 and Lab 3 and recorded in `data/baselines.json` (Lab 3 at full settings, seed 0, on a CPU, not yet on a Colab T4). All rows are on the same 60,394 test characters, in the same units.
 
@@ -392,11 +416,14 @@ These are the values measured by Lab 1 and Lab 3 and recorded in `data/baselines
 
 Both neural models beat Lab 1's best n-gram: the LSTM by 0.22 nats per character (perplexity 6.25 to 5.01), the RNN by 0.14. The RNN and LSTM rows are **not at equal compute**: the LSTM trained for twice as many steps (each step is 64 chunks of 128 characters) and has about 3.4 times the parameters. So the table shows that both recurrent models beat the counts; it does not isolate how much of the RNN–LSTM gap is due to gating. The evidence for gating is the gradient measurement of Exercise 3 and its LSTM follow-up.
 
-::: {.self-check}
-**Check yourself.** Three claims drawn from numbers in this workshop. Which are supported? (a) "The character LSTM has perplexity 5.01 and Lab 1's word trigram has 1,437, so the LSTM is far better." (b) "The LSTM (5.01) beats the character 5-gram (6.25) on the same 60,394 test characters." (c) "The LSTM (5.01) beats the RNN (5.45), so gating is worth 0.44 points of perplexity."
+Against the check below, with the numbers: the character LSTM's 5.01 and Lab 1's word trigram's 1,437 are on different scales and say nothing about each other; the LSTM beats the character 5-gram, 5.01 against 6.25, on the same 60,394 test characters; and the LSTM's 0.44 lead over the RNN (5.01 against 5.45) mixes gating with budget.
+:::
+
+::: {#chk-claims .self-check}
+**Check yourself.** Before you see the lab's numbers, decide what each of these perplexity comparisons can conclude. (a) The character LSTM against Lab 1's word trigram, to say which model is better. (b) The LSTM against Lab 1's character 5-gram on the same 60,394 test characters, scored by the same function, to say which predicts this text better. (c) The LSTM against the RNN, to say how much gating is worth.
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Only (b). Claim (a) compares a per-character quantity with a per-word one; the two scales have nothing in common, and condition 1 fails. Claim (b) meets all six conditions: same unit, data, vocabulary, scored positions, formula, and no tuning on test. Claim (c) is a valid comparison of two *trained systems*, since the units and the test text match, but not of two *architectures*: the LSTM had twice the training steps and about 3.4 times the parameters, so the 0.44 mixes gating with budget. A fair comparison answers the question "which number is lower"; it takes a controlled one to answer "why".
+Only (b) can conclude what it sets out to. Comparison (a) sets a per-character quantity against a per-word one; the two scales have nothing in common, and condition 1 fails whatever the numbers turn out to be. Comparison (b) meets all six conditions: same unit, data, vocabulary, scored positions, formula, and no tuning on test, so the lower number names the better predictor of this text. Comparison (c) is valid between two *trained systems*, since the units and the test text match, but not between two *architectures*: the LSTM gets twice the training steps and about 3.4 times the parameters, so any gap mixes gating with budget. A fair comparison answers the question "which number is lower"; it takes a controlled one to answer "why".
 :::
 :::
 
@@ -412,7 +439,7 @@ $$
 For example, if a text averages 5.5 characters per word including the space, a character perplexity of 4.5 corresponds to $4.5^{5.5} \approx 3{,}900$ per word. The reverse conversion is usually *not* valid: a word-level model with a closed vocabulary maps rare words to an unknown-word token and so does not assign probability to the full string. This is why the lab compares like with like instead of converting.
 :::
 
-## Generating text: sampling strategies
+## 7. Generating text: sampling strategies {.reference}
 
 A trained language model gives a distribution $\hat{y}_t$ over the next token. To generate, pick a token from it, feed that token back in as the next input, and repeat. How we pick matters.
 
@@ -467,10 +494,10 @@ First step. Top-2 keeps $(0.50, 0.30)$ and renormalizes to $(0.625, 0.375)$. Nuc
 
 - An RNN applies one function at every position and carries a hidden state, so it conditions on the whole prefix instead of a fixed window (@eq-rnn, @eq-output).
 - It is trained with teacher forcing and cross-entropy; perplexity is the exponential of the mean loss (@eq-loss, @eq-ppl).
-- The gradient linking distant positions is a product of Jacobians, each containing the same $W$. It shrinks or grows exponentially with distance (@eq-jacprod, @eq-bound). $\lVert W \rVert < 1$ guarantees vanishing, but it is not needed: in the lab's trained RNN, $\lVert W \rVert \approx 5.2$ and the gradient still vanishes: the one-step Jacobians, whose $\mathrm{diag}(1 - h_j^2)$ factors are near 0 for saturated units, shrink it.
+- The gradient linking distant positions is a product of Jacobians, each containing the same $W$. It shrinks or grows exponentially with distance (@eq-jacprod, @eq-bound). $\lVert W \rVert < 1$ guarantees vanishing, but it is not needed: the one-step Jacobians, whose $\mathrm{diag}(1 - h_j^2)$ factors are near 0 for saturated units, can shrink the gradient even when $\lVert W \rVert > 1$. Lab 3 measures which case its trained RNN is in (the box after the lab in section 4).
 - Gradient clipping bounds the update and handles explosion (@eq-clip). It does not address vanishing.
 - The LSTM adds a cell state with an additive, gated update. Along that path the Jacobian is a product of forget gates, which the network can hold near 1 (@eq-lstm, @eq-lstm-jac). The GRU is a lighter variant of the same idea.
-- Perplexities are comparable only at the same token unit, on the same data, vocabulary and scored positions. On those terms, the LSTM's 1.61 nats per character (perplexity 5.01) beats Lab 1's best character n-gram, 1.83 (perplexity 6.25).
+- Perplexities are comparable only at the same token unit, on the same data, vocabulary and scored positions. Lab 3 compares the RNN and the LSTM with Lab 1's character n-grams on those terms (the box after the lab in section 6).
 - Greedy, temperature, top-$k$ and nucleus sampling trade off repetition against incoherence (@eq-temp).
 
 ### Equation-to-lab map
@@ -481,11 +508,11 @@ First step. Top-2 keeps $(0.50, 0.30)$ and renormalizes to $(0.625, 0.375)$. Nuc
 | @eq-output | Output layer and next-token distribution | Provided: `self.out` in `RNNLM` and `LSTMLM` |
 | @eq-loss, @eq-ppl, and BPC | Loss, perplexity, bits per character | **Exercise 2**: `lm_loss_and_ppl`; Checkpoint 2 tests the equal-logits case and agreement with `F.cross_entropy` |
 | @eq-bptt, @eq-jac | BPTT and the one-step Jacobian | Provided: autograd computes them in `train_lm` (`loss.backward()`) |
-| @eq-jacprod | Product of Jacobians | **Exercise 3, part A**: provided `grad_norm_by_distance`; you predict and explain the curve; Checkpoint 3A asserts the decay |
-| @eq-bound | Bound by $\lVert W \rVert^{t-s}$ | **Exercise 3, part A**: the printed `spectral_W`, about 5.2, so the bound does not force the measured decay |
+| @eq-jacprod | Product of Jacobians | **Exercise 3, part A**: provided `grad_norm_by_distance` measures $\lVert \partial \mathcal{L}_T / \partial h_s \rVert$ against the distance $T - s$; you predict the curve, then explain the measured one; Checkpoint 3A checks it |
+| @eq-bound | Bound by $\lVert W \rVert^{t-s}$ | **Exercise 3, part A**: the printed `spectral_W`, $\lVert W \rVert$ of the trained RNN; you compare it with 1 to decide what the bound alone can explain about the curve |
 | @eq-clip | Clipping by norm | **Exercise 3, part B**: `clip_gradients`; the provided `sgd_run` demonstration with and without it |
 | @eq-lstm | LSTM step | **Exercise 4**: the last two lines of `lstm_cell_step`; Checkpoint 4 compares it with `nn.LSTMCell` |
-| @eq-lstm-jac | Direct-path Jacobian through the cell state | Provided: `grad_norm_by_distance` repeated for the LSTM, and the printed forget-gate statistics; the checkpoint asserts the LSTM/RNN ratio at distance 50 |
+| @eq-lstm-jac | Direct-path Jacobian through the cell state | Provided: `grad_norm_by_distance` repeated for the LSTM, and the printed forget-gate statistics; you predict where the LSTM's curve lies against the RNN's, and a checkpoint compares the two at distance 50 |
 | @eq-temp | Temperature sampling | **Exercise 5**: `sample_with_temperature` |
 | Top-$k$ and nucleus sampling | Tail filters | Stretch: `top_k_filter` and `nucleus_filter` |
 | GRU (optional) and the character-to-word conversion (optional) | – | Not in the lab |
@@ -493,7 +520,7 @@ First step. Top-2 keeps $(0.50, 0.30)$ and renormalizes to $(0.625, 0.375)$. Nuc
 ## Common misconceptions
 
 - **"An RNN can use unlimited context."** In principle $h_t$ depends on the whole prefix. In practice the usable context is limited by vanishing gradients, by the truncation length used in training, and by the fixed size of $h_t$.
-- **"If $\lVert W \rVert > 1$, the gradient explodes."** $\lVert W \rVert > 1$ only removes the guarantee of vanishing. The lab's RNN has $\lVert W \rVert \approx 5.2$ and its gradient vanishes: saturated $\tanh$ units pass almost no gradient back.
+- **"If $\lVert W \rVert > 1$, the gradient explodes."** $\lVert W \rVert > 1$ only removes the guarantee of vanishing. Saturated $\tanh$ units pass almost no gradient back, so the gradient can vanish all the same (the worked example and the demo in section 4).
 - **"Gradient clipping fixes vanishing gradients."** It only caps the size of the update. Vanishing is addressed by the architecture.
 - **"The LSTM solves vanishing gradients."** It provides a path on which the gradient *need not* decay. Whether it decays depends on the learned forget gates, and LSTMs still struggle over many hundreds of steps.
 - **"Vanishing gradients means the whole gradient is small."** The total gradient can be a healthy size. What vanishes is the contribution of distant positions *relative* to nearby ones.

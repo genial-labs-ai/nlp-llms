@@ -132,9 +132,9 @@ What a probability should mean, how to measure it, and how to use confidence to 
 [12]{.path-num}
 
 ::: {.path-body}
-[RLCD and Jev](lectures/12-rlcd-jev.qmd){.path-title}
+[Calibrated decisions: RLCD and Jev](lectures/12-rlcd-jev.qmd){.path-title}
 
-Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
+Training and using models for calibrated decisions: outcome rewards, thresholds from costs, and TypeSafe's RLCD and Jev as a case study in what is and is not public.
 :::
 :::
 ::: {.path-step}
