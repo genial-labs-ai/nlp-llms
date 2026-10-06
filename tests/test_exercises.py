@@ -181,6 +181,17 @@ class Exercises(unittest.TestCase):
             with self.subTest(path.stem):
                 self.assertEqual(exercises - checked, set())
 
+    def test_exercise_names_are_unique_within_a_lab(self):
+        # The harness tells your code from a reference by exercise; a name shared by two
+        # exercises would blur that.
+        for path in NOTEBOOKS:
+            seen = {}
+            for n, names in harness.exercises_of(load(path)).items():
+                for name in names:
+                    with self.subTest(f"{path.stem} {name}"):
+                        self.assertNotIn(name, seen, f"in exercises {seen.get(name)} and {n}")
+                    seen[name] = n
+
     def test_no_notebook_says_solutions_replace_your_code(self):
         for path in NOTEBOOKS:
             with self.subTest(path.stem):

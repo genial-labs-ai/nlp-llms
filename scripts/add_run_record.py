@@ -45,7 +45,8 @@ def path_of(record: dict, given: str | None) -> str:
     settings = record.get("settings") or {}
     if record.get("fallbacks") or any(settings.get(flag) for flag in run_records.OFFLINE_FLAGS):
         return "offline"
-    return "keyed" if record.get("provider") in ("openai", "anthropic") else "open"
+    keyed = record.get("provider") in ("openai", "anthropic") or record.get("jev_path") == "keyed"
+    return "keyed" if keyed else "open"
 
 
 def batch_from(record: dict, env: str, path: str, date: str) -> dict:

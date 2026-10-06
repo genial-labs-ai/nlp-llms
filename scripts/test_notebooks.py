@@ -60,7 +60,7 @@ FALLBACK_MARKERS = harness.FALLBACK_MARKERS
 OFFLINE_FLAGS = run_records.OFFLINE_FLAGS
 # What the harness prints when a checkpoint stops a participant who has not finished an
 # exercise: a pure stub raised NotImplementedError, or a partial stub gave a wrong answer.
-LEARNER_MESSAGES = ("is not written yet", "failed on your code")
+LEARNER_MESSAGES = ("is not written yet", "you have not written yet", "failed on your code")
 
 
 def printed(nb: nbformat.NotebookNode) -> str:

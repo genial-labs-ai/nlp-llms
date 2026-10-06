@@ -183,8 +183,8 @@ class _Workshop:
         if self._t0 is None:  # this harness cell itself: its hooks were registered mid-cell
             return
         self.cell_seconds.append(round(_time.time() - self._t0, 2))
-        if not result.success:
-            self.cell_errors += 1
+        if not result.success and self._verifying is None:
+            self.cell_errors += 1  # a verification copy fails on purpose; it is not an error
         if self._current is None:
             return
         n, label, whose = self._current
@@ -313,6 +313,7 @@ class _Workshop:
             "gpu": gpu,
             "colab_release": _os.environ.get("COLAB_RELEASE_TAG"),
             "provider": _get_ipython().user_ns.get("PROVIDER"),
+            "jev_path": _get_ipython().user_ns.get("JEV_PATH"),
             "settings": {k: _os.environ[k] for k in _RECORDED_SETTINGS if _os.environ.get(k)},
             "packages": packages,
         }
@@ -342,7 +343,8 @@ if not getattr(_builtins.print, "_workshop", False):
             ip = _get_ipython()
             ws = ip.user_ns.get("workshop") if ip is not None else None
             if ws is not None and hasattr(ws, "fallbacks"):
-                text = " ".join(str(a) for a in args)
+                # Labs print their fallback notices as strings; never stringify other objects.
+                text = " ".join(a for a in args if isinstance(a, str))
                 ws.fallbacks.update(m.strip() for m in _FALLBACK_MARKERS if m in text)
         except Exception:
             pass  # watching must never break printing

@@ -520,7 +520,7 @@ Romeo approved a revision from four to five days after a review brief and a crit
   - data is read from a temporary copy, so runs never add files to `data/`.
 - [x] `scripts/add_run_record.py` turns a notebook's printed run record into a `runs/` file.
 - [x] New `tests/test_exercises.py`. `tests/test_lab14.py` and `tests/test_lab15.py` skip the harness marker in restated definitions.
-- [x] CI: a learner smoke test in `publish.yml`, and a blocking weekly `verify` leg in `health.yml`.
+- [x] CI: `publish.yml` runs every notebook with `--verify-checkpoints` and then a learner smoke test; the blocking offline leg of `health.yml` runs `--verify-checkpoints` weekly.
 - [x] Docs: CONTRIBUTING, PLAN §5, the AGENTS.md definition of done, the facilitator guide and the notebooks page.
 - [x] Review round 5 of PR #10 fixed in the readiness code:
   - a stale record never outranks a current one;
