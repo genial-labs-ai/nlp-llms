@@ -128,7 +128,11 @@ class Agreement(unittest.TestCase):
         checker = [
             {"id": "q1", "evidence": [], "answer": "Not in the corpus"},
             {"id": "q2", "evidence": [], "answer": "about 4.5 million pairs"},
-            {"id": "q3", "evidence": [[{"slug": "x", "quote": "y"}]], "answer": "not in the corpus"},
+            {
+                "id": "q3",
+                "evidence": [[{"slug": "x", "quote": "y"}]],
+                "answer": "not in the corpus",
+            },
         ]
         self.assertEqual(tools.unanswerable_agreement(author, checker), (1, 3))
 
