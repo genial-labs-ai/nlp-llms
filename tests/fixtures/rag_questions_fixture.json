@@ -1,6 +1,6 @@
 {
   "notice": "AGENT-WRITTEN FIXTURE FOR EXERCISING CODE; NOT AN EVALUATION SET; NO NUMBER FROM IT IS QUOTED ANYWHERE. Written by an AI agent (the Agentic Systems Engineer persona) on 2026-10-05 so that tests/test_rag_questions.py can run before people write data/rag_questions_v1.jsonl. notebooks/13-rag.ipynb never loads it. The real question set must be written and checked by people (briefs/13-rag.md, decision (b)).",
-  "corpus_sha256": "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395",
+  "corpus_sha256": "57a18256ba93551f034e1acd0e9dedeec228bd17e9cf2e4cab92be35576499fd",
   "items": [
     {"id": "f001", "split": "dev", "kind": "lookup",
      "question": "Why does the transformer divide attention logits by the square root of the key width?",

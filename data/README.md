@@ -330,13 +330,13 @@ The instructions for the two people (proposed: Romeo and one instructor; estimat
 
 | | |
 |---|---|
-| File | `workshop_lectures_v1.jsonl.gz`, 189,037 bytes (558,988 uncompressed), 13 lines, one JSON object per page |
-| SHA-256 | `4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395` |
+| File | `workshop_lectures_v1.jsonl.gz`, 234,596 bytes (700,488 uncompressed), 13 lines, one JSON object per page |
+| SHA-256 | `57a18256ba93551f034e1acd0e9dedeec228bd17e9cf2e4cab92be35576499fd` |
 | Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz> |
 | Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz> |
 | Builder | [`build_lectures_corpus.py`](build_lectures_corpus.py): standard library plus PyYAML, no network, no model; reads the pages from one git commit with `git show`, not from the working tree; `--check` rebuilds in memory and compares |
-| Source | lecture pages 01–12 and `references.qmd` at commit `3ba37bc06e2e1f23f7896f43e04117e805b6925e` (`source_commit`; also recorded in every record), the commit that completed `references.qmd` for Modules 1–15. The first build read `ec97bea`, before the reading list was finished. Lecture 13 is not included: a corpus that explains RAG to a RAG lab adds nothing |
-| Size | 13 documents, 544,974 characters, 84,626 words; 147,738 tokens of `SentenceSplitter`'s tokenizer (tiktoken `cl100k_base`), measured with Lab 13's tokenizer call (`llama_index.core.utils.get_tokenizer()`) outside the notebook. `references` is 40,993 characters and 12,153 tokens |
+| Source | lecture pages 01–12 and `references.qmd` at commit `31d5d92cd1d5ac7c12b05f547caa6d56ca55765d` (`source_commit`; also recorded in every record), the commit that completed `references.qmd` for Modules 1–15. The first build read `ec97bea`, before the reading list was finished. Lecture 13 is not included: a corpus that explains RAG to a RAG lab adds nothing |
+| Size | 13 documents, 684,694 characters, 108,079 words; 186,495 tokens of `SentenceSplitter`'s tokenizer (tiktoken `cl100k_base`), measured with Lab 13's tokenizer call (`llama_index.core.utils.get_tokenizer()`) outside the notebook. `references` is 49,351 characters and 14,545 tokens |
 | Chunks | 1,443 / 705 / 355 at $L$ = 128 / 256 / 512 tokens with $L_o = L/8$ and metadata excluded (`SentenceSplitter`, `llama-index-core` 0.14.25; measured with Lab 13's splitter call outside the notebook, which reproduced the notebook's numbers on the first build exactly: 134,949 tokens and 1,319 / 645 / 325 chunks) |
 | License | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), the license of the pages. The pages quote short passages of third-party material, with sources |
 | Specification | `briefs/13-rag.md`, decision (a) |
@@ -374,7 +374,7 @@ def load_lectures():
             "https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz",
             "https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz",
         ],
-        "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395",
+        "57a18256ba93551f034e1acd0e9dedeec228bd17e9cf2e4cab92be35576499fd",
     )
     pages = [json.loads(line) for line in gzip.decompress(blob).decode("utf-8").splitlines()]
     return [{"doc_id": p["slug"], "title": p["title"], "text": p["text"]} for p in pages]

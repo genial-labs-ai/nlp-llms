@@ -13,6 +13,12 @@ Rules for `text` (documented in data/README.md):
 - `{{< include /_includes/module-NN.md >}}` becomes the module's summary and
   objectives from _variables.yml, as plain text;
 - `{{< var a.b.c >}}` is resolved from _variables.yml at the same commit;
+- the "## Live plan" section (the lecture's in-room timetable, generated from its
+  front matter) is deleted up to the next second-level heading: it is logistics, not
+  content;
+- heading attributes such as `{.reference}` are removed from heading lines;
+- Observable JS cells (```` ```{ojs} ```` blocks, the interactive demos' code) are
+  deleted; the demos' prose stays;
 - HTML comments (the figure specs) are deleted; figure captions and alt text stay;
 - callout fence lines (`::: {.callout-...}` and `:::`) are deleted; a callout's
   title, if it has one, is kept as a line of its own; the content stays;
@@ -52,7 +58,7 @@ OUT = ROOT / "data" / "workshop_lectures_v1.jsonl.gz"
 # lectures 6-11 may change after their Colab T4 runs. If a page changes, rebuild from the new
 # commit and update _variables.yml (sha256, bytes, source_commit, characters, status) before
 # anyone writes a question against the snapshot (data/README.md, "Status: provisional").
-SOURCE_COMMIT = "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
+SOURCE_COMMIT = "31d5d92cd1d5ac7c12b05f547caa6d56ca55765d"
 LECTURE = re.compile(r"^lectures/(0[1-9]|1[0-2])-[a-z0-9-]+\.qmd$")
 REFERENCES = "references.qmd"
 
@@ -60,6 +66,9 @@ FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 INCLUDE = re.compile(r"\{\{<\s*include\s+/_includes/module-(\d\d)\.md\s*>\}\}")
 VAR = re.compile(r"\{\{<\s*var\s+([A-Za-z0-9_.]+)\s*>\}\}")
+LIVE_PLAN = re.compile(r"^## Live plan\n.*?(?=^## )", re.MULTILINE | re.DOTALL)
+OJS_CELL = re.compile(r"^```\{ojs\}.*?^```[ \t]*\n?", re.MULTILINE | re.DOTALL)
+HEADING_ATTRS = re.compile(r"^(#{1,6} .*?)\s*\{[^}]*\}\s*$", re.MULTILINE)
 FENCE_OPEN = re.compile(r"^\s*:::+\s*\{[^}]*\}\s*$")
 FENCE_CLOSE = re.compile(r"^\s*:::+\s*$")
 TITLE_ATTR = re.compile(r'title="([^"]*)"')
@@ -121,6 +130,9 @@ def clean(source: str, variables: dict) -> tuple[str, str]:
     meta = yaml.safe_load(resolve_vars(match.group(1), variables))
     body = source[match.end() :]
     body = COMMENT.sub("", body)
+    body = LIVE_PLAN.sub("", body)
+    body = OJS_CELL.sub("", body)
+    body = HEADING_ATTRS.sub(r"\1", body)
     body = INCLUDE.sub(lambda m: module_block(variables, m.group(1)), body)
     body = resolve_vars(body, variables)
     if "{{<" in body:
