@@ -378,7 +378,7 @@ Run all on Colab, and the CI run of every notebook, must finish without a person
 **Tool errors.** LangGraph's prebuilt `ToolNode` turns invalid arguments into an error result by default but, per its 1.2.12 docstring, re-raises an exception thrown inside the tool. Module 8's `execute` returns both as error results. The lab's `tools` node calls your `execute`.
 :::
 
-**A loop limit is a guard, not a stopping rule.** A run should end because the reply is a final answer, with no tool calls and a stop reason that says the model finished (Module 8, sections 5 and 8). It should never end because the program found a phrase such as "I'm done" in the text, which the model can write at any step. Reaching $K_{\max}$ means something went wrong. In the lab, the `agent` node ends the run there, and its last trace line shows $k = K_{\max}$ with tool calls still requested: count such a run as a failure, not as an answer.
+**A loop limit is a guard, not a stopping rule.** A run should end because the reply is a final answer, with no tool calls and a stop reason that says the model finished (Module 8, sections 5 and 8). It should never end because the program found a phrase such as "I'm done" in the text, which the model can write at any step. Reaching $K_{\max}$ means something went wrong. In the lab, the edge out of the `agent` node, `after_agent`, ends the run there without running the requested tools, and the last `agent` trace line shows $k = K_{\max}$ with tool calls still requested: count such a run as a failure, not as an answer.
 
 **Prompt injection, again.** Module 8 defined it: the model reads one token sequence, so text in the data can act as an instruction. In an agent it arrives by three routes.
 
