@@ -63,8 +63,13 @@ def main() -> int:
     for line in broken:
         print(f"BROKEN  {line}")
     for line in toggles:
-        print(f"TOGGLE  {line} collapsed callout(s) not written as <details> (filters/disclosure.lua)")
-    print(f"{len(pages)} pages checked, {len(broken)} broken internal links, {len(toggles)} pages with callout toggles")
+        print(
+            f"TOGGLE  {line} collapsed callout(s) not written as <details> (filters/disclosure.lua)"
+        )
+    print(
+        f"{len(pages)} pages checked, {len(broken)} broken internal links,"
+        f" {len(toggles)} pages with callout toggles"
+    )
     return 1 if broken or toggles else 0
 
 

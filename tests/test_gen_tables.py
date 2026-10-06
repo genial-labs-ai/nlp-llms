@@ -38,10 +38,22 @@ class Current(unittest.TestCase):
         }
         for d in g.days_in_order(V):
             expected[f"day-{d['n']}.md"] = g.day_cards(V, d)
+            expected[f"run-{d['n']}.md"] = g.run_sheet(V, d)
         for key, m in g.modules_in_order(V):
             expected[f"module-{m['n']:02d}.md"] = g.module_block(V, key, m)
         for name, body in expected.items():
             self.assertEqual(committed(name), generated(body), name)
+
+    def test_run_sheets(self):
+        # Every fallback kind has a short form, and each day page shows its run sheet.
+        self.assertEqual(set(g.FALLBACK_SHORT), set(V["readiness"]["fallback_kinds"]))
+        for d in g.days_in_order(V):
+            page = (ROOT / f"day-{d['n']}.qmd").read_text(encoding="utf-8")
+            sheet = g.run_sheet(V, d)
+            with self.subTest(day=d["n"]):
+                self.assertIn(f"{{{{< include /_includes/run-{d['n']}.md >}}}}", page)
+                for _key, m in g.day_modules(V, d):
+                    self.assertIn(f"lectures/{m['slug']}.qmd", sheet)
 
     def test_sidebar_is_current(self):
         self.assertEqual(committed("sidebar.yml"), f"{g.YAML_NOTICE}\n{g.sidebar_yaml(V)}")

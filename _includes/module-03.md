@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 1 · Foundations](/day-1.qmd){.module-day} [Module 3]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time}
+[Day 1 · Foundations](/day-1.qmd){.module-day} [Module 3]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time} [13:35 lecture · 14:20 lab]{.module-clock}
 :::
 
 ::: {.module-summary}

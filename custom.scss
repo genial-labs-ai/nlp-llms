@@ -1045,6 +1045,21 @@ blockquote {
   }
 }
 
+// The day's run sheet (generated: _includes/run-N.md): one block per module.
+.run-sheet {
+  margin: 1rem 0 1.2rem;
+
+  > p {
+    margin: 1.2rem 0 0.35rem;
+    padding-left: 0.7rem;
+    border-left: 3px solid $nl-lecture;
+  }
+
+  > ul {
+    margin-bottom: 0.4rem;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Module cards: day pages and the top of the notebooks page (generated)
 // ---------------------------------------------------------------------------

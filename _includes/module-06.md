@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 2 · Transformers and pretraining](/day-2.qmd){.module-day} [Module 6]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
+[Day 2 · Transformers and pretraining](/day-2.qmd){.module-day} [Module 6]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time} [11:30 lecture · 13:25 lab · 14:20 debrief]{.module-clock}
 :::
 
 ::: {.module-summary}

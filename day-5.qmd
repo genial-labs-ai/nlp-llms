@@ -22,6 +22,10 @@ Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4
 
 {{< include /_includes/day-5.md >}}
 
+## Run sheet {#run-sheet}
+
+{{< include /_includes/run-5.md >}}
+
 ## Closing synthesis (16:45–17:00) {#synthesis}
 
 The last 15 minutes of the capstone wrap-up ([lecture 15, Part IV](lectures/15-capstone.qmd#part-iv.-wrap-up)), and the close of the workshop. The whole room, with the boards from Days 2 to 4. The numbers are the room's own, from its runs.

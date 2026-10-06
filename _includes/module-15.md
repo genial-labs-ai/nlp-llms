@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 15]{.module-num} [240 minutes]{.module-time}
+[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 15]{.module-num} [240 minutes]{.module-time} [11:30–12:25 · 13:25–14:30 · 14:45–16:45]{.module-clock}
 :::
 
 ::: {.module-summary}
