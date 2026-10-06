@@ -139,13 +139,16 @@ def check_keyboard(page: Page, url: str) -> list[str]:
           const focusables = [...document.querySelectorAll(
               'a[href], button, summary, input, select')]
             .filter(e => e.offsetParent !== null);
-          const before = focusables[focusables.indexOf(s) - 1];
-          if (!before) return false;
-          before.focus();
-          return true;
+          const at = focusables.indexOf(s);
+          if (at < 0) return 'hidden';
+          if (at === 0) return 'first';
+          focusables[at - 1].focus();
+          return 'ok';
         }"""
     )
-    if not found:
+    if found == "hidden":
+        return ["the first answer's <summary> is not visible"]
+    if found == "first":
         return ["the first answer has no visible focusable element before it to Tab from"]
     page.keyboard.press("Tab")
     focused = page.evaluate(
@@ -167,15 +170,23 @@ def check_keyboard(page: Page, url: str) -> list[str]:
     return problems
 
 
-def run(check, page: Page, *args) -> list[str]:
-    """A check's problems; an exception (a timeout, a script that threw) is one more,
-    so one bad page is reported and the run goes on."""
+def run(check, context, *args) -> list[str]:
+    """A check's problems, on a new page of the context; an exception (a timeout, a
+    crashed renderer, a script that threw) is one more, so one bad page is reported and
+    the run goes on."""
+    page = None
     try:
+        page = context.new_page()
         return check(page, *args)
     except Exception as e:  # any failure here is a finding, not a crash
-        return [f"the check itself failed: {type(e).__name__}: {str(e).splitlines()[0]}"]
+        first = (str(e).splitlines() or [""])[0]
+        return [f"the check itself failed: {type(e).__name__}: {first}".rstrip(": ")]
     finally:
-        page.close()
+        if page is not None:
+            try:
+                page.close()
+            except Exception:  # a crashed page may not close; the context does it
+                pass
 
 
 def main() -> int:
@@ -200,12 +211,12 @@ def main() -> int:
                     context = browser.new_context(**options, color_scheme=theme)
                     context.add_init_script(theme_script(theme))
                     for path in pages:
-                        problems = run(check_page, context.new_page(), base + path, theme)
+                        problems = run(check_page, context, base + path, theme)
                         checked += 1
                         for p in problems:
                             print(f"FAIL  {size} {theme} {path}: {p}")
                         failures += bool(problems)
-                    problems = run(check_keyboard, context.new_page(), base + KEYBOARD_PAGE)
+                    problems = run(check_keyboard, context, base + KEYBOARD_PAGE)
                     checked += 1
                     for p in problems:
                         print(f"FAIL  {size} {theme} {KEYBOARD_PAGE} (keyboard): {p}")

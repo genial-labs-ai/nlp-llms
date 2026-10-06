@@ -88,8 +88,13 @@ local function title_and_body(div)
     if first and (first.t == "Para" or first.t == "Plain") then
       return first.content, div.content
     end
-    -- A title that markdown reads as a list or a heading ("1. Why softmax?") stays
-    -- literal text, marker included.
+    -- A title that markdown reads as a list ("1. Why `softmax`?"): keep its marker as
+    -- text and the markup of the rest. Anything else stays literal text.
+    local marker = t:match("^%s*(%d+[.)])%s") or t:match("^%s*([-*+])%s")
+    if marker and first and (first.t == "OrderedList" or first.t == "BulletList") then
+      local inner = pandoc.utils.blocks_to_inlines(first.content[1])
+      return pandoc.Inlines({ pandoc.Str(marker), pandoc.Space() }) .. inner, div.content
+    end
     return pandoc.Inlines(t), div.content
   end
   local first = div.content[1]
@@ -122,15 +127,18 @@ local function Div(div)
   if #title == 0 then
     title = pandoc.Inlines({ pandoc.Str(ctype:sub(1, 1):upper() .. ctype:sub(2)) })
   end
+  -- Quarto's "minimal" is "simple" without an icon.
+  local appearance = div.attributes["appearance"] or defaults.appearance
+  local minimal = appearance == "minimal"
   local classes = {
     "callout",
-    "callout-style-" .. (div.attributes["appearance"] or defaults.appearance),
+    "callout-style-" .. (minimal and "simple" or appearance),
     "callout-" .. ctype,
     "callout-titled",
     "callout-disclosure",
   }
   local icon = div.attributes["icon"]
-  if icon == "false" or (icon == nil and not defaults.icon) then
+  if minimal or icon == "false" or (icon == nil and not defaults.icon) then
     table.insert(classes, "no-icon")
   end
   for _, class in ipairs(div.classes) do
