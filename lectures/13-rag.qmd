@@ -131,7 +131,7 @@ A retriever ranks chunks, not documents, and the generator reads only the chunks
 - **Large chunks** ($L = 512$ or more) keep explanations whole, but one vector must summarize several ideas, and each retrieved chunk spends more of the generator's context.
 - **Overlap** $L_o$ repeats the end of each chunk at the start of the next, so a sentence near a boundary appears whole in at least one chunk, at the price of storing and embedding some text twice.
 
-On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives 1,443 chunks at $L = 128$, 705 at $L = 256$ and 355 at $L = 512$ on the lab's snapshot (measured with Lab 13's code). The splitter counts tokens of `cl100k_base`, the tokenizer bundled with LlamaIndex, not the embedding model's own; and metadata that is embedded with a chunk also shrinks its effective size, which is one reason the lab excludes it.
+On the lecture corpus, LlamaIndex's `SentenceSplitter` with $L_o = L/8$ gives 1,812 chunks at $L = 128$, 878 at $L = 256$ and 448 at $L = 512$ on the lab's snapshot (measured with Lab 13's code). The splitter counts tokens of `cl100k_base`, the tokenizer bundled with LlamaIndex, not the embedding model's own; and metadata that is embedded with a chunk also shrinks its effective size, which is one reason the lab excludes it.
 
 The fair comparison between chunk sizes is **at a fixed context budget**, not at a fixed $k$. Passing $k$ chunks of $L$ tokens costs about
 
@@ -171,7 +171,7 @@ $$
 R_k(q) = \operatorname*{top\text{-}k}_{c \in \mathcal{C}}\; s(q, c) ,
 $$ {#eq-topk}
 
-the $k$ chunks with the highest scores, in order. For 660 chunks and $d = 384$ that is about 250,000 multiply-adds per query, which is nothing; the lab searches exhaustively. Collections of millions of chunks use approximate nearest-neighbor indexes, which trade a little recall for speed (optional callout below).
+the $k$ chunks with the highest scores, in order. For 878 chunks and $d = 384$ that is about 340,000 multiply-adds per query, which is nothing; the lab searches exhaustively. Collections of millions of chunks use approximate nearest-neighbor indexes, which trade a little recall for speed (optional callout below).
 
 **How such an encoder is trained.** Word vectors (Module 2) were learned by telling real (word, context) pairs from random ones. Sentence encoders for retrieval are trained the same way, with (query, relevant passage) pairs in place of (word, context) pairs. For a query $q$ with a relevant passage $c^+$ and a batch of $B$ passages $c_1, \dots, c_B$ that contains $c^+$, the **contrastive loss** with in-batch negatives (Karpukhin et al., 2020) is a softmax cross-entropy over the batch:
 
