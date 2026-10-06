@@ -6,6 +6,16 @@
   "mode": "worked",
   "evidence": "a fixture for tests/test_runs.py: every entry is wrong on purpose",
   "runs": [
-    {"notebook": "99-missing", "date": "06/10/2026", "scope": "partial", "status": "maybe", "seconds": 1, "content_sha": "abc", "note": "sk-abcdefghijklmnopqrstuvwx"}
-  ]
+    {
+      "notebook": "99-missing",
+      "date": "06/10/2026",
+      "scope": "partial",
+      "status": "maybe",
+      "seconds": 1,
+      "content_sha": "abc",
+      "note": "sk-abcdefghijklmnopqrstuvwx",
+      "settings": null
+    }
+  ],
+  "scope": "partial"
 }

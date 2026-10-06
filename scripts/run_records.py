@@ -7,12 +7,16 @@ batch's file name.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
+NOTEBOOKS = ROOT / "notebooks"
+# Cells written by scripts/gen_notebooks.py; they do not count as the lab's code.
+GENERATED_CELL_IDS = {"workshop-header", "workshop-footer", "workshop-harness", "workshop-summary"}
 
 SCHEMA = 1
 SOURCES = ("test_notebooks", "colab", "backfill")
@@ -56,9 +60,22 @@ ALLOWED = set(INHERITED) | {
     "note",
     "file",
 }
+BATCH_FIELDS = set(INHERITED) | {"schema", "runs"}
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # Anything that looks like a credential must never be committed in a record.
 SECRET = re.compile(r"(sk-[A-Za-z0-9_-]{16,}|sk-ant-|hf_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16})")
+
+
+def content_sha(slug: str) -> str:
+    """A short hash of a notebook's code, excluding generated cells: a run record made
+    against other code than the committed notebook's is stale."""
+    nb = json.loads((NOTEBOOKS / f"{slug}.ipynb").read_text(encoding="utf-8"))
+    code = [
+        "".join(cell["source"])
+        for cell in nb["cells"]
+        if cell["cell_type"] == "code" and cell.get("id") not in GENERATED_CELL_IDS
+    ]
+    return hashlib.sha256("\n\x1e\n".join(code).encode("utf-8")).hexdigest()[:16]
 
 
 def load_file(path: Path) -> list[dict]:
@@ -89,6 +106,8 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
         errors.append(f"{path.name}: schema must be {SCHEMA}")
     if not batch.get("runs"):
         errors.append(f"{path.name}: no runs")
+    for field in sorted(set(batch) - BATCH_FIELDS):
+        errors.append(f"{path.name}: unknown top-level field {field} (only shared fields go here)")
     for i, r in enumerate(load_file(path)):
         where = f"{path.name} runs[{i}] ({r.get('notebook')})"
         for field in REQUIRED:
@@ -118,6 +137,19 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
             errors.append(f"{where}: seconds must be a non-negative number or null")
         if r.get("scope") == "partial" and not r.get("scope_note"):
             errors.append(f"{where}: a partial run needs a scope_note")
+        if r.get("settings") is not None and not isinstance(r["settings"], dict):
+            errors.append(f"{where}: settings must be an object")
         if r.get("source") == "backfill" and r.get("content_sha"):
             errors.append(f"{where}: a backfilled record cannot carry a content_sha")
     return errors
+
+
+def load_valid(envs: set[str], runs_dir: Path = RUNS) -> list[dict]:
+    """All records, after validating every file; stops with every problem listed."""
+    notebooks = {p.stem for p in NOTEBOOKS.glob("*.ipynb")}
+    errors = [
+        e for path in sorted(runs_dir.glob("*.json")) for e in validate_file(path, envs, notebooks)
+    ]
+    if errors:
+        raise SystemExit("Invalid run records:\n  " + "\n  ".join(errors))
+    return load_all(runs_dir)
