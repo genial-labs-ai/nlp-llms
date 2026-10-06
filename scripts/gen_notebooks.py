@@ -14,10 +14,14 @@ Run:  uv run --group site python scripts/gen_notebooks.py
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import nbformat
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from gen_tables import timing  # noqa: E402  (one source for "120 minutes (55 lecture, ...)")
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
@@ -44,13 +48,14 @@ def entries(v: dict) -> list[dict]:
 def header_source(v: dict, e: dict) -> str:
     colab = f"{v['repo']['colab_base']}/{e['slug']}.ipynb"
     when = f"Day {e['day']}" if e["day"] else "Before Day 1"
+    length = timing(v, f"m{e['n']:02d}", e) if e["day"] else f"{e['minutes']} minutes"
     lines = [
         NOTICE,
         f"# {e['n']} · {e['title']}",
         "",
         f"[![Open in Colab]({BADGE})]({colab})",
         "",
-        f"**{v['workshop']['title']}** · {when} · {e['minutes']} minutes",
+        f"**{v['workshop']['title']}** · {when} · {length}",
         "",
         e["summary"],
     ]

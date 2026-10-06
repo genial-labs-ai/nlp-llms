@@ -1,20 +1,20 @@
 ---
 title: "Schedule"
-subtitle: "Four days, 09:00 to 17:00"
+subtitle: "Five days, 09:00 to 17:00"
 toc: false
 # Five columns need more than the text measure (custom.scss, body.wide).
 page-layout: full
 body-classes: wide
 ---
 
-Each module is {{< var workshop.lecture_minutes >}} minutes of lecture followed by {{< var workshop.lab_minutes >}} minutes of lab. The capstone on Day 4 takes the whole afternoon.
+{{< include /_includes/module-shape.md >}}
 
-Day 1 opens the room at 08:00 for an optional self-serve hour, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd). You work through its page on your own: there is no talk and no notebook, and you can do it beforehand as pre-work instead. The workshop proper starts at 09:00.
+Day 1 keeps the shorter modules because its lectures are the lightest. From Day 2, each lecture has room for its predictions, checks and demo, and each lab ends with a debrief: what the room found, and where results differed. On Days 2 to 5 the middle module's lecture comes before lunch and its lab after. Those days open with retrieval practice, a few exit-check questions from earlier days, and close with a synthesis: the day's results go into a running table, and the room names the limitation that is left.
+
+[Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is optional pre-work, done on your own laptop before Day 1. There is no talk and no notebook. If you get stuck, the room opens at 08:00 on Day 1 for an optional drop-in clinic. The workshop proper starts at 09:00.
 
 ::: {.timetable-legend}
-[Lecture]{.legend-lecture} [Lab]{.legend-lab} [Break]{.legend-break} [Optional, self-serve]{.legend-optional}
+[Lecture]{.legend-lecture} [Lab]{.legend-lab} [Debrief]{.legend-debrief} [Break]{.legend-break} [Optional clinic]{.legend-clinic}
 :::
 
-::: {.table-wide .timetable}
 {{< include /_includes/schedule.md >}}
-:::

@@ -1,0 +1,13 @@
+---
+title: "Day 5"
+subtitle: "{{< var days.d5.title >}}"
+toc: false
+---
+
+**{{< var days.d5.question >}}**
+
+Day 5 builds systems. Module 14 turns the hand-written tool loop of Module 8 into an agent graph with state, human approval and confidence-gated control. The capstone takes the rest of the day: in pairs, you improve one component of a research assistant and measure whether the system got better. The wrap-up closes the workshop.
+
+{{< include /_includes/day-5.md >}}
+
+Times are on the [schedule](schedule.qmd).

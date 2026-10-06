@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 2 · Transformers and LLMs](/day-2.qmd){.module-day} [Module 7]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time}
+[Day 2 · Transformers and pretraining](/day-2.qmd){.module-day} [Module 7]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}

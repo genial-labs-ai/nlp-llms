@@ -11,17 +11,23 @@ Lab rows come from the minutes in each notebook's exercise headings, which follo
 
 ## How to read this sheet
 
-Minutes count from the start of the module's slot. The lecture runs from 0 to {{< var workshop.lecture_minutes >}} and the lab from {{< var workshop.lecture_minutes >}} to 95. Clock times are on the [schedule](schedule.qmd). "CP" is a checkpoint; Checkpoint *N* belongs to Exercise *N*. The last column says what participants should have passed by the end of that row. If more than a third of the room has not, apply the module's "behind" rule.
+{{< include /_includes/module-shape.md >}}
+
+::: {.callout-warning appearance="simple"}
+**Being updated for the five-day schedule.** The rows below still follow the earlier four-day plan: every module is timed as {{< var schedule.clocks.standard.shape.lecture >}} minutes of lecture and {{< var schedule.clocks.standard.shape.lab >}} of lab, as on Day 1, and the capstone as a 190-minute afternoon. They have not yet been rewritten for Days 2 to 5 (longer lectures and labs, a debrief, the middle module's lab after lunch) or for Day 5. The [schedule](schedule.qmd) is current.
+:::
+
+Minutes count from the start of the module's slot. In the rows below, the lecture runs from 0 to {{< var schedule.clocks.standard.shape.lecture >}} and the lab from {{< var schedule.clocks.standard.shape.lecture >}} to 95. Clock times are on the [schedule](schedule.qmd). "CP" is a checkpoint; Checkpoint *N* belongs to Exercise *N*. The last column says what participants should have passed by the end of that row. If more than a third of the room has not, apply the module's "behind" rule.
 
 Lab minutes are the notebooks' own planning minutes. **No lab has been timed on Colab or on a T4.** Labs 1 to 5 were timed on a shared CPU only, and Labs 2 to 5 took far longer there than these minutes allow (see the [facilitator guide](facilitator-guide.md)). Treat every lab row as a target until you have run the notebook on the room's runtime.
 
 Optional callouts in the lectures sit outside the 45 minutes. The stretch section of every lab sits outside the 50.
 
-**Each morning, the opening slot (10 minutes):** 0–5 the opening lines in the facilitator guide; 5–10 the setup check (Day 1) or the recap (Days 2–4).
+**Each morning, the opening slot (10 minutes):** 0–5 the opening lines in the facilitator guide; 5–10 the setup check (Day 1). Days 2 to 5 open with retrieval practice instead; its plan is not yet written.
 
-## Day 1, 08:00: Module 0 · {{< var modules.m00.title >}}
+## Before Day 1: Module 0 · {{< var modules.m00.title >}}
 
-Optional and self-serve, {{< var modules.m00.minutes >}} minutes before the 09:00 welcome, with no lecture. Minutes count from 08:00. **Provisional:** these rows follow the step plan on the [Module 0 page](lectures/00-coding-agents.qmd). No one has yet timed the module on a fresh laptop, so they are a target, not a measurement. Install failures and what to do about them are in the [facilitator guide](facilitator-guide.md#module-0).
+Optional pre-work, planned at {{< var modules.m00.minutes >}} minutes, with no lecture; the same rows pace the optional drop-in clinic on Day 1, 08:00–09:00. Minutes count from the start. **Provisional:** these rows follow the step plan on the [Module 0 page](lectures/00-coding-agents.qmd). No one has yet timed the module on a fresh laptop, so they are a target, not a measurement. Install failures and what to do about them are in the [facilitator guide](facilitator-guide.md#module-0).
 
 | Minutes | Segment | By the end |
 |---|---|---|
@@ -360,7 +366,7 @@ The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief c
 | 0–20 (after the break) | Part III. Run `test` on the frozen system; run the last cell; hand in the file | submission handed in |
 | 20–55 | Two-minute shares, in menu order | |
 | 55–65 | The combined table, read with the room | |
-| 65–75 | Part IV. Wrap-up: section 7, four days, one line of ideas | |
+| 65–75 | Part IV. Wrap-up: section 7, five days, one line of ideas | |
 | 75–83 | Section 8, an evaluation checklist for agentic systems | |
 | 83–90 | Section 9, open problems | |
 | 90–95 | Section 10, further study | |

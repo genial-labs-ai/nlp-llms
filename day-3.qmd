@@ -6,7 +6,7 @@ toc: false
 
 **{{< var days.d3.question >}}**
 
-Day 3 is about what these models are trained to do. RLHF optimizes for what people prefer; calibration asks whether a model's confidence can be trusted; Module 12 asks what changes when calibration itself is the training objective, the idea third parties describe as RLCD, and keeps what TypeSafe has stated apart from those reports and from our own illustration.
+Day 3 starts with the commercial models you reach through an API, and with what their answers do not tell you. It then asks what these models are trained to want: Module 9 frames generation as reinforcement learning and learns a reward from human comparisons, and Module 10 optimizes a model against that reward, which is RLHF, and shows how it fails.
 
 {{< include /_includes/day-3.md >}}
 

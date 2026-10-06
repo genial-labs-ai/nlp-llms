@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 4 · RAG, agents, capstone](/day-4.qmd){.module-day} [Module 15]{.module-num} [190 minutes]{.module-time}
+[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 15]{.module-num} [240 minutes]{.module-time}
 :::
 
 ::: {.module-summary}

@@ -6,7 +6,7 @@ toc: false
 
 **{{< var days.d4.question >}}**
 
-Day 4 builds systems: retrieval, agents, and a capstone that combines them with calibrated control. The afternoon is hands-on pair work.
+Day 4 asks when a model's answer can be trusted. Calibration measures whether a model's probabilities mean what they say; Module 12 turns calibrated probabilities into act, ask or escalate decisions, and asks what changes when calibration itself is the training objective: TypeSafe names this RLCD but has not published the method, so the module keeps what TypeSafe has stated apart from third-party reports and from our own illustration. Module 13 grounds answers in retrieved sources and measures retrieval and answers separately.
 
 {{< include /_includes/day-4.md >}}
 

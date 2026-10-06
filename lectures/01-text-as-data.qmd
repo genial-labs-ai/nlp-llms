@@ -5,7 +5,7 @@ title: "{{< var modules.m01.title >}}"
 {{< include /_includes/module-01.md >}}
 
 ::: {.recap}
-**Where we start.** You can already fit a logistic regression to a table of numbers and read its loss. What you have not done yet is turn a string into those numbers. The four days run from counting words (today) to learned vectors and attention, then to transformers and pretrained models (Day 2), to what those models are trained to prefer and how far their confidence can be trusted (Day 3), and to systems built out of them (Day 4). This module asks one question: how far does counting alone get us, and where exactly does it stop?
+**Where we start.** You can already fit a logistic regression to a table of numbers and read its loss. What you have not done yet is turn a string into those numbers. The five days run from counting words (today) to learned vectors and attention, then to transformers and pretrained models (Day 2), to using those models through APIs and what they are trained to prefer (Day 3), to how far their confidence can be trusted and how to ground their answers in sources (Day 4), and to agents and systems built out of them (Day 5). This module asks one question: how far does counting alone get us, and where exactly does it stop?
 :::
 
 ## Plan for the 45 minutes

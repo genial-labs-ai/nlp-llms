@@ -1,6 +1,6 @@
 ---
 title: "Facilitator guide"
-subtitle: "How to run the four days, module by module"
+subtitle: "How to run the five days, module by module"
 ---
 
 <!--
@@ -13,7 +13,11 @@ the "As built" sections of briefs/*.md and the notebooks' own headings.
 
 This guide is for the person running the room. It says what to set up, what to say first, where groups get stuck, what to cut when the clock slips, and what to do when Colab, an API or the Hugging Face Hub fails. The minute-by-minute plan is in the [pace sheet](instructor-pace.md). The entry and exit checks are in [assessments](assessments.md). The timetable is on the [schedule](schedule.qmd).
 
-Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The capstone, Module 15, takes the whole Day 4 afternoon.
+{{< include /_includes/module-shape.md >}}
+
+::: {.callout-warning appearance="simple"}
+**Being updated for the five-day schedule.** The day-by-day sections below, and "Each morning", still follow the earlier four-day plan, in which every module was 45 minutes of lecture and 50 of lab, Module 8 closed Day 2, and Modules 13 to 15 filled Day 4. They have not yet been rewritten for the debriefs, the retrieval and synthesis slots, or Day 5. The [schedule](schedule.qmd) is current; the notes for each module still apply.
+:::
 
 ## Read this first: what has been verified
 
@@ -36,7 +40,7 @@ The [readiness page](readiness.qmd) has the evidence for every module. It is gen
 3. Ask TypeSafe for workshop keys. A room of 30 on one key makes about 12,000 Jev calls in Lab 12, 48,000 in Lab 13's reranking and 15,000 in Lab 14. Rate limits are unknown.
 4. Check the model IDs against the providers' deprecation pages: `{{< var models.openai >}}`, `{{< var models.anthropic >}}`, and the open fallback `{{< var models.fallback >}}`.
 5. Check that the blocking work on the [readiness page](readiness.qmd#open-work) is done, or plan the fallback named in each module's section.
-6. Decide whether you will open the room at 08:00 on Day 1 for [Module 0](#module-0), and tell participants. If you will not, send them its page as pre-work. Ask anyone on a managed work laptop to check now that they may install software.
+6. Send participants the [Module 0](#module-0) page as optional pre-work, decide whether you will open the room at 08:00 on Day 1 for a drop-in clinic, and tell them. Ask anyone on a managed work laptop to check now that they may install software.
 
 ### The day before
 
@@ -76,7 +80,7 @@ Tell the room three things. A key is never pasted into a cell. A notebook with n
 
 ### The lookalike-package warning
 
-Say this out loud on Day 3, before Lab 12, and again on Day 4. TypeSafe's SDK is published on PyPI only as `typesafe-sdk` (pinned at {{< var packages.typesafe_sdk >}}), and its LangChain integration only as `langchain-typesafe` (pinned at {{< var packages.langchain_typesafe >}}). Lab 12's stretch adds TypeSafe's emulator, `system-one-adapter` ({{< var packages.system_one_adapter >}}). Several unaffiliated packages sit on names a participant might guess, among them `typesafe-ai`, `jev` and `typesafe-client`, and a third-party LlamaIndex reranker. There is no official LlamaIndex integration. The labs install the right packages for you; nobody should install anything else under a TypeSafe-like name.
+Say this out loud on Day 4, before Lab 12, and again on Day 5. TypeSafe's SDK is published on PyPI only as `typesafe-sdk` (pinned at {{< var packages.typesafe_sdk >}}), and its LangChain integration only as `langchain-typesafe` (pinned at {{< var packages.langchain_typesafe >}}). Lab 12's stretch adds TypeSafe's emulator, `system-one-adapter` ({{< var packages.system_one_adapter >}}). Several unaffiliated packages sit on names a participant might guess, among them `typesafe-ai`, `jev` and `typesafe-client`, and a third-party LlamaIndex reranker. There is no official LlamaIndex integration. The labs install the right packages for you; nobody should install anything else under a TypeSafe-like name.
 
 ### How the notebooks behave
 
@@ -86,7 +90,7 @@ Say this out loud on Day 3, before Lab 12, and again on Day 4. TypeSafe's SDK is
 
 ## Module 0 · {{< var modules.m00.title >}} {#module-0}
 
-Day 1, 08:00–09:00, before the welcome. Optional, and also usable as pre-work. Nothing later in the workshop depends on it.
+Optional pre-work, before Day 1, with an optional drop-in clinic on Day 1 from 08:00 to 09:00, before the welcome. Nothing later in the workshop depends on it. The notes below describe the clinic hour.
 
 **What the hour looks like.** There is no talk. Participants work through the [Module 0 page](lectures/00-coding-agents.qmd) on their own laptops, at their own pace. Each one installs a terminal coding agent (Claude Code, Codex or Gemini CLI), sets up git and the GitHub CLI (`gh`), uses the agent to build two small apps in one language of their choice, Python or R (a protein structure explorer for ubiquitin, PDB entry 1UBQ, and an RFM customer segmentation, each with a three.js page), and publishes both on GitHub Pages. Your job is to unblock installs and sign-ins. Expect most problems before anyone writes a prompt: installs, sign-ins and git setup.
 

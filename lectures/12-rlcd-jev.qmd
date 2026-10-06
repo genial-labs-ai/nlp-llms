@@ -570,7 +570,7 @@ What it teaches:
 
 ## What Module 13 picks up
 
-You can now call a decision model for typed answers, measure its probabilities, and set act, ask and escalate thresholds from costs. Day 4 builds systems around such decisions. [Module 13](13-rag.qmd) adds retrieval, so that the state a model decides on, or an LLM answers from, contains the right documents; there a decision model reappears as a reranker that scores how relevant each passage is. [Module 14](14-agents.qmd) puts the router and the guard of section 7 into an agent graph, with the thresholds from this lab.
+You can now call a decision model for typed answers, measure its probabilities, and set act, ask and escalate thresholds from costs. The rest of the workshop builds systems around such decisions. [Module 13](13-rag.qmd) adds retrieval, so that the state a model decides on, or an LLM answers from, contains the right documents; there a decision model reappears as a reranker that scores how relevant each passage is. [Module 14](14-agents.qmd) puts the router and the guard of section 7 into an agent graph, with the thresholds from this lab.
 
 ## Readings
 

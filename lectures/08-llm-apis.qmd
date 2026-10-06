@@ -561,7 +561,7 @@ Only the last two. The tags and the system prompt work by persuading the model, 
 
 ## 9. A fluent answer carries no confidence signal
 
-**Objective for this section:** say what the API does not tell you, and why that is Day 3's problem.
+**Objective for this section:** say what the API does not tell you, and why that is the problem of Modules 9 to 11.
 
 Look at what a response contains: text, a stop reason, token counts. Nothing in it says how likely the answer is to be correct.
 
@@ -571,7 +571,7 @@ Look at what a response contains: text, a stop reason, token counts. Nothing in 
 
 For a system that acts on model output, this is the missing piece. To decide between acting, asking a person and escalating, you need a number that behaves like a probability: among the answers given with confidence 0.9, about 90 percent should be right.
 
-That sets up Day 3. Where would such a signal come from? It depends on what the model was trained to optimize. So far that has been the likelihood of text. [Module 9](09-preference-learning.qmd) asks what to do when there is no label for "better", only a preference between two outputs, and [Module 10](10-rlhf.qmd) trains on that preference. [Module 11](11-calibration.qmd) then defines what a confidence should mean and measures it, including for the models you called today.
+That sets up Modules 9 to 11. Where would such a signal come from? It depends on what the model was trained to optimize. So far that has been the likelihood of text. [Module 9](09-preference-learning.qmd) asks what to do when there is no label for "better", only a preference between two outputs, and [Module 10](10-rlhf.qmd) trains on that preference. [Module 11](11-calibration.qmd) then defines what a confidence should mean and measures it, including for the models you called today.
 
 ::: {.self-check}
 **Check yourself.** You add a field `confidence`, a number from 0 to 1, to the `Event` schema, and every record now comes back with a value such as 0.95. Using only tools from this lecture, what experiment would tell you whether that number means anything?
@@ -615,7 +615,7 @@ Run the fixed evaluation set of section 7, where the correct record is known. Gr
 - **"Setting the temperature to zero makes the output reproducible."** It makes it less variable at best. Providers do not guarantee identical outputs across calls, the newest Claude models reject a non-default temperature, and model versions change. Evaluate on a set, not on one run.
 - **"Tokens are words."** They are subword units, they differ between providers, and hidden reasoning tokens are billed too.
 - **"A cheaper price per token means a cheaper task."** Cost per task depends on how many tokens each model needs, including retries and reasoning.
-- **"If the model is unsure, it will say so."** Nothing in next-token training requires that. Day 3 measures it.
+- **"If the model is unsure, it will say so."** Nothing in next-token training requires that. Module 11 measures it.
 
 ## Readings
 
