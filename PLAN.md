@@ -275,11 +275,11 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 #### Module 14 · Agents
 
 - **Objectives:** build a tool-using agent as an explicit graph; add state, memory and human-in-the-loop interrupts; use a calibrated decision model for routing and tool-call approval.
-- **Lecture:** from the hand-written tool loop of Module 8 to agents; ReAct; LangChain tools and runnables; LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts; where agents fail (loops, wrong tool, unsafe action, prompt injection); using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12.
+- **Lecture:** from the hand-written tool loop of Module 8 to agents; the agent harness (agent = model + harness; not to be confused with an evaluation or test harness), with ARC-AGI's same-model, different-harness results as a worked example; ReAct; LangChain tools and runnables; tool design (descriptions, few tools, short results, actionable errors); LangGraph: nodes, edges, state, conditional routing, checkpoints, interrupts, resume or start fresh; where agents fail (loops, wrong tool, unsafe action, prompt injection), stopping on a final answer, and enforcement in code; using a System 1 model in the control loop: route, guard, verify, with thresholds from Module 12, plus escalation triggers and hand-offs; designing the harness: workflow patterns (Anthropic) and agentic design patterns (Ng), coordinators and subagents, context as a budget.
 - **Lab `14-agents.ipynb`:** define tools (calculator, the Module 13 retriever, a mock "send email" action); build a ReAct-style LangGraph agent; add a Jev router node (`langchain-typesafe`) that picks the next step with a probability; gate the risky tool with an act / ask / escalate guard from Module 12's thresholds (a simulated human answers interrupts in unattended runs); replay from a checkpoint; test against a prompt-injection document.
-- **Stretch:** add a verification node that checks the final answer against the retrieved sources.
+- **Stretch (one section, four parts; pick one):** (A) a verification node that checks the final answer against the retrieved sources; (B) a research subagent with its own context, failures returned as results, and a coverage check at the coordinator; (C) compaction that keeps the facts word for word; (D) a hand-off record that stands alone.
 - **Stack:** LangChain, LangGraph, Jev, OpenAI/Claude (fallback: local model and the Module 12 toy decision model).
-- **Readings:** Yao et al. 2022 (ReAct); LangGraph documentation.
+- **Readings:** Yao et al. 2023 (ReAct); LangGraph documentation; Schluntz and Zhang 2024 (Building effective agents); Greshake et al. 2023; Beurer-Kellner et al. 2025.
 
 #### Module 15 · Capstone (double slot)
 
@@ -454,6 +454,15 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [x] Wiring: `modules.m00` (`notebook: false`), the `self_serve` slot and `days.d1.self_serve`, `agents_intro` versions; generators, tests, navbar, day, schedule, setup, index and teach pages; facilitator guide and pace sheet sections; `agents-intro` in the ruff paths 
 - [ ] Verify every install command (the three agents, git, `gh`) against each tool's current documentation, and refresh `agents_intro`, before each delivery
 - [ ] Run Module 0 end to end on a fresh laptop per OS (macOS, Windows with WSL 2, Linux); record the times and replace the provisional rows in `instructor-pace.md`
+
+### Module 14 — certification, harness and ARC-AGI pass (added 2026-10-06)
+
+- [x] Lecture 14: the harness defined in section 1, with a terminology note and an ARC-AGI worked example; tool design in section 3; resume or start fresh in section 5; stopping and enforcement in section 6; escalation triggers and hand-offs in section 7; a new section 9 (patterns, subagents, context) with an optional Claude Agent SDK and MCP mapping. Sources: the *Claude Certified Architect – Foundations* exam guide v1.0, Anthropic's engineering posts, Ng's letters in *The Batch*, ARC Prize's reports and leaderboard, all opened 2026-10-06. Three optional callouts moved out of the 45 minutes to make room. Rendered clean with Quarto 1.6.40
+- [x] `references.qmd` (Module 14 and library documentation), Module 0's harness sentence, Module 15's further study, brief 14's note for the Lab Engineer
+- [ ] Timing dry-run of the rebalanced lecture 14 (section 9 is budgeted at 4 minutes, which is tight)
+- [x] Lab 14 stretch exercises for the new material: parts B (research subagent, `run_subagent` and `coverage_gaps`), C (`compact`) and D (`handoff`) beside part A (the verify node), each with a folded solution and a scripted checkpoint; spec in brief 14. The core path is unchanged
+- [ ] Decide whether `m14` objectives gain a fourth (designing the harness); not done, because only the optional stretch exercises it
+- [ ] Re-read the ARC-AGI figures and Anthropic's posts before each delivery: the leaderboard reprices runs, and "Building effective agents" has already been edited once since 2024
 
 ### Ongoing review (after v1.0)
 
