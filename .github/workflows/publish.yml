@@ -132,6 +132,39 @@ jobs:
       - name: Learner smoke test
         run: uv run --group execute python scripts/test_notebooks.py --learner
 
+  # Desktop sizes in both themes: no sideways scroll, math typeset, demos drawn,
+  # answers reachable and operable from the keyboard. Its own job, on the site the
+  # render job built: the demos load Plot from a CDN, and a CDN hiccup here must not
+  # hold up the deploy, which needs only the render job.
+  browser:
+    needs: render
+    runs-on: ubuntu-latest
+    # About 3 minutes when the CDNs answer; a hanging one makes every demo wait.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          enable-cache: false
+
+      - uses: actions/download-artifact@v7
+        with:
+          name: github-pages
+
+      - name: Unpack the rendered site
+        run: mkdir -p docs && tar -xf artifact.tar -C docs
+
+      # Mirrors the browser group in pyproject.toml.
+      - name: Check in a desktop browser
+        run: |
+          uv run --no-project --with "playwright>=1.63" playwright install --with-deps chromium
+          uv run --no-project --with "playwright>=1.63" python scripts/check_browser.py
+
   deploy:
     needs: render
     # Needs Pages set to deploy from GitHub Actions (Settings > Pages > Source).

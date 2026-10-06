@@ -283,11 +283,11 @@ Plot.plot({
   width: 720, height: 340, marginLeft: 60, grid: true,
   x: {label: "baseline b"},
   y: {label: "one-sample gradient estimate", domain: [-10, 11]},
-  color: {legend: true, domain: names09, range: ["#1d5f8a", "#b3541e", "#2e7d4f"]},
+  color: {legend: true, domain: names09, range: ["var(--demo-blue)", "var(--demo-orange)", "var(--demo-green)"]},
   marks: [
-    Plot.ruleY([0], {stroke: "#bbb"}),
+    Plot.ruleY([0], {stroke: "var(--demo-faint)"}),
     Plot.line(lines09, {x: "b", y: "g", stroke: "which", strokeWidth: 2}),
-    Plot.ruleX([b09], {stroke: "#888", strokeDasharray: "4 3"}),
+    Plot.ruleX([b09], {stroke: "var(--demo-grey)", strokeDasharray: "4 3"}),
     Plot.dot([{b: b09, g: stats09.g1, which: names09[0]}, {b: b09, g: stats09.g2, which: names09[1]}], {x: "b", y: "g", fill: "which", r: 5})
   ]
 })

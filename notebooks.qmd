@@ -18,7 +18,7 @@ Notebooks are stored without outputs. Work through the cells one at a time. **Ru
 - **Exercises.** Each has a `# TODO` cell for you to complete.
 - **Harness.** The first code cell. Run it first; it keeps the solutions from replacing your code. Tick `WORKED_EXAMPLE` in it to run the whole lab as a worked example instead.
 - **Solutions.** Folded directly beneath each exercise. Try the exercise first, then open the solution to compare. Running a solution cell stores the reference; it does not overwrite your function.
-- **Checkpoints.** A cell after each exercise that passes or fails and says whose code it checked: yours or the reference. If you are stuck, `workshop.use_reference(N)` lets you go on with exercise N's reference solution.
+- **Checkpoints.** A cell after each exercise that passes or fails and says whose code it checked: yours or the reference. If you are stuck, run exercise N's folded solution cell, then `workshop.use_reference(N)`, and go on with the reference solution.
 - **Summary.** The last code cell lists which checkpoints passed on your own code.
 - **Stretch.** An optional final section. Nothing later depends on it.
 

@@ -261,19 +261,19 @@ viewof qLen = Inputs.range([0, 3], {value: 1.5, step: 0.1, label: "Length of the
     width: 360, height: 360, grid: true,
     x: {domain: [-3.4, 3.4], label: "dimension 1"}, y: {domain: [-3.4, 3.4], label: "dimension 2"},
     marks: [
-      Plot.line([...rows, rows[0]], {x: "x", y: "y", stroke: "#b9c2cc", strokeDasharray: "3 3"}),
-      Plot.arrow(rows, {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "#1d5f8a", strokeWidth: 2, strokeOpacity: (d) => 0.25 + 0.75 * d.alpha}),
-      Plot.text(rows, {x: (d) => 1.18 * d.x, y: (d) => 1.18 * d.y, text: "name", fontSize: 13, fill: "#1d5f8a"}),
-      Plot.arrow([q], {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "#1f2933", strokeWidth: 2.5}),
+      Plot.line([...rows, rows[0]], {x: "x", y: "y", stroke: "var(--demo-faint)", strokeDasharray: "3 3"}),
+      Plot.arrow(rows, {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "var(--demo-blue)", strokeWidth: 2, strokeOpacity: (d) => 0.25 + 0.75 * d.alpha}),
+      Plot.text(rows, {x: (d) => 1.18 * d.x, y: (d) => 1.18 * d.y, text: "name", fontSize: 13, fill: "var(--demo-blue)"}),
+      Plot.arrow([q], {x1: 0, y1: 0, x2: "x", y2: "y", stroke: "var(--demo-ink)", strokeWidth: 2.5}),
       Plot.text([q], {x: (d) => d.x + 0.45 * Math.cos(rad), y: (d) => d.y + 0.45 * Math.sin(rad), text: () => "query", fontSize: 13, fontWeight: "bold"}),
-      Plot.dot([ctx], {x: "x", y: "y", r: 6, fill: "#b3541e"})
+      Plot.dot([ctx], {x: "x", y: "y", r: 6, fill: "var(--demo-orange)"})
     ]
   });
   const bars = Plot.plot({
     width: 360, height: 360, marginBottom: 40,
     x: {label: "source position", domain: rows.map((d) => d.name)}, y: {label: "attention weight α", domain: [0, 1]},
     marks: [
-      Plot.barY(rows, {x: "name", y: "alpha", fill: "#1d5f8a"}),
+      Plot.barY(rows, {x: "name", y: "alpha", fill: "var(--demo-blue)"}),
       Plot.text(rows, {x: "name", y: "alpha", text: (d) => d.alpha.toFixed(2), dy: -8}),
       Plot.ruleY([0])
     ]

@@ -174,6 +174,25 @@ class Site(unittest.TestCase):
         for d in V["days"].values():
             self.assertIn(f"day-{d['n']}.qmd", render)
 
+    def test_navbar_and_footer(self):
+        left = [
+            item.get("href") or item["text"] for item in self.quarto["website"]["navbar"]["left"]
+        ]
+        self.assertEqual(
+            left,
+            [
+                "index.qmd",
+                "prepare.qmd",
+                "schedule.qmd",
+                "Days",
+                "notebooks.qmd",
+                "references.qmd",
+                "teach.qmd",
+            ],
+        )
+        footer = [item["href"] for item in self.quarto["website"]["page-footer"]["center"]]
+        self.assertEqual(footer, ["setup.qmd", "faq.qmd", "readiness.qmd"])
+
     def test_days_menu(self):
         left = self.quarto["website"]["navbar"]["left"]
         menu = next(item["menu"] for item in left if item.get("text") == "Days")

@@ -26,9 +26,20 @@ $nl-code: #f0b48a;
 $nl-code-bg: #161e27;
 // The SVG figures draw dark strokes on a transparent background: give them paper.
 $nl-figure-bg: #f3f1ec;
-// Demos keep light-theme ink (their plots hard-code it) on the same paper.
-$nl-demo-bg: #f3f1ec;
-$nl-demo-border: #cfd3d6;
+// Demos: a dark panel; their plots read the series colors from --demo-*.
+$nl-demo-bg: #151c25;
+$nl-demo-ink: #d5dce4;
+$nl-demo-muted: #9aa7b5;
+$nl-demo-link: #86bde6;
+$nl-demo-accent: #e39a63;
+$nl-demo-code: #f0b48a;
+$nl-demo-border: #2a3644;
+$nl-demo-field: #10161d;
+$nl-demo-blue: #7fb2de;
+$nl-demo-orange: #e39a63;
+$nl-demo-green: #7fc49d;
+$nl-demo-grey: #9aa7b5;
+$nl-demo-faint: #4a5868;
 $nl-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.3);
 
 $navbar-bg: #0c1218;
