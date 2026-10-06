@@ -4,8 +4,8 @@ A release needs, as of the given date:
 
 - for the setup notebook and every lab, a passing teaching-eligible run of its current
   code on its own runtime (scripts/readiness.py: worked, whole notebook, release path, no QUICK,
-  not a backfill), dated no later than the release date and no older than
-  readiness.max_run_age_days;
+  not a backfill), dated no later than the day after the release date (records carry
+  local dates) and no older than readiness.max_run_age_days;
 - every readiness item closed (readiness.items in _variables.yml).
 
 It reads only the repository and the date, so the same commit and date always give
@@ -52,17 +52,14 @@ def lab_blocker(v: dict, m: dict, e: dict, as_of: dt.date) -> str | None:
 
 
 def blockers(v: dict, records: list[dict], as_of: dt.date) -> list[str]:
-    # Evidence from after the release date did not exist on it.
-    records = [r for r in records if r["date"] <= as_of.isoformat()]
+    # Evidence from after the release date did not exist on it. One day of slack: a record
+    # carries its recorder's local date, and --as-of defaults to the runner's (UTC) date.
+    latest = (as_of + dt.timedelta(days=1)).isoformat()
+    records = [r for r in records if r["date"] <= latest]
     report = readiness.build(v, records)
     out = []
     setup = v["setup"]
-    why = lab_blocker(
-        v,
-        {"readiness": {"runtime": setup["runtime"]}},
-        readiness.evidence(v, setup["slug"], setup["runtime"], records),
-        as_of,
-    )
+    why = lab_blocker(v, {"readiness": {"runtime": setup["runtime"]}}, report["setup"], as_of)
     if why:
         out.append(f"Setup notebook ({setup['title']}): {why}")
     for m in sorted(v["modules"].values(), key=lambda m: m["n"]):

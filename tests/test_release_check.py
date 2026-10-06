@@ -86,8 +86,16 @@ def lab1_blockers(records: list[dict]) -> list[str]:
 class Release(unittest.TestCase):
     def test_a_run_dated_after_the_release_date_does_not_count(self):
         self.assertEqual(lab1_blockers([teaching_run()]), [])
-        later = (AS_OF + dt.timedelta(days=1)).isoformat()
+        # One day of slack: records carry local dates, the release date is UTC.
+        next_day = (AS_OF + dt.timedelta(days=1)).isoformat()
+        self.assertEqual(lab1_blockers([teaching_run(date=next_day)]), [])
+        later = (AS_OF + dt.timedelta(days=2)).isoformat()
         self.assertEqual(len(lab1_blockers([teaching_run(date=later)])), 1)
+
+    def test_the_site_is_not_ready_without_the_setup_notebook(self):
+        summary = readiness.build(V, [])["summary"]
+        self.assertFalse(summary["setup_ready"])
+        self.assertFalse(summary["ready"])
 
     def test_the_setup_notebook_is_checked(self):
         setup = V["setup"]

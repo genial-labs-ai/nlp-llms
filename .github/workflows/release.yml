@@ -1,9 +1,9 @@
 name: Release
 
 # A GitHub Release says "ready to teach" for one commit. It is created only when
-# scripts/release_check.py finds no blockers: every lab has a passing run of its
-# current code on its module's teaching runtime within readiness.max_run_age_days,
-# and every readiness item is closed. The site deploys from main regardless
+# scripts/release_check.py finds no blockers: the setup notebook and every lab have a
+# passing run of their current code on their own teaching runtime within
+# readiness.max_run_age_days, and every readiness item is closed. The site deploys from main regardless
 # (publish.yml); this gates the Release, not the deploy.
 #
 # Push a tag such as v2026.11 to release that commit, or run this workflow by hand

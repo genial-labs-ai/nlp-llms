@@ -253,9 +253,15 @@ def build(v: dict, records: list[dict]) -> dict:
         "ci_stale": sum(1 for r in ci_latest if r.get("stale")),
         "ci_doubles": sum(1 for r in ci_latest if passed(r) and r["path"] == "offline"),
     }
-    summary["ready"] = summary["teaching"] == summary["labs"] and summary["items_open"] == 0
+    summary["setup_ready"] = passed(ev[setup["slug"]]["teaching"])
+    summary["ready"] = (
+        summary["teaching"] == summary["labs"]
+        and summary["setup_ready"]
+        and summary["items_open"] == 0
+    )
     return {
         "evidence": {k: e for k, e in ev.items() if k != setup["slug"]},
+        "setup": ev[setup["slug"]],
         "items": all_items,
         "summary": summary,
     }
