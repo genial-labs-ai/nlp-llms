@@ -20,7 +20,7 @@ USES = {
     "07-finetuning-lora": ["instruct_base", "instruct_base_revision"],
     "08-llm-apis": ["openai", "anthropic", "fallback", "instruct_base_revision"],
     "09-preference-learning": ["causal_lm"],
-    "10-rlhf": ["causal_lm"],
+    "10-rlhf": ["causal_lm", "causal_lm_revision"],
     "11-calibration": ["openai", "anthropic", "fallback"],
     "12-rlcd-jev": ["jev", "openai", "anthropic"],
     "13-rag": ["openai", "anthropic", "fallback", "embedding", "reranker", "nli", "jev"],

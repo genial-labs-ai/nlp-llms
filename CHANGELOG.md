@@ -22,6 +22,7 @@ All notable changes to this workshop are recorded here.
 
 ### Changed
 
+- Lab 9's preference data are built and committed (`data/lab09_prompts.json`, `data/lab09_preferences.jsonl.gz`, `data/lab09_reward_model.pt`), with `models.causal_lm_revision` pinned. The first build on real GPT-2 samples failed two of its own acceptance criteria (tie share 0.756, $\mathrm{Acc}^\star$ 0.596), because continuations of "... and said" rarely contain a list word. Every frame now ends just before a feeling ("... and felt so", "... feeling so"); the gold rule, the lengths and the Lab 9 → Lab 10 interface are unchanged. See "As built" in `briefs/09-preference-learning.md`.
 - "Run all" no longer replaces participants' functions with the solutions. Unless `WORKED_EXAMPLE` is ticked, Run all stops at the first unwritten exercise, with a message saying how to go on.
 - Readiness claims reconciled with the evidence. The landing page no longer says the workshop is being written. The FAQ and setup page no longer promise T4 run times. The facilitator guide, pace sheet and assessments no longer say the capstone notebook or its collector do not exist. The setup page links straight to the setup notebook in Colab. The entry check's review threshold is now the same in both places (two or more of three in an area).
 

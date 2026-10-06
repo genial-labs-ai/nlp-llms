@@ -34,6 +34,9 @@ models:
   encoder: "distilbert/distilbert-base-uncased"
   encoder_cpu: "google/bert_uncased_L-4_H-256_A-4"
   causal_lm: "distilbert/distilgpt2"
+  # The commit of causal_lm that Lab 9's preference pairs were sampled from (resolved
+  # from main by data/build_lab09_preferences.py on 2026-10-06). Lab 10 loads it.
+  causal_lm_revision: "2290a62682d06624634c1f46a6ad5be0f47f38aa"
   # Lab 13: dense retriever, reranker and faithfulness model (open path). IDs and
   # licenses from model-card summaries only; confirm on the Hub and pin revisions.
   embedding: "BAAI/bge-small-en-v1.5"
@@ -167,6 +170,53 @@ datasets:
     status: "provisional"
     documents: 13
     characters: 544974
+  # Lab 9 and Lab 10 (spec: briefs/09-preference-learning.md). Built by
+  # data/build_lab09_preferences.py on 2026-10-06 from models.causal_lm at
+  # models.causal_lm_revision (Apple M1 Pro CPU, torch 2.14.1, transformers 5.18.0,
+  # seed 0). Sampling is not bit-for-bit reproducible across hardware, so these
+  # committed files are the dataset. Ours; the responses are samples from an Apache
+  # 2.0 model. Acceptance statistics are in data/README.md.
+  lab09_prompts:
+    name: "Lab 9 prompts, preview items and gold rule"
+    modules: [9, 10]
+    file: lab09_prompts.json
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_prompts.json
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_prompts.json
+    sha256: "966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6"
+    bytes: 49071
+    license: "CC BY 4.0"
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    prompts: {train: 160, heldout: 32, eval: 64}
+  lab09_preferences:
+    name: "Lab 9 preference pairs"
+    modules: [9, 10]
+    file: lab09_preferences.jsonl.gz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_preferences.jsonl.gz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_preferences.jsonl.gz
+    sha256: "c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326"
+    bytes: 1837490
+    license: "CC BY 4.0"
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    seed: 0
+    tau_label: 0.5
+    splits: {train: 8000, heldout: 1000}
+  # Written by Lab 9's own solution code (Exercise 5) at seed 0 on the build Mac's CPU,
+  # from the two files above; loads with torch.load(..., weights_only=True).
+  lab09_reward_model:
+    name: "Lab 9 reward model (seed 0)"
+    modules: [9, 10]
+    file: lab09_reward_model.pt
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab09_reward_model.pt
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab09_reward_model.pt
+    sha256: "61c13537e4d8d0fd82e20006033f256937da01746885816c2522d607e6fad183"
+    bytes: 4105277
+    license: "CC BY 4.0"
+    license_url: https://creativecommons.org/licenses/by/4.0/
+    seed: 0
+    n_rows: 12820
   # Module 0 (agents-intro/protein). RCSB is canonical; the repo copy came from a mirror
   # (`source`) because RCSB is blocked from the build container, and five independent
   # GitHub copies agree byte for byte. Revision 6 (2024-02-14), the latest per wwPDB
@@ -564,8 +614,8 @@ modules:
       estimate_minutes: 10
       accounts: [Google]
       cost: free
-      fallback: {kind: none, note: "Part A runs anywhere; Part B needs the Lab 9 data files"}
-      gaps: "The Lab 9 preference data files have not been built, so Part B cannot run"
+      fallback: {kind: none, note: "Part A runs anywhere; Part B loads the committed Lab 9 data files and downloads no model"}
+      gaps: "Part B and its Exercise 4 thresholds were measured on the build Mac's CPU only (2026-10-06), not on Colab or a GPU"
   m10:
     n: 10
     slug: 10-rlhf
@@ -587,7 +637,7 @@ modules:
       accounts: [Google]
       cost: free
       fallback: {kind: open-model, note: "On a CPU runtime, FAST runs short smoke trainings of the same GPT-2; the trained-policy checkpoints are skipped, so reward hacking is not shown"}
-      gaps: "Needs the Lab 9 data files and reward model, which have not been built"
+      gaps: "The trained-policy checkpoints, including the reward-hacking signature, need a GPU; the seed protocol (seeds 0 to 4 on a T4) has not run, so their thresholds are provisional. On the build Mac only the CPU FAST path ran (2026-10-06)"
   m11:
     n: 11
     slug: 11-calibration

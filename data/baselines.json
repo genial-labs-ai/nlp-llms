@@ -51,6 +51,12 @@
       "langchain-typesafe": "0.0.1a3",
       "typesafe-sdk": "0.7.2",
       "path": "local (no TypeSafe key); stub agent and stub guard (no Hub access); no Jev call and no language model was run"
+    },
+    "lab09": {
+      "machine": "Apple M1 Pro, 16 GB, macOS (arm64), CPU only; executed with nbclient (scripts/test_notebooks.py); not run on Colab or a GPU",
+      "python": "3.12.13",
+      "torch": "2.14.1",
+      "transformers (data build only)": "5.18.0"
     }
   },
   "baselines": [
@@ -1051,6 +1057,126 @@
         "note": "accuracy equals lab12.toy.brier_reward accuracy_route: the same model on the same items and question"
       },
       "date": "2026-10-05"
+    },
+    {
+      "id": "lab09.reward_model.seed0",
+      "notebook": "notebooks/09-preference-learning.ipynb",
+      "dataset": "lab09_preferences",
+      "split": "test",
+      "metrics": {
+        "heldout_acc": 0.689,
+        "oracle_acc": 0.7127,
+        "acc_gold_order_untied": 0.9381,
+        "spearman_gold": 0.7848
+      },
+      "settings": {
+        "split_note": "test = the 1,000 held-out pairs (held-out frames); model selection used the last 800 train pairs",
+        "rm_seed": 0,
+        "rm_train": {
+          "epochs": 6,
+          "batch_size": 64,
+          "lr": 0.002,
+          "weight_decay": 0.01,
+          "val_pairs": 800
+        },
+        "best_epoch": 1,
+        "n_rows": 12820,
+        "config": {
+          "d": 64,
+          "n_h": 4,
+          "n_l": 2,
+          "T_max": 32,
+          "d_ff": 256
+        },
+        "tau_label": 0.5,
+        "training_seconds_cpu": 15,
+        "data_sha256": {
+          "prompts": "966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6",
+          "preferences": "c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326"
+        },
+        "committed_checkpoint": true
+      },
+      "date": "2026-10-06"
+    },
+    {
+      "id": "lab09.reward_model.seed1",
+      "notebook": "notebooks/09-preference-learning.ipynb",
+      "dataset": "lab09_preferences",
+      "split": "test",
+      "metrics": {
+        "heldout_acc": 0.698,
+        "oracle_acc": 0.7127,
+        "acc_gold_order_untied": 0.9343,
+        "spearman_gold": 0.7781
+      },
+      "settings": {
+        "split_note": "test = the 1,000 held-out pairs (held-out frames); model selection used the last 800 train pairs",
+        "rm_seed": 1,
+        "rm_train": {
+          "epochs": 6,
+          "batch_size": 64,
+          "lr": 0.002,
+          "weight_decay": 0.01,
+          "val_pairs": 800
+        },
+        "best_epoch": 1,
+        "n_rows": 12820,
+        "config": {
+          "d": 64,
+          "n_h": 4,
+          "n_l": 2,
+          "T_max": 32,
+          "d_ff": 256
+        },
+        "tau_label": 0.5,
+        "training_seconds_cpu": 14,
+        "data_sha256": {
+          "prompts": "966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6",
+          "preferences": "c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326"
+        },
+        "committed_checkpoint": false
+      },
+      "date": "2026-10-06"
+    },
+    {
+      "id": "lab09.reward_model.seed2",
+      "notebook": "notebooks/09-preference-learning.ipynb",
+      "dataset": "lab09_preferences",
+      "split": "test",
+      "metrics": {
+        "heldout_acc": 0.671,
+        "oracle_acc": 0.7127,
+        "acc_gold_order_untied": 0.925,
+        "spearman_gold": 0.7454
+      },
+      "settings": {
+        "split_note": "test = the 1,000 held-out pairs (held-out frames); model selection used the last 800 train pairs",
+        "rm_seed": 2,
+        "rm_train": {
+          "epochs": 6,
+          "batch_size": 64,
+          "lr": 0.002,
+          "weight_decay": 0.01,
+          "val_pairs": 800
+        },
+        "best_epoch": 1,
+        "n_rows": 12820,
+        "config": {
+          "d": 64,
+          "n_h": 4,
+          "n_l": 2,
+          "T_max": 32,
+          "d_ff": 256
+        },
+        "tau_label": 0.5,
+        "training_seconds_cpu": 14,
+        "data_sha256": {
+          "prompts": "966971fd2f9f8533711db4cd2f8eaf36e839bd0fb9ed1c1c52efc970f6a25ed6",
+          "preferences": "c00b775865dabf491542719b223ab6fb539f3728ca0348c8ca50ecb51b752326"
+        },
+        "committed_checkpoint": false
+      },
+      "date": "2026-10-06"
     }
   ]
 }

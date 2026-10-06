@@ -87,7 +87,8 @@ class CommittedCopies(unittest.TestCase):
     def test_data_directory_stays_small(self):
         files = [p for p in DATA.rglob("*") if p.is_file() and ".cache" not in p.parts]
         total = sum(p.stat().st_size for p in files)
-        self.assertLess(total, 6_000_000)
+        # 6 MB until 2026-10-06; Lab 9's three files added 5.99 MB (11.40 MB in all).
+        self.assertLess(total, 12_000_000)
 
 
 class Readme(unittest.TestCase):
