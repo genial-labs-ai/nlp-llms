@@ -21,7 +21,7 @@ Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< v
 
 The [readiness page](readiness.qmd) has the evidence for every module. It is generated from the run records in `runs/`. It shows which labs have run on their real path, on which machine and for how long, which have only passed the offline code check, and the blocking work that remains, such as the human-written question sets. Read it before you plan a delivery. When you time a lab, add a run record so the page shows it. Unless a line says *measured*, every run time in this guide and in the pace sheet is a planning estimate from the lab briefs.
 
-**A CPU time is not a T4 time.** Labs 2 to 5 train their models from scratch and were designed for a T4. On a shared CPU, Lab 3 took 72 minutes and an earlier revision of Lab 4 took 107 minutes. On a GitHub CPU runner, the whole of Lab 2 took under a minute. None of these numbers predicts a T4. Time Labs 2 to 5 on the room's runtime before you rely on the lab plans.
+**A CPU time is not a T4 time.** Labs 2 to 5 train their models from scratch and were designed for a T4. The readiness page shows their recorded CPU times. Some ran far over their lab plans on a shared CPU, and some ran well inside them on a GitHub runner. None of these predicts a T4. Time Labs 2 to 5 on the room's runtime before you rely on the lab plans.
 
 **Keyed paths.** No OpenAI, Anthropic or Jev call has been made by the build. The OpenAI and Anthropic response fixtures in Lab 8 were constructed from the documented shapes, not recorded. Every cost in this guide is an estimate from token arithmetic.
 
@@ -141,7 +141,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - Exercise 3: a document of only padding must give the zero vector, not NaN.
 - **The result to prepare the room for:** averaged embeddings lose to TF-IDF (0.867 against 0.884 test accuracy in the build run). That is the expected finding. Do not let groups tune until embeddings win.
 - **If the clock slips:** the analogy section becomes a demonstration first. Exercises 1, 3 and 4 and the results table carry the objectives. Then drop the stretch.
-- **Not verified:** run time on Colab, CPU or T4. Skip-gram training took 695 s on a heavily loaded shared CPU; on a GitHub CPU runner the whole notebook took 47 s (*measured*, 2026-10-06). Time it on the room's runtime.
+- **Not verified:** run time on Colab, CPU or T4. Its recorded CPU times (on the [readiness page](readiness.qmd)) range from well inside its slot to far over it, depending on the machine. Time it on the room's runtime.
 
 ### Module 3 · {{< var modules.m03.title >}}
 
@@ -312,7 +312,7 @@ The opening slot is 10 minutes. Use 5 to say the lines below and 5 for the check
   - Exercise 4: replay must not send an email twice; `send_email` is idempotent by design.
 - **If the clock slips:** drop the stretch (parts A to D). On a CPU runtime the brief's first cut is the probability-shift test, to 30 items; there is no switch for it, so slice the list in the evaluation-run cell and say so when reporting.
 - **Cost (estimate):** Jev under 5 cents; the agent model under 30 cents on Anthropic, under 5 cents on OpenAI.
-- **Not verified:** keyed Jev and keyed LLM paths have not run. The open path with no keys (Qwen as agent and guard) ran end to end on an Apple M1 Pro laptop CPU in 263 s (*measured*, 2026-10-06), not on Colab; whether the 0.5B guard carries any signal; the pins were resolved for Python 3.12 with `uv`, not installed with `pip` on Colab.
+- **Not verified:** keyed Jev and keyed LLM paths have not run. The open path with no keys (Qwen as agent and guard) has run end to end on a laptop CPU, not on Colab (see the [readiness page](readiness.qmd)); whether the 0.5B guard carries any signal; the pins were resolved for Python 3.12 with `uv`, not installed with `pip` on Colab.
 
 ### Module 15 · {{< var modules.m15.title >}}
 

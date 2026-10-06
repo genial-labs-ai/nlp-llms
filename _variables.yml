@@ -268,8 +268,8 @@ setup:
 # reads both; scripts/gen_tables.py writes _includes/readiness*.md from them. Never
 # state a run time or a "verified" claim in a page by hand: add a run record instead.
 readiness:
-  # The environment a release is judged on, and the path that must have run there.
-  teaching_env: colab-t4
+  # The path a lab must have run on, on its module's runtime (modules.mNN.readiness.runtime),
+  # to count as ready: open = no API keys and no test doubles, what every participant can run.
   release_path: open
   max_run_age_days: 21
   # Run environments. `teaching: true` marks the environments a delivery can use;
@@ -307,13 +307,17 @@ readiness:
       modules: [13, 14, 15]
       check: {var: datasets.lectures.status, equals: final}
     decision-hand-items:
-      title: "The decision set's 80 hand-written items and the audit of 60 template items, by two people"
+      title: "The decision set's 80 hand-written items, written and labeled by two people"
       modules: [11, 12, 14]
       check: {json: data/decisions_v1_stats.json, key: hand_items, at_least: 80}
+    decision-audit:
+      title: "The audit of 60 template items in the decision set, by two people"
+      modules: [11, 12, 14]
+      check: {manual: true, done: false}
     lab09-data:
       title: "Lab 9's preference data files, built on a machine with Hub access"
       modules: [9, 10]
-      check: {exists: data/lab09_preferences.jsonl.gz}
+      check: {exists: [data/lab09_prompts.json, data/lab09_preferences.jsonl.gz]}
     lab09-reward-model:
       title: "The reward model checkpoint that Lab 10 starts from"
       modules: [10]

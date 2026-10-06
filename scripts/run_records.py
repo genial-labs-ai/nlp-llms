@@ -15,8 +15,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "runs"
 NOTEBOOKS = ROOT / "notebooks"
-# Cells written by scripts/gen_notebooks.py; they do not count as the lab's code.
-GENERATED_CELL_IDS = {"workshop-header", "workshop-footer", "workshop-harness", "workshop-summary"}
 
 SCHEMA = 1
 SOURCES = ("test_notebooks", "colab", "backfill")
@@ -70,14 +68,10 @@ SECRET = re.compile(
 
 
 def content_sha(slug: str) -> str:
-    """A short hash of a notebook's code, excluding generated cells: a run record made
-    against other code than the committed notebook's is stale."""
+    """A short hash of a notebook's code cells: a run record made against other code than
+    the committed notebook's is stale. (The generated header and footer are markdown.)"""
     nb = json.loads((NOTEBOOKS / f"{slug}.ipynb").read_text(encoding="utf-8"))
-    code = [
-        "".join(cell["source"])
-        for cell in nb["cells"]
-        if cell["cell_type"] == "code" and cell.get("id") not in GENERATED_CELL_IDS
-    ]
+    code = ["".join(cell["source"]) for cell in nb["cells"] if cell["cell_type"] == "code"]
     return hashlib.sha256("\n\x1e\n".join(code).encode("utf-8")).hexdigest()[:16]
 
 
@@ -107,6 +101,10 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
         batch = json.loads(text)
     except json.JSONDecodeError as exc:
         return errors + [f"{path.name}: not valid JSON ({exc})"]
+    if not isinstance(batch, dict) or not isinstance(batch.get("runs"), list):
+        return errors + [f"{path.name}: must be an object with a list of runs"]
+    if not all(isinstance(entry, dict) for entry in batch["runs"]):
+        return errors + [f"{path.name}: every entry of runs must be an object"]
     if batch.get("schema") != SCHEMA:
         errors.append(f"{path.name}: schema must be {SCHEMA}")
     if not batch.get("runs"):
@@ -145,6 +143,8 @@ def validate_file(path: Path, envs: set[str], notebooks: set[str]) -> list[str]:
             errors.append(f"{where}: a partial run needs a scope_note")
         if r.get("settings") is not None and not isinstance(r["settings"], dict):
             errors.append(f"{where}: settings must be an object")
+        if r.get("source") != "backfill" and not r.get("content_sha"):
+            errors.append(f"{where}: a record made by a tool needs the notebook's content_sha")
         if r.get("source") == "backfill" and r.get("content_sha"):
             errors.append(f"{where}: a backfilled record cannot carry a content_sha")
     return errors

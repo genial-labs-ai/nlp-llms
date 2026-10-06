@@ -55,8 +55,6 @@ class Records(unittest.TestCase):
 
 class Metadata(unittest.TestCase):
     def test_top_level(self):
-        self.assertIn(R["teaching_env"], ENVS)
-        self.assertTrue(R["envs"][R["teaching_env"]].get("teaching"))
         self.assertIn(R["release_path"], R["paths"])
         self.assertEqual(set(R["paths"]), set(run_records.PATHS))
         self.assertGreater(R["max_run_age_days"], 0)
@@ -141,6 +139,18 @@ class Validation(unittest.TestCase):
         finally:
             path.unlink()
 
+    def test_wrong_shapes_are_reported_not_raised(self):
+        self.assertIn("list of runs", "\n".join(self.check("[1, 2]")))
+        self.assertIn("must be an object", "\n".join(self.check('{"schema": 1, "runs": ["x"]}')))
+
+    def test_a_tool_record_needs_a_content_sha(self):
+        batch = (
+            '{"schema": 1, "date": "2026-10-06", "source": "colab", "env": "colab-t4",'
+            ' "path": "open", "mode": "worked", "evidence": "x", "runs": [{"notebook":'
+            ' "01-text-as-data", "scope": "notebook", "status": "pass", "seconds": 1}]}'
+        )
+        self.assertIn("content_sha", "\n".join(self.check(batch)))
+
     def test_malformed_json_is_reported_not_raised(self):
         self.assertIn("not valid JSON", "\n".join(self.check('{"schema": 1,}')))
 
@@ -174,7 +184,7 @@ class EvidenceRules(unittest.TestCase):
         for env in ("colab-cpu", "own-laptop", "mac-m1pro"):
             e = self.ev(record(env=env))
             self.assertIsNone(e["teaching"], env)
-            self.assertTrue(readiness.passed(e["real"]), env)
+            self.assertTrue(readiness.passed(e["other"]), env)
 
     def test_a_run_against_older_code_is_stale(self):
         e = self.ev(record(content_sha="0" * 16))
@@ -194,11 +204,11 @@ class EvidenceRules(unittest.TestCase):
         ):
             e = self.ev(record(**fields))
             self.assertIsNone(e["teaching"], fields)
-            self.assertTrue(e["real"] or e["real_partial"], fields)
+            self.assertIsNotNone(e["other"], fields)
 
     def test_a_backfill_on_the_runtime_is_shown_not_dropped(self):
         e = self.ev(record(source="backfill", content_sha=None))
-        self.assertIsNotNone(e["real"])
+        self.assertIsNotNone(e["other"])
 
     def test_a_same_day_failure_beats_a_pass(self):
         e = self.ev(record(status="fail", index=0), record(status="pass", index=1))
@@ -206,8 +216,41 @@ class EvidenceRules(unittest.TestCase):
 
     def test_staleness_is_checked_on_every_row(self):
         e = self.ev(record(env="mac-m1pro", content_sha="0" * 16))
-        self.assertTrue(e["real"]["stale"])
-        self.assertFalse(readiness.passed(e["real"]))
+        self.assertTrue(e["other"]["stale"])
+        self.assertFalse(readiness.passed(e["other"]))
+
+    def test_a_tool_record_without_a_hash_is_stale_as_teaching_evidence(self):
+        e = self.ev(record(content_sha=None))
+        self.assertTrue(e["teaching"]["stale"])
+
+    def test_a_newer_partial_failure_replaces_an_older_full_pass(self):
+        e = self.ev(
+            record(env="mac-m1pro", date="2026-10-05"),
+            record(
+                env="mac-m1pro", date="2026-10-20", scope="partial", scope_note="x", status="fail"
+            ),
+        )
+        self.assertEqual(e["other"]["status"], "fail")
+
+    def test_full_settings_beat_quick_on_the_same_day(self):
+        e = self.ev(
+            record(env="mac-m1pro", index=0),
+            record(env="mac-m1pro", index=1, settings={"NLP_LLMS_QUICK": "1"}),
+        )
+        self.assertNotIn("settings", e["other"])
+
+    def test_ci_runs_are_their_own_row(self):
+        e = self.ev(record(env="gha-ubuntu", path="offline"))
+        self.assertIsNone(e["other"])
+        self.assertEqual(e["ci"]["env"], "gha-ubuntu")
+
+    def test_a_lab_passing_on_colab_is_not_also_counted_in_part(self):
+        labs = [m for m in V["modules"].values() if m.get("notebook", True)]
+        records = [record(), record(env="mac-m1pro", scope="partial", scope_note="x")]
+        s = readiness.build(V, records)["summary"]
+        self.assertEqual(s["teaching"], 1)
+        self.assertEqual(s["real_partial_only"], 0)
+        self.assertEqual(len(labs), s["labs"])
 
     def test_ci_sentence_uses_only_the_newest_batch(self):
         old = [

@@ -428,20 +428,20 @@ def _accounts(r: dict) -> str:
 
 def _evidence_cell(v: dict, e: dict) -> str:
     def show(r):
-        return readiness.describe(v, r)
+        return readiness.describe(v, r) if r is not None else "not run"
 
-    real = e["real"] or e["real_partial"]
-    if e["code"]:
-        code = show(e["code"])
-    elif e["real"] and v["readiness"]["envs"][e["real"]["env"]].get("ci"):
-        code = "no test doubles: CI runs the real path"
+    ci = e["ci"]
+    if ci is None:
+        ci_text = "—"
+    elif ci["path"] == "offline":
+        ci_text = show(ci) + ", with test doubles"
     else:
-        code = "—"
+        ci_text = show(ci) + ", real path (no test doubles)"
     return "<br>".join(
         [
-            "**On its Colab runtime:** " + (show(e["teaching"]) if e["teaching"] else "not run"),
-            "**Real path, other runs:** " + (show(real) if real else "not run"),
-            "**Code check:** " + code,
+            "**On its Colab runtime:** " + show(e["teaching"]),
+            "**Real path, other runs:** " + show(e["other"]),
+            "**CI:** " + ci_text,
         ]
     )
 
@@ -494,19 +494,19 @@ def readiness_table(v: dict, report: dict) -> str:
         "## How to read this page {#legend}",
         "",
         "**Evidence.** Each line is the newest run of that kind, from the run records in"
-        " [`runs/`]({{< var repo.url >}}/tree/main/runs); a newer failure replaces an older"
+        " [`runs/`]({{< var repo.url >}}/tree/main/runs). A newer failure replaces an older"
         " pass, and on the same day a failure wins. *On its Colab runtime* means a worked run"
         " (solutions bound) of the whole notebook, on the path a participant without keys"
         " takes, with no QUICK shortcuts, on the runtime the module is designed for, recorded"
-        " by a tool; it stops counting when the notebook's code changes. *Real path, other"
-        " runs* means any other run without test doubles, on any machine; a laptop's or a CPU"
-        " runner's time does not predict a T4's. A run marked *before the notebook last"
+        " by a tool with the notebook's code hash; it stops counting when the code changes."
+        " *Real path, other runs* is the newest other run without test doubles, on any"
+        " machine except the CI runner; a laptop's or a CPU runner's time does not predict a"
+        " T4's. *CI* is the newest run on the GitHub CPU runner: with test doubles it shows"
+        " that the code runs, not what a model does. A run marked *before the notebook last"
         " changed* was made against older code; backfilled runs carry no code hash, so they"
-        " cannot be checked. *Code check* means CI ran the notebook with test doubles: it"
-        " shows that the"
-        " code runs, not what a model does. An estimate is a planning figure from the lab's"
-        " brief, not a measurement. Dates are shown as recorded; the release check also"
-        f" requires a teaching run to be at most {R['max_run_age_days']} days old.",
+        " cannot be checked. An estimate is a planning figure from the lab's brief, not a"
+        " measurement. Dates are shown as recorded; the release check will also require a"
+        f" teaching run to be at most {R['max_run_age_days']} days old.",
         "",
         "**Paths.**",
         "",
