@@ -300,8 +300,8 @@ class Stretch(unittest.TestCase):
             with self.subTest(part=part):
                 self.assertIn(f"# Checkpoint (stretch {part})", CODE)
 
-    def test_subagent_starts_from_its_task_alone(self):
-        self.assertIn('messages = [{"role": "user", "content": task}]', CODE)
+    def test_subagent_isolation_is_checked(self):
+        """The checkpoint tests behavior: what the scripted model was actually sent first."""
         self.assertIn('assert _fake.requests[0] == [{"role": "user", "content": _task}]', CODE)
 
 
