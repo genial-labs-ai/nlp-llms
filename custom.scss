@@ -1789,6 +1789,13 @@ body.landing {
   }
 }
 
+// The demo panel stays light in both themes, so its badge uses the demo palette.
+.demo.live::after {
+  border-color: $nl-demo-border;
+  background: $nl-demo-bg;
+  color: $nl-demo-muted;
+}
+
 // A numbered section that the live plan leaves for reading after class.
 h2.reference::after,
 section.reference > h2::after {
