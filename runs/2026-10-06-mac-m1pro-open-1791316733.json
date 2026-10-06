@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "source": "test_notebooks",
+  "env": "mac-m1pro",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit, Python 3.12.13",
+  "path": "open",
+  "mode": "worked",
+  "settings": {},
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "notebook": "15-capstone",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 802.0,
+      "content_sha": "85ff4a6b16c65bf6",
+      "phases": {
+        "generated": 0.0,
+        "other": 2804.9,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.1
+      },
+      "note": "Open-cpu path (Qwen2.5-0.5B generator, Qwen log-prob decider labeled not Jev, BGE retriever, NLI judge); scored on plumbing probes, because the question sets are not written yet. The metrics measure code, not the system."
+    }
+  ]
+}

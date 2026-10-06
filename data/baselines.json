@@ -57,6 +57,15 @@
       "python": "3.12.13",
       "torch": "2.14.1",
       "transformers (data build only)": "5.18.0"
+    },
+    "lab06": {
+      "machine": "Apple M1 Pro, 16 GB, macOS (arm64), GPU via MPS; executed with nbclient; not run on Colab or a T4",
+      "python": "3.12.13",
+      "torch": "2.14.1",
+      "transformers": "5.18.0",
+      "tokenizers": "0.23.2",
+      "datasets": "5.0.1",
+      "train_seconds": 323
     }
   },
   "baselines": [
@@ -1177,6 +1186,54 @@
         "committed_checkpoint": false
       },
       "date": "2026-10-06"
+    },
+    {
+      "id": "lab06.distilbert_finetune",
+      "notebook": "notebooks/06-pretraining-huggingface.ipynb",
+      "dataset": "lab06_logits",
+      "split": "test",
+      "date": "2026-10-06",
+      "metrics": {
+        "accuracy": 0.8975,
+        "macro_f1": 0.8973,
+        "per_class": {
+          "cs.CL": {
+            "precision": 0.9019,
+            "recall": 0.9425,
+            "f1": 0.9218
+          },
+          "cs.CV": {
+            "precision": 0.893,
+            "recall": 0.855,
+            "f1": 0.8736
+          },
+          "cs.LG": {
+            "precision": 0.8511,
+            "recall": 0.8575,
+            "f1": 0.8543
+          },
+          "cs.RO": {
+            "precision": 0.9444,
+            "recall": 0.935,
+            "f1": 0.9397
+          }
+        }
+      },
+      "val_metrics": {
+        "accuracy": 0.9,
+        "macro_f1": 0.9001
+      },
+      "settings": {
+        "model": "distilbert/distilbert-base-uncased",
+        "max_length": 256,
+        "epochs": 2,
+        "lr": 5e-05,
+        "seed": 0,
+        "train_rows": 4800,
+        "batch_size": 32,
+        "precision": "float32 (Lab 6 uses fp16 only on CUDA)",
+        "note": "Lab 6's GPU settings, run on Apple MPS from a copy changed only to treat mps as a GPU; one seed; not a T4 run. The logits in lab06_logits.npz are this run's."
+      }
     }
   ]
 }

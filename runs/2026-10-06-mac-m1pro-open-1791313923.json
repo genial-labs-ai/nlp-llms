@@ -1,0 +1,197 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "source": "test_notebooks",
+  "env": "mac-m1pro",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit, Python 3.12.13",
+  "path": "open",
+  "mode": "worked",
+  "settings": {},
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "notebook": "00-setup",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 2.9,
+      "content_sha": "de4e4e8de2035fc0",
+      "phases": {
+        "generated": 0.0,
+        "setup": 1.8,
+        "checkpoint": 0.0
+      }
+    },
+    {
+      "notebook": "01-text-as-data",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 14.0,
+      "content_sha": "dcd967616e1862e4",
+      "phases": {
+        "generated": 1.8,
+        "setup": 3.8,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.0,
+        "other": 5.9
+      }
+    },
+    {
+      "notebook": "02-word-vectors",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 28.8,
+      "content_sha": "66bbc5edc1003a0f",
+      "phases": {
+        "generated": 0.0,
+        "setup": 4.8,
+        "other": 22.4,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      }
+    },
+    {
+      "notebook": "03-sequence-models",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 260.6,
+      "content_sha": "03c1f5c2f19cc26b",
+      "phases": {
+        "generated": 0.0,
+        "setup": 2.7,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0,
+        "other": 256.4
+      }
+    },
+    {
+      "notebook": "04-seq2seq-attention",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 779.1,
+      "content_sha": "2e0157e0afa60a74",
+      "phases": {
+        "generated": 0.0,
+        "setup": 3.0,
+        "other": 770.3,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 4.2
+      }
+    },
+    {
+      "notebook": "05-transformer-from-scratch",
+      "scope": "partial",
+      "status": "pass",
+      "seconds": 160.9,
+      "content_sha": "8cde545bd0956cc8",
+      "phases": {
+        "generated": 0.0,
+        "setup": 2.6,
+        "other": 156.6,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      },
+      "scope_note": "QUICK settings, which the lab turns on by itself on a CPU: smaller batches, fewer steps",
+      "note": "Scope set to partial by hand (2026-10-06): the lab chose its smaller CPU settings itself, and scripts/test_notebooks.py does not yet detect that."
+    },
+    {
+      "notebook": "06-pretraining-huggingface",
+      "scope": "partial",
+      "status": "pass",
+      "seconds": 42.7,
+      "content_sha": "b2b9ca33b721af21",
+      "phases": {
+        "generated": 0.0,
+        "setup": 11.5,
+        "other": 26.5,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.3
+      },
+      "scope_note": "CPU path: BERT-mini (google/bert_uncased_L-4_H-256_A-4) fine-tuned on 800 of 4,800 training texts for 3 epochs, in place of DistilBERT on all 4,800 for 2",
+      "note": "Scope set to partial by hand (2026-10-06): the lab chose its smaller CPU settings itself, and scripts/test_notebooks.py does not yet detect that."
+    },
+    {
+      "notebook": "07-finetuning-lora",
+      "scope": "partial",
+      "status": "pass",
+      "seconds": 336.0,
+      "content_sha": "17a83606f0162a44",
+      "phases": {
+        "generated": 0.0,
+        "setup": 28.6,
+        "other": 298.4,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 5.3
+      },
+      "scope_note": "FAST path on CPU: 300 training examples, 40 steps (the T4 path: 2,000 and 250)",
+      "note": "Scope set to partial by hand (2026-10-06): the lab chose its smaller CPU settings itself, and scripts/test_notebooks.py does not yet detect that."
+    },
+    {
+      "notebook": "08-llm-apis",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 136.0,
+      "content_sha": "1a190a4e46289241",
+      "phases": {
+        "generated": 0.0,
+        "setup": 13.7,
+        "other": 118.6,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.0
+      }
+    },
+    {
+      "notebook": "12-rlcd-jev",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 16.3,
+      "content_sha": "5b1c4789e21ea749",
+      "phases": {
+        "generated": 0.0,
+        "setup": 6.5,
+        "other": 7.8,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.4
+      }
+    },
+    {
+      "notebook": "13-rag",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 446.3,
+      "content_sha": "41766934c0c9d666",
+      "phases": {
+        "generated": 0.0,
+        "setup": 112.6,
+        "other": 329.5,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.5
+      },
+      "note": "Real encoder and reranker; evaluated on plumbing probes (copied sentences), because data/rag_questions_v1.jsonl is not written yet. The metrics measure code, not retrieval."
+    },
+    {
+      "notebook": "14-agents",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 240.8,
+      "content_sha": "045691758861c6d9",
+      "phases": {
+        "generated": 0.0,
+        "setup": 18.7,
+        "other": 211.1,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 6.7
+      }
+    }
+  ]
+}

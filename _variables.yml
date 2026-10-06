@@ -215,6 +215,21 @@ datasets:
     license_url: https://creativecommons.org/licenses/by/4.0/
     seed: 0
     n_rows: 12820
+  # Lab 6's validation and test logits, which Lab 11 calibrates. Fine-tuned with Lab 6's GPU
+  # settings on the build Mac's GPU (Apple MPS, float32), not on a T4: see data/README.md.
+  lab06_logits:
+    name: "Lab 6 encoder logits"
+    modules: [6, 11]
+    file: lab06_logits.npz
+    urls:
+      - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab06_logits.npz
+      - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab06_logits.npz
+    sha256: "cdc898835bbf77f283a8b178f33ce516e416ba3ca80d9d33d0882d65072ede61"
+    bytes: 55278
+    license: "CC0 1.0"
+    license_url: https://creativecommons.org/publicdomain/zero/1.0/
+    model: distilbert/distilbert-base-uncased
+    device: mps
   # Module 0 (agents-intro/protein). RCSB is canonical; the repo copy came from a mirror
   # (`source`) because RCSB is blocked from the build container, and five independent
   # GitHub copies agree byte for byte. Revision 6 (2024-02-14), the latest per wwPDB

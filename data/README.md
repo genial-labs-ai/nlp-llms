@@ -14,6 +14,7 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Language modeling | 1, 3, 5 | **Tiny Shakespeare**, 1,115,394 characters | Public-domain text; packaged in an MIT repository | Fixed. Copy committed |
 | Sequence transduction | 4 | Human-readable dates to ISO format | Generated in the notebook | No file. Lab 4 fixes the generator and its seed |
 | Instruction tuning | 7 | **Databricks Dolly 15k**, a subset | CC BY-SA 3.0 | License confirmed. Lab 7 fixes the subset |
+| Calibration logits | 6, 11 | **Lab 6 encoder logits**: validation (600) and test (1,600) logits of DistilBERT fine-tuned on arXiv Topics v1 | CC0 1.0 (derived from CC0 data; Romeo to confirm) | Built on the build Mac's GPU, not a T4. Copy committed (`lab06_logits.npz`) |
 | Pairwise preferences | 9, 10 | **Lab 9 preference pairs**: 9,000 pairs of GPT-2 continuations of 256 prompts we wrote, labeled by a known rule, and the reward model trained on them | CC BY 4.0 (ours); the responses are samples from an Apache 2.0 model | Built 2026-10-06 on an Apple M1 Pro CPU, copies committed (`lab09_prompts.json`, `lab09_preferences.jsonl.gz`, `lab09_reward_model.pt`). See [below](#lab-9-preference-pairs-modules-9-and-10) |
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
 | RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). Rebuilt 2026-10-05 from the commit that completed `references.qmd`. **Status `provisional`**: lecture 12 and possibly lectures 6–11 will still change; freeze them, rebuild if needed, and set `final` before any question is written |
@@ -396,6 +397,23 @@ def load_lectures():
 **Until the file exists**, `tests/test_rag_questions.py` runs its schema, quote and overlap checks on `tests/fixtures/rag_questions_fixture.json`: six items **written by an AI agent for exercising code, not an evaluation set; no number from it is quoted anywhere.** Lab 13 never loads it: without the real file, the notebook says so and runs its evaluation code on *plumbing probes* (sentences copied from the snapshot, each its own evidence), labelled as measuring nothing about retrieval.
 
 **When it lands:** commit the file, add `datasets.rag_questions` to `_variables.yml` (`name`, `modules: [13, 15]`, `file`, `urls`, `sha256`, `bytes`, `license`, `license_url`, `splits: {dev: 30, test: 50}`, `corpus_sha256` equal to the lectures hash), set the hash in the `DATASETS["rag_questions"]` entry of `notebooks/13-rag.ipynb`, and report here: items written, dropped, alternatives added, and the evidence agreement rate before resolution (`python data/rag_questions_tools.py agreement ...`).
+
+## Lab 6 encoder logits (Modules 6 and 11)
+
+The validation and test logits that Lab 11 calibrates: Lab 6's hand-off file, from one fine-tuning run with Lab 6's GPU settings. Lab 11 loads it by hash and checks that it is not the offline stand-in, that the shapes are (600, 4) and (1600, 4), and that its labels equal `load_topics()`'s; otherwise it falls back to the Lab 1 classifier.
+
+| | |
+|---|---|
+| File | `lab06_logits.npz`, 55,278 bytes: `val_logits` (600, 4) and `test_logits` (1600, 4) as float32, the two label arrays as int64, and a JSON `meta` string |
+| SHA-256 | `cdc898835bbf77f283a8b178f33ce516e416ba3ca80d9d33d0882d65072ede61` |
+| Canonical URL | <https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/lab06_logits.npz> |
+| Fallback URL | <https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/lab06_logits.npz> |
+| Model | `distilbert/distilbert-base-uncased`, fine-tuned on all 4,800 training texts: `max_length` 256, 2 epochs, learning rate 5e-5, batch 32, seed 0 (Lab 6's GPU settings) |
+| Measured | test accuracy 0.8975, macro-F1 0.8973; validation accuracy 0.9000 (`baselines.json`, `lab06.distilbert_finetune`). Training took 323 s |
+| Built | 2026-10-06 on an Apple M1 Pro's GPU (MPS) in float32, from a copy of Lab 6 changed only to treat `mps` as a GPU (Lab 6 itself uses CUDA or the CPU, and fp16 only on CUDA); Python 3.12.13, `torch` 2.14.1, `transformers` 5.18.0. **Not a T4 run**: a T4 run at the same settings will give slightly different logits, and the file can be replaced by one |
+| License | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/): numbers derived from our run on CC0 data (Romeo to confirm) |
+
+On a CPU, Lab 6 fine-tunes BERT-mini (`google/bert_uncased_L-4_H-256_A-4`) on 800 texts instead; the build Mac's CPU run of that path reached 0.7975. Those logits are not the ones committed here.
 
 ## Lab 9 preference pairs (Modules 9 and 10)
 

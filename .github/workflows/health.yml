@@ -92,20 +92,21 @@ jobs:
             lab13: "1"
             lab14: "1"
             lab15: "1"
-          # Labs 9 and 10 join this list (and lose their flags) once Lab 9's GPT-2 data
-          # files are committed (PLAN.md, Day 7); Lab 15 once its open-model path exists.
+          # Labs 9 and 10 run on Lab 9's committed GPT-2 data (they need the Hub for GPT-2's
+          # tokenizer and model); Lab 15 on its open-cpu path. On this CPU runner Lab 10
+          # takes its FAST path.
           - leg: hub
             timeout: 330
             notebooks: >-
-              06-pretraining-huggingface 07-finetuning-lora 08-llm-apis
-              11-calibration 13-rag 14-agents
+              06-pretraining-huggingface 07-finetuning-lora 08-llm-apis 09-preference-learning
+              10-rlhf 11-calibration 13-rag 14-agents 15-capstone
             args: --expect-hub
             hf_hub_offline: ""
             offline_tiny: ""
             lab07: ""
             stub: ""
-            lab09: tiny
-            lab10: tiny
+            lab09: ""
+            lab10: ""
             lab13: ""
             lab14: ""
             lab15: ""
