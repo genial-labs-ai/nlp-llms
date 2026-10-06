@@ -675,7 +675,7 @@ modules:
       accounts: [Google]
       cost: free
       fallback: {kind: open-model, note: "On a CPU runtime, FAST runs short smoke trainings of the same GPT-2; the trained-policy checkpoints are skipped, so reward hacking is not shown"}
-      gaps: "The trained-policy checkpoints, including the reward-hacking signature, need a GPU; the seed protocol (seeds 0 to 4 on a T4) has not run, so their thresholds are provisional. On the build Mac only the CPU FAST path ran (2026-10-06)"
+      gaps: "The trained-policy checkpoints, including the reward-hacking signature, need a GPU; the seed protocol (seeds 0 to 4 on a T4) has not run, so their thresholds are provisional. On the build Mac the CPU FAST path ran, plus one exploratory full-settings run on its GPU (MPS) from a scratch copy (2026-10-06)"
   m11:
     n: 11
     slug: 11-calibration

@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "source": "backfill",
+  "env": "mac-m1pro",
+  "path": "open",
+  "mode": "worked",
+  "commit": null,
+  "runs": [
+    {"notebook": "10-rlhf", "date": "2026-10-06", "scope": "partial", "scope_note": "full settings on the Apple M1 Pro GPU (MPS) from a scratch copy changed only to DEVICE = \"mps\"; seed 0, protocol mode, no stretch; not the T4 seed protocol", "status": "pass", "seconds": 809,
+     "env_detail": "Apple M1 Pro, macOS arm64, MPS; Python 3.12.13, torch 2.14.1, transformers 5.18.0; no API keys", "evidence": "briefs/10-rlhf.md, As built (2026-10-06): the exploratory MPS run that lecture 10, Lab 10's Exercise 4 and exit question 10.4 cite"}
+  ]
+}
