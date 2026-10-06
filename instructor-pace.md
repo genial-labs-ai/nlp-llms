@@ -343,7 +343,7 @@ The notebook heads Setup "(4 minutes)" and Exercise 0 "(4 minutes)"; the brief c
 | 81–91 | Exercise 5 (measure the agent) | CP5 |
 | 91–95 | What this lab showed and what it did not | |
 
-The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief counts them as one block, as here. Lecture 14 is the densest lecture in the workshop, and its timings are checked on paper only. **Lecture behind at minute 32:** cut section 9 to its table of patterns; section 1's ARC-AGI paragraph can go too. **Behind at minute 74:** on a CPU runtime, cut the probability-shift test to 30 items (slice the list in the evaluation-run cell).
+The notebook heads Setup "(3 minutes)" and Exercise 0 "(3 minutes)"; the brief counts them as one block, as here. Lecture 14 is the densest lecture in the workshop, and its timings are checked on paper only. **Lecture behind (section 7 not started by minute 32):** make the cut in the lecture's timing note, which keeps only section 9's table of patterns and its paragraph on subagents and context. **Behind at minute 74:** on a CPU runtime, cut the probability-shift test to 30 items (slice the list in the evaluation-run cell).
 
 ### Module 15 · {{< var modules.m15.title >}}
 

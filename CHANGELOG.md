@@ -19,5 +19,5 @@ All notable changes to this workshop are recorded here.
 
 ### Changed
 
-- Lecture 14 timing: a desk timing (words per budgeted minute, against the other lectures) found the page needed about 76 minutes after the harness pass. The ARC-AGI worked example, tool-design habits, resume or start fresh, the stopping rule, escalation triggers and the hand-off, and the detail on subagents and context are now collapsed optional callouts with short in-budget summaries; sections 5 and 9 are 5 minutes each. The pace sheet follows. Module 14 keeps three objectives.
+- Lecture 14 timing: a desk timing (words per budgeted minute, against the other lectures) found the page needed about 75 minutes after the harness pass. The ARC-AGI worked example, tool-design habits, resume or start fresh, the stopping rule, escalation triggers and the hand-off, and the detail on subagents and context are now collapsed optional callouts with short in-budget summaries; sections 5 and 9 are 5 minutes each. The pace sheet follows. Module 14 keeps three objectives.
 - Lab 14 stretch, part A: an answer from a run that retrieved no passages is delivered as `no-sources` without a verifier call, instead of receiving a verdict against nothing.

@@ -23,7 +23,7 @@ title: "{{< var modules.m14.title >}}"
 | 9. Designing the harness: patterns, subagents and context | 5 |
 | **Total** | **45** |
 
-The collapsed callouts are optional and sit outside the 45 minutes. Section 9 and the harness material of section 1 were added on 2026-10-06. To keep the 45 minutes, the detail of sections 1, 3, 5, 6, 7 and 9 sits in collapsed callouts, among them the ARC-AGI worked example, escalation and the hand-off, and the rules for subagents and context. These timings were checked on paper against the other lectures (words per budgeted minute), not yet aloud. If the clock slips, cut section 9 to its table and section 1 to the four gaps and the definition of the harness.
+The collapsed callouts are optional and sit outside the 45 minutes. Section 9 and the harness material of section 1 were added on 2026-10-06. To keep the 45 minutes, the detail of sections 1, 3, 5, 6, 7 and 9 sits in collapsed callouts, among them the ARC-AGI worked example, escalation and the hand-off, and the rules for subagents and context. These timings were checked on paper against the other lectures (words per budgeted minute), not yet aloud. If the clock slips, shorten section 9 to its table of patterns and the paragraph on subagents and context; the [pace sheet](../instructor-pace.md) says when.
 
 Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
 
@@ -88,7 +88,7 @@ An **agent harness**, this module's sense, runs a model in a loop and acts on it
 The coding agents of Module 0 add one more layer. The instruction files and rules you write for them are a second, outer harness that you add around the one their makers ship (Böckeler, 2026).
 :::
 
-**The harness changes the result.** On ARC-AGI, a benchmark of grid puzzles, GPT-4o run alone solved 5% of the ARC-AGI-1 semi-private set, and 43% inside a harness that writes candidate programs and keeps those that reproduce the examples (Greenblatt, 2024). Gemini 3 Pro rose from 31.1% to 54% on ARC-AGI-2, at \$30.57 a task instead of \$0.81 (Poetiq, 2025). The figures are ARC Prize's. A score belongs to a model, a harness and a compute budget together: report all three.
+**The harness changes the result.** ARC-AGI is a benchmark of grid puzzles, now in three versions; its organizers, the ARC Prize foundation, score every system on tasks they keep back from the public. On the first version, GPT-4o run alone scored 5%, and 43% inside Greenblatt's (2024) harness, which writes candidate programs and keeps those that reproduce the examples. On the second, Gemini 3 Pro rose from 31.1% to 54% inside Poetiq's (2025) harness, at \$30.57 a task instead of \$0.81. All four scores are ARC Prize's. A score belongs to a model, a harness and a compute budget together: report all three.
 
 ::: {.callout-tip collapse="true" title="Optional worked example: the same model in different harnesses (ARC-AGI)"}
 ARC-AGI is a benchmark of grid puzzles. Each task shows a few input and output grids, and the system must produce the output for a new input (Chollet, 2019). Its organizers, the ARC Prize foundation, score systems on a held-back "semi-private" set and publish each score beside its cost per task. On ARC-AGI-1 and ARC-AGI-2 their own runs use each model "as direct input→output predictors… with no agent harness and no client-side tools". Other teams put harnesses around the same models: sample thousands of candidate programs and keep those that reproduce the examples, evolve the best candidates, or check a draft answer against the examples and refine it. Each row below holds the base model fixed. The numbers are ARC Prize's, read from its reports and leaderboard on 2026-10-06.
@@ -240,7 +240,7 @@ Two consequences. Everything the program knows is in $s$, so a run can be saved,
 | `pending` | dict or none | `tools`, `send` | the `send_email` call waiting for the guard |
 | `p_allow`, `region` | float, str | `guard` | the guard's probability and `"act"`, `"ask"` or `"escalate"` |
 | `k` | int | `agent` | model calls so far |
-| `actions` | list, **append** | `human_review`, `send`, `escalate`, `ask_user` | what the system and the person did: `approved:<call id>` or `rejected:<call id>`, `sent:<call id>`, `escalated:<reason>`, `asked_user` |
+| `actions` | list, **append** | `human_review`, `send`, `escalate`, `ask_user`; `verify` (stretch) | what the system and the person did: `approved:<call id>` or `rejected:<call id>`, `sent:<call id>`, `escalated:<reason>`, `asked_user`; in the stretch, `delivered:verified`, `delivered:unverified` or `delivered:no-sources` |
 | `trace` | list, **append** | every node | one line per step, with every probability and threshold, for reading and for evaluation |
 
 The nodes and edges:
@@ -636,10 +636,10 @@ In 2024 Ng rated reflection and tool use as working "fairly reliably" and planni
 **Reflection pays when the check brings new information.** A model asked to criticize its own answer, with nothing new to go on, often fails to improve it (Huang et al., 2024). The reflection results that hold up add something the draft did not have: a test run, a retrieved passage, or a separate model asked a narrow question. Lab 14's guard and the capstone's verifier are checks of the last kind.
 :::
 
-**Subagents and context, in brief.** A **subagent** is a separate loop with its own context, tools and budget: it sees only its task description and returns a short summary rather than its transcript. A system of them is expensive: Anthropic measured about 15 times the tokens of a chat, against 4 times for a single agent (Hadfield et al., 2025). Every agent resends its growing context $c_t$ on every call, so keep it small: trim tool results at the source, keep facts in typed state, and compact old turns or isolate exploration in a subagent.
+**Subagents and context, in brief.** A **subagent** is a separate loop with its own context, tools and budget: it sees only its task description and returns a short summary rather than its transcript. A system of them costs several times the tokens of a single agent (Hadfield et al., 2025; the figures are in the box below). Every agent resends its growing context $c_t$ on every call, so keep it small: trim tool results at the source, keep facts in typed state, and compact old turns or isolate exploration in a subagent.
 
 ::: {.callout-tip collapse="true" title="Optional: five rules for subagents, and what they cost"}
-**Several agents: a coordinator and subagents.** When one context cannot hold the work, as in research that needs dozens of searches across sources, a **coordinator** splits the task and hands each part to a **subagent**: a separate loop with its own context, its own tools and its own budget. Five rules carry most of the design.
+**A coordinator and its subagents.** When one context cannot hold the work, as in research that needs dozens of searches across sources, a **coordinator** splits the task and hands each part to a subagent. Five rules carry most of the design.
 
 1. **A subagent sees only what it is given.** It does not inherit the coordinator's conversation. Its task description must carry the goal, the constraints, what is already known, and the form of the answer: in the words of Anthropic's research team, "an objective, an output format, guidance on the tools and sources to use, and clear task boundaries" (Hadfield et al., 2025). "Check the refund" is not a task. "Under policy P2, and given the records below, is this registration entitled to a refund, and of how much? Answer with `allowed`, `amount` and the rule you applied" is.
 2. **It returns a summary, not its transcript.** The coordinator receives a short, structured result (Anthropic reports "often 1,000-2,000 tokens") instead of the subagent's tens of thousands (Rajasekaran et al., 2025). Keeping each exploration in its own context is the main reason to use subagents.
