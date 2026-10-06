@@ -15,9 +15,7 @@ workshop:
   title: "From Traditional NLP to Modern LLMs"
   subtitle: "n-grams, attention, RLHF, RLCD and agents"
   org: "Genial Labs"
-  days: 4
-  lecture_minutes: 45
-  lab_minutes: 50
+  days: 5
 
 # Model IDs. Checked against each provider's live documentation on 2026-10-04
 # (PLAN.md, build day 6). Re-check before each delivery: IDs retire.
@@ -206,55 +204,95 @@ datasets:
     invoices: 18432
     lines: 48953
 
-# The daily clock. `module` slots take the day's modules in order. The
-# `self_serve` slot is optional and unstaffed: it shows a day's `self_serve`
-# module and stays empty on days that have none.
+# The daily clocks. Each day names its clock (days.dN.clock). A clock's `shape`
+# splits one module unit into lecture, lab and (optionally) debrief minutes, in
+# that order; its `slots` run back to back. Slot kinds:
+#   clinic   optional drop-in help before the day starts; filled by days.dN.clinic
+#   opening  the start of the day; days.dN.opening is its label
+#   module   one module unit; a day's `slots` fill the clock's units in order
+#   break    a break or lunch, with its label
+#   closing  the end of the day; days.dN.closing is its label
+# A `part: lecture` module slot opens a unit that the next `part: lab` slot closes,
+# so one module can span lunch: its lecture before, its lab (and debrief) after.
+# modules.mNN.minutes must equal the minutes the clock gives the module
+# (tests/test_variables.py).
 schedule:
-  slots:
-    - {start: "08:00", end: "09:00", kind: self_serve}
-    - {start: "09:00", end: "09:10", kind: opening}
-    - {start: "09:10", end: "10:45", kind: module}
-    - {start: "10:45", end: "11:00", kind: break, label: "Break"}
-    - {start: "11:00", end: "12:35", kind: module}
-    - {start: "12:35", end: "13:35", kind: break, label: "Lunch"}
-    - {start: "13:35", end: "15:10", kind: module}
-    - {start: "15:10", end: "15:25", kind: break, label: "Break"}
-    - {start: "15:25", end: "17:00", kind: module}
+  clocks:
+    standard:
+      shape: {lecture: 45, lab: 50}
+      slots:
+        - {start: "08:00", end: "09:00", kind: clinic}
+        - {start: "09:00", end: "09:10", kind: opening}
+        - {start: "09:10", end: "10:45", kind: module}
+        - {start: "10:45", end: "11:00", kind: break, label: "Break"}
+        - {start: "11:00", end: "12:35", kind: module}
+        - {start: "12:35", end: "13:35", kind: break, label: "Lunch"}
+        - {start: "13:35", end: "15:10", kind: module}
+        - {start: "15:10", end: "15:25", kind: break, label: "Break"}
+        - {start: "15:25", end: "17:00", kind: module}
+    long:
+      shape: {lecture: 55, lab: 55, debrief: 10}
+      slots:
+        - {start: "09:00", end: "09:15", kind: opening}
+        - {start: "09:15", end: "11:15", kind: module}
+        - {start: "11:15", end: "11:30", kind: break, label: "Break"}
+        - {start: "11:30", end: "12:25", kind: module, part: lecture}
+        - {start: "12:25", end: "13:25", kind: break, label: "Lunch"}
+        - {start: "13:25", end: "14:30", kind: module, part: lab}
+        - {start: "14:30", end: "14:45", kind: break, label: "Break"}
+        - {start: "14:45", end: "16:45", kind: module}
+        - {start: "16:45", end: "17:00", kind: closing}
 
+# Module 0 is pre-work (`day: 0`); Day 1's optional clinic slot is drop-in help with it.
 days:
   d1:
     n: 1
+    clock: standard
     title: "Foundations: from counts to attention"
     short: "Foundations"
     question: "How do we turn text into something a model can learn from?"
     opening: "Welcome, setup check"
-    self_serve: {module: m00, label: "Coding agents in the terminal (self-serve)"}
+    clinic: {module: m00, label: "Drop-in clinic: Module 0 pre-work (optional)"}
     slots: [m01, m02, m03, m04]
   d2:
     n: 2
-    title: "Transformers and LLMs"
-    short: "Transformers and LLMs"
+    clock: long
+    title: "Transformers and pretrained models"
+    short: "Transformers and pretraining"
     question: "How does one architecture, pretrained at scale, become a general tool?"
-    opening: "Recap of Day 1"
-    slots: [m05, m06, m07, m08]
+    opening: "Retrieval practice"
+    closing: "Synthesis"
+    slots: [m05, m06, m07]
   d3:
     n: 3
-    title: "Training objectives: preference and calibration"
-    short: "Training objectives"
-    question: "What are we optimizing these models for, and what should we be?"
-    opening: "Recap of Day 2"
-    slots: [m09, m10, m11, m12]
+    clock: long
+    title: "Using and aligning LLMs"
+    short: "Using and aligning LLMs"
+    question: "How do we use these models, and what are they trained to want?"
+    opening: "Retrieval practice"
+    closing: "Synthesis"
+    slots: [m08, m09, m10]
   d4:
     n: 4
-    title: "RAG, agents and capstone"
-    short: "RAG, agents, capstone"
+    clock: long
+    title: "Calibration, decisions and retrieval"
+    short: "Calibration, decisions, RAG"
+    question: "When should a model's answer be trusted, and how do we ground it in sources?"
+    opening: "Retrieval practice"
+    closing: "Synthesis"
+    slots: [m11, m12, m13]
+  d5:
+    n: 5
+    clock: long
+    title: "Agents and the capstone"
+    short: "Agents and capstone"
     question: "How do we build reliable systems out of these models?"
-    opening: "Recap of Day 3"
+    opening: "Retrieval practice"
+    closing: "Synthesis and wrap-up"
     slots:
-      - m13
       - m14
       - {module: m15, label: "Capstone: build"}
-      - {module: m15, label: "Capstone: evaluate and share, then wrap-up"}
+      - {module: m15, label: "Capstone: evaluate and share"}
 
 setup:
   slug: 00-setup
@@ -363,11 +401,11 @@ modules:
   m00:
     n: 0
     slug: 00-coding-agents
-    day: 1
+    day: 0
     minutes: 60
     notebook: false
     title: "Coding agents in the terminal"
-    summary: "Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work."
+    summary: "Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Pre-work, on your own laptop before Day 1."
     objectives:
       - "Install and drive a terminal coding agent"
       - "Build and check two small data apps with it"
@@ -467,7 +505,7 @@ modules:
     n: 5
     slug: 05-transformer-from-scratch
     day: 2
-    minutes: 95
+    minutes: 120
     title: "The transformer"
     summary: "Self-attention, multi-head attention and positional encodings, assembled into a small GPT."
     objectives:
@@ -487,7 +525,7 @@ modules:
     n: 6
     slug: 06-pretraining-huggingface
     day: 2
-    minutes: 95
+    minutes: 120
     title: "Pretraining and the Hugging Face stack"
     summary: "Subword tokenization, masked and causal pretraining, and using pretrained models through Hugging Face."
     objectives:
@@ -508,7 +546,7 @@ modules:
     n: 7
     slug: 07-finetuning-lora
     day: 2
-    minutes: 95
+    minutes: 120
     title: "Fine-tuning and LoRA"
     summary: "Turning a pretrained language model into an instruction follower, efficiently."
     objectives:
@@ -527,8 +565,8 @@ modules:
   m08:
     n: 8
     slug: 08-llm-apis
-    day: 2
-    minutes: 95
+    day: 3
+    minutes: 120
     title: "LLMs through APIs"
     summary: "OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation."
     objectives:
@@ -549,7 +587,7 @@ modules:
     n: 9
     slug: 09-preference-learning
     day: 3
-    minutes: 95
+    minutes: 120
     title: "Reinforcement and preference learning"
     summary: "Text generation as a reinforcement-learning problem, the policy gradient, and reward models learned from comparisons."
     objectives:
@@ -570,7 +608,7 @@ modules:
     n: 10
     slug: 10-rlhf
     day: 3
-    minutes: 95
+    minutes: 120
     title: "RLHF"
     summary: "The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong."
     objectives:
@@ -591,8 +629,8 @@ modules:
   m11:
     n: 11
     slug: 11-calibration
-    day: 3
-    minutes: 95
+    day: 4
+    minutes: 120
     title: "Calibration"
     summary: "What a probability should mean, how to measure it, and how to use confidence to decide when to abstain."
     objectives:
@@ -614,8 +652,8 @@ modules:
   m12:
     n: 12
     slug: 12-rlcd-jev
-    day: 3
-    minutes: 95
+    day: 4
+    minutes: 120
     title: "RLCD and Jev"
     summary: "Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API."
     objectives:
@@ -637,7 +675,7 @@ modules:
     n: 13
     slug: 13-rag
     day: 4
-    minutes: 95
+    minutes: 120
     title: "Retrieval-augmented generation"
     summary: "Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately."
     objectives:
@@ -658,8 +696,8 @@ modules:
   m14:
     n: 14
     slug: 14-agents
-    day: 4
-    minutes: 95
+    day: 5
+    minutes: 120
     title: "Agents"
     summary: "Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control."
     objectives:
@@ -679,8 +717,8 @@ modules:
   m15:
     n: 15
     slug: 15-capstone
-    day: 4
-    minutes: 190
+    day: 5
+    minutes: 240
     title: "Capstone"
     summary: "Combine retrieval, an agent graph and calibrated control into one system, evaluate it, and explain the design."
     objectives:
@@ -695,6 +733,6 @@ modules:
       estimate_minutes: 15
       accounts: [Google]
       optional_accounts: [OpenAI, Anthropic, TypeSafe]
-      cost: "Free without keys. Keyed, per pair for the afternoon: under 2 USD on Claude, under 25 cents on OpenAI, under 10 cents on Jev (estimates)"
+      cost: "Free without keys. Keyed, per pair for the capstone: under 2 USD on Claude, under 25 cents on OpenAI, under 10 cents on Jev (estimates)"
       fallback: {kind: open-model, note: "Qwen, the open retrievers and the NLI judge replace the commercial models and Jev; their numbers describe those models"}
       gaps: "The 125-question evaluation set does not exist; runs use plumbing probes, which test the code, not the system"

@@ -1,6 +1,6 @@
 # PLAN.md — From Traditional NLP to Modern LLMs
 
-A 4-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
+A 5-day intensive workshop by Genial Labs. This file is the master plan: curriculum, repository design, lab standards, and the build checklist. Agent personas for the build are in [AGENTS.md](AGENTS.md).
 
 **Status (2026-10-06):** what has run, where, and the blocking work that remains are generated from evidence on the [readiness page](https://project-delphi.github.io/nlp-llms/readiness.html) (`_includes/readiness.md`, built from the readiness fields in `_variables.yml` and the run records in `runs/`); this paragraph no longer restates them. All 15 lectures and 16 notebooks are written. No lab has been run on Colab. A five-day revision was approved on 2026-10-06 and is being built in six phases (section 8). Earlier status, kept for the record: Labs 01–05 were run end to end on CPU only, and Labs 06–15 on their offline paths, because the build container had no Hub access and no API keys; Lab 14's open path was later run on an Apple laptop (263 s). This plan is a living document.
 
@@ -11,22 +11,24 @@ A 4-day intensive workshop by Genial Labs. This file is the master plan: curricu
 | | |
 |---|---|
 | **Title** | From Traditional NLP to Modern LLMs: n-grams, attention, RLHF, RLCD and agents |
-| **Length** | 4 days, 09:00–17:00, 15 modules (the capstone takes a double slot), plus an optional self-serve Module 0 on Day 1, 08:00–09:00 |
-| **Module shape** | 95 minutes: about 45 min lecture, 50 min Colab lab. Module 0 is 60 minutes, self-serve, with no lecture and no notebook |
+| **Length** | 5 days, 09:00–17:00, 15 modules (the capstone fills two module slots on Day 5), plus Module 0 as optional pre-work, with an optional drop-in clinic on Day 1, 08:00–09:00 |
+| **Module shape** | Two clocks (`schedule.clocks` in `_variables.yml`). **Day 1:** four 95-minute modules, each 45 min lecture then 50 min Colab lab. **Days 2–5:** three 120-minute modules a day, each 55 min lecture (about 45 of exposition and 10 of scheduled predictions, checks and the demo), a 55 min lab (the 50-minute core path plus 5 minutes of slack for setup and downloads) and a 10 min debrief; the middle module's lecture is before lunch and its lab and debrief after. Days 2–5 open with 15 minutes of retrieval practice and close with 15 of synthesis. Module 0 is pre-work, planned at 60 minutes, with no lecture and no notebook |
 | **Audience** | ML practitioners: comfortable with Python, NumPy and basic ML, some PyTorch |
 | **Site** | Quarto website, deployed to GitHub Pages |
 | **Labs** | Google Colab notebooks, free-tier T4 runtime |
 | **Structural model** | [`project-delphi/tensors-workshop`](https://github.com/project-delphi/tensors-workshop/) |
 | **Licence** | CC BY 4.0 for teaching content, MIT for code |
 
-### The four days
+### The five days
 
-| Day | Theme | Question it answers |
-|---|---|---|
-| 1 | Foundations: from counts to attention | How do we turn text into something a model can learn from? |
-| 2 | Transformers and LLMs | How does one architecture, pretrained at scale, become a general tool? |
-| 3 | Training objectives: preference and calibration | What are we optimising these models for, and what should we be? |
-| 4 | RAG, agents and capstone | How do we build reliable systems out of these models? |
+| Day | Theme | Modules | Question it answers |
+|---|---|---|---|
+| Before Day 1 | Pre-work (optional) | 0 | |
+| 1 | Foundations: from counts to attention | 1–4 | How do we turn text into something a model can learn from? |
+| 2 | Transformers and pretrained models | 5–7 | How does one architecture, pretrained at scale, become a general tool? |
+| 3 | Using and aligning LLMs | 8–10 | How do we use these models, and what are they trained to want? |
+| 4 | Calibration, decisions and retrieval | 11–13 | When should a model's answer be trusted, and how do we ground it in sources? |
+| 5 | Agents and the capstone | 14–15 | How do we build reliable systems out of these models? |
 
 ### Prerequisites
 
@@ -57,7 +59,7 @@ Drawn from Stanford CS224N, CMU CS 11-747 and MIT 6.S191:
 
 - **Derive, implement, then use the library.** Each idea is first motivated by the failure of the previous one, then derived briefly, then built, and only then used through a library (CS224N).
 - **Code-first neural modelling.** Lectures show the model as code alongside the equations; every equation in a lecture maps to a named line in the lab (CMU 11-747).
-- **Short lecture, immediate lab.** No lecture runs longer than 45 minutes before hands-on work (MIT 6.S191).
+- **Short lecture, immediate lab.** No lecture runs longer than 45 minutes on Day 1, or 55 on Days 2–5 (which include about 10 minutes of scheduled activities), before hands-on work (MIT 6.S191).
 - **Predict → Run → Explain → Check.** The lab rhythm carried over from `tensors-workshop`: participants predict an output, run the cell, explain the result, then pass a checkpoint assertion.
 - **One running thread.** The same small datasets and the same tasks reappear across modules, so improvements are measured, not asserted.
 - **Retrieve and manipulate before the lab.** Each lecture opens with a recap box, closes most sections with a check-yourself question (answer folded), carries its derivations through a worked numeric example, and has at most one interactive demo. Check-yourself questions and demos sit outside the 45 minutes; recaps and worked examples are counted inside them. (The five-day revision brings a few checks and the demo inside the budget: section 8, Phase 4.) Authoring hooks: `.recap`, `.self-check`, `.worked-example`, `.demo` (styled in `custom.scss`; `filters/pedagogy.lua` styles the per-section objective lines).
@@ -67,7 +69,7 @@ Drawn from Stanford CS224N, CMU CS 11-747 and MIT 6.S191:
 
 ## 2. Repository structure
 
-The core pattern is copied from `tensors-workshop`; the layout is adapted from one 210-minute session to four days.
+The core pattern is copied from `tensors-workshop`; the layout is adapted from one 210-minute session to five days.
 
 ```
 nlp-llms/
@@ -76,8 +78,8 @@ nlp-llms/
 ├── _includes/               GENERATED tables (schedule, notebook index, dependencies)
 ├── index.qmd                landing page: hero, prerequisites, resource cards
 ├── setup.qmd                Colab, API keys via Colab Secrets, open-model fallback
-├── schedule.qmd             four-day timetable (generated table)
-├── day-1.qmd … day-4.qmd    day index pages
+├── schedule.qmd             five-day timetable (generated: one grid per clock)
+├── day-1.qmd … day-5.qmd    day index pages
 ├── lectures/                one page per module: 00-coding-agents.qmd … 15-capstone.qmd
 ├── notebooks.qmd            notebook index with Colab badges (generated table)
 ├── notebooks/               00-setup.ipynb, 01-… to 15-….ipynb (no outputs committed; Module 0 has none)
@@ -103,11 +105,11 @@ nlp-llms/
 ### Conventions copied from `tensors-workshop`
 
 - **One ID per module.** `NN-kebab-slug` is the same for the lecture page, the notebook and the `_variables.yml` key (`m00` … `m15`). Module 0 has `notebook: false`: a lecture page but no notebook.
-- **`_variables.yml` is the single source of truth.** Each module entry holds `n`, `slug`, `day`, `minutes`, `title`, `summary`, `objectives`, `stack`. Pages read it with `{{< var modules.m01.title >}}`; the generator scripts read it too. Model IDs and package pins also live here, so a version bump is a one-line change.
+- **`_variables.yml` is the single source of truth.** Each module entry holds `n`, `slug`, `day` (0 for pre-work), `minutes` (a test checks it equals what the day's clock gives the module), `title`, `summary`, `objectives`, `stack`. Each day names its clock (`days.dN.clock`). Pages read it with `{{< var modules.m01.title >}}`; the generator scripts read it too. Model IDs and package pins also live here, so a version bump is a one-line change.
 - **Generated files are never edited by hand.** `scripts/gen_tables.py` writes the tables in `_includes/` and the marked regions in `README.md`. `scripts/gen_notebooks.py` owns the first cell (title, Colab badge, time, objectives) and the last cell (next notebook, site link) of every notebook, strips outputs and execution counts, and is idempotent. CI fails if running the generators changes anything.
 - **Notebooks are not executed at render time.** `_quarto.yml` lists pages explicitly under `render:` and ships `notebooks/*.ipynb` as `resources:`. There is no `_freeze/`.
 - **Deploy from an Actions artifact.** `publish.yml` renders to `docs/`, which is gitignored, and deploys with `actions/deploy-pages`.
-- **Navbar, plus a module sidebar on lecture pages.** Navbar: Home, Schedule, Days (dropdown: Module 0, then Day 1–4), Notebooks, Setup, References, Teach, FAQ. Inside `lectures/` a generated left sidebar (`_includes/sidebar.yml`) lists the modules by day, with previous/next module links at the foot of each page. (Changed 2026-10-05; `tensors-workshop` has no sidebar.)
+- **Navbar, plus a module sidebar on lecture pages.** Navbar: Home, Schedule, Days (dropdown: Module 0 as pre-work, then Days 1–5), Notebooks, Setup, References, Teach, FAQ. Inside `lectures/` a generated left sidebar (`_includes/sidebar.yml`) lists Module 0 as pre-work, then the modules by day, with previous/next module links at the foot of each page. (Changed 2026-10-05; `tensors-workshop` has no sidebar.)
 
 ### Deliberately left out of v1
 
@@ -117,17 +119,35 @@ Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the N
 
 ## 3. Timetable
 
-| Time | Day 1: Foundations | Day 2: Transformers and LLMs | Day 3: Training objectives | Day 4: RAG, agents, capstone |
+The generated grids on the schedule page are authoritative; these tables restate them.
+
+**Day 1** (the `standard` clock):
+
+| Time | Day 1: Foundations |
+|---|---|
+| 08:00–09:00 | Drop-in clinic: Module 0 pre-work (optional) |
+| 09:00–09:10 | Welcome, setup check |
+| 09:10–10:45 | 1 · Text as data |
+| 10:45–11:00 | Break |
+| 11:00–12:35 | 2 · Word vectors and neural nets |
+| 12:35–13:35 | Lunch |
+| 13:35–15:10 | 3 · Sequence models |
+| 15:10–15:25 | Break |
+| 15:25–17:00 | 4 · Seq2seq and attention |
+
+**Days 2–5** (the `long` clock):
+
+| Time | Day 2: Transformers and pretraining | Day 3: Using and aligning LLMs | Day 4: Calibration, decisions, RAG | Day 5: Agents and capstone |
 |---|---|---|---|---|
-| 08:00–09:00 | 0 · Coding agents in the terminal (optional, self-serve) | | | |
-| 09:00–09:10 | Welcome, setup check | Recap of Day 1 | Recap of Day 2 | Recap of Day 3 |
-| 09:10–10:45 | 1 · Text as data | 5 · The transformer | 9 · Reinforcement and preference learning | 13 · Retrieval-augmented generation |
-| 10:45–11:00 | Break | Break | Break | Break |
-| 11:00–12:35 | 2 · Word vectors and neural nets | 6 · Pretraining and the Hugging Face stack | 10 · RLHF | 14 · Agents |
-| 12:35–13:35 | Lunch | Lunch | Lunch | Lunch |
-| 13:35–15:10 | 3 · Sequence models | 7 · Fine-tuning and LoRA | 11 · Calibration | 15 · Capstone: build |
-| 15:10–15:25 | Break | Break | Break | Break |
-| 15:25–17:00 | 4 · Seq2seq and attention | 8 · LLMs through APIs | 12 · RLCD and Jev | 15 · Capstone: evaluate and share (to 16:30), then wrap-up |
+| 09:00–09:15 | Retrieval practice | Retrieval practice | Retrieval practice | Retrieval practice |
+| 09:15–11:15 | 5 · The transformer | 8 · LLMs through APIs | 11 · Calibration | 14 · Agents |
+| 11:15–11:30 | Break | Break | Break | Break |
+| 11:30–12:25 | 6 · Pretraining and the Hugging Face stack: lecture | 9 · Reinforcement and preference learning: lecture | 12 · RLCD and Jev: lecture | 15 · Capstone: build |
+| 12:25–13:25 | Lunch | Lunch | Lunch | Lunch |
+| 13:25–14:30 | 6 · lab and debrief | 9 · lab and debrief | 12 · lab and debrief | 15 · Capstone: build |
+| 14:30–14:45 | Break | Break | Break | Break |
+| 14:45–16:45 | 7 · Fine-tuning and LoRA | 10 · RLHF | 13 · Retrieval-augmented generation | 15 · Capstone: evaluate and share |
+| 16:45–17:00 | Synthesis | Synthesis | Synthesis | Synthesis and wrap-up |
 
 ---
 
@@ -135,17 +155,19 @@ Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the N
 
 Each module lists objectives, the lecture outline, the lab, and key readings. Lab names are the notebook file names under `notebooks/`. Every lab has a core path that fits 50 minutes and one optional stretch section (see section 5).
 
-### Day 1 — Foundations: from counts to attention
+### Before Day 1 — Pre-work
 
-#### Module 0 · Coding agents in the terminal (optional, self-serve, 08:00–09:00)
+#### Module 0 · Coding agents in the terminal (optional pre-work; drop-in clinic on Day 1, 08:00–09:00)
 
 - **Objectives:** install and drive a terminal coding agent; build and check two small data apps with it; publish them with GitHub and GitHub Pages.
-- **Format:** 60 minutes before the 09:00 welcome, also usable as pre-work. No lecture and no notebook: participants follow the page on their own laptops while facilitators help with installs. Nothing later depends on it.
+- **Format:** pre-work, planned at 60 minutes (an estimate, not yet measured). No lecture and no notebook: participants follow the page on their own laptops before Day 1, and an optional drop-in clinic on Day 1, 08:00–09:00, helps with installs. Nothing later depends on it.
 - **Page:** `lectures/00-coding-agents.qmd`.
 - **What participants do:** install one coding agent (Claude Code, Codex or Gemini CLI); set up git and the GitHub CLI; in one language of their choice (Python or R), have the agent build (1) a protein structure explorer for ubiquitin (PDB 1UBQ) and (2) an RFM customer segmentation, each with a three.js page; check each app; publish both on GitHub Pages.
 - **Reference solutions:** `agents-intro/`, with data files recorded as `datasets` entries in `_variables.yml`.
 - **Stack:** a coding agent CLI, git, GitHub CLI, Python or R, three.js. npm package names and the versions checked on 2026-10-05 are in `_variables.yml` under `agents_intro`.
 - **Instructor notes:** room setup, install failures per OS and the no-subscription fallback are in `facilitator-guide.md`; a provisional minute plan is in `instructor-pace.md`.
+
+### Day 1 — Foundations: from counts to attention
 
 #### Module 1 · Text as data
 
@@ -183,7 +205,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 - **Stack:** PyTorch.
 - **Readings:** Sutskever et al. 2014; Bahdanau et al. 2015; Luong et al. 2015.
 
-### Day 2 — Transformers and LLMs
+### Day 2 — Transformers and pretrained models
 
 #### Module 5 · The transformer
 
@@ -212,16 +234,16 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 - **Stack:** Hugging Face `transformers`, `peft`, `datasets`; PyTorch.
 - **Readings:** Hu et al. 2021 (LoRA); Hugging Face PEFT documentation.
 
+### Day 3 — Using and aligning LLMs
+
 #### Module 8 · LLMs through APIs
 
 - **Objectives:** call OpenAI and Claude models for chat, structured output and tool use; compare them on one task with one harness; reason about cost, latency and failure modes.
-- **Lecture:** the commercial API surface: messages, system prompts, tokens and context windows; prompting patterns (few-shot, reasoning before answering); structured output and JSON schemas; tool/function calling; cost and latency; evaluation basics for LLM outputs; hallucination and why a fluent answer carries no confidence signal (setting up Day 3).
+- **Lecture:** the commercial API surface: messages, system prompts, tokens and context windows; prompting patterns (few-shot, reasoning before answering); structured output and JSON schemas; tool/function calling; cost and latency; evaluation basics for LLM outputs; hallucination and why a fluent answer carries no confidence signal (setting up Modules 9 to 11).
 - **Lab `08-llm-apis.ipynb`:** a thin provider-agnostic wrapper over OpenAI, Anthropic and a local Hugging Face model; the same extraction task with schema-validated output on each; a two-tool calling loop written by hand; a small evaluation set scored automatically; a cost and latency table.
 - **Stretch:** add the Lab 7 fine-tuned model as a fourth provider.
 - **Stack:** `openai`, `anthropic`, Hugging Face (fallback), Pydantic.
 - **Readings:** OpenAI and Anthropic API documentation (tool use, structured outputs).
-
-### Day 3 — Training objectives: preference and calibration
 
 #### Module 9 · Reinforcement and preference learning
 
@@ -240,6 +262,8 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 - **Stretch:** vary the KL coefficient and plot the reward–drift trade-off.
 - **Stack:** PyTorch, Hugging Face.
 - **Readings:** Ouyang et al. 2022 (InstructGPT); Schulman et al. 2017 (PPO); Rafailov et al. 2023 (DPO).
+
+### Day 4 — Calibration, decisions and retrieval
 
 #### Module 11 · Calibration
 
@@ -263,8 +287,6 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 - **Stack:** PyTorch, `typesafe-sdk` (fallback: the toy model from step 1).
 - **Readings:** TypeSafe's public RLCD and Jev announcement and API documentation; Kahneman on System 1 and System 2 for the framing.
 
-### Day 4 — RAG, agents and capstone
-
 #### Module 13 · Retrieval-augmented generation
 
 - **Objectives:** build a RAG pipeline; choose chunking, embedding and reranking settings from measurements; evaluate retrieval and answer quality separately.
@@ -273,6 +295,8 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 - **Stretch:** hybrid retrieval with BM25.
 - **Stack:** LlamaIndex, LangChain, Jev, OpenAI/Claude (fallback: local embedding model and small local LLM).
 - **Readings:** Lewis et al. 2020 (RAG); LlamaIndex and LangChain documentation.
+
+### Day 5 — Agents and the capstone
 
 #### Module 14 · Agents
 
@@ -286,11 +310,11 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 #### Module 15 · Capstone (double slot)
 
 - **Objectives:** combine retrieval, an agent graph and calibrated control into one system; evaluate it; explain the design choices to others.
-- **Brief (10 min):** the task, the starter system, the evaluation set and the scoring.
-- **Build (85 min) `15-capstone.ipynb`:** a research-assistant agent over the workshop's own reading list. The starter provides LlamaIndex retrieval, a LangGraph plan–retrieve–answer–verify loop, Claude or OpenAI for generation, and Jev for routing and for a final "is this answer supported by the sources?" check with a confidence threshold. Participants work in pairs, run the fixed evaluation set for a baseline, then improve one component of their choice (retrieval, prompts, routing, thresholds, a new tool).
-- **Evaluate and share (65 min):** re-run the evaluation; report accuracy, abstention rate and cost against the baseline; each pair gives a two-minute account of what they changed and what happened.
-- **Wrap-up (30 min):** the four days as one line of ideas; an evaluation checklist for agentic systems; open problems; further study.
-- **Stack:** everything from Days 3 and 4.
+- **Brief (10 min, 11:30–11:40):** the task, the starter system, the evaluation set and the scoring.
+- **Build (110 min, 11:40–12:25 and 13:25–14:30, across lunch) `15-capstone.ipynb`:** a research-assistant agent over the workshop's own reading list. The starter provides LlamaIndex retrieval, a LangGraph plan–retrieve–answer–verify loop, Claude or OpenAI for generation, and Jev for routing and for a final "is this answer supported by the sources?" check with a confidence threshold. Participants work in pairs, run the fixed evaluation set for a baseline, then improve one component of their choice (retrieval, prompts, routing, thresholds, a new tool).
+- **Evaluate and share (105 min, 14:45–16:30):** re-run the evaluation; report accuracy, abstention rate and cost against the baseline; each pair gives a two-minute account of what they changed and what happened.
+- **Wrap-up (30 min, 16:30–17:00, ending in the closing slot):** the five days as one line of ideas; an evaluation checklist for agentic systems; open problems; further study.
+- **Stack:** everything from Modules 8 to 14.
 
 ---
 
@@ -299,7 +323,7 @@ Each module lists objectives, the lecture outline, the lab, and key readings. La
 Every notebook must meet all of these.
 
 - **Runs cold on free Colab.** A fresh T4 (or CPU where stated) runtime, Run all, no manual steps other than adding optional API keys. Target: under 10 minutes of compute per lab.
-- **A core path that fits 50 minutes.** From-scratch labs ask participants to write the core function (the loss, the attention step, the update rule), not the whole model; scaffolding, data loading and training loops are provided.
+- **A core path that fits 50 minutes.** On Days 2–5 the lab slot is 55 minutes: the same 50-minute core path plus 5 minutes of slack for setup and downloads, then a 10-minute debrief. From-scratch labs ask participants to write the core function (the loss, the attention step, the update rule), not the whole model; scaffolding, data loading and training loops are provided.
 - **One optional stretch section.** Clearly marked, placed last, never required by a later lab. It gives fast participants more to do and a slow group something to skip.
 - **Generated header and footer.** Cell 0 (title, Colab badge, duration, objectives) and the final cell are written by `scripts/gen_notebooks.py`. Do not edit them by hand.
 - **Setup cell.** Quiet, pinned `%pip install -q package==x.y.z` for anything Colab does not preinstall. Seeds are set here.
@@ -326,7 +350,7 @@ Every notebook must meet all of these.
 | Jev access | Participants may not have keys | Fallback path; ask TypeSafe about workshop credits |
 | Model IDs change | Hard-coded IDs go stale | IDs live only in `_variables.yml`; pinned during the build |
 | Colab dependency drift | Preinstalled versions change and break labs | Pinned installs; scheduled `health.yml` run |
-| Four consecutive days | Fatigue by Day 4; harder for working practitioners to attend | Day 4 afternoon is hands-on pair work; each day stands alone well enough to be offered as 2 + 2 days |
+| Five consecutive days | Fatigue by Day 5; harder for working practitioners to attend | Day 5 is mostly hands-on pair work; Days 1–2 and Days 3–5 can be offered as separate units (FAQ) |
 | Build size | 15 lectures and 16 notebooks | Two-week build with parallel agent workstreams (see AGENTS.md), then continued review |
 | LangChain / LangGraph / LlamaIndex API churn | Tutorials age quickly | Pin versions; use only core, stable interfaces |
 | Claude Haiku 4.5 retirement | Anthropic lists its retirement as "not sooner than 2026-10-15" (checked 2026-10-05); Lab 8 and lecture 8 pin it | Re-check before each delivery; change `models.anthropic` and the three dated sentences in lecture 8 |
@@ -533,7 +557,13 @@ Romeo approved a revision from four to five days after a review brief and a crit
 
 ### Phase 3 — Five-day restructure
 
-- [ ] Clock profiles, Day 5, Module 8 moved to Day 3; generators, tests, pages and instructor documents
+- [x] Clock profiles (`schedule.clocks.standard` and `.long`, each with a lecture/lab/debrief `shape`; `part: lecture`/`part: lab` slots let module B span lunch), `days.dN.clock`, `days.d5`, new day titles and questions, Module 8 moved to Day 3, Module 0 as pre-work (`day: 0`) with `days.d1.clinic`, `m15.minutes: 240`; `workshop.lecture_minutes`/`lab_minutes` dropped
+- [x] Generators: `units()`, `placements()`, `minutes_of()`, `shape()`, split `module_clock()`, `timing()`; one timetable per clock with inline `flex-grow` bars; `_includes/module-shape.md`; a pre-work sidebar section; a generated README day table; notebook headers with the split (`gen_notebooks.py` imports `timing`)
+- [x] Tests: per-clock slot arithmetic and back-to-back slots, units against day slots, every module placed once or pre-work, the clinic module is pre-work, `minutes == minutes_of()`, `day-5.qmd`, the `_quarto.yml` render list and Days menu
+- [x] Pages: `day-5.qmd`; day 2–4 intros; `_quarto.yml`; `custom.scss` (five-column day grid, per-clock timetables, debrief, closing and clinic styles); schedule, landing, setup, teach, FAQ, references, README, `pyproject.toml`; lectures 0, 1, 8, 10, 12 and 15 (the capstone retimed to Day 5: brief 10, build 110 across lunch, evaluate and share 105, wrap-up 30 into the closing slot; awaiting the Academic Director's review); assessments; this file's sections 1–6
+- [ ] **TODO (to assign):** restructure the day-by-day sections of `instructor-pace.md` and `facilitator-guide.md` for 55/55/10 and Day 5, including module B's split across lunch, the retrieval and synthesis slots and the capstone's new timing. Until then both pages carry a notice that their day sections follow the four-day plan
+- [ ] The Academic Director prompt in `AGENTS.md` (and `.claude/agents/academic-director.md`) still says "Target 45 minutes of delivery"; give it the per-clock budgets
+- [ ] Notebook 08's closing markdown still says "Day 3 starts there"; Module 8 is now on Day 3. Left for the Phase 2 merge (notebook cells other than the generated header were not touched in this phase, except the capstone's plan cell)
 
 ### Phase 4 — Live teaching sequence, objectives and assessment
 

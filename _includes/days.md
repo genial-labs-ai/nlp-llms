@@ -13,28 +13,37 @@
 ::: {.day-card}
 [Day 2]{.eyebrow}
 
-[Transformers and LLMs](day-2.qmd){.day-card-title}
+[Transformers and pretrained models](day-2.qmd){.day-card-title}
 
 [How does one architecture, pretrained at scale, become a general tool?]{.day-card-question}
 
-[Modules 5–8]{.day-card-span}
+[Modules 5–7]{.day-card-span}
 :::
 ::: {.day-card}
 [Day 3]{.eyebrow}
 
-[Training objectives: preference and calibration](day-3.qmd){.day-card-title}
+[Using and aligning LLMs](day-3.qmd){.day-card-title}
 
-[What are we optimizing these models for, and what should we be?]{.day-card-question}
+[How do we use these models, and what are they trained to want?]{.day-card-question}
 
-[Modules 9–12]{.day-card-span}
+[Modules 8–10]{.day-card-span}
 :::
 ::: {.day-card}
 [Day 4]{.eyebrow}
 
-[RAG, agents and capstone](day-4.qmd){.day-card-title}
+[Calibration, decisions and retrieval](day-4.qmd){.day-card-title}
+
+[When should a model's answer be trusted, and how do we ground it in sources?]{.day-card-question}
+
+[Modules 11–13]{.day-card-span}
+:::
+::: {.day-card}
+[Day 5]{.eyebrow}
+
+[Agents and the capstone](day-5.qmd){.day-card-title}
 
 [How do we build reliable systems out of these models?]{.day-card-question}
 
-[Modules 13–15]{.day-card-span}
+[Modules 14–15]{.day-card-span}
 :::
 :::

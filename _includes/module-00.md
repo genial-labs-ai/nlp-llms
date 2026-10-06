@@ -2,11 +2,11 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 1 · Foundations](/day-1.qmd){.module-day} [Module 0]{.module-num} [60 minutes, self-serve, 08:00–09:00]{.module-time}
+[Before Day 1 · Pre-work](/setup.qmd#module-0){.module-day} [Module 0]{.module-num} [60 minutes, pre-work; optional clinic on Day 1, 08:00–09:00]{.module-time}
 :::
 
 ::: {.module-summary}
-Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work.
+Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Pre-work, on your own laptop before Day 1.
 :::
 
 ::: {.module-actions}

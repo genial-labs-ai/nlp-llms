@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 3 · Training objectives](/day-3.qmd){.module-day} [Module 10]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time}
+[Day 3 · Using and aligning LLMs](/day-3.qmd){.module-day} [Module 10]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}

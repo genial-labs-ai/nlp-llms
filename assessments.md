@@ -15,7 +15,7 @@ Two short checks. The **entry check** tells a participant, before Day 1, whether
 ## How to use them
 
 - **Entry check.** Send it with the [Setup](setup.qmd) instructions. It takes about 15 minutes, on paper or in a notebook, with no internet search. A participant who misses two or more of the three questions in an area should review that area before Day 1, using the material under the key. One miss in an area needs no action.
-- **Exit check.** Use the questions of the day's modules as a ten-minute self-check at the end of each day, or all of them after Day 4. Answers are folded under each question. Each answer names the lab and exercise that produced the evidence, so a participant who misses a question knows which cell to rerun.
+- **Exit check.** Use the questions of the day's modules as a ten-minute self-check at the end of each day, or all of them after Day 5. Answers are folded under each question. Each answer names the lab and exercise that produced the evidence, so a participant who misses a question knows which cell to rerun.
 - **Numbers.** Where an answer quotes a measured number, it is the build run recorded in `data/baselines.json` and quoted in the lecture. If your room ran on another runtime and got a different number, accept the room's number with the same reasoning.
 - **Labs whose real path has not run.** The [readiness page](readiness.qmd) lists which labs have run on their real models, and where. A question on a lab that has not tests the reasoning of the lecture and the checkpoint, not a model result.
 

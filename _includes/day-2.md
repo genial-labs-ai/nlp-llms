@@ -3,7 +3,7 @@
 ::: {.module-cards}
 ::: {.module-card}
 ::: {.module-card-time}
-09:10–10:45
+09:15–11:15
 :::
 
 ::: {.module-card-body}
@@ -20,7 +20,8 @@ Self-attention, multi-head attention and positional encodings, assembled into a 
 :::
 ::: {.module-card}
 ::: {.module-card-time}
-11:00–12:35
+11:30–12:25\
+13:25–14:30
 :::
 
 ::: {.module-card-body}
@@ -37,7 +38,7 @@ Subword tokenization, masked and causal pretraining, and using pretrained models
 :::
 ::: {.module-card}
 ::: {.module-card-time}
-13:35–15:10
+14:45–16:45
 :::
 
 ::: {.module-card-body}
@@ -49,23 +50,6 @@ Turning a pretrained language model into an instruction follower, efficiently.
 
 ::: {.module-card-actions}
 [Read the lecture](lectures/07-finetuning-lora.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/07-finetuning-lora.ipynb){.btn-colab} [Hugging Face]{.chip} [PEFT]{.chip} [PyTorch]{.chip}
-:::
-:::
-:::
-::: {.module-card}
-::: {.module-card-time}
-15:25–17:00
-:::
-
-::: {.module-card-body}
-[Module 8]{.eyebrow}
-
-[LLMs through APIs](lectures/08-llm-apis.qmd){.module-card-title}
-
-OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation.
-
-::: {.module-card-actions}
-[Read the lecture](lectures/08-llm-apis.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb){.btn-colab} [OpenAI]{.chip} [Anthropic]{.chip} [Hugging Face]{.chip} [Pydantic]{.chip}
 :::
 :::
 :::

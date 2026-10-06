@@ -3,7 +3,42 @@
 ::: {.module-cards}
 ::: {.module-card}
 ::: {.module-card-time}
-09:10–10:45
+09:15–11:15
+:::
+
+::: {.module-card-body}
+[Module 11]{.eyebrow}
+
+[Calibration](lectures/11-calibration.qmd){.module-card-title}
+
+What a probability should mean, how to measure it, and how to use confidence to decide when to abstain.
+
+::: {.module-card-actions}
+[Read the lecture](lectures/11-calibration.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb){.btn-colab} [PyTorch]{.chip} [scikit-learn]{.chip} [OpenAI]{.chip} [Anthropic]{.chip}
+:::
+:::
+:::
+::: {.module-card}
+::: {.module-card-time}
+11:30–12:25\
+13:25–14:30
+:::
+
+::: {.module-card-body}
+[Module 12]{.eyebrow}
+
+[RLCD and Jev](lectures/12-rlcd-jev.qmd){.module-card-title}
+
+Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
+
+::: {.module-card-actions}
+[Read the lecture](lectures/12-rlcd-jev.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb){.btn-colab} [PyTorch]{.chip} [TypeSafe SDK]{.chip}
+:::
+:::
+:::
+::: {.module-card}
+::: {.module-card-time}
+14:45–16:45
 :::
 
 ::: {.module-card-body}
@@ -15,40 +50,6 @@ Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval 
 
 ::: {.module-card-actions}
 [Read the lecture](lectures/13-rag.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/13-rag.ipynb){.btn-colab} [LlamaIndex]{.chip} [LangChain]{.chip} [Jev]{.chip}
-:::
-:::
-:::
-::: {.module-card}
-::: {.module-card-time}
-11:00–12:35
-:::
-
-::: {.module-card-body}
-[Module 14]{.eyebrow}
-
-[Agents](lectures/14-agents.qmd){.module-card-title}
-
-Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop interrupts and confidence-gated control.
-
-::: {.module-card-actions}
-[Read the lecture](lectures/14-agents.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb){.btn-colab} [LangChain]{.chip} [LangGraph]{.chip} [Jev]{.chip}
-:::
-:::
-:::
-::: {.module-card}
-::: {.module-card-time}
-13:35–17:00
-:::
-
-::: {.module-card-body}
-[Module 15]{.eyebrow}
-
-[Capstone](lectures/15-capstone.qmd){.module-card-title}
-
-Combine retrieval, an agent graph and calibrated control into one system, evaluate it, and explain the design.
-
-::: {.module-card-actions}
-[Read the lecture](lectures/15-capstone.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/15-capstone.ipynb){.btn-colab} [LlamaIndex]{.chip} [LangGraph]{.chip} [Jev]{.chip} [OpenAI]{.chip} [Anthropic]{.chip}
 :::
 :::
 :::

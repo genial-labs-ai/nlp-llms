@@ -6,7 +6,7 @@ toc: false
 
 **{{< var days.d2.question >}}**
 
-Day 2 builds the transformer, then follows it through pretraining and fine-tuning to the commercial models you reach through an API.
+Day 2 builds the transformer, then follows it through pretraining to fine-tuning with LoRA. Like Days 3 to 5, it opens with retrieval practice on earlier days and closes with a synthesis of the day's results. Each module ends with a short debrief of its lab, and the middle module's lab comes after lunch.
 
 {{< include /_includes/day-2.md >}}
 

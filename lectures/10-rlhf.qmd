@@ -489,7 +489,7 @@ The left panel is @eq-optimal-policy: the reference, reweighted by $e^{r/\beta}$
 
 **Optimizing for what raters prefer rather than what is true.** A rater compares two responses in a minute or two. Fluency, confidence, structure and length are easy to judge in that time; correctness often is not. A reward model fitted to such judgments learns what raters could see, and the policy amplifies it. Singhal et al. (2023) found that much of the reward gain in several RLHF setups could be explained by responses getting longer.
 
-One consequence matters for the rest of Day 3. Nothing in a preference comparison rewards a model for being *uncertain when it should be*. A response that hedges correctly can lose to one that asserts confidently. The GPT-4 technical report (OpenAI, 2023) shows the effect on one benchmark: the pretrained model's probabilities for its answers were well calibrated, and after post-training they were noticeably less so.
+One consequence matters for Modules 11 and 12. Nothing in a preference comparison rewards a model for being *uncertain when it should be*. A response that hedges correctly can lose to one that asserts confidently. The GPT-4 technical report (OpenAI, 2023) shows the effect on one benchmark: the pretrained model's probabilities for its answers were well calibrated, and after post-training they were noticeably less so.
 
 | Failure | Mechanism | How to detect it | In Lab 10 |
 |---|---|---|---|

@@ -66,7 +66,7 @@ No entry is cited from memory alone. Page ranges and DOIs are given only where a
 - Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H. and Bengio, Y. (2014). [Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation](https://aclanthology.org/D14-1179/). *Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)*, 1724–1734. The RNN encoder–decoder and the GRU; also cited in Module 3. *Verified, ACL Anthology.*
 - Also used: Jurafsky and Martin, the chapter "RNNs and LSTMs" (Textbooks).
 
-## Day 2 · Transformers and LLMs
+## Day 2 · Transformers and pretrained models
 
 ### Module 5 · The transformer
 
@@ -108,6 +108,8 @@ No entry is cited from memory alone. Page ranges and DOIs are given only where a
 - Kalajdzievski, D. (2023). [A Rank Stabilization Scaling Factor for Fine-Tuning with LoRA](https://arxiv.org/abs/2312.03732). arXiv:2312.03732. Rank-stabilized LoRA. *Search summary.*
 - Liu, S.-Y., Wang, C.-Y., Yin, H., Molchanov, P., Wang, Y.-C. F., Cheng, K.-T. and Chen, M.-H. (2024). [DoRA: Weight-Decomposed Low-Rank Adaptation](https://proceedings.mlr.press/v235/liu24bn.html). *Proceedings of the 41st International Conference on Machine Learning*, PMLR 235, 32100–32121. *Verified, PMLR.*
 
+## Day 3 · Using and aligning LLMs
+
 ### Module 8 · LLMs through APIs
 
 The readings are the providers' own documentation. Documentation pages move and change; if a link breaks, search the provider's site for the page title.
@@ -120,8 +122,6 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Anthropic. [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs). *Verified, page opened.*
 - Anthropic. [Stop reasons and fallback](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons). Every way a response can end. *Verified, page opened; this is the page's current title.*
 - Anthropic. [Pricing](https://platform.claude.com/docs/en/about-claude/pricing). *Verified, page opened.*
-
-## Day 3 · Training objectives
 
 ### Module 9 · Reinforcement and preference learning
 
@@ -146,6 +146,8 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Singhal, P., Goyal, T., Xu, J. and Durrett, G. (2023). [A Long Way to Go: Investigating Length Correlations in RLHF](https://arxiv.org/abs/2310.03716). arXiv:2310.03716; published at COLM 2024. *Search summary.*
 - OpenAI (2023). [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774). arXiv:2303.08774. Calibration before and after post-training; also cited in Module 11. *Search summary.*
 - Also used: Ouyang et al. (2022), Stiennon et al. (2020), Gao et al. (2023) and Christiano et al. (2017) (Module 9).
+
+## Day 4 · Calibration, decisions and retrieval
 
 ### Module 11 · Calibration
 
@@ -182,8 +184,6 @@ TypeSafe has not published how RLCD works. The TypeSafe sources the lecture reli
 - Stanovich, K. E. and West, R. F. (2000). Individual differences in reasoning: Implications for the rationality debate? *Behavioral and Brain Sciences* 23(5), 645–665. *Search summary; no stable link checked.*
 - Also used: Gneiting and Raftery (2007) and Chow (1970) (Module 11).
 
-## Day 4 · RAG, agents and capstone
-
 ### Module 13 · Retrieval-augmented generation
 
 - Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S. and Kiela, D. (2020). [Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks](https://arxiv.org/abs/2005.11401). *Advances in Neural Information Processing Systems 33 (NeurIPS 2020)*. *Search summary.*
@@ -195,6 +195,8 @@ TypeSafe has not published how RLCD works. The TypeSafe sources the lecture reli
 - Nogueira, R. and Cho, K. (2019). [Passage Re-ranking with BERT](https://arxiv.org/abs/1901.04085). arXiv:1901.04085. The cross-encoder reranker. *Search summary.*
 - Deerwester, S., Dumais, S. T., Furnas, G. W., Landauer, T. K. and Harshman, R. (1990). Indexing by Latent Semantic Analysis. *Journal of the American Society for Information Science* 41(6), 391–407. Latent semantic analysis, the offline encoder of Lab 13. *Search summary; no stable link checked.*
 - Also used: Robertson and Zaragoza (2009) (Module 1); Greshake et al. (2023) (Module 14); the source of `llama-index-core` and `langchain-core` (Library and API documentation).
+
+## Day 5 · Agents and the capstone
 
 ### Module 14 · Agents
 
