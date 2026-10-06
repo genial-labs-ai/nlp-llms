@@ -530,13 +530,13 @@ FALLBACK_SHORT = {
 }
 
 
-def part_times(v: dict, key: str) -> str:
-    """'11:30 lecture · 13:25 lab · 14:20 debrief', or the clock ranges for a module
-    without a lecture/lab shape (the capstone)."""
+def part_times(v: dict, key: str) -> str | None:
+    """'11:30 lecture · 13:25 lab · 14:20 debrief'; None for a module without a
+    lecture/lab shape (pre-work, and the capstone, which is hands-on throughout)."""
     s = shape(v, key)
     found = module_placements(v, key)
     if not s or len(found) != 1:
-        return module_clock(v, key)
+        return None
     parts = [seg for slot in found[0][1]["slots"] for seg in segments(s, slot)]
     return " · ".join(f"{start} {part}" for part, start, _ in parts)
 
@@ -552,7 +552,7 @@ def run_sheet(v: dict, day: dict) -> str:
         title = f"**{module_clock(v, key)} · Module {m['n']} · {link}**"
         parts = part_times(v, key)
         # A module without a lecture/lab shape (the capstone) has no parts to list.
-        out += [title + "\\", parts, ""] if parts != module_clock(v, key) else [title, ""]
+        out += [title + "\\", parts, ""] if parts else [title, ""]
         if lecture["front"].get("live"):
             exposition, activities = live_plan.totals(live_plan.rows(m["slug"], lecture))
             out.append(
@@ -571,8 +571,8 @@ def run_sheet(v: dict, day: dict) -> str:
                 " a checkpoint after each exercise; about"
                 f" {r['estimate_minutes']} minutes of compute ({envs[r['runtime']]['name']},"
                 " planned).",
-                "- **When something goes wrong:** stuck on exercise N, run"
-                " `workshop.use_reference(N)` and go on. Without keys, "
+                "- **When something goes wrong:** stuck on exercise N, run its folded"
+                " Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, "
                 + FALLBACK_SHORT[r["fallback"]["kind"]]
                 + ".",
             ]
@@ -594,7 +594,9 @@ def module_block(v: dict, key: str, m: dict) -> str:
     else:
         day = next(d for d in v["days"].values() if d["n"] == m["day"])
         where = f"[Day {m['day']} · {day['short']}](/day-{m['day']}.qmd){{.module-day}}"
-    when = "" if is_prework(m) else f" [{part_times(v, key)}]{{.module-clock}}"
+    # When each part runs; the capstone, with no parts, gives its clock ranges.
+    parts = None if is_prework(m) else part_times(v, key) or module_clock(v, key)
+    when = f" [{parts}]{{.module-clock}}" if parts else ""
     lines = [
         "::: {.module-header}",
         "::: {.module-meta}",

@@ -132,7 +132,7 @@ def check_keyboard(page: Page, url: str) -> list[str]:
     if not summary.count():
         return ["no <details> answer on the page"]
     # Start from the element just before the first answer, then Tab once.
-    page.evaluate(
+    found = page.evaluate(
         """() => {
           const s = document.querySelector('details.callout-details > summary');
           s.scrollIntoView({block: 'center'});
@@ -140,9 +140,13 @@ def check_keyboard(page: Page, url: str) -> list[str]:
               'a[href], button, summary, input, select')]
             .filter(e => e.offsetParent !== null);
           const before = focusables[focusables.indexOf(s) - 1];
+          if (!before) return false;
           before.focus();
+          return true;
         }"""
     )
+    if not found:
+        return ["the first answer has no visible focusable element before it to Tab from"]
     page.keyboard.press("Tab")
     focused = page.evaluate(
         "document.activeElement === document.querySelector('details.callout-details > summary')"
@@ -161,6 +165,17 @@ def check_keyboard(page: Page, url: str) -> list[str]:
     if details.evaluate("d => d.open"):
         problems.append("Space did not close the answer")
     return problems
+
+
+def run(check, page: Page, *args) -> list[str]:
+    """A check's problems; an exception (a timeout, a script that threw) is one more,
+    so one bad page is reported and the run goes on."""
+    try:
+        return check(page, *args)
+    except Exception as e:  # any failure here is a finding, not a crash
+        return [f"the check itself failed: {type(e).__name__}: {str(e).splitlines()[0]}"]
+    finally:
+        page.close()
 
 
 def main() -> int:
@@ -185,18 +200,16 @@ def main() -> int:
                     context = browser.new_context(**options, color_scheme=theme)
                     context.add_init_script(theme_script(theme))
                     for path in pages:
-                        page = context.new_page()
-                        problems = check_page(page, base + path, theme)
-                        page.close()
+                        problems = run(check_page, context.new_page(), base + path, theme)
                         checked += 1
                         for p in problems:
                             print(f"FAIL  {size} {theme} {path}: {p}")
                         failures += bool(problems)
-                    page = context.new_page()
-                    for p in check_keyboard(page, base + KEYBOARD_PAGE):
+                    problems = run(check_keyboard, context.new_page(), base + KEYBOARD_PAGE)
+                    checked += 1
+                    for p in problems:
                         print(f"FAIL  {size} {theme} {KEYBOARD_PAGE} (keyboard): {p}")
-                        failures += 1
-                    page.close()
+                    failures += bool(problems)
                     context.close()
             browser.close()
     finally:

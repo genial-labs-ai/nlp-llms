@@ -6,28 +6,28 @@
 
 - **In the room:** the [live plan](lectures/01-text-as-data.qmd#live-plan), 37 minutes of exposition and 8 of checks, demos and predictions.
 - **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/01-text-as-data.ipynb), a checkpoint after each exercise; about 2 minutes of compute (Google Colab, CPU runtime, planned).
-- **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, the lab always runs its real models.
+- **When something goes wrong:** stuck on exercise N, run its folded Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, the lab always runs its real models.
 
 **11:00–12:35 · Module 2 · [Word vectors and neural networks](lectures/02-word-vectors.qmd)**\
 11:00 lecture · 11:45 lab
 
 - **In the room:** the [live plan](lectures/02-word-vectors.qmd#live-plan), 37 minutes of exposition and 8 of checks, demos and predictions.
 - **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/02-word-vectors.ipynb), a checkpoint after each exercise; about 10 minutes of compute (Google Colab, free T4 GPU, planned).
-- **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, the lab always runs its real models.
+- **When something goes wrong:** stuck on exercise N, run its folded Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, the lab always runs its real models.
 
 **13:35–15:10 · Module 3 · [Sequence models](lectures/03-sequence-models.qmd)**\
 13:35 lecture · 14:20 lab
 
 - **In the room:** the [live plan](lectures/03-sequence-models.qmd#live-plan), 37 minutes of exposition and 8 of checks, demos and predictions.
 - **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/03-sequence-models.ipynb), a checkpoint after each exercise; about 10 minutes of compute (Google Colab, free T4 GPU, planned).
-- **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, the lab always runs its real models.
+- **When something goes wrong:** stuck on exercise N, run its folded Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, the lab always runs its real models.
 
 **15:25–17:00 · Module 4 · [Seq2seq and attention](lectures/04-seq2seq-attention.qmd)**\
 15:25 lecture · 16:10 lab
 
 - **In the room:** the [live plan](lectures/04-seq2seq-attention.qmd#live-plan), 37 minutes of exposition and 8 of checks, demos and predictions.
 - **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/04-seq2seq-attention.ipynb), a checkpoint after each exercise; about 10 minutes of compute (Google Colab, free T4 GPU, planned).
-- **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, the lab always runs its real models.
+- **When something goes wrong:** stuck on exercise N, run its folded Solution cell, then `workshop.use_reference(N)`, and go on. Without keys, the lab always runs its real models.
 
 :::
 

@@ -19,8 +19,11 @@
 -- it again. scripts/check_links.py fails if a Bootstrap collapse toggle is left
 -- inside a callout, for example after a Quarto upgrade.
 
-local stringify = pandoc.utils.stringify
 local TYPES = { note = true, tip = true, warning = true, important = true, caution = true }
+-- The document's callout defaults (`callout-appearance`, `callout-icon`), read from its
+-- metadata before any callout is written, so collapsed callouts follow them as
+-- Quarto's own callouts do.
+local defaults = { appearance = "default", icon = true }
 -- Callout options that Quarto reads; everything else is copied to the HTML.
 local OPTIONS = { title = true, collapse = true, appearance = true, icon = true }
 
@@ -30,9 +33,14 @@ local SCRIPT = [[
 // inside a closed one opens it; printing opens them all, then restores them.
 (function () {
   function openTarget() {
-    var id = decodeURIComponent(location.hash.slice(1));
+    var id;
+    try { id = decodeURIComponent(location.hash.slice(1)); } catch (e) { return; }
     var target = id && document.getElementById(id);
+    if (!target) return;
     var opened = false;
+    // The callout itself (its id is on the frame around the details), or anything inside one.
+    var own = target.querySelector(":scope > details.callout-details");
+    if (own && !own.open) { own.open = true; opened = true; }
     for (var el = target; el; el = el.parentElement) {
       if (el.tagName === "DETAILS" && !el.open) { el.open = true; opened = true; }
     }
@@ -76,8 +84,13 @@ end
 local function title_and_body(div)
   local t = div.attributes["title"]
   if t and t ~= "" then
-    local parsed = pandoc.read(t, "markdown").blocks[1]
-    return parsed and parsed.content or pandoc.Inlines({}), div.content
+    local first = pandoc.read(t, "markdown").blocks[1]
+    if first and (first.t == "Para" or first.t == "Plain") then
+      return first.content, div.content
+    end
+    -- A title that markdown reads as a list or a heading ("1. Why softmax?") stays
+    -- literal text, marker included.
+    return pandoc.Inlines(t), div.content
   end
   local first = div.content[1]
   if first and first.t == "Header" then
@@ -90,7 +103,17 @@ local function title_and_body(div)
   return pandoc.Inlines({}), div.content
 end
 
-function Div(div)
+local function read_defaults(meta)
+  if meta["callout-appearance"] ~= nil then
+    defaults.appearance = pandoc.utils.stringify(meta["callout-appearance"])
+  end
+  local icon = meta["callout-icon"]
+  if icon ~= nil then
+    defaults.icon = not (icon == false or pandoc.utils.stringify(icon) == "false")
+  end
+end
+
+local function Div(div)
   local ctype = callout_type(div)
   if not ctype or div.attributes["collapse"] ~= "true" or not FORMAT:match("html") then
     return nil
@@ -101,12 +124,13 @@ function Div(div)
   end
   local classes = {
     "callout",
-    "callout-style-" .. (div.attributes["appearance"] or "default"),
+    "callout-style-" .. (div.attributes["appearance"] or defaults.appearance),
     "callout-" .. ctype,
     "callout-titled",
     "callout-disclosure",
   }
-  if div.attributes["icon"] == "false" then
+  local icon = div.attributes["icon"]
+  if icon == "false" or (icon == nil and not defaults.icon) then
     table.insert(classes, "no-icon")
   end
   for _, class in ipairs(div.classes) do
@@ -142,3 +166,6 @@ function Div(div)
     pandoc.RawBlock("html", "</details>\n</div>"),
   }
 end
+
+-- Two passes: the metadata first, then the callouts.
+return { { Meta = read_defaults }, { Div = Div } }
