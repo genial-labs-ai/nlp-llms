@@ -5,21 +5,21 @@
 09:15 lecture · 10:10 lab · 11:05 debrief
 
 - **In the room:** the [live plan](lectures/08-llm-apis.qmd#live-plan), 44 minutes of exposition and 11 of checks, demos and predictions.
-- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb); 5 exercises; about 3 minutes of compute (Google Colab, free T4 GPU, planned).
+- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb), a checkpoint after each exercise; about 3 minutes of compute (Google Colab, free T4 GPU, planned).
 - **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, an open model runs in place of the commercial one.
 
 **11:30–12:25 · 13:25–14:30 · Module 9 · [Reinforcement and preference learning](lectures/09-preference-learning.qmd)**\
 11:30 lecture · 13:25 lab · 14:20 debrief
 
 - **In the room:** the [live plan](lectures/09-preference-learning.qmd#live-plan), 45 minutes of exposition and 10 of checks, demos and predictions.
-- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb); 5 exercises; about 10 minutes of compute (Google Colab, CPU runtime, planned).
+- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/09-preference-learning.ipynb), a checkpoint after each exercise; about 10 minutes of compute (Google Colab, CPU runtime, planned).
 - **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, the lab always runs its real models.
 
 **14:45–16:45 · Module 10 · [RLHF](lectures/10-rlhf.qmd)**\
 14:45 lecture · 15:40 lab · 16:35 debrief
 
 - **In the room:** the [live plan](lectures/10-rlhf.qmd#live-plan), 45 minutes of exposition and 10 of checks, demos and predictions.
-- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb); 4 exercises; about 7 minutes of compute (Google Colab, free T4 GPU, planned).
+- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb), a checkpoint after each exercise; about 7 minutes of compute (Google Colab, free T4 GPU, planned).
 - **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, an open model runs in place of the commercial one.
 
 :::

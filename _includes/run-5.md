@@ -5,14 +5,13 @@
 09:15 lecture · 10:10 lab · 11:05 debrief
 
 - **In the room:** the [live plan](lectures/14-agents.qmd#live-plan), 45 minutes of exposition and 10 of checks, demos and predictions.
-- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb); 9 exercises; about 6 minutes of compute (Google Colab, free T4 GPU, planned).
+- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/14-agents.ipynb), a checkpoint after each exercise; about 6 minutes of compute (Google Colab, free T4 GPU, planned).
 - **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, an open model runs in place of the commercial one.
 
-**11:30–12:25 · 13:25–14:30 · 14:45–16:45 · Module 15 · [Capstone](lectures/15-capstone.qmd)**\
-11:30–12:25 · 13:25–14:30 · 14:45–16:45
+**11:30–12:25 · 13:25–14:30 · 14:45–16:45 · Module 15 · [Capstone](lectures/15-capstone.qmd)**
 
 - **In the room:** hands-on, in pairs ([the plan](lectures/15-capstone.qmd)).
-- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/15-capstone.ipynb); 1 exercise; about 15 minutes of compute (Google Colab, free T4 GPU, planned).
+- **Lab:** [open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/15-capstone.ipynb), a checkpoint after each exercise; about 15 minutes of compute (Google Colab, free T4 GPU, planned).
 - **When something goes wrong:** stuck on exercise N, run `workshop.use_reference(N)` and go on. Without keys, an open model runs in place of the commercial one.
 
 :::

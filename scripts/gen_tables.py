@@ -43,7 +43,6 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import harness  # noqa: E402
 import live_plan  # noqa: E402
 import readiness  # noqa: E402
 import run_records  # noqa: E402
@@ -542,14 +541,6 @@ def part_times(v: dict, key: str) -> str:
     return " · ".join(f"{start} {part}" for part, start, _ in parts)
 
 
-def exercise_count(slug: str) -> int:
-    path = ROOT / "notebooks" / f"{slug}.ipynb"
-    if not path.exists():
-        return 0
-    cells = yaml.safe_load(path.read_text(encoding="utf-8"))["cells"]
-    return len(harness.exercises_of(cells))
-
-
 def run_sheet(v: dict, day: dict) -> str:
     """The day at a glance for the room: for each module its times, what the lecture
     holds, the lab, and what to do when something goes wrong."""
@@ -557,12 +548,11 @@ def run_sheet(v: dict, day: dict) -> str:
     out = ["::: {.run-sheet}"]
     for key, m in day_modules(v, day):
         lecture = live_plan.read(m["slug"])
-        out += [
-            f"**{module_clock(v, key)} · Module {m['n']} ·"
-            f" [{m['title']}](lectures/{m['slug']}.qmd)**\\",
-            f"{part_times(v, key).capitalize()}",
-            "",
-        ]
+        link = f"[{m['title']}](lectures/{m['slug']}.qmd)"
+        title = f"**{module_clock(v, key)} · Module {m['n']} · {link}**"
+        parts = part_times(v, key)
+        # A module without a lecture/lab shape (the capstone) has no parts to list.
+        out += [title + "\\", parts, ""] if parts != module_clock(v, key) else [title, ""]
         if lecture["front"].get("live"):
             exposition, activities = live_plan.totals(live_plan.rows(m["slug"], lecture))
             out.append(
@@ -576,11 +566,11 @@ def run_sheet(v: dict, day: dict) -> str:
             )
         r = m.get("readiness", {})
         if has_notebook(m) and notebook_exists(m["slug"]):
-            n = exercise_count(m["slug"])
             out += [
-                f"- **Lab:** [open in Colab]({v['repo']['colab_base']}/{m['slug']}.ipynb);"
-                f" {n} exercise{'s' if n != 1 else ''}; about {r['estimate_minutes']} minutes"
-                f" of compute ({envs[r['runtime']]['name']}, planned).",
+                f"- **Lab:** [open in Colab]({v['repo']['colab_base']}/{m['slug']}.ipynb),"
+                " a checkpoint after each exercise; about"
+                f" {r['estimate_minutes']} minutes of compute ({envs[r['runtime']]['name']},"
+                " planned).",
                 "- **When something goes wrong:** stuck on exercise N, run"
                 " `workshop.use_reference(N)` and go on. Without keys, "
                 + FALLBACK_SHORT[r["fallback"]["kind"]]

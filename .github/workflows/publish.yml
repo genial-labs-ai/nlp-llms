@@ -66,6 +66,13 @@ jobs:
       - name: Check internal links
         run: uv run --no-project --with pyyaml --with nbformat python scripts/check_links.py
 
+      # Desktop sizes in both themes: no sideways scroll, math typeset, demos drawn,
+      # answers reachable and operable from the keyboard. Mirrors the browser group.
+      - name: Check in a desktop browser
+        run: |
+          uv run --no-project --with "playwright>=1.63" playwright install --with-deps chromium
+          uv run --no-project --with "playwright>=1.63" python scripts/check_browser.py
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: docs
