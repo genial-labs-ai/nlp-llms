@@ -2,17 +2,21 @@
 
 ::: {.path}
 ::: {.path-day}
-[Day 1 · Foundations](day-1.qmd){.path-day-label}
+[Before Day 1 · Pre-work](setup.qmd#module-0){.path-day-label}
 
 ::: {.path-step .path-step-optional}
 [0]{.path-num}
 
 ::: {.path-body}
-[Coding agents in the terminal](lectures/00-coding-agents.qmd){.path-title} [Optional, self-serve]{.chip}
+[Coding agents in the terminal](lectures/00-coding-agents.qmd){.path-title} [Optional pre-work]{.chip}
 
-Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work.
+Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Pre-work, on your own laptop before Day 1.
 :::
 :::
+:::
+::: {.path-day}
+[Day 1 · Foundations](day-1.qmd){.path-day-label}
+
 ::: {.path-step}
 [1]{.path-num}
 
@@ -51,7 +55,7 @@ Encoder-decoder models, the fixed-vector bottleneck, and attention as the fix.
 :::
 :::
 ::: {.path-day}
-[Day 2 · Transformers and LLMs](day-2.qmd){.path-day-label}
+[Day 2 · Transformers and pretraining](day-2.qmd){.path-day-label}
 
 ::: {.path-step}
 [5]{.path-num}
@@ -80,6 +84,10 @@ Subword tokenization, masked and causal pretraining, and using pretrained models
 Turning a pretrained language model into an instruction follower, efficiently.
 :::
 :::
+:::
+::: {.path-day}
+[Day 3 · Using and aligning LLMs](day-3.qmd){.path-day-label}
+
 ::: {.path-step}
 [8]{.path-num}
 
@@ -89,10 +97,6 @@ Turning a pretrained language model into an instruction follower, efficiently.
 OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation.
 :::
 :::
-:::
-::: {.path-day}
-[Day 3 · Training objectives](day-3.qmd){.path-day-label}
-
 ::: {.path-step}
 [9]{.path-num}
 
@@ -111,6 +115,10 @@ Text generation as a reinforcement-learning problem, the policy gradient, and re
 The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways it goes wrong.
 :::
 :::
+:::
+::: {.path-day}
+[Day 4 · Calibration, decisions, RAG](day-4.qmd){.path-day-label}
+
 ::: {.path-step}
 [11]{.path-num}
 
@@ -124,15 +132,11 @@ What a probability should mean, how to measure it, and how to use confidence to 
 [12]{.path-num}
 
 ::: {.path-body}
-[RLCD and Jev](lectures/12-rlcd-jev.qmd){.path-title}
+[Calibrated decisions: RLCD and Jev](lectures/12-rlcd-jev.qmd){.path-title}
 
-Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
+Training and using models for calibrated decisions: outcome rewards, thresholds from costs, and TypeSafe's RLCD and Jev as a case study in what is and is not public.
 :::
 :::
-:::
-::: {.path-day}
-[Day 4 · RAG, agents, capstone](day-4.qmd){.path-day-label}
-
 ::: {.path-step}
 [13]{.path-num}
 
@@ -142,6 +146,10 @@ Reinforcement learning for calibrated decisions: what is public, what is not, an
 Building a RAG pipeline with LlamaIndex and LangChain, and evaluating retrieval and answers separately.
 :::
 :::
+:::
+::: {.path-day}
+[Day 5 · Agents and capstone](day-5.qmd){.path-day-label}
+
 ::: {.path-step}
 [14]{.path-num}
 

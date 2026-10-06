@@ -1,7 +1,7 @@
 [project]
 name = "nlp-llms-workshop"
 version = "0.1.0"
-description = "From Traditional NLP to Modern LLMs: a four-day workshop"
+description = "From Traditional NLP to Modern LLMs: a five-day workshop"
 requires-python = ">=3.12"
 dependencies = []
 

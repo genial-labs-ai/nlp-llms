@@ -35,11 +35,11 @@ Install TypeSafe's SDK only under its official name, `typesafe-sdk`; the labs in
 
 ## 3. Check the prerequisites
 
-The [home page](index.qmd#prerequisites) lists what the workshop assumes. If PyTorch is rusty, the official [60-minute blitz](https://pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html) covers what you need.
+Take the 15-minute [entry check](prepare.qmd#entry-check) on the Before Day 1 page: it tells you, area by area, whether to review anything before Day 1 and which sections of which free resources to read.
 
-## 4. Module 0 (optional)
+## 4. Module 0: optional pre-work {#module-0}
 
-[Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is a self-serve hour, 08:00–09:00 on Day 1, or at home beforehand. Unlike the labs it runs on your own laptop, not in Colab: you install a terminal coding agent, git and the GitHub CLI, so you need permission to install software and a GitHub account. Its page walks you through the installs. Nothing later in the workshop depends on it.
+[Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is optional pre-work: do it at home, before Day 1. If you get stuck, bring your laptop to the drop-in clinic from 08:00 to 09:00 on Day 1, before the welcome; it is optional too. Unlike the labs, Module 0 runs on your own laptop, not in Colab: you install a terminal coding agent, git and the GitHub CLI, so you need permission to install software and a GitHub account. Its page walks you through the installs. Nothing later in the workshop depends on it.
 
 
 ## Running locally (optional)

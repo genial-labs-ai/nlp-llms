@@ -19,7 +19,7 @@ RNNs, LSTMs and neural language modeling, and why gradients vanish over long seq
 
 By the end of this module you can:
 
-- Implement an RNN and an LSTM language model
-- Explain vanishing gradients and how gating addresses them
-- Compare perplexity against the n-gram baseline
+- Implement the RNN and LSTM cell updates and the language-model loss
+- Explain vanishing gradients and how gating addresses them, from measured gradient decay
+- Evaluate the LSTM against the n-gram baseline in a like-for-like perplexity comparison
 :::

@@ -1,6 +1,6 @@
 ---
 title: "{{< var workshop.title >}}"
-subtitle: "A four-day workshop: {{< var workshop.subtitle >}}"
+subtitle: "A five-day workshop: {{< var workshop.subtitle >}}"
 toc: false
 page-layout: full
 # custom.scss hides the title block on this page: the hero below carries the title.
@@ -8,18 +8,18 @@ body-classes: landing
 ---
 
 ::: {.hero}
-[{{< var workshop.org >}} · A four-day workshop]{.eyebrow}
+[{{< var workshop.org >}} · A five-day workshop]{.eyebrow}
 
 # {{< var workshop.title >}} {.unnumbered .unlisted}
 
 [{{< var workshop.subtitle >}}]{.hero-subtitle}
 
 ::: {.hero-lead}
-Modern language models did not appear from nowhere. Each step, from counting words to attention to training on human preferences, fixed a specific failure of the step before it. This workshop follows that line over four days, and you build each step yourself.
+Modern language models did not appear from nowhere. Each step, from counting words to attention to training on human preferences, fixed a specific failure of the step before it. This workshop follows that line over five days, and you build each step yourself.
 :::
 
 ::: {.hero-actions}
-[Start with setup](setup.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
+[Start here](prepare.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
 :::
 
 {{< include /_includes/facts.md >}}
@@ -29,17 +29,17 @@ Modern language models did not appear from nowhere. Each step, from counting wor
 {{< include /_includes/readiness-summary.md >}}
 :::
 
-## The four days
+## The five days
 
 ::: {.section-lede}
-Each day answers one question. Modules 1 to 14 are each a short lecture followed by a hands-on lab in Google Colab; the capstone is a hands-on afternoon.
+Each day answers one question. Modules 1 to 14 are each a short lecture followed by a hands-on lab in Google Colab; the capstone fills most of Day 5 with hands-on pair work.
 :::
 
 {{< include /_includes/days.md >}}
 
 See the full [schedule](schedule.qmd) or go straight to the [notebooks](notebooks.qmd).
 
-Day 1 opens at 08:00 with an optional self-serve hour, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd), which you can also do as pre-work.
+Before Day 1, [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is optional pre-work on your own laptop. If you get stuck, an optional drop-in clinic runs on Day 1 from 08:00 to 09:00.
 
 ## The path {#path}
 
@@ -72,12 +72,16 @@ Machine learning practitioners who want to understand language models from the g
 - **PyTorch:** you have trained at least one model with `nn.Module` and an optimizer loop. Module 2 includes a short refresher.
 - **Math:** vectors and matrices, the chain rule, conditional probability, cross-entropy.
 
+Not sure? The 15-minute [entry check](prepare.qmd#entry-check) on the Before Day 1 page tells you, area by area, whether to review anything and what to read.
+
 You need a Google account for Colab. API keys are optional: every lab runs without them, on a free open model or, in Module 12, on a small decision model you train in the lab. See [Setup](setup.qmd).
 :::
 
 ## How each module works
 
-Each module is {{< var workshop.lecture_minutes >}} minutes of lecture and {{< var workshop.lab_minutes >}} minutes of lab. The labs follow one rhythm:
+{{< include /_includes/module-shape.md >}}
+
+The labs follow one rhythm:
 
 ::: {.rhythm}
 1. **Predict** what a cell will output before you run it.

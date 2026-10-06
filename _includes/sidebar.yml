@@ -5,10 +5,12 @@ website:
     title: Modules
     style: floating
     contents:
-    - section: Day 1 · Foundations
+    - section: Before Day 1 · Pre-work
       contents:
       - href: lectures/00-coding-agents.qmd
         text: 0 · Coding agents in the terminal
+    - section: Day 1 · Foundations
+      contents:
       - href: lectures/01-text-as-data.qmd
         text: 1 · Text as data
       - href: lectures/02-word-vectors.qmd
@@ -17,7 +19,7 @@ website:
         text: 3 · Sequence models
       - href: lectures/04-seq2seq-attention.qmd
         text: 4 · Seq2seq and attention
-    - section: Day 2 · Transformers and LLMs
+    - section: Day 2 · Transformers and pretraining
       contents:
       - href: lectures/05-transformer-from-scratch.qmd
         text: 5 · The transformer
@@ -25,22 +27,24 @@ website:
         text: 6 · Pretraining and the Hugging Face stack
       - href: lectures/07-finetuning-lora.qmd
         text: 7 · Fine-tuning and LoRA
+    - section: Day 3 · Using and aligning LLMs
+      contents:
       - href: lectures/08-llm-apis.qmd
         text: 8 · LLMs through APIs
-    - section: Day 3 · Training objectives
-      contents:
       - href: lectures/09-preference-learning.qmd
         text: 9 · Reinforcement and preference learning
       - href: lectures/10-rlhf.qmd
         text: 10 · RLHF
+    - section: Day 4 · Calibration, decisions, RAG
+      contents:
       - href: lectures/11-calibration.qmd
         text: 11 · Calibration
       - href: lectures/12-rlcd-jev.qmd
-        text: 12 · RLCD and Jev
-    - section: Day 4 · RAG, agents, capstone
-      contents:
+        text: '12 · Calibrated decisions: RLCD and Jev'
       - href: lectures/13-rag.qmd
         text: 13 · Retrieval-augmented generation
+    - section: Day 5 · Agents and capstone
+      contents:
       - href: lectures/14-agents.qmd
         text: 14 · Agents
       - href: lectures/15-capstone.qmd

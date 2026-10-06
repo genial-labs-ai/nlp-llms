@@ -1,5 +1,13 @@
 ---
 title: "{{< var modules.m09.title >}}"
+live:
+  - {section: 1, minutes: 4}
+  - {section: 2, minutes: 5}
+  - {section: 3, minutes: 9, activities: [{block: chk-constant-reward, minutes: 2}]}
+  - {section: 4, minutes: 8, activities: [{block: demo-baseline, minutes: 4}]}
+  - {section: 6, minutes: 2, activities: [{block: predict-comparisons, minutes: 1}]}
+  - {section: 7, minutes: 6, activities: [{block: chk-oracle, minutes: 3}]}
+  - {section: 8, minutes: 11}
 ---
 
 {{< include /_includes/module-09.md >}}
@@ -8,45 +16,14 @@ title: "{{< var modules.m09.title >}}"
 **Where we are.** Day 2 trained models to make a given text more likely: pretraining, fine-tuning, instruction tuning. [Module 8](08-llm-apis.qmd) ended on what that leaves out: nothing in a response says how good it is. This module answers one question: how do we train a model toward "better" when all we have is a score for a finished response, or only a person's choice between two responses?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. No label for "better" | 4 |
-| 2. The minimum reinforcement learning | 6 |
-| 3. The policy gradient and REINFORCE | 9 |
-| 4. Baselines and variance | 7 |
-| 5. Generation as sequential decisions | 5 |
-| 6. Why comparisons instead of scores | 3 |
-| 7. The Bradley–Terry model | 5 |
-| 8. Training a reward model | 6 |
-| **Total** | **45** |
+{{< include /_includes/live-09.md >}}
 
-The collapsed callouts are optional and sit outside the 45 minutes.
-
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
-
-## 1. No label for "better"
-
-**Objective for this section:** say what supervised fine-tuning cannot express, and what we need in its place.
-
-[Module 7](07-finetuning-lora.qmd) turned a pretrained language model into an instruction follower with **supervised fine-tuning** (SFT): maximize the likelihood of a reference response $y$ given an instruction $x$, the masked loss of Module 7. [Module 8](08-llm-apis.qmd) then evaluated such models, and ended on a gap: a response carries no signal of its own quality.
-
-SFT has three blind spots, and all three come from the same place: its only training signal is "make this exact text more likely".
-
-- **It cannot rank.** Given two acceptable responses to one prompt, one clearer than the other, SFT has no way to say "prefer the first". There is one target, and every other text counts as equally wrong.
-- **It imitates everything in the demonstration.** Every token of the reference is scored the same, including its padding, its verbosity and its mistakes. A model trained on demonstrations is at best as good as the demonstrator.
-- **It never sees its own outputs.** Training uses teacher forcing ([Module 3](03-sequence-models.qmd)): the model is always conditioned on the reference prefix, never on text it wrote. What it does after its own mistakes is never trained.
-
-What we would like instead is a number $R(x, y)$, a **reward**, for *any* response $y$ the model writes, and a training rule that makes high-reward responses more likely. Two problems stand in the way.
-
-1. **Sampling is not differentiable.** The model produces $y$ by sampling one token at a time. There is no gradient of $R(x, y)$ with respect to the model's parameters through that sampling step. Sections 2 to 5 solve this with the **policy gradient**.
-2. **Where does $R$ come from?** Sometimes a program can compute it: the exact match of Lab 4 is a reward for date normalization. For "helpful" or "clear" there is no program. People can, however, compare two responses reliably. Sections 6 to 8 turn comparisons into a learned reward function, the **reward model**.
-
-[Module 10](10-rlhf.qmd) puts the two halves together: it optimizes a language model against a reward model.
+## Notation for this module
 
 ::: {.callout-important appearance="simple"}
-**Notation for this module.** The workshop notation applies; several letters take a new meaning here, and Module 10 keeps them.
+**Notation.** The workshop notation applies; several letters take a new meaning here, and Module 10 keeps them.
 
 | Symbol | Meaning |
 |---|---|
@@ -70,6 +47,25 @@ What we would like instead is a number $R(x, y)$, a **reward**, for *any* respon
 
 $\beta$ is left free on purpose: Module 10 uses it for the KL coefficient. A value function, mentioned once below, is written $v_\psi$ in lowercase, because $V$ is the vocabulary.
 :::
+
+## 1. No label for "better"
+
+**Objective for this section:** say what supervised fine-tuning cannot express, and what we need in its place.
+
+[Module 7](07-finetuning-lora.qmd) turned a pretrained language model into an instruction follower with **supervised fine-tuning** (SFT): maximize the likelihood of a reference response $y$ given an instruction $x$, the masked loss of Module 7. [Module 8](08-llm-apis.qmd) then evaluated such models, and ended on a gap: a response carries no signal of its own quality.
+
+SFT has three blind spots, and all three come from the same place: its only training signal is "make this exact text more likely".
+
+- **It cannot rank.** Given two acceptable responses to one prompt, one clearer than the other, SFT has no way to say "prefer the first". There is one target, and every other text counts as equally wrong.
+- **It imitates everything in the demonstration.** Every token of the reference is scored the same, including its padding, its verbosity and its mistakes. A model trained on demonstrations is at best as good as the demonstrator.
+- **It never sees its own outputs.** Training uses teacher forcing ([Module 3](03-sequence-models.qmd)): the model is always conditioned on the reference prefix, never on text it wrote. What it does after its own mistakes is never trained.
+
+What we would like instead is a number $R(x, y)$, a **reward**, for *any* response $y$ the model writes, and a training rule that makes high-reward responses more likely. Two problems stand in the way.
+
+1. **Sampling is not differentiable.** The model produces $y$ by sampling one token at a time. There is no gradient of $R(x, y)$ with respect to the model's parameters through that sampling step. Sections 2 to 5 solve this with the **policy gradient**.
+2. **Where does $R$ come from?** Sometimes a program can compute it: the exact match of Lab 4 is a reward for date normalization. For "helpful" or "clear" there is no program. People can, however, compare two responses reliably. Sections 6 to 8 turn comparisons into a learned reward function, the **reward model**.
+
+[Module 10](10-rlhf.qmd) puts the two halves together: it optimizes a language model against a reward model.
 
 ## 2. The minimum reinforcement learning
 
@@ -210,7 +206,7 @@ No single estimate equals 0.25: it is either 0.5 or 0. The estimator is right on
 **In the lab.** In **Exercise 1** you write `returns_to_go(rewards)` (@eq-return) and `reinforce_loss(logp, returns, baseline=0.0)` (@eq-pg-loss, in the per-token form of section 5). The toy problem is small enough ($8^6 = 262{,}144$ responses) that the provided `exact_gradient(theta)` computes @eq-objective and its true gradient by enumeration. The checkpoint averages your estimate @eq-reinforce over many batches and compares it with the exact gradient. Then the provided loop trains the policy, and you watch $J$ rise from $1/8$ toward its known optimum of 1.
 :::
 
-::: {.self-check}
+::: {#chk-constant-reward .self-check}
 **Check yourself.** Commit to an answer before reading section 4. In the worked example above, add 100 to both rewards, so that the actions pay 101 and 100. Does the true gradient $dJ/d\theta$ at $p = 0.5$ change? What are the two possible one-sample estimates $\hat{g}$ now, with $b = 0$?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -337,6 +333,8 @@ For a single parameter, the variance of $(R - b)\, g$ with $g = \partial_\theta 
      Alt text: "Gradient estimates with and without a baseline: both are centered on the exact
      gradient, but the estimates with the leave-one-out baseline are much less spread out." -->
 
+**Credit across tokens.** A reward model scores a complete response, so in @eq-pg-loss every token of a response gets the same weight $R - b$. The reward says the response was good, not which tokens made it good, and only averaging over many samples sorts that out. When a reward arrives after each token instead, each token is weighted by its reward-to-go $G_t$ (@eq-return), and the rewards earned before it, which it could not affect, are dropped. Section 5, for reading after class, derives this and gives the loss code that the lab and Module 10 use.
+
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 2** you write `loo_baseline(returns)` (@eq-loo); `batch_mean_baseline` is provided beside it. The checkpoint has two parts. Unbiasedness (@eq-baseline): averaged over many batches at the uniform starting policy, the estimate with your baseline matches the exact gradient, as the one without a baseline does; and on every batch, the batch-mean estimate equals $(1 - 1/N)$ times yours. Variance: the provided cell measures the total variance of $\hat{g}$ over those batches, without a baseline, with yours, and with the token-level rewards of section 5. Predict the ranking first. A last cell trains several seeds with and without the baseline and prints the steps each needs to reach $J \ge 0.9$.
 :::
@@ -349,7 +347,7 @@ By @eq-loo the baselines are the means of the other three rewards: $(1/3,\ 1,\ 4
 :::
 :::
 
-## 5. Generation as sequential decisions
+## 5. Generation as sequential decisions {.reference}
 
 **Objective for this section:** distinguish a sequence-level reward from token-level rewards, and say what each implies for credit assignment.
 
@@ -411,6 +409,10 @@ With $r_t = \mathbf{1}[y_t = y^\star_t] / 6$, the rewards are $(\tfrac16, 0, \tf
 
 **Objective for this section:** say why preference data is usually collected as comparisons.
 
+::: {#predict-comparisons .predict}
+You need a reward that only people can give, such as how helpful a response is. Would you ask raters to score each response from 1 to 10, or to say which of two responses is better? Commit to one, and name one way it could go wrong.
+:::
+
 The policy gradient needs a reward for any response. For tasks with a checkable answer, a program provides it. For "helpful", "clear" or "polite", we need people. The obvious design is to ask raters for a score from 1 to 10. It works poorly, for reasons familiar from any survey:
 
 - **Raters use the scale differently.** One rater's 6 is another's 8.
@@ -461,7 +463,7 @@ $$ {#eq-oracle}
 **In the lab.** The second half of Lab 9 uses a synthetic rater whose rule you know, so that you can check what the reward model learns. Prompts are eight-word openings of everyday sentences, such as "My sister opened the letter and felt so", from a fixed list written for the workshop. Each stops just before a feeling, so the continuations often contain one. The two responses of each pair are 24-token continuations sampled from the small pretrained GPT-2 that you probed in Lab 6 (`{{< var models.causal_lm >}}`), the model that Lab 10 will fine-tune. The **gold score** $g(y)$ rewards distinct words from a short list of positive words (counting at most three), subtracts one for each word from a list of negative words, and subtracts a penalty when the response is crowded with words from the two lists. The rater labels each pair with @eq-bt-rater, with $u = g$ and a fixed $\tau_{\text{label}}$. The pairs come with the lab as a data file that stores GPT-2's token ids and the text of every response, and both gold scores. In **Exercise 3** you write `bt_prob(g_a, g_b, tau_label)`; the checkpoint compares your probabilities with the label frequencies in the file, and a provided cell prints $\mathrm{Acc}^\star$ (@eq-oracle) for the held-out pairs: the ceiling for Exercise 4.
 :::
 
-::: {.self-check}
+::: {#chk-oracle .self-check}
 **Check yourself.** A held-out set has three pairs, with quality gaps $u_a - u_b$ of 0, 1 and 2, labeled by a rater with $\tau_{\text{label}} = 0.5$. Compute $\mathrm{Acc}^\star$. A reward model reaches 0.79 on a large held-out set with the same mix of gaps. A colleague calls that mediocre and wants a bigger model. What do you say?
 
 ::: {.callout-tip collapse="true" title="Answer"}

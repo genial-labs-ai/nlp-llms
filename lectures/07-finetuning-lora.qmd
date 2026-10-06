@@ -1,5 +1,14 @@
 ---
 title: "{{< var modules.m07.title >}}"
+live:
+  - {section: 1, minutes: 4}
+  - {section: 2, minutes: 5}
+  - {section: 3, minutes: 6, activities: [{block: chk-resp-loss, minutes: 2}]}
+  - {section: 4, minutes: 3, activities: [{block: predict-ft-memory, minutes: 1}]}
+  - {section: 5, minutes: 12, activities: [{block: demo-lora-count, minutes: 4}, {block: chk-lora-init, minutes: 2}]}
+  - {section: 6, minutes: 6}
+  - {section: 7, minutes: 3}
+  - {section: 8, minutes: 5, activities: [{block: chk-rouge, minutes: 2}]}
 ---
 
 {{< include /_includes/module-07.md >}}
@@ -8,23 +17,9 @@ title: "{{< var modules.m07.title >}}"
 **Where we are.** [Module 6](06-pretraining-huggingface.qmd) ended with a pretrained causal language model that continues text, and with a fine-tuning recipe that updates every parameter. Neither is enough for an assistant: the model cannot tell a request from a reply, and updating every weight does not scale. This module answers one question: how do we teach a pretrained model to follow instructions while training well under 1% of its parameters?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. A language model continues; it does not answer | 4 |
-| 2. Chat templates | 6 |
-| 3. The instruction-tuning loss | 6 |
-| 4. What full fine-tuning costs | 3 |
-| 5. LoRA: a low-rank update | 12 |
-| 6. LoRA in practice: where, how large, and the `peft` library | 6 |
-| 7. Decoding settings | 3 |
-| 8. Evaluating generated text | 5 |
-| **Total** | **45** |
-
-The collapsed callouts are optional and sit outside the 45 minutes.
-
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+{{< include /_includes/live-07.md >}}
 
 ## 1. A language model continues; it does not answer
 
@@ -166,7 +161,7 @@ Padding positions have $m_t = 0$, so they also get `-100`. The model shifts the 
 **In the lab.** In **Exercise 4** you write `build_labels` for @eq-masked-loss; the provided `encode_example` builds `response_mask`. The checkpoint counts the scored positions on a known example and compares the model's loss with a hand computation. The provided `response_loss` reports @eq-masked-loss on held-out examples, and @eq-ppl-resp is its exponential.
 :::
 
-::: {.self-check}
+::: {#chk-resp-loss .self-check}
 **Check yourself.** A formatted example has 10 tokens. Three of them are the response: two words and the closing `<|im_end|>`. The model gives these three the probabilities 0.5, 0.25 and 0.5. Compute $\mathcal{L}_{\text{resp}}$ and $\mathrm{PPL}_{\text{resp}}$. Why do you not need the other seven probabilities? What would the model fail to learn if the mask on the closing token were 0?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -177,6 +172,10 @@ $\mathcal{L}_{\text{resp}} = \tfrac{1}{3}(\log 2 + \log 4 + \log 2) = \tfrac{4}{
 ## 4. What full fine-tuning costs
 
 **Objective for this section:** say where the cost of updating every weight comes from.
+
+::: {#predict-ft-memory .predict}
+A model with 7 billion parameters, stored at 4 bytes each, takes 28 GB. How much memory does full fine-tuning with Adam need before a single activation is stored: about 28 GB, about 56 GB, or more? What else has to be kept for every weight?
+:::
 
 **Full fine-tuning** updates all $N$ parameters of the model. Three costs follow.
 
@@ -362,7 +361,7 @@ The lab writes `merged_weight` as a separate function and attaches it to the cla
 **In the lab.** **Exercise 1** is the layer: you write the initialization and the forward pass of `LoRALinear` (@eq-lora, @eq-lora-forward). Two checkpoints: the output equals the base layer's output at initialization, because $B = 0$; and the number of trainable parameters equals $r(d_{\text{in}} + d_{\text{out}})$ (@eq-lora-count). In **Exercise 2** you write `merged_weight` (@eq-lora-merge), after a provided loop has trained a layer on a toy regression so that $B$ is nonzero, and check that a plain linear layer with the merged weight reproduces the adapter's output to floating-point tolerance. The gradients of @eq-lora-grad are computed by autograd; a provided cell prints them at initialization so you can see that the gradient of $A$ is zero and that of $B$ is not.
 :::
 
-::: {.self-check}
+::: {#chk-lora-init .self-check}
 **Check yourself.** A colleague initializes both $A$ and $B$ with small random values, "so that both get a gradient from the first step". Does training still work? What has been lost?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -532,13 +531,13 @@ Overlap metrics are cheap and reproducible. What they measure is surface similar
 2. An overlap score between generated and reference responses on the same examples.
 3. The outputs themselves, for a small fixed set of prompts, before and after. Read them.
 
-Human judgment remains the reference point for all three. [Module 8](08-llm-apis.qmd) builds an evaluation harness, and Day 3 asks the deeper question of what "better" should mean.
+Human judgment remains the reference point for all three. [Module 8](08-llm-apis.qmd), which opens Day 3, builds an evaluation harness, and Modules 9 and 10 ask the deeper question of what "better" should mean.
 
 ::: {.callout-note appearance="simple"}
 **In the lab.** In **Exercise 6** you write `rouge_n` (@eq-rouge) and compare the mean score of the model's replies before and after fine-tuning. Exact match was written in Lab 4. BLEU and model-graded evaluation are not implemented in this lab; Lab 8 returns to graded evaluation.
 :::
 
-::: {.self-check}
+::: {#chk-rouge .self-check}
 **Check yourself.** The reference is `the capital of france is paris` (lowercased, punctuation stripped). Compute ROUGE-1 (@eq-rouge with $n = 1$) for three candidates: (a) `paris`; (b) `the capital of france is lyon`; (c) `the the the the`. Which candidate does the metric rank first, and what does that show?
 
 ::: {.callout-tip collapse="true" title="Answer"}

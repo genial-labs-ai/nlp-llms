@@ -25,6 +25,7 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import harness  # noqa: E402
 import run_records  # noqa: E402
+from gen_tables import timing  # noqa: E402  (one source for "120 minutes (55 lecture, ...)")
 
 ROOT = Path(__file__).resolve().parent.parent
 NOTEBOOKS = ROOT / "notebooks"
@@ -43,21 +44,22 @@ def entries(v: dict) -> list[dict]:
     Modules with `notebook: false` (Module 0) are left out, so 00-setup's footer
     points at the first lab, not at a notebook that does not exist.
     """
-    setup = {"n": 0, "day": None, "objectives": [], "stack": [], **v["setup"]}
-    labs = [m for m in v["modules"].values() if m.get("notebook", True)]
+    setup = {"n": 0, "day": None, "objectives": [], "stack": [], "key": None, **v["setup"]}
+    labs = [{**m, "key": key} for key, m in v["modules"].items() if m.get("notebook", True)]
     return [setup] + sorted(labs, key=lambda m: m["n"])
 
 
 def header_source(v: dict, e: dict) -> str:
     colab = f"{v['repo']['colab_base']}/{e['slug']}.ipynb"
     when = f"Day {e['day']}" if e["day"] else "Before Day 1"
+    length = timing(v, e["key"], e) if e["day"] else f"{e['minutes']} minutes"
     lines = [
         NOTICE,
         f"# {e['n']} · {e['title']}",
         "",
         f"[![Open in Colab]({BADGE})]({colab})",
         "",
-        f"**{v['workshop']['title']}** · {when} · {e['minutes']} minutes",
+        f"**{v['workshop']['title']}** · {when} · {length}",
         "",
         e["summary"],
     ]

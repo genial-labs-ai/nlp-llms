@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 2 · Transformers and LLMs](/day-2.qmd){.module-day} [Module 5]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time}
+[Day 2 · Transformers and pretraining](/day-2.qmd){.module-day} [Module 5]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -19,7 +19,7 @@ Self-attention, multi-head attention and positional encodings, assembled into a 
 
 By the end of this module you can:
 
-- Implement scaled dot-product and multi-head self-attention
-- Assemble a decoder-only transformer
-- Train a small GPT and compare it with the LSTM
+- Implement scaled dot-product attention with a causal mask
+- Inspect how heads, blocks and positions assemble into a decoder-only transformer
+- Train a small GPT with the provided loop and evaluate it against the LSTM
 :::

@@ -1,26 +1,25 @@
 ---
 title: "{{< var modules.m01.title >}}"
+live:
+  - {section: 1, minutes: 5}
+  - {section: 2, minutes: 7, activities: [{block: chk-tokenize, minutes: 2}]}
+  - {section: 3, minutes: 12, activities: [{block: demo-smoothing, minutes: 4}]}
+  - {section: 4, minutes: 5}
+  - {section: 5, minutes: 5}
+  - {section: 7, minutes: 3, activities: [{block: chk-limits, minutes: 2}]}
 ---
 
 {{< include /_includes/module-01.md >}}
 
 ::: {.recap}
-**Where we start.** You can already fit a logistic regression to a table of numbers and read its loss. What you have not done yet is turn a string into those numbers. The four days run from counting words (today) to learned vectors and attention, then to transformers and pretrained models (Day 2), to what those models are trained to prefer and how far their confidence can be trusted (Day 3), and to systems built out of them (Day 4). This module asks one question: how far does counting alone get us, and where exactly does it stop?
+**Where we start.** You can already fit a logistic regression to a table of numbers and read its loss. What you have not done yet is turn a string into those numbers. The five days run from counting words (today) to learned vectors and attention, then to transformers and pretrained models (Day 2), to using those models through APIs and what they are trained to prefer (Day 3), to how far their confidence can be trusted and how to ground their answers in sources (Day 4), and to agents and systems built out of them (Day 5). This module asks one question: how far does counting alone get us, and where exactly does it stop?
 :::
 
-## Plan for the 45 minutes
+## Live plan
 
-| Minutes | Section | Lab exercise it prepares |
-|---|---|---|
-| 0–5 | 1. What makes language hard | (motivation) |
-| 5–12 | 2. Tokens, vocabularies and Zipf's law | Exercise 1 |
-| 12–25 | 3. N-gram language models, smoothing, perplexity | Exercises 2, 3 and 4 |
-| 25–30 | 4. Bag-of-words and TF-IDF | Exercise 5 |
-| 30–38 | 5. Naive Bayes and logistic regression | Exercise 5 |
-| 38–42 | 6. Evaluation: precision, recall, F1 | Exercise 6 |
-| 42–45 | 7. Where count-based methods stop working | (sets up Module 2) |
+{{< include /_includes/live-01.md >}}
 
-Collapsed boxes marked **Optional** are outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+## Notation
 
 Notation used on every lecture page: a text is a sequence of tokens $w_1, \dots, w_T$ of length $T$; the vocabulary is $V$, with size $|V|$; $c(\cdot)$ is a count in the training data; $x$ is an input vector, $y$ a label, $C$ the number of classes; $\theta$ are parameters and $\mathcal{L}$ is a loss. All logarithms are natural.
 
@@ -82,9 +81,9 @@ def tokenize(text):
     return re.findall(r"[a-z0-9']+|[^a-z0-9'\s]", text.lower())
 ```
 
-**Lab 1, Exercise 1** asks you to write `tokenize` and `build_vocab`. A provided cell then measures how much of the held-out text the vocabulary covers. On the Shakespeare training split, keeping every word gives 11,908 entries and covers 96.1% of validation tokens; dropping words seen once (`min_count = 2`) nearly halves the vocabulary, to 6,463 entries, and still covers 94.0%.
+**Lab 1, Exercise 1** asks you to write `tokenize` and `build_vocab`. A provided cell then measures how much of the held-out text the vocabulary covers; the measured coverage is in the box after the lab at the end of this section.
 
-::: {.self-check}
+::: {#chk-tokenize .self-check}
 **Check yourself.** Apply `tokenize` by hand to the string `The U.S. isn't us.` How many tokens come out, and how many distinct vocabulary entries? Which information did the tokenizer keep, and which did it destroy?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -102,15 +101,19 @@ $$ {#eq-zipf}
 
 where $A$ is a constant that depends on the corpus size and $s$ is the exponent. Taking logs gives $\log f(r) \approx \log A - s \log r$: a straight line with slope $-s$ on a log–log plot.
 
-![Word frequency against rank in the training split of the Shakespeare corpus, on log–log axes, with a reference line of slope $-1$. Punctuation tokens are left out. Measured with the Lab 1 tokenizer.](/images/01-zipf.svg){#fig-zipf fig-alt="Log-log plot of word count against rank for Tiny Shakespeare. The observed curve falls roughly along a dashed reference line of slope minus one. The top three words are annotated: the (5,703), and (5,041), to (4,439). A label on the flat tail at count 1 reads: 5,444 of 11,897 distinct words (46 percent) occur once."}
-
 What this means in practice:
 
 - A few words (*the*, *and*, *to*) account for a large share of all tokens. In the lab corpus the ten most frequent words are 19% of all word tokens.
-- The curve has a long tail: a large share of the vocabulary appears once or twice. In many corpora roughly half of the distinct words appear exactly once; in the lab corpus it is 46% (@fig-zipf).
+- The curve has a long tail: a large share of the vocabulary appears once or twice. In many corpora roughly half of the distinct words appear exactly once.
 - Adding more data does not remove the tail. New rare words keep arriving.
 
-So any estimate that depends on the count of a specific word, or worse, a specific word sequence, is unreliable for most of the vocabulary. That is the sparsity problem of Section 1 in quantitative form. Exercise 1 plots this curve for the lab corpus.
+So any estimate that depends on the count of a specific word, or worse, a specific word sequence, is unreliable for most of the vocabulary. That is the sparsity problem of Section 1 in quantitative form. Exercise 1 plots this curve for the lab corpus; the recorded plot is in the box after the lab, below.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 1 measured in Exercise 1"}
+Open this after Exercise 1, so that it does not answer the lab's prediction for you. On the Shakespeare training split, keeping every word gives 11,908 entries and covers 96.1% of validation tokens; dropping words seen once (`min_count = 2`) nearly halves the vocabulary, to 6,463 entries, and still covers 94.0%. In the lab corpus 46% of the distinct words occur exactly once (@fig-zipf).
+
+![Word frequency against rank in the training split of the Shakespeare corpus, on log–log axes, with a reference line of slope $-1$. Punctuation tokens are left out. Measured with the Lab 1 tokenizer.](/images/01-zipf.svg){#fig-zipf fig-alt="Log-log plot of word count against rank for Tiny Shakespeare. The observed curve falls roughly along a dashed reference line of slope minus one. The top three words are annotated: the (5,703), and (5,041), to (4,439). A label on the flat tail at count 1 reads: 5,444 of 11,897 distinct words (46 percent) occur once."}
+:::
 
 ::: {.self-check}
 **Check yourself.** In the lab corpus the most frequent word, *the*, occurs 5,703 times. If @eq-zipf held exactly with $s = 1$, about how often would the word of rank 100 occur? The word of rank 1,000? What does the second number mean for a bigram model that must estimate what follows that word?
@@ -362,11 +365,15 @@ The bar chart is the add-k distribution of @eq-addk after the chosen context; th
 
 ### Sampling
 
-A language model is also a generator. Start from a context, draw the next token from $P(\cdot \mid \text{context})$, append it, slide the context window forward, repeat. **Lab 1, Exercise 4** does this: you write the one line of `sample` that draws the next token. Character bigram samples are locally plausible and globally incoherent; at $n = 3$ fragments of English and the layout of a play appear.
+A language model is also a generator. Start from a context, draw the next token from $P(\cdot \mid \text{context})$, append it, slide the context window forward, repeat. **Lab 1, Exercise 4** does this: you write the one line of `sample` that draws the next token, then compare samples from models of different order.
 
-Raising $n$ further exposes the weakness of add-k. Most long contexts were seen only once or twice, so their counts are small, and the $k$ added to each of the $|V|$ possible next tokens takes a large share of the probability. At $n = 5$ with $k = 0.01$, a context seen once has total $1 + 0.01 \times 65 = 1.65$, so about 39% of the probability goes to the 64 characters that never followed it. One such draw produces a context never seen in training, where @eq-addk is uniform, and the sample dissolves into random characters. With a much smaller $k$ the same model stays fluent, but then its samples copy the training text more and more closely, because a context seen once has only one recorded continuation. The $k$ that predicts held-out text best (the one chosen on validation) is not the one that generates the best-looking text.
+Raising $n$ further exposes the weakness of add-k. Most long contexts were seen only once or twice, so their counts are small, and the $k$ added to each of the $|V|$ possible next tokens takes a large share of the probability. What that does to the samples is the lab's prediction for Exercise 4; the box after the lab explains it.
 
-@fig-ngram-sparsity measures the sparsity behind both effects at the word level.
+::: {.callout-tip collapse="true" title="After the lab: what Lab 1 measured in Exercise 4"}
+Open this after Exercise 4, so that it does not answer the lab's prediction for you. Character bigram samples are locally plausible and globally incoherent; at $n = 3$ fragments of English and the layout of a play appear. With the $k$ that predicts held-out text best, high-order samples dissolve into random characters; with a much smaller $k$ they copy the training text. At $n = 5$ with $k = 0.01$, a context seen once has total $1 + 0.01 \times 65 = 1.65$, so about 39% of the probability goes to the 64 characters that never followed it. One such draw produces a context never seen in training, where @eq-addk is uniform, and the sample dissolves into random characters. With a much smaller $k$ the same model stays fluent, but then its samples copy the training text more and more closely, because a context seen once has only one recorded continuation. The $k$ that predicts held-out text best (the one chosen on validation) is not the one that generates the best-looking text.
+:::
+
+@fig-ngram-sparsity measures that sparsity at the word level.
 
 ![Share of word n-grams in the test split of the Shakespeare corpus that never occur in the training split, for $n = 1$ to $5$. Raw words, no `<unk>` mapping. Measured with the Lab 1 tokenizer.](/images/01-ngram-sparsity.svg){#fig-ngram-sparsity fig-alt="Bar chart of the share of test n-grams unseen in training against n-gram order. n = 1: 5 percent. n = 2: 36 percent. n = 3: 77 percent. n = 4: 95 percent. n = 5: 99 percent."}
 
@@ -492,7 +499,10 @@ $$ {#eq-ce}
 
 Compare with @eq-ppl: this is the same quantity as log-perplexity, with "the correct class" in place of "the next token". A language model is a classifier over $V$.
 
-**The gradient.** For one example with correct class $y$, substitute @eq-softmax into the loss:
+**The gradient.** The gradient of the loss with respect to the logits is the predicted probability minus the target, $\hat{y} - \mathrm{onehot}(y)$, where $\mathrm{onehot}(y)$ is 1 at position $y$ and 0 elsewhere (@eq-grad, derived in the optional box). You will meet @eq-grad again as the output layer of every neural network in this workshop.
+
+::: {.callout-tip collapse="true" title="Optional: deriving the gradient of the cross-entropy loss"}
+For one example with correct class $y$, substitute @eq-softmax into the loss:
 
 $$
 \mathcal{L} = -\log \hat{y}_y = -z_y + \log \sum_{c'} e^{z_{c'}}.
@@ -504,7 +514,8 @@ $$
 \frac{\partial \mathcal{L}}{\partial z_c} = \hat{y}_c - \mathbf{1}[c = y],
 $$ {#eq-grad}
 
-where $\mathbf{1}[\cdot]$ is 1 when the condition holds and 0 otherwise. In words: **predicted probability minus target**. Since $z = Wx + b$, the chain rule gives $\partial \mathcal{L} / \partial W = (\hat{y} - \mathrm{onehot}(y))\, x^\top$ and $\partial \mathcal{L} / \partial b = \hat{y} - \mathrm{onehot}(y)$, with $\mathrm{onehot}(y)$ the vector that is 1 at position $y$ and 0 elsewhere. Gradient descent moves $\theta$ against this gradient. You will meet @eq-grad again as the output layer of every neural network in this workshop.
+where $\mathbf{1}[\cdot]$ is 1 when the condition holds and 0 otherwise. In words: **predicted probability minus target**. Since $z = Wx + b$, the chain rule gives $\partial \mathcal{L} / \partial W = (\hat{y} - \mathrm{onehot}(y))\, x^\top$ and $\partial \mathcal{L} / \partial b = \hat{y} - \mathrm{onehot}(y)$, with $\mathrm{onehot}(y)$ the vector that is 1 at position $y$ and 0 elsewhere. Gradient descent moves $\theta$ against this gradient.
+:::
 
 There is no closed-form solution, so $\theta$ is found iteratively. The loss is convex, so there are no bad local minima. With $|V|$ larger than the number of training documents, the model can fit the training set perfectly, so we add an **L2 penalty** $\lambda \lVert W \rVert^2$ to the loss, where the regularization strength $\lambda \ge 0$ is a hyperparameter chosen on the validation split. (scikit-learn exposes it as the inverse, `C` $= 1/\lambda$ up to scaling; its `C` is not our class count $C$.)
 
@@ -527,7 +538,7 @@ $e^2 = 7.39$, $e^1 = 2.72$, $e^0 = 1$, with sum $11.11$, so $\hat{y} = (0.665, 0
 | Correlated features | Double-counts them, so probabilities are pushed toward 0 and 1 | Shares the weight between them |
 | Tends to win | With very little training data | With more data |
 
-On the lab's 4,800 training abstracts the two tie: 0.884 test accuracy each (Section 7 has the full numbers). Both give probabilities. Whether those probabilities deserve to be trusted is the subject of Module 11.
+Which of the two does better on the lab's 4,800 training abstracts is the lab's prediction; the result is in the box after the lab in Section 7. Both give probabilities. Whether those probabilities deserve to be trusted is the subject of Module 11.
 
 ::: {.self-check}
 **Check yourself.** A trained naive Bayes classifier with two equally likely classes gives a test document $P(y = 1 \mid x) = 0.88$. Someone pastes the document's text into itself, so every count doubles: $x \to 2x$. No new information was added. What does naive Bayes output now?
@@ -537,7 +548,7 @@ About 0.98. With equal priors, the log-odds between the two classes are $\sum_w 
 :::
 :::
 
-## 6. Evaluation: precision, recall and F1
+## 6. Evaluation: precision, recall and F1 {.reference}
 
 **Objective: report a classifier with numbers that show where it fails.**
 
@@ -591,7 +602,7 @@ These baselines are strong. TF-IDF with logistic regression is hard to beat on t
 
 Limits 1 and 2 have the same root: the model has no notion of similarity between words, so it cannot generalize from what it saw to what it did not. [Module 2](02-word-vectors.qmd) replaces the atomic symbol with a learned dense vector $e_w \in \mathbb{R}^d$ in which similar words are close, and shows how a neural language model uses those vectors to share statistical strength across n-grams. Limits 3 and 4 are about order and long context; [Module 3](03-sequence-models.qmd) and [Module 4](04-seq2seq-attention.qmd) take them up.
 
-::: {.self-check}
+::: {#chk-limits .self-check}
 **Check yourself.** A word-level trigram model with add-k smoothing saw *the cat sat* many times in training. It saw the context *the dog* ten times, never followed by *sat* and never followed by *banana*. How do $P(\textit{sat} \mid \textit{the dog})$ and $P(\textit{banana} \mid \textit{the dog})$ compare? Which of the four limits is this?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -599,7 +610,10 @@ They are equal: both are $(0 + k) / (10 + k|V|)$ by @eq-addk. The model has no w
 :::
 :::
 
-The numbers from this module's lab are the baseline for those claims: the n-gram perplexity is compared with the LSTM in Lab 3 and the transformer in Lab 5, and the classifier's accuracy and macro-F1 with Labs 2 and 6. These are the values measured by Lab 1 and recorded in `data/baselines.json`; your run reproduces them.
+The numbers from this module's lab are the baseline for those claims: the n-gram perplexity is compared with the LSTM in Lab 3 and the transformer in Lab 5, and the classifier's accuracy and macro-F1 with Labs 2 and 6. Lab 1 measures them and records them in `data/baselines.json`; the values are in the box after the lab, below.
+
+::: {.callout-tip collapse="true" title="After the lab: what Lab 1 measured"}
+Open this after the lab, so that it does not answer the lab's predictions for you. These are the values measured by Lab 1 and recorded in `data/baselines.json`; your run reproduces them.
 
 | Model | Test split | Result |
 |---|---|---|
@@ -610,7 +624,8 @@ The numbers from this module's lab are the baseline for those claims: the n-gram
 | TF-IDF + logistic regression (`C` = 10) | arXiv Topics, 1,600 papers | accuracy 0.884, macro-F1 0.884 |
 | Counts + naive Bayes (add-one) | same | accuracy 0.884, macro-F1 0.884 |
 
-The order $n$ and each $k$ were chosen on the validation split; `C` was chosen on validation by macro-F1. Word-level perplexities (304 for the bigram, 1,437 for the trigram) are printed in the lab for the sparsity discussion and are not comparable with any later number.
+The order $n$ and each $k$ were chosen on the validation split; `C` was chosen on validation by macro-F1. Word-level perplexities (304 for the bigram, 1,437 for the trigram) are printed in the lab for the sparsity discussion and are not comparable with any later number. On the lab's 4,800 training abstracts naive Bayes and logistic regression tie: 0.884 test accuracy each.
+:::
 
 ## Equation-to-lab map
 

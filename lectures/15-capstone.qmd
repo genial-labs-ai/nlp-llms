@@ -5,28 +5,31 @@ title: "{{< var modules.m15.title >}}"
 {{< include /_includes/module-15.md >}}
 
 ::: {.recap}
-[Module 14](14-agents.qmd) built an agent as a graph and measured its parts one at a time: the router, the guard, the injection test. No module has yet measured a whole system on a fixed task, or tried to improve one and checked whether the improvement was real. This afternoon answers one question: when you change one component of a system, how do you know that the system got better?
+[Module 14](14-agents.qmd) built an agent as a graph and measured its parts one at a time: the router, the guard, the injection test. No module has yet measured a whole system on a fixed task, or tried to improve one and checked whether the improvement was real. The capstone answers one question: when you change one component of a system, how do you know that the system got better?
 :::
 
 ## Timing
 
-The capstone takes the whole Day 4 afternoon. Unlike Modules 1 to 14, it has no 45-minute lecture. There are two short talks: the brief at the start and the wrap-up at the end. The time between is pair work.
+The capstone takes Day 5 from 11:30 to the end of the day: the two module slots after Module 14, with lunch and a break inside them, and then the day's closing slot. Unlike Modules 1 to 14, it has no lecture. There are two short talks: the brief at the start and the wrap-up at the end. The time between is pair work.
 
 | Time | Part | Minutes |
 |---|---|---|
-| 13:35–13:45 | **Part I. The brief** (sections 1–4) | 10 |
-| 13:45–15:10 | **Part II. Build**, in pairs (section 5) | 85 |
-| 15:10–15:25 | Break | |
-| 15:25–16:30 | **Part III. Evaluate and share** (section 6) | 65 |
-| 16:30–17:00 | **Part IV. Wrap-up** (sections 7–10) | 30 |
-| | **Total** | **190** |
+| 11:30–11:40 | **Part I. The brief** (sections 1–4) | 10 |
+| 11:40–12:25 | **Part II. Build**, in pairs (section 5) | 45 |
+| 12:25–13:25 | Lunch | |
+| 13:25–14:30 | **Part II. Build**, continued | 65 |
+| 14:30–14:45 | Break | |
+| 14:45–16:30 | **Part III. Evaluate and share** (section 6) | 105 |
+| 16:30–16:45 | **Part IV. Wrap-up** (sections 7–10) | 15 |
+| | **Total in the capstone's slots** | **240** |
+| 16:45–17:00 | **Part IV, continued**, in the day's closing slot | 15 |
 
 The brief covers sections 1 to 4 in 10 minutes, so it is a talk through the tables, not a derivation. Every equation it uses comes from an earlier module. The wrap-up spends about 10 minutes on section 7, 8 on section 8, 7 on section 9 and 5 on section 10. Collapsed callouts are optional reading.
 
-Check-yourself questions and interactive demos are for self-study and sit outside the 190 minutes; an instructor may use one as a pause.
+Check-yourself questions and interactive demos are for self-study and sit outside these minutes; an instructor may use one as a pause.
 
 ::: {.callout-warning appearance="simple"}
-**Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe states in its documentation that Jev "is trained with RLCD to return calibrated decisions" and that its System One models "are trained for calibrated decisions"; it has not published the method or a measurement of Jev's calibration (Module 12, section 2). Section 7 keeps those statements apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
+**Jev and RLCD on this page.** Jev, TypeSafe's decision model ([Module 12](12-rlcd-jev.qmd)), appears here only through its published interface: typed questions about a state go in, and probabilities come out. Nothing on this page says or implies how Jev was trained. On RLCD, TypeSafe states in its documentation that Jev "is trained with RLCD to return calibrated decisions" and that its System One models "are trained for calibrated decisions"; it has not published the method or a measurement of Jev's calibration (Module 12, section 5). Section 7 keeps those statements apart from our own illustration in Lab 12. Without a TypeSafe key, the capstone's decisions come from a small open model or a test double, and every number they produce is labeled as such.
 :::
 
 ::: {.callout-important appearance="simple"}
@@ -59,7 +62,7 @@ New in this module:
 
 ## Part I. The brief
 
-13:35 to 13:45, the whole room. Sections 1 to 4.
+11:30 to 11:40, the whole room. Sections 1 to 4.
 
 ## 1. The task
 
@@ -235,7 +238,7 @@ With 8 gained and 1 lost, $p = 0.039$. With 7 and 2 it is $0.18$, and with 4 and
 :::
 :::
 
-## 4. The rules of the afternoon
+## 4. The rules of the capstone
 
 **Objective for this section:** know what may change, what may not, and what a pair hands in.
 
@@ -266,24 +269,24 @@ The reported score is the largest of five noisy measurements. Even if none of th
 
 ## Part II. Build
 
-13:45 to 15:10, in pairs. Section 5.
+11:40 to 12:25 and 13:25 to 14:30, in pairs, with lunch between. Section 5.
 
 ## 5. Build: one change, measured
 
 **Objective for this section:** improve one component of the system and measure the effect against the baseline.
 
-**A plan for the 85 minutes.**
+**A plan for the 110 minutes.** Lunch falls at minute 45.
 
 | Minutes | Do |
 |---|---|
 | 0–20 | Run the setup and the system self-test. Write `after_verify` (@eq-verify-rule, the notebook's one exercise). Run the baseline on `dev`, then on `test`. Read ten traces: where did the system abstain, and where was it wrong? |
 | 20–30 | Choose one component from the menu, using what the traces showed. Fill in the hypothesis card. |
-| 30–80 | Build the change. Rerun the self-test after every edit; it must stay green. Iterate on `dev`. |
-| 80–85 | Freeze the configuration. Do not run `test` yet. |
+| 30–105 | Build the change. Rerun the self-test after every edit; it must stay green. Iterate on `dev`. |
+| 105–110 | Freeze the configuration. Do not run `test` yet. |
 
 **The self-test.** The notebook drives the graph with a scripted generator and a scripted decision model and checks the control flow: a draft above $\tau_{\text{verify}}$ is delivered, one below it is retried once and then abstained on, an abstention from the generator is never sent to the verifier, a split question retrieves twice, the budgets stop the run, every record names its backends, and the scoring code reproduces hand-computed numbers on hand-made records. These checks use no model, so they give the same verdict on every path. A change that breaks one has broken the system, whatever its score.
 
-**The menu.** Each row gives a change, the number we expect it to move, and a guess at the size. **The guesses are hypotheses, not results.** Nobody has measured them on this evaluation set; finding out is the point of the afternoon. Each option has a folded reference sketch in the notebook.
+**The menu.** Each row gives a change, the number we expect it to move, and a guess at the size. **The guesses are hypotheses, not results.** Nobody has measured them on this evaluation set; finding out is the point of the capstone. Each option has a folded reference sketch in the notebook.
 
 | Option | Component | Change | Our hypothesis (unmeasured) | Watch also |
 |---|---|---|---|---|
@@ -310,7 +313,7 @@ Two changes are **not** allowed in the scored run: adding documents to the corpu
 
 ## Part III. Evaluate and share
 
-15:25 to 16:30. Section 6.
+14:45 to 16:30. Section 6.
 
 ## 6. Evaluate, then share
 
@@ -318,11 +321,11 @@ Two changes are **not** allowed in the scored run: adding documents to the corpu
 
 | Time | Do |
 |---|---|
-| 15:25–15:45 | Run `test` on the frozen system. Run the last cell: it scores the run, compares it with your baseline, and writes the submission and the share card. Hand in the file. |
-| 15:45–16:20 | Two-minute shares, in the order of the menu, so that pairs that changed the same component speak one after another. |
-| 16:20–16:30 | The instructor shows the combined table and reads it with the room. |
+| 14:45–15:05 | Run `test` on the frozen system. Run the last cell: it scores the run, compares it with your baseline, and writes the submission and the share card. Hand in the file. |
+| 15:05–16:05 | Two-minute shares, in the order of the menu, so that pairs that changed the same component speak one after another, with questions after each group. |
+| 16:05–16:30 | The instructor shows the combined table and reads it with the room. |
 
-**A two-minute share** answers four questions, in this order. What did you change, and why did the traces suggest it? What did you predict? What happened to $\bar{\ell}$, accuracy and abstention, with $g$, $l$ and $p$? What did it cost, in dollars or calls and in seconds? End with the one thing that surprised you. With up to 15 pairs this fits in 35 minutes. With more, group the shares by component and give each group four minutes.
+**A two-minute share** answers four questions, in this order. What did you change, and why did the traces suggest it? What did you predict? What happened to $\bar{\ell}$, accuracy and abstention, with $g$, $l$ and $p$? What did it cost, in dollars or calls and in seconds? End with the one thing that surprised you. With up to 15 pairs the talks take about 35 minutes, which leaves time for questions. With more, group the shares by component and give each group four minutes.
 
 **How the combined table is read.** One row per pair, grouped by path (keyed with Jev, keyed with the open decider, open model on a T4, the CPU subset), because pairs on different paths ran different systems. Stub submissions confirm that the code ran and are not ranked. Within a path, every pair ran the same questions with the same scorer, budget and seed, so the rows can be compared. Three cautions, read aloud:
 
@@ -340,9 +343,9 @@ Each test has a 5% chance of a false alarm, so the expected number is $15 \times
 
 ## Part IV. Wrap-up
 
-16:30 to 17:00, the whole room. Sections 7 to 10.
+16:30 to 17:00, the whole room, ending in the day's closing slot. Sections 7 to 10.
 
-## 7. Four days, one line of ideas
+## 7. Five days, one line of ideas
 
 **Objective for this section:** say, for each module, which limitation of the previous one it removed.
 
@@ -369,7 +372,7 @@ Each module began where the last one stopped working. Where a lab measured the s
 Three threads run through the table.
 
 - **Every step was motivated by a measured failure,** and the running thread is what made the measurement possible. Some steps did not win on every metric: averaged embeddings lost to TF-IDF on topic classification. Measuring is how we know.
-- **Days 1 and 2 asked what a model predicts; Days 3 and 4 asked when to trust it.** Preference learning shaped what models say, calibration asked whether their probabilities mean anything, and the capstone used those probabilities to decide whether to speak at all.
+- **Days 1 and 2 asked what a model predicts; Days 3 to 5 asked when to trust it.** Preference learning shaped what models say, calibration asked whether their probabilities mean anything, and the capstone used those probabilities to decide whether to speak at all.
 - **The unit of evaluation grew.** It went from a perplexity on one corpus, to a classifier's accuracy, to a reliability diagram, to a system's cost per question. At each step the evaluation had to be designed before the model.
 
 ## 8. An evaluation checklist for agentic systems
@@ -438,7 +441,7 @@ Each step must succeed with probability $0.9^{1/10} = 0.9895$, about 99%: the fa
 - Report accuracy, abstention on both kinds of question, the unsupported-answer rate, cost and latency, each with its denominator (@eq-cap-acc, @eq-cap-abstain, @eq-cap-unsupported). The capstone cost combines accuracy and abstention into one number (@eq-cap-cost).
 - Compare with the baseline pairwise, with the sign test (@eq-sign-test), against the run-to-run variation of the baseline itself.
 - Change one component, predict first, develop on `dev`, and report what happened, including nothing.
-- The four days form one line: each module removed a limitation of the last, and the evaluation grew from a perplexity to a system's cost per question.
+- The five days form one line: each module removed a limitation of the last, and the evaluation grew from a perplexity to a system's cost per question.
 
 ## Common misconceptions
 

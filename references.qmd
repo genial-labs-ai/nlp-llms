@@ -66,7 +66,7 @@ No entry is cited from memory alone. Page ranges and DOIs are given only where a
 - Cho, K., van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H. and Bengio, Y. (2014). [Learning Phrase Representations using RNN Encoder–Decoder for Statistical Machine Translation](https://aclanthology.org/D14-1179/). *Proceedings of the 2014 Conference on Empirical Methods in Natural Language Processing (EMNLP)*, 1724–1734. The RNN encoder–decoder and the GRU; also cited in Module 3. *Verified, ACL Anthology.*
 - Also used: Jurafsky and Martin, the chapter "RNNs and LSTMs" (Textbooks).
 
-## Day 2 · Transformers and LLMs
+## Day 2 · Transformers and pretrained models
 
 ### Module 5 · The transformer
 
@@ -108,6 +108,8 @@ No entry is cited from memory alone. Page ranges and DOIs are given only where a
 - Kalajdzievski, D. (2023). [A Rank Stabilization Scaling Factor for Fine-Tuning with LoRA](https://arxiv.org/abs/2312.03732). arXiv:2312.03732. Rank-stabilized LoRA. *Search summary.*
 - Liu, S.-Y., Wang, C.-Y., Yin, H., Molchanov, P., Wang, Y.-C. F., Cheng, K.-T. and Chen, M.-H. (2024). [DoRA: Weight-Decomposed Low-Rank Adaptation](https://proceedings.mlr.press/v235/liu24bn.html). *Proceedings of the 41st International Conference on Machine Learning*, PMLR 235, 32100–32121. *Verified, PMLR.*
 
+## Day 3 · Using and aligning LLMs
+
 ### Module 8 · LLMs through APIs
 
 The readings are the providers' own documentation. Documentation pages move and change; if a link breaks, search the provider's site for the page title.
@@ -120,8 +122,6 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Anthropic. [Structured outputs](https://platform.claude.com/docs/en/build-with-claude/structured-outputs). *Verified, page opened.*
 - Anthropic. [Stop reasons and fallback](https://platform.claude.com/docs/en/build-with-claude/handling-stop-reasons). Every way a response can end. *Verified, page opened; this is the page's current title.*
 - Anthropic. [Pricing](https://platform.claude.com/docs/en/about-claude/pricing). *Verified, page opened.*
-
-## Day 3 · Training objectives
 
 ### Module 9 · Reinforcement and preference learning
 
@@ -146,6 +146,8 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Singhal, P., Goyal, T., Xu, J. and Durrett, G. (2023). [A Long Way to Go: Investigating Length Correlations in RLHF](https://arxiv.org/abs/2310.03716). arXiv:2310.03716; published at COLM 2024. *Search summary.*
 - OpenAI (2023). [GPT-4 Technical Report](https://arxiv.org/abs/2303.08774). arXiv:2303.08774. Calibration before and after post-training; also cited in Module 11. *Search summary.*
 - Also used: Ouyang et al. (2022), Stiennon et al. (2020), Gao et al. (2023) and Christiano et al. (2017) (Module 9).
+
+## Day 4 · Calibration, decisions and retrieval
 
 ### Module 11 · Calibration
 
@@ -172,7 +174,7 @@ The readings are the providers' own documentation. Documentation pages move and 
 - Zadrozny, B. and Elkan, C. (2002). Transforming classifier scores into accurate multiclass probability estimates. *Proceedings of the 8th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD)*, 694–699. *Search summary; no stable link checked.*
 - Also used: OpenAI (2023), the GPT-4 Technical Report (Module 10).
 
-### Module 12 · RLCD and Jev
+### Module 12 · Calibrated decisions: RLCD and Jev
 
 TypeSafe has not published how RLCD works. The TypeSafe sources the lecture relies on are listed under [TypeSafe and Jev: public sources](#typesafe-and-jev-public-sources) below; nothing in this module's toy experiment is TypeSafe's method.
 
@@ -181,8 +183,6 @@ TypeSafe has not published how RLCD works. The TypeSafe sources the lecture reli
 - Melnikoff, D. E. and Bargh, J. A. (2018). [The Mythical Number Two](https://doi.org/10.1016/j.tics.2018.02.001). *Trends in Cognitive Sciences* 22(4), 280–293. A critique of the dual-process typology. *Search summary.*
 - Stanovich, K. E. and West, R. F. (2000). Individual differences in reasoning: Implications for the rationality debate? *Behavioral and Brain Sciences* 23(5), 645–665. *Search summary; no stable link checked.*
 - Also used: Gneiting and Raftery (2007) and Chow (1970) (Module 11).
-
-## Day 4 · RAG, agents and capstone
 
 ### Module 13 · Retrieval-augmented generation
 
@@ -195,6 +195,8 @@ TypeSafe has not published how RLCD works. The TypeSafe sources the lecture reli
 - Nogueira, R. and Cho, K. (2019). [Passage Re-ranking with BERT](https://arxiv.org/abs/1901.04085). arXiv:1901.04085. The cross-encoder reranker. *Search summary.*
 - Deerwester, S., Dumais, S. T., Furnas, G. W., Landauer, T. K. and Harshman, R. (1990). Indexing by Latent Semantic Analysis. *Journal of the American Society for Information Science* 41(6), 391–407. Latent semantic analysis, the offline encoder of Lab 13. *Search summary; no stable link checked.*
 - Also used: Robertson and Zaragoza (2009) (Module 1); Greshake et al. (2023) (Module 14); the source of `llama-index-core` and `langchain-core` (Library and API documentation).
+
+## Day 5 · Agents and the capstone
 
 ### Module 14 · Agents
 
@@ -255,5 +257,5 @@ TypeSafe's documentation names its training method, RLCD ("Reinforcement learnin
 - TypeSafe AI. [`system-one-adapter`](https://pypi.org/project/system-one-adapter/) 0.2.1, a drop-in replacement for the SDK client backed by LLM APIs, for comparing the two. *Verified, PyPI.*
 - TypeSafe AI. [`WorkflowEvals`](https://github.com/typesafe-ai/WorkflowEvals), the code behind TypeSafe's published workflow evaluations. *Verified, GitHub repository.*
 - [`langchain-typesafe`](https://pypi.org/project/langchain-typesafe/) 0.0.1a3, a LangChain integration for TypeSafe classifiers (a pre-release version). Used in Lab 14. *Verified, PyPI.*
-- TypeSafe AI. [Documentation](https://docs.typesafe.ai/): the [AI primer](https://docs.typesafe.ai/introduction/machine-learning-primer) (what RLCD is and what it optimizes for), [System One](https://docs.typesafe.ai/concepts/system-one) (the training sentence, and what calibration does not guarantee), [Models](https://docs.typesafe.ai/models) (Jev is trained with RLCD; price, rate limits and aliases), [Confidence](https://docs.typesafe.ai/confidence) (the `confidence` formulas for choice and score answers), [Jev 1.13 jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13) and [How to build with TypeSafe](https://docs.typesafe.ai/concepts/how-to-build-with-system-one). Quoted in lecture 12, section 2. *Verified, pages read 2026-10-06, also as the site's full-text export; the quotations await the workshop lead's sign-off.*
+- TypeSafe AI. [Documentation](https://docs.typesafe.ai/): the [AI primer](https://docs.typesafe.ai/introduction/machine-learning-primer) (what RLCD is and what it optimizes for), [System One](https://docs.typesafe.ai/concepts/system-one) (the training sentence, and what calibration does not guarantee), [Models](https://docs.typesafe.ai/models) (Jev is trained with RLCD; price, rate limits and aliases), [Confidence](https://docs.typesafe.ai/confidence) (the `confidence` formulas for choice and score answers), [Jev 1.13 jaggedness](https://docs.typesafe.ai/model-jaggedness/jev-1.13) and [How to build with TypeSafe](https://docs.typesafe.ai/concepts/how-to-build-with-system-one). Quoted in lecture 12, section 5. *Verified, pages read 2026-10-06, also as the site's full-text export; the quotations await the workshop lead's sign-off.*
 - TypeSafe AI. A blog post at `typesafe.ai/blog/introducing-system-one-models-and-jev`, which the documentation links to for Jev's pricing. It may be the announcement that third parties date to September 2026. *Not read.*

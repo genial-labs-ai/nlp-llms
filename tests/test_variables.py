@@ -1,12 +1,17 @@
 """Consistency checks on _variables.yml and the files derived from it."""
 
 import re
+import sys
 import unittest
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+
+import gen_tables as g  # noqa: E402  (units, placements, minutes_of)
+
 V = yaml.safe_load((ROOT / "_variables.yml").read_text(encoding="utf-8"))
 MODULE_FIELDS = {"n", "slug", "day", "minutes", "title", "summary", "objectives", "stack"}
 
@@ -15,9 +20,8 @@ def slot_key(slot) -> str:
     return slot["module"] if isinstance(slot, dict) else slot
 
 
-def day_slots(d: dict) -> list:
-    """A day's optional self-serve slot, then its module slots."""
-    return ([d["self_serve"]] if d.get("self_serve") else []) + d["slots"]
+def to_minutes(hhmm: str) -> int:
+    return int(hhmm[:2]) * 60 + int(hhmm[3:])
 
 
 def has_notebook(m: dict) -> bool:
@@ -36,7 +40,7 @@ class Modules(unittest.TestCase):
             self.assertRegex(m["slug"], rf"^{m['n']:02d}-[a-z0-9]+(-[a-z0-9]+)*$")
 
     def test_numbers_are_consecutive(self):
-        # Module 0 (coding agents in the terminal) opens Day 1; the labs are 1 onward.
+        # Module 0 (coding agents in the terminal) is pre-work; the labs are 1 onward.
         numbers = sorted(m["n"] for m in V["modules"].values())
         self.assertEqual(numbers, list(range(0, len(numbers))))
 
@@ -54,46 +58,131 @@ class Modules(unittest.TestCase):
         self.assertFalse(has_notebook(V["modules"]["m00"]))
 
 
-class Days(unittest.TestCase):
-    def test_each_day_fills_the_module_slots(self):
-        slots = sum(1 for s in V["schedule"]["slots"] if s["kind"] == "module")
+CLOCKS = V["schedule"]["clocks"]
+SLOT_KINDS = {"clinic", "opening", "module", "break", "closing"}
+
+
+class Clocks(unittest.TestCase):
+    def test_slot_kinds_and_labels(self):
+        for name, clk in CLOCKS.items():
+            for s in clk["slots"]:
+                self.assertIn(s["kind"], SLOT_KINDS, (name, s))
+                self.assertEqual("label" in s, s["kind"] == "break", (name, s))
+                self.assertIn(s.get("part"), (None, "lecture", "lab"), (name, s))
+                if "part" in s:
+                    self.assertEqual(s["kind"], "module", (name, s))
+
+    def test_slots_are_back_to_back(self):
+        for name, clk in CLOCKS.items():
+            slots = clk["slots"]
+            for a, b in zip(slots, slots[1:], strict=False):
+                self.assertEqual(a["end"], b["start"], name)
+                self.assertLess(to_minutes(a["start"]), to_minutes(a["end"]), name)
+
+    def test_shape(self):
+        for name, clk in CLOCKS.items():
+            self.assertEqual(list(clk["shape"])[:2], ["lecture", "lab"], name)
+            self.assertLessEqual(set(clk["shape"]), {"lecture", "lab", "debrief"}, name)
+
+    def test_unit_minutes_equal_the_shape(self):
+        # Slot arithmetic per clock, without the generator: a whole module slot is the
+        # shape's total; a lecture part is the lecture; the lab part after it is the rest.
+        for name, clk in CLOCKS.items():
+            total = sum(clk["shape"].values())
+            for s in clk["slots"]:
+                if s["kind"] != "module":
+                    continue
+                length = to_minutes(s["end"]) - to_minutes(s["start"])
+                expected = {
+                    None: total,
+                    "lecture": clk["shape"]["lecture"],
+                    "lab": total - clk["shape"]["lecture"],
+                }[s.get("part")]
+                self.assertEqual(length, expected, (name, s))
+
+    def test_days_use_known_clocks(self):
         for key, d in V["days"].items():
-            self.assertEqual(len(d["slots"]), slots, key)
+            self.assertIn(d["clock"], CLOCKS, key)
+
+    def test_opening_and_closing_labels(self):
+        for key, d in V["days"].items():
+            kinds = {s["kind"] for s in CLOCKS[d["clock"]]["slots"]}
+            for kind in ("opening", "closing"):
+                self.assertEqual(kind in d, kind in kinds, (key, kind))
+
+
+class Days(unittest.TestCase):
+    def test_each_day_fills_its_clock_units(self):
+        for key, d in V["days"].items():
+            self.assertEqual(len(d["slots"]), len(g.units(CLOCKS[d["clock"]])), key)
 
     def test_slots_reference_modules_of_that_day(self):
         for d in V["days"].values():
-            for slot in day_slots(d):
+            for slot in d["slots"]:
                 key = slot_key(slot)
                 self.assertEqual(V["modules"][key]["day"], d["n"], key)
 
-    def test_every_module_is_scheduled(self):
-        scheduled = set()
-        for d in V["days"].values():
-            for slot in day_slots(d):
-                scheduled.add(slot_key(slot))
-        self.assertEqual(scheduled, set(V["modules"]))
+    def test_every_module_is_scheduled_once_or_is_prework(self):
+        placed = {}
+        for d in g.days_in_order(V):
+            for p in g.placements(V, d):
+                placed.setdefault(p["key"], set()).add(d["n"])
+        for key, m in V["modules"].items():
+            if m["day"] == 0:
+                self.assertNotIn(key, placed, key)
+            else:
+                self.assertEqual(placed.get(key), {m["day"]}, key)
 
-    def test_self_serve_slot(self):
-        kinds = [s["kind"] for s in V["schedule"]["slots"]]
-        self.assertLessEqual(set(kinds), {"self_serve", "opening", "module", "break"})
-        users = [d for d in V["days"].values() if d.get("self_serve")]
-        self.assertEqual(kinds.count("self_serve"), 1 if users else 0)
-        if users:
-            slot = next(s for s in V["schedule"]["slots"] if s["kind"] == "self_serve")
-            start, end = (int(t[:2]) * 60 + int(t[3:]) for t in (slot["start"], slot["end"]))
-            for d in users:
-                m = V["modules"][slot_key(d["self_serve"])]
-                self.assertEqual(m["minutes"], end - start, d["n"])
+    def test_clinic(self):
+        clinics = [d for d in V["days"].values() if d.get("clinic")]
+        for d in clinics:
+            kinds = [s["kind"] for s in CLOCKS[d["clock"]]["slots"]]
+            self.assertEqual(kinds.count("clinic"), 1, d["n"])
+            # The clinic is drop-in help with pre-work.
+            self.assertEqual(V["modules"][slot_key(d["clinic"])]["day"], 0, d["n"])
+        prework = {key for key, m in V["modules"].items() if m["day"] == 0}
+        self.assertEqual({slot_key(d["clinic"]) for d in clinics}, prework)
 
-    def test_slots_are_back_to_back(self):
-        slots = V["schedule"]["slots"]
-        for a, b in zip(slots, slots[1:], strict=False):
-            self.assertEqual(a["end"], b["start"])
+    def test_minutes_equal_what_the_clock_gives(self):
+        # Pages read modules.mNN.minutes; it must agree with the clocks (pre-work excepted:
+        # Module 0's minutes are a planning estimate).
+        for key, m in V["modules"].items():
+            if m["day"] == 0:
+                continue
+            self.assertEqual(m["minutes"], g.minutes_of(V, key), key)
+        self.assertEqual(V["modules"]["m01"]["minutes"], 95)
+        self.assertEqual(V["modules"]["m08"]["minutes"], 120)
+        self.assertEqual(V["modules"]["m15"]["minutes"], 240)
 
     def test_day_count_and_pages(self):
         self.assertEqual(len(V["days"]), V["workshop"]["days"])
+        self.assertEqual(sorted(d["n"] for d in V["days"].values()), list(range(1, 6)))
         for d in V["days"].values():
             self.assertTrue((ROOT / f"day-{d['n']}.qmd").exists())
+        self.assertTrue((ROOT / "day-5.qmd").exists())
+
+
+class Site(unittest.TestCase):
+    """_quarto.yml lists every day page and its Days menu follows _variables.yml."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.quarto = yaml.safe_load((ROOT / "_quarto.yml").read_text(encoding="utf-8"))
+
+    def test_render_list_has_every_day_page(self):
+        render = self.quarto["project"]["render"]
+        for d in V["days"].values():
+            self.assertIn(f"day-{d['n']}.qmd", render)
+
+    def test_days_menu(self):
+        left = self.quarto["website"]["navbar"]["left"]
+        menu = next(item["menu"] for item in left if item.get("text") == "Days")
+        hrefs = [item["href"] for item in menu]
+        self.assertEqual(hrefs[0], "lectures/00-coding-agents.qmd")  # pre-work first
+        days = g.days_in_order(V)
+        self.assertEqual(hrefs[1:], [f"day-{d['n']}.qmd" for d in days])
+        texts = [item["text"] for item in menu[1:]]
+        self.assertEqual(texts, [f"Day {d['n']} · {d['short']}" for d in days])
 
 
 class Notebooks(unittest.TestCase):

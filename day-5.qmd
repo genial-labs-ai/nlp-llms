@@ -1,0 +1,39 @@
+---
+title: "Day 5"
+subtitle: "{{< var days.d5.title >}}"
+toc: false
+---
+
+**{{< var days.d5.question >}}**
+
+Day 5 builds systems. Module 14 turns the hand-written tool loop of Module 8 into an agent graph with state, human approval and confidence-gated control. The capstone takes the rest of the day: in pairs, you improve one component of a research assistant and measure whether the system got better. The wrap-up closes the workshop.
+
+## Morning retrieval practice (09:00–09:15) {#retrieval}
+
+Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4; the facilitator takes the two most-missed questions for 5. Each link opens the question with its folded answer. Three questions come from Day 4 and two from Day 3.
+
+| Question | Topic | From | Why today |
+|---|---|---|---|
+| [12.2](assessments.md#q12-2) | Act, ask and escalate thresholds | Day 4 · Module 12 | Module 14's guard uses these two thresholds |
+| [11.2](assessments.md#q11-2) | Over- or underconfident; ECE on 100 cases | Day 4 · Module 11 | Lab 14 and the capstone report every rate with its denominator |
+| [13.3](assessments.md#q13-3) | Faithful and wrong | Day 4 · Module 13 | The capstone's "supported by the sources?" check cannot catch this case |
+| [8.1a](assessments.md#q8-1a) | Who runs the tool | Day 3 · Module 8 | Module 14 turns this loop into an explicit graph |
+| [8.2](assessments.md#q8-2) | Invalid counts as wrong; a standard error on every rate | Day 3 · Module 8 | The capstone compares your change with the baseline on the same questions |
+
+{{< include /_includes/day-5.md >}}
+
+## Closing synthesis (16:45–17:00) {#synthesis}
+
+The last 15 minutes of the capstone wrap-up ([lecture 15, Part IV](lectures/15-capstone.qmd#part-iv.-wrap-up)), and the close of the workshop. The whole room, with the boards from Days 2 to 4. The numbers are the room's own, from its runs.
+
+1. **The whole line.** Complete the table in [Five days, one line of ideas](lectures/15-capstone.qmd#five-days-one-line-of-ideas): add what Modules 14 and 15 fixed and left open, and set the room's numbers from the boards beside the build's.
+2. **Today's table.** Fill in the room's results:
+
+   | Lab | Rows | Metric |
+   |---|---|---|
+   | Lab 14, decision set and the injection test | the router; the guard | route accuracy; unsafe-action rate and injection success rate, each with its denominator |
+   | Lab 15, the capstone's `test` split | the baseline; each pair's final system | accuracy, both abstention rates, cost per question; questions gained and lost, with the sign test's $p$ |
+
+3. **What is still open.** Each pair names one problem the workshop left open (see [Open problems](lectures/15-capstone.qmd#open-problems)) and the measurement from the last five days it would start with.
+
+Times are on the [schedule](schedule.qmd).

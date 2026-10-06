@@ -3,7 +3,25 @@
 ::: {.module-cards}
 ::: {.module-card}
 ::: {.module-card-time}
-09:10–10:45
+09:15–11:15
+:::
+
+::: {.module-card-body}
+[Module 8]{.eyebrow}
+
+[LLMs through APIs](lectures/08-llm-apis.qmd){.module-card-title}
+
+OpenAI and Claude side by side: prompting, structured output, tool use, cost and evaluation.
+
+::: {.module-card-actions}
+[Read the lecture](lectures/08-llm-apis.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/08-llm-apis.ipynb){.btn-colab} [OpenAI]{.chip} [Anthropic]{.chip} [Hugging Face]{.chip} [Pydantic]{.chip}
+:::
+:::
+:::
+::: {.module-card}
+::: {.module-card-time}
+11:30–12:25\
+13:25–14:30
 :::
 
 ::: {.module-card-body}
@@ -20,7 +38,7 @@ Text generation as a reinforcement-learning problem, the policy gradient, and re
 :::
 ::: {.module-card}
 ::: {.module-card-time}
-11:00–12:35
+14:45–16:45
 :::
 
 ::: {.module-card-body}
@@ -32,40 +50,6 @@ The full reinforcement-learning-from-human-feedback pipeline, DPO, and the ways 
 
 ::: {.module-card-actions}
 [Read the lecture](lectures/10-rlhf.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/10-rlhf.ipynb){.btn-colab} [PyTorch]{.chip} [Hugging Face]{.chip}
-:::
-:::
-:::
-::: {.module-card}
-::: {.module-card-time}
-13:35–15:10
-:::
-
-::: {.module-card-body}
-[Module 11]{.eyebrow}
-
-[Calibration](lectures/11-calibration.qmd){.module-card-title}
-
-What a probability should mean, how to measure it, and how to use confidence to decide when to abstain.
-
-::: {.module-card-actions}
-[Read the lecture](lectures/11-calibration.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/11-calibration.ipynb){.btn-colab} [PyTorch]{.chip} [scikit-learn]{.chip} [OpenAI]{.chip} [Anthropic]{.chip}
-:::
-:::
-:::
-::: {.module-card}
-::: {.module-card-time}
-15:25–17:00
-:::
-
-::: {.module-card-body}
-[Module 12]{.eyebrow}
-
-[RLCD and Jev](lectures/12-rlcd-jev.qmd){.module-card-title}
-
-Reinforcement learning for calibrated decisions: what is public, what is not, and using a calibrated decision model through its API.
-
-::: {.module-card-actions}
-[Read the lecture](lectures/12-rlcd-jev.qmd){.btn-quiet} [Open in Colab](https://colab.research.google.com/github/project-delphi/nlp-llms/blob/main/notebooks/12-rlcd-jev.ipynb){.btn-colab} [PyTorch]{.chip} [TypeSafe SDK]{.chip}
 :::
 :::
 :::

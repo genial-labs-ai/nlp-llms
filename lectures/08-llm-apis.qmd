@@ -1,5 +1,15 @@
 ---
 title: "{{< var modules.m08.title >}}"
+live:
+  - {section: 1, minutes: 3}
+  - {section: 2, minutes: 7, activities: [{block: chk-stateless, minutes: 2}]}
+  - {section: 3, minutes: 4}
+  - {section: 4, minutes: 8}
+  - {section: 5, minutes: 7, activities: [{block: chk-tool-trace, minutes: 3}]}
+  - {section: 6, minutes: 5, activities: [{block: demo-loop-cost, minutes: 4}]}
+  - {section: 7, minutes: 4, activities: [{block: chk-validity-em, minutes: 2}]}
+  - {section: 8, minutes: 4}
+  - {section: 9, minutes: 2}
 ---
 
 {{< include /_includes/module-08.md >}}
@@ -8,30 +18,15 @@ title: "{{< var modules.m08.title >}}"
 **Where we are.** [Module 7](07-finetuning-lora.qmd) produced an instruction follower that you tuned yourself: you applied the chat template, chose the decoding rule and could read every logit. The largest models cannot be reached that way. This module answers one question: when a model is only a request and a reply, what must your own code do to get output it can parse, act on, pay for and check?
 :::
 
-## Timing
-
-| Section | Minutes |
-|---|---|
-| 1. From your own model to someone else's | 3 |
-| 2. The message list | 7 |
-| 3. Prompting patterns | 4 |
-| 4. Structured output: the schema as a contract | 8 |
-| 5. Tool calling: a loop you write | 8 |
-| 6. Cost and latency | 5 |
-| 7. Evaluating outputs | 4 |
-| 8. Failure modes and security | 4 |
-| 9. A fluent answer carries no confidence signal | 2 |
-| **Total** | **45** |
-
-The collapsed callouts are optional and sit outside the 45 minutes.
-
-Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
-
 ::: {.callout-important appearance="simple"}
 **APIs change; the ideas do not.** Every code fragment on this page was checked against the providers' official documentation on **2026-10-04**, and against the SDK versions the lab pins (`openai==3.24.0`, `anthropic==1.11.0`). The Anthropic statements were checked again against the live documentation on 2026-10-05; OpenAI's documentation could not be reached that day, so the OpenAI fragments rest on the 2026-10-04 reading and the pinned SDK's signatures. Parameter names, model IDs and prices will drift. The five ideas of this lecture will not: the message list, the schema contract, the tool loop, token arithmetic, and evaluation on a fixed set. The model IDs used in the lab are set in one place: `{{< var models.openai >}}` (OpenAI), `{{< var models.anthropic >}}` (Anthropic) and `{{< var models.fallback >}}` (the open fallback).
 
 **Before each delivery,** check both providers' deprecation pages for the pinned models. On 2026-10-05 Anthropic listed Claude Haiku 4.5 as active, with retirement "not sooner than October 15, 2026".
 :::
+
+## Live plan
+
+{{< include /_includes/live-08.md >}}
 
 ## 1. From your own model to someone else's
 
@@ -137,7 +132,7 @@ The differences are surface differences: where the system prompt goes, what the 
 **In the lab.** The request code for both providers is given: one method, `chat(messages, system=None, tools=None, schema=None, max_tokens=...)`, per provider. In **Exercise 1** you write `parse_openai` and `parse_anthropic`, the two small functions that turn each provider's response into one common `Reply` record: text, tool calls, $n_{\text{in}}$, $n_{\text{out}}$ and the stop reason. You work on stored responses (built from the documented response shapes and validated against the SDKs' own response types), so this exercise needs no key. Everything after it is written once, against `Reply`.
 :::
 
-::: {.self-check}
+::: {#chk-stateless .self-check}
 **Check yourself.** A conversation has a system prompt of 200 tokens. Each user message is 50 tokens and each reply is 100. The user sends three messages. How many input tokens are billed over the three requests in total? What would you have guessed if the server remembered the conversation?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -348,7 +343,7 @@ Checked against both providers' documentation on 2026-10-04. Read down either co
 **In the lab.** In **Exercise 4** you write `execute` and `run_tools` for two tools, `get_event` and `days_between`, and questions that need both in sequence. The checkpoint drives your loop with a scripted stand-in for the model, so it tests the loop itself: the order of calls, the matching of IDs, the error results for an unknown tool, invalid arguments and a tool that raises, and the stop at $K_{\max}$.
 :::
 
-::: {.self-check}
+::: {#chk-tool-trace .self-check}
 **Check yourself.** A question needs `get_event` and then `days_between`, and the model requests one tool per reply. Trace `run_tools` as written above. How many model calls are made, and how many entries are appended to `messages`? What does the function return if `k_max` is 2 instead of 6, and what has been spent by then?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -515,7 +510,7 @@ For $N = 40$ and $p = 0.9$ this is about $0.05$. A gap of three points between t
 **In the lab.** In **Exercise 3** you write `score(preds, golds)`, which returns @eq-validity, @eq-em per field and record exact match, with the standard error printed beside each. The evaluation set has $N = 40$ generated announcements; on a CPU runtime with the open model, a fixed subset of 12. It runs through the provider selected by the `PROVIDER` switch, and Exercise 5 adds a row for every other provider you have a key for. The scores go in one table with the costs of Exercise 5: the whole comparison of the module on one screen.
 :::
 
-::: {.self-check}
+::: {#chk-validity-em .self-check}
 **Check yourself.** On $N = 40$ announcements, provider A returns 36 valid records, and 30 of them have the right city. Compute $\mathrm{Valid}$ and $\mathrm{EM}_{\text{city}}$. A report says "city accuracy 83%": what did its author do? Provider B scores $\mathrm{EM}_{\text{city}} = 0.80$ on the same 40. Is B better?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -561,7 +556,7 @@ Only the last two. The tags and the system prompt work by persuading the model, 
 
 ## 9. A fluent answer carries no confidence signal
 
-**Objective for this section:** say what the API does not tell you, and why that is Day 3's problem.
+**Objective for this section:** say what the API does not tell you, and why that is the problem of Modules 9 to 11.
 
 Look at what a response contains: text, a stop reason, token counts. Nothing in it says how likely the answer is to be correct.
 
@@ -571,7 +566,7 @@ Look at what a response contains: text, a stop reason, token counts. Nothing in 
 
 For a system that acts on model output, this is the missing piece. To decide between acting, asking a person and escalating, you need a number that behaves like a probability: among the answers given with confidence 0.9, about 90 percent should be right.
 
-That sets up Day 3. Where would such a signal come from? It depends on what the model was trained to optimize. So far that has been the likelihood of text. [Module 9](09-preference-learning.qmd) asks what to do when there is no label for "better", only a preference between two outputs, and [Module 10](10-rlhf.qmd) trains on that preference. [Module 11](11-calibration.qmd) then defines what a confidence should mean and measures it, including for the models you called today.
+That sets up Modules 9 to 11. Where would such a signal come from? It depends on what the model was trained to optimize. So far that has been the likelihood of text. [Module 9](09-preference-learning.qmd) asks what to do when there is no label for "better", only a preference between two outputs, and [Module 10](10-rlhf.qmd) trains on that preference. [Module 11](11-calibration.qmd) then defines what a confidence should mean and measures it, including for the models you called today.
 
 ::: {.self-check}
 **Check yourself.** You add a field `confidence`, a number from 0 to 1, to the `Event` schema, and every record now comes back with a value such as 0.95. Using only tools from this lecture, what experiment would tell you whether that number means anything?
@@ -615,7 +610,7 @@ Run the fixed evaluation set of section 7, where the correct record is known. Gr
 - **"Setting the temperature to zero makes the output reproducible."** It makes it less variable at best. Providers do not guarantee identical outputs across calls, the newest Claude models reject a non-default temperature, and model versions change. Evaluate on a set, not on one run.
 - **"Tokens are words."** They are subword units, they differ between providers, and hidden reasoning tokens are billed too.
 - **"A cheaper price per token means a cheaper task."** Cost per task depends on how many tokens each model needs, including retries and reasoning.
-- **"If the model is unsure, it will say so."** Nothing in next-token training requires that. Day 3 measures it.
+- **"If the model is unsure, it will say so."** Nothing in next-token training requires that. Module 11 measures it.
 
 ## Readings
 

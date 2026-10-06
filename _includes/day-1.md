@@ -7,11 +7,11 @@
 :::
 
 ::: {.module-card-body}
-[Module 0 · optional, self-serve]{.eyebrow}
+[Module 0 · pre-work, optional clinic]{.eyebrow}
 
 [Coding agents in the terminal](lectures/00-coding-agents.qmd){.module-card-title}
 
-Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Self-serve; also works as pre-work.
+Install a terminal coding agent and use it to build, check and publish two small data apps in Python or R, each with a three.js page. Pre-work, on your own laptop before Day 1.
 
 ::: {.module-card-actions}
 [Read the lecture](lectures/00-coding-agents.qmd){.btn-quiet} [No notebook: runs in your terminal]{.lab-note} [Claude Code]{.chip} [Codex]{.chip} [Gemini CLI]{.chip} [git]{.chip} [GitHub CLI]{.chip} [Python or R]{.chip} [three.js]{.chip}

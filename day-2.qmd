@@ -6,8 +6,35 @@ toc: false
 
 **{{< var days.d2.question >}}**
 
-Day 2 builds the transformer, then follows it through pretraining and fine-tuning to the commercial models you reach through an API.
+Day 2 builds the transformer, then follows it through pretraining to fine-tuning with LoRA. Like Days 3 to 5, it opens with retrieval practice on earlier days and closes with a synthesis of the day's results. Each module ends with a short debrief of its lab, and the middle module's lab comes after lunch.
+
+## Morning retrieval practice (09:00–09:15) {#retrieval}
+
+Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4; the facilitator takes the two most-missed questions for 5. Each link opens the question with its folded answer. Day 1 is the only earlier day, so three questions come from its afternoon and two from its morning.
+
+| Question | Topic | From | Why today |
+|---|---|---|---|
+| [4.3a](assessments.md#q4-3a) | Dot-product attention with a mask | Day 1 · Module 4 | Module 5's self-attention is this lookup, with queries, keys and values from one sequence |
+| [4.2](assessments.md#q4-2) | Two dates through one vector | Day 1 · Module 4 | Attention removed the bottleneck; Module 5 removes the recurrence too |
+| [3.3](assessments.md#q3-3) | When two perplexities compare | Day 1 · Module 3 | Lab 5 scores the mini-GPT beside the LSTM and the n-gram model |
+| [1.2a](assessments.md#q1-2a) | Perplexity of a uniform model | Day 1 · Module 1 | The trivial baseline every model in Lab 5 must beat |
+| [2.3](assessments.md#q2-3) | Why the dense model need not win | Day 1 · Module 2 | Lab 6 fine-tunes an encoder on the same task and compares it with Labs 1 and 2 |
 
 {{< include /_includes/day-2.md >}}
+
+## Closing synthesis (16:45–17:00) {#synthesis}
+
+In pairs for 5 minutes, then the room for 10. The facilitator writes the table on the board and keeps it for Day 5. The numbers are the room's own, from its runs.
+
+1. **Fixed and left open.** For Modules 5, 6 and 7, which limitation of the step before did each remove, and which did it leave for the next? Start from Module 4: attention still read from a recurrent encoder, one step at a time.
+2. **The running table.** Fill in the room's results (test split, held-out examples for Lab 7):
+
+   | Thread | Rows | Metric |
+   |---|---|---|
+   | Tiny Shakespeare, character level | 5-gram (Lab 1); LSTM (Lab 3); LSTM retrained and mini-GPT (Lab 5) | nats per character |
+   | arXiv Topics v1 | TF-IDF with logistic regression (Lab 1); averaged embeddings (Lab 2); fine-tuned encoder (Lab 6) | accuracy, macro-F1 |
+   | Dolly instructions | the base model before and after LoRA (Lab 7) | response perplexity, ROUGE-1, trainable parameters |
+
+3. **One claim.** Which row would you defend as an improvement on the row above it, and what must be stated beside it to make the claim fair? Why does Lab 7's perplexity not belong in the same column as Lab 5's?
 
 Times are on the [schedule](schedule.qmd).

@@ -6,8 +6,36 @@ toc: false
 
 **{{< var days.d4.question >}}**
 
-Day 4 builds systems: retrieval, agents, and a capstone that combines them with calibrated control. The afternoon is hands-on pair work.
+Day 4 asks when a model's answer can be trusted. Calibration measures whether a model's probabilities mean what they say; Module 12 turns calibrated probabilities into act, ask or escalate decisions, and asks what changes when calibration itself is the training objective: TypeSafe names this RLCD but has not published the method, so the module keeps what TypeSafe has stated apart from third-party reports and from our own illustration. Module 13 grounds answers in retrieved sources and measures retrieval and answers separately.
+
+## Morning retrieval practice (09:00–09:15) {#retrieval}
+
+Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4; the facilitator takes the two most-missed questions for 5. Each link opens the question with its folded answer. Three questions come from Day 3, one from Day 2 and one from Day 1.
+
+| Question | Topic | From | Why today |
+|---|---|---|---|
+| [8.1b](assessments.md#q8-1b) | What a valid schema guarantees | Day 3 · Module 8 | Form, not truth: Module 11 asks what a probability should guarantee |
+| [9.3](assessments.md#q9-3) | Bradley–Terry and its ceiling | Day 3 · Module 9 | Module 12 sets this preference reward beside an outcome reward |
+| [10.4](assessments.md#q10-4) | Reward hacking at $\beta = 0$ | Day 3 · Module 10 | A learned reward cannot see its own errors; verified labels can |
+| [6.3](assessments.md#q6-3) | The loss before fine-tuning | Day 2 · Module 6 | $\ln 4$ is a log loss, one of Module 11's proper scoring rules |
+| [1.3](assessments.md#q1-3) | Which classifier is overconfident | Day 1 · Module 1 | Lab 11 measures the calibration of a classifier you have already trained |
 
 {{< include /_includes/day-4.md >}}
+
+## Closing synthesis (16:45–17:00) {#synthesis}
+
+In pairs for 5 minutes, then the room for 10. The facilitator adds today's rows to the board and keeps them for Day 5. The numbers are the room's own, from its runs.
+
+1. **Fixed and left open.** For Modules 11, 12 and 13, which limitation of the step before did each remove, and which did it leave for the next? Start from Module 10: RLHF optimizes what raters prefer, and raters do not judge confidence.
+2. **The running table.** Fill in the room's results:
+
+   | Lab | Rows | Metric |
+   |---|---|---|
+   | Lab 11, arXiv Topics v1 | the Lab 6 classifier (or Lab 1's, where the lab fell back to it), before and after temperature scaling | accuracy, ECE, Brier score, log loss |
+   | Lab 11, decision set | the language model's stated confidence | accuracy, ECE, Brier score; the abstention threshold chosen and its coverage |
+   | Lab 12, decision set | the toy model with an accuracy reward and with a Brier reward (our illustration, not TypeSafe's method); thresholds chosen on `dev`; Jev, where someone had a key | accuracy, ECE, Brier score; cost per case beside act-all, ask-all and escalate-all |
+   | Lab 13, workshop lectures | chunk size and top-$k$ at a fixed context budget; with and without reranking | recall@$k$, MRR; faithfulness and the two-by-two table |
+
+3. **Ranking or values.** Which of today's numbers depend only on how the cases are ranked, and which on the probability values themselves? Which would temperature scaling change? And which rows of Lab 12 are evidence about our toy model, and which about Jev?
 
 Times are on the [schedule](schedule.qmd).

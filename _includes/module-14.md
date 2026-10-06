@@ -2,7 +2,7 @@
 
 ::: {.module-header}
 ::: {.module-meta}
-[Day 4 · RAG, agents, capstone](/day-4.qmd){.module-day} [Module 14]{.module-num} [95 minutes (45 lecture, 50 lab)]{.module-time}
+[Day 5 · Agents and capstone](/day-5.qmd){.module-day} [Module 14]{.module-num} [120 minutes (55 lecture, 55 lab, 10 debrief)]{.module-time}
 :::
 
 ::: {.module-summary}
@@ -19,7 +19,7 @@ Tool-using agents as explicit graphs in LangGraph, with state, human-in-the-loop
 
 By the end of this module you can:
 
-- Build a tool-using agent as an explicit graph
-- Add state, memory and human-in-the-loop interrupts
-- Use a calibrated decision model for routing and tool-call approval
+- Assemble a tool-using agent as an explicit graph by writing its routing edges
+- Drive human-in-the-loop interrupts, and replay and fork a checkpointed run
+- Use a calibrated decision model for routing and tool-call approval, with thresholds from costs
 :::

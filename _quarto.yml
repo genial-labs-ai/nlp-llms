@@ -5,12 +5,14 @@ project:
   # notebooks/*.ipynb and would render README.md, PLAN.md and AGENTS.md as pages.
   render:
     - index.qmd
+    - prepare.qmd
     - setup.qmd
     - schedule.qmd
     - day-1.qmd
     - day-2.qmd
     - day-3.qmd
     - day-4.qmd
+    - day-5.qmd
     - lectures/*.qmd
     - notebooks.qmd
     - references.qmd
@@ -33,7 +35,7 @@ metadata-files:
 
 website:
   title: "NLP to LLMs"
-  description: "A four-day workshop on the path from traditional NLP to modern LLMs: n-grams, attention, transformers, RLHF, RLCD and agents."
+  description: "A five-day workshop on the path from traditional NLP to modern LLMs: n-grams, attention, transformers, RLHF, RLCD and agents."
   site-url: https://project-delphi.github.io/nlp-llms
   repo-url: https://github.com/project-delphi/nlp-llms
   open-graph: true
@@ -51,17 +53,20 @@ website:
         text: Schedule
       - text: Days
         menu:
-          # Optional self-serve hour before the Day 1 welcome (Module 0).
+          # Module 0 is pre-work; Day 1 opens at 08:00 with an optional drop-in clinic for it.
+          # The day texts are "Day N · " + days.dN.short (tests/test_variables.py).
           - href: lectures/00-coding-agents.qmd
-            text: "Day 1, 08:00 · Coding agents (self-serve)"
+            text: "Before Day 1 · Module 0 (pre-work)"
           - href: day-1.qmd
             text: "Day 1 · Foundations"
           - href: day-2.qmd
-            text: "Day 2 · Transformers and LLMs"
+            text: "Day 2 · Transformers and pretraining"
           - href: day-3.qmd
-            text: "Day 3 · Training objectives"
+            text: "Day 3 · Using and aligning LLMs"
           - href: day-4.qmd
-            text: "Day 4 · RAG, agents, capstone"
+            text: "Day 4 · Calibration, decisions, RAG"
+          - href: day-5.qmd
+            text: "Day 5 · Agents and capstone"
       - href: notebooks.qmd
         text: Notebooks
       - href: setup.qmd
@@ -123,3 +128,5 @@ format:
     filters:
       - at: pre-ast
         path: filters/pedagogy.lua
+      - at: pre-ast
+        path: filters/live.lua

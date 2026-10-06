@@ -1078,7 +1078,7 @@ blockquote {
 }
 
 // ---------------------------------------------------------------------------
-// Schedule (generated: _includes/schedule.md; a plain table with class spans)
+// Schedule (generated: _includes/schedule.md; one plain table per clock, with class spans)
 // ---------------------------------------------------------------------------
 
 // A page that needs more than the text measure (front matter: page-layout: full,
@@ -1104,8 +1104,9 @@ body.wide main.content {
 
 .legend-lecture,
 .legend-lab,
+.legend-debrief,
 .legend-break,
-.legend-optional {
+.legend-clinic {
   &::before {
     content: "";
     display: inline-block;
@@ -1125,12 +1126,16 @@ body.wide main.content {
   background: $nl-accent;
 }
 
+.legend-debrief::before {
+  background: $nl-good;
+}
+
 .legend-break::before {
   border: 1px solid $nl-border-strong;
   background: repeating-linear-gradient(-45deg, $nl-surface 0 4px, $nl-border 4px 5px);
 }
 
-.legend-optional::before {
+.legend-clinic::before {
   border: 1px dashed $nl-border-strong;
 }
 
@@ -1177,7 +1182,7 @@ body.wide main.content {
   }
 
   a.slot-module,
-  a.slot-optional {
+  a.slot-clinic {
     display: block;
     font-weight: 600;
     line-height: 1.35;
@@ -1190,7 +1195,8 @@ body.wide main.content {
     }
   }
 
-  // The bar under a module: lecture then lab, in proportion to their minutes.
+  // The bar under a module: lecture, lab and debrief, each as wide as its minutes
+  // (the generator sets flex-grow inline from the clock's shape).
   .slot-split {
     display: flex;
     gap: 2px;
@@ -1203,31 +1209,43 @@ body.wide main.content {
   }
 
   .slot-lecture,
-  .slot-lab {
+  .slot-lab,
+  .slot-debrief {
+    flex: 1 1 0;
     padding: 0.1rem 0.4rem;
     overflow: hidden;
   }
 
+  .slot-split > span:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  .slot-split > span:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
   .slot-lecture {
-    flex: 45 1 0;
-    border-radius: 4px 0 0 4px;
     background: $nl-lecture;
     color: $nl-on-lecture;
   }
 
   .slot-lab {
-    flex: 50 1 0;
-    border-radius: 0 4px 4px 0;
     background: $nl-accent;
     color: $nl-on-accent;
   }
 
-  .slot-lab:only-child {
-    border-radius: 4px;
+  // Ten minutes is too narrow for a label: the color carries it (see the legend),
+  // and the text is visually hidden for screen readers, with a tooltip.
+  .slot-debrief {
+    padding-inline: 0;
+    background: $nl-good;
   }
 
-  // Rows without teaching: the opening ten minutes and the breaks.
+  // Rows without teaching: the opening, the closing and the breaks.
   tr:has(.slot-opening) td,
+  tr:has(.slot-closing) td,
   tr:has(.slot-break) td {
     padding-top: 0.3rem;
     padding-bottom: 0.3rem;
@@ -1244,18 +1262,29 @@ body.wide main.content {
     font-size: 0.72rem;
   }
 
-  tr:has(.slot-optional) td {
+  tr:has(.slot-closing) td {
+    background: $nl-good-soft;
+  }
+
+  tr:has(.slot-clinic) td {
     border-left: 0;
   }
 
-  td:has(.slot-optional) {
+  td:has(.slot-clinic) {
     border: 1px dashed $nl-border-strong;
     border-radius: 6px;
   }
 
-  a.slot-optional {
+  a.slot-clinic {
     font-weight: 500;
   }
+}
+
+// A grid with a single day column (Day 1's clock): keep that column close to the
+// width of the other grid's day columns instead of stretching it across the page.
+.timetable.days-1 table {
+  width: 24rem;
+  min-width: 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -1390,10 +1419,10 @@ body.landing {
   }
 }
 
-// The four days.
+// The days, one card each.
 .day-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin: 1.4rem 0 1.2rem;
 }
@@ -1625,4 +1654,90 @@ body.landing {
       color: $nl-heading;
     }
   }
+}
+
+
+// The live plan (scripts/live_plan.py): the lecture's timing table, the blocks used in
+// the room, and the sections left for reading afterwards.
+.live-plan table {
+  font-size: 0.9rem;
+
+  td:first-child {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// A check, demo or prediction that the live plan uses in the room.
+.self-check.live,
+.demo.live,
+.predict.live,
+.discuss.live {
+  position: relative;
+
+  &::after {
+    content: "In the room";
+    position: absolute;
+    top: 0.55rem;
+    right: 0.7rem;
+    padding: 0.05rem 0.5rem;
+    border: 1px solid $nl-border-strong;
+    border-radius: 999px;
+    background: $nl-raised;
+    color: $nl-muted;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}
+
+// The demo panel stays light in both themes, so its badge uses the demo palette.
+.demo.live::after {
+  border-color: $nl-demo-border;
+  background: $nl-demo-bg;
+  color: $nl-demo-muted;
+}
+
+// A numbered section that the live plan leaves for reading after class.
+h2.reference::after,
+section.reference > h2::after {
+  content: "Reference";
+  margin-left: 0.7rem;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid $nl-border;
+  border-radius: 999px;
+  color: $nl-muted;
+  font-family: $font-family-sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+// ::: {#id .predict}  a question asked before the section's exposition.
+// ::: {#id .discuss}  a question for the room.
+.predict,
+.discuss {
+  margin: 1.2rem 0;
+  padding: 0.8rem 1rem 0.7rem;
+  border-left: 4px solid $nl-border-strong;
+  border-radius: 0 7px 7px 0;
+  background: $nl-raised;
+
+  &::before {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: $nl-muted;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.predict::before {
+  content: "Predict";
+}
+
+.discuss::before {
+  content: "Discuss";
 }
