@@ -40,7 +40,7 @@ website:
       - href: lectures/11-calibration.qmd
         text: 11 · Calibration
       - href: lectures/12-rlcd-jev.qmd
-        text: 12 · RLCD and Jev
+        text: '12 · Calibrated decisions: RLCD and Jev'
       - href: lectures/13-rag.qmd
         text: 13 · Retrieval-augmented generation
     - section: Day 5 · Agents and capstone

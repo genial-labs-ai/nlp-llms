@@ -19,7 +19,7 @@ Encoder-decoder models, the fixed-vector bottleneck, and attention as the fix.
 
 By the end of this module you can:
 
-- Build an encoder-decoder model
-- Explain the fixed-vector bottleneck
-- Implement additive and dot-product attention and read attention maps
+- Assemble an encoder-decoder's teacher-forced forward pass and loss
+- Explain the fixed-vector bottleneck and measure it by input length
+- Implement dot-product and additive attention and read attention maps against the expected alignment
 :::

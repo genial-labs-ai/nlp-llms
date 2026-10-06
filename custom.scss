@@ -1655,3 +1655,89 @@ body.landing {
     }
   }
 }
+
+
+// The live plan (scripts/live_plan.py): the lecture's timing table, the blocks used in
+// the room, and the sections left for reading afterwards.
+.live-plan table {
+  font-size: 0.9rem;
+
+  td:first-child {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// A check, demo or prediction that the live plan uses in the room.
+.self-check.live,
+.demo.live,
+.predict.live,
+.discuss.live {
+  position: relative;
+
+  &::after {
+    content: "In the room";
+    position: absolute;
+    top: 0.55rem;
+    right: 0.7rem;
+    padding: 0.05rem 0.5rem;
+    border: 1px solid $nl-border-strong;
+    border-radius: 999px;
+    background: $nl-raised;
+    color: $nl-muted;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+}
+
+// The demo panel stays light in both themes, so its badge uses the demo palette.
+.demo.live::after {
+  border-color: $nl-demo-border;
+  background: $nl-demo-bg;
+  color: $nl-demo-muted;
+}
+
+// A numbered section that the live plan leaves for reading after class.
+h2.reference::after,
+section.reference > h2::after {
+  content: "Reference";
+  margin-left: 0.7rem;
+  padding: 0.05rem 0.55rem;
+  border: 1px solid $nl-border;
+  border-radius: 999px;
+  color: $nl-muted;
+  font-family: $font-family-sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+// ::: {#id .predict}  a question asked before the section's exposition.
+// ::: {#id .discuss}  a question for the room.
+.predict,
+.discuss {
+  margin: 1.2rem 0;
+  padding: 0.8rem 1rem 0.7rem;
+  border-left: 4px solid $nl-border-strong;
+  border-radius: 0 7px 7px 0;
+  background: $nl-raised;
+
+  &::before {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: $nl-muted;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+}
+
+.predict::before {
+  content: "Predict";
+}
+
+.discuss::before {
+  content: "Discuss";
+}

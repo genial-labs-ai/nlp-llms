@@ -8,6 +8,33 @@ toc: false
 
 Day 3 starts with the commercial models you reach through an API, and with what their answers do not tell you. It then asks what these models are trained to want: Module 9 frames generation as reinforcement learning and learns a reward from human comparisons, and Module 10 optimizes a model against that reward, which is RLHF, and shows how it fails.
 
+## Morning retrieval practice (09:00–09:15) {#retrieval}
+
+Answer alone on paper for 6 minutes, notes closed; compare with a neighbor for 4; the facilitator takes the two most-missed questions for 5. Each link opens the question with its folded answer. Three questions come from Day 2 and two from Day 1.
+
+| Question | Topic | From | Why today |
+|---|---|---|---|
+| [5.3](assessments.md#q5-3) | A tie within seed noise | Day 2 · Module 5 | Lab 8 prints a standard error beside every score |
+| [6.1b](assessments.md#q6-1b) | Masked language modeling | Day 2 · Module 6 | The models behind Module 8's APIs are causal language models |
+| [7.3](assessments.md#q7-3) | What perplexity and ROUGE miss | Day 2 · Module 7 | Lab 8 scores outputs on a fixed evaluation set instead |
+| [2.2a](assessments.md#q2-2a) | The negative-sampling loss | Day 1 · Module 2 | Module 9's reward-model loss has the same log-sigmoid form |
+| [4.1](assessments.md#q4-1) | The teacher-forced loss | Day 1 · Module 4 | Module 9 asks what training on demonstrations cannot teach |
+
 {{< include /_includes/day-3.md >}}
+
+## Closing synthesis (16:45–17:00) {#synthesis}
+
+In pairs for 5 minutes, then the room for 10. The facilitator adds today's rows to the board and keeps them for Day 5. The numbers are the room's own, from its runs.
+
+1. **Fixed and left open.** For Modules 8, 9 and 10, which limitation of the step before did each remove, and which did it leave for the next? Start from Module 7: a small model can be tuned to follow instructions, but the strongest models are reached only through an API.
+2. **The running table.** Fill in the room's results:
+
+   | Lab | Rows | Metric |
+   |---|---|---|
+   | Lab 8, extraction set | each provider the room ran: the open model, and OpenAI or Claude where someone had a key | schema-validity rate, exact match with its standard error, cost per run, mean latency |
+   | Lab 9, toy task and preference pairs | REINFORCE without and with a baseline; the reward model | gradient variance; held-out pairwise accuracy beside its ceiling |
+   | Lab 10, Lab 6's small GPT-2 against Lab 9's reward model | KL-penalized policy; the same with $\beta = 0$; DPO | reward gain, KL drift from the reference, gold reward, distinct-bigram share; DPO's held-out preference accuracy |
+
+3. **What the numbers do not say.** In which row did the number being optimized rise while the thing you care about fell? And which number in today's table, or in Day 2's, tells you how sure a model is of one particular answer?
 
 Times are on the [schedule](schedule.qmd).

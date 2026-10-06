@@ -262,7 +262,7 @@ class Honesty(unittest.TestCase):
             "language model scored by the probability of ' yes'. They measure that model, not Jev. "
             "Do not quote them as Jev's.",
         )
-        self.assertIn("What this afternoon showed and what it did not", TEXT)
+        self.assertIn("What this capstone showed and what it did not", TEXT)
         self.assertIn("our guess before any run", TEXT)
 
     def test_no_rlcd(self):

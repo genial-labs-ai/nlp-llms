@@ -58,7 +58,9 @@ Task: draft the lecture page for Module <NN> (<title>) at lectures/<NN-slug>.qmd
 Requirements:
 - Open with the module's learning objectives from _variables.yml.
 - Motivate the topic from the limitation left open by the previous module.
-- Target 45 minutes of delivery; mark anything beyond that as optional.
+- Target the module's lecture minutes (45 on Day 1, 55 on Days 2–5), activities
+  included, using the live plan in the front matter (scripts/live_plan.py); mark
+  anything beyond that as optional.
 - Define every symbol; keep derivations to the steps a practitioner needs.
 - For each key equation, name the lab exercise that implements it.
 - End with a summary, common misconceptions, and 3–5 readings.

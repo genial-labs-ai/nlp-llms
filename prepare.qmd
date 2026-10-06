@@ -1,0 +1,69 @@
+---
+title: "Before Day 1"
+subtitle: "Check the prerequisites, set up Colab, then start with Module 1"
+---
+
+<!--
+The first-visit journey, in order. The entry-check questions live in
+prepare/entry-check.md (hand-written, also included by assessments.md); edit them
+there. Every remediation link below was checked with curl on 2026-10-06 (HTTP 200);
+re-check them before each delivery. The time estimates are ours, not the sources'.
+-->
+
+Do these five steps in order, at home, in the week before Day 1.
+
+1. **[Take the entry check](#entry-check)**, about 15 minutes.
+2. **[Read your score](#score)**: for each area where you missed two or more questions, do the reading listed there.
+3. **[Set up Colab](#setup)**, about {{< var setup.minutes >}} minutes.
+4. **[Module 0](#module-0)**, optional pre-work: {{< var modules.m00.minutes >}} minutes of steps, about {{< var modules.m00.readiness.estimate_minutes >}} with one-time setup.
+5. **[Start with Module 1](#start)** on Day 1.
+
+## 1. Take the entry check {#entry-check}
+
+The entry check tells you whether the prerequisites listed on the [home page](index.qmd#prerequisites) are in place. It is not graded, and nobody else sees your answers.
+
+{{< include /prepare/entry-check.md >}}
+
+## 2. Read your score {#score}
+
+Mark each answer right or wrong against its key, then count your misses in each area. The rule is the same for every area:
+
+- **Two or more of the three missed:** do that area's remediation below before Day 1.
+- **One missed:** no action. Read the key of the question you missed and move on.
+
+**The workshop moves fast.** Day 1 assumes all five areas, and there is no time in the room to learn them. Do the remediation before Day 1, not during it. If three or more areas need work, plan a full day for it, and tell the organizers before the workshop.
+
+Every resource below is free and online. The section numbers are the sources' own; the times are our estimates.
+
+| Area | Questions | What to read | Time |
+|---|---|---|---|
+| Python | E1–E3 | [The Python Tutorial](https://docs.python.org/3/tutorial/), sections [3, An Informal Introduction to Python](https://docs.python.org/3/tutorial/introduction.html); [4, More Control Flow Tools](https://docs.python.org/3/tutorial/controlflow.html); [5, Data Structures](https://docs.python.org/3/tutorial/datastructures.html) (5.1.3, List Comprehensions, is E1); and [9, Classes](https://docs.python.org/3/tutorial/classes.html), sections 9.1 to 9.4 (9.3, A First Look at Classes, is E2). For E3, add [8, Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html), sections 8.1 to 8.3. | about 3 hours |
+| NumPy | E4–E6 | [NumPy: the absolute basics for beginners](https://numpy.org/doc/stable/user/absolute_beginners.html): the sections [Indexing and slicing](https://numpy.org/doc/stable/user/absolute_beginners.html#indexing-and-slicing) (E5), [Broadcasting](https://numpy.org/doc/stable/user/absolute_beginners.html#broadcasting) (E4) and [More useful array operations](https://numpy.org/doc/stable/user/absolute_beginners.html#more-useful-array-operations) (the `axis` argument). Then the user guide's [Broadcasting](https://numpy.org/doc/stable/user/basics.broadcasting.html) page, [General broadcasting rules](https://numpy.org/doc/stable/user/basics.broadcasting.html#general-broadcasting-rules): why E6 needs norms of shape `(N, 1)`. | about 1 hour |
+| Machine-learning basics | E7–E9 | *Dive into Deep Learning* (Zhang, Lipton, Li and Smola), free at [d2l.ai](https://d2l.ai/): [3.1, Linear Regression](https://d2l.ai/chapter_linear-regression/linear-regression.html), sections 3.1.1.2 (Loss Function) and 3.1.1.4 (Minibatch Stochastic Gradient Descent); [3.6, Generalization](https://d2l.ai/chapter_linear-regression/generalization.html), especially [3.6.3, Model Selection](https://d2l.ai/chapter_linear-regression/generalization.html#model-selection) (E7); [4.1, Softmax Regression](https://d2l.ai/chapter_linear-classification/softmax-regression.html), section [4.1.2, Loss Function](https://d2l.ai/chapter_linear-classification/softmax-regression.html#loss-function), where the gradient is prediction minus target (E8; logistic regression is softmax regression with two classes); and [12.3.1.1, Learning Rate](https://d2l.ai/chapter_optimization/gd.html#learning-rate) (E9). | about 2.5 hours |
+| PyTorch | E10–E12 | [Deep Learning with PyTorch: A 60 Minute Blitz](https://docs.pytorch.org/tutorials/beginner/deep_learning_60min_blitz.html), all four parts in order: [Tensors](https://docs.pytorch.org/tutorials/beginner/blitz/tensor_tutorial.html), [A Gentle Introduction to `torch.autograd`](https://docs.pytorch.org/tutorials/beginner/blitz/autograd_tutorial.html), [Neural Networks](https://docs.pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html) (E10, E12) and [Training a Classifier](https://docs.pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html). Then *Learn the Basics*, [Optimizing Model Parameters, Full Implementation](https://docs.pytorch.org/tutorials/beginner/basics/optimization_tutorial.html#full-implementation): `model.eval()` against `torch.no_grad()` (E11). Last, skim the [PyTorch refresher](lectures/02-word-vectors.qmd#pytorch-refresher) in Module 2's lecture: in the room it takes a few minutes, so it should read as review. | about 2 hours |
+| Mathematics | E13–E15 | *Dive into Deep Learning*: [2.4.4, Chain Rule](https://d2l.ai/chapter_preliminaries/calculus.html#chain-rule) (E13); [2.6, Probability and Statistics](https://d2l.ai/chapter_preliminaries/probability.html), sections [2.6.4, Multiple Random Variables](https://d2l.ai/chapter_preliminaries/probability.html#multiple-random-variables) and [2.6.6, Expectations](https://d2l.ai/chapter_preliminaries/probability.html#expectations) (E14); [4.1.3, Information Theory Basics](https://d2l.ai/chapter_linear-classification/softmax-regression.html#information-theory-basics), for cross-entropy (E15); and [22.1.2, Dot Products and Angles](https://d2l.ai/chapter_appendix-mathematics-for-deep-learning/geometry-linear-algebraic-ops.html#dot-products-and-angles), for cosine similarity (E15). | about 2 hours |
+
+After the reading, try the questions you missed again without opening the keys.
+
+## 3. Set up Colab {#setup}
+
+All labs run in [Google Colab](https://colab.research.google.com/), so there is nothing to install. You need a Google account.
+
+[Open the setup notebook in Colab]({{< var repo.colab_base >}}/{{< var setup.slug >}}.ipynb){.btn-colab} and choose **Runtime → Run all**. API keys are optional; the [Setup](setup.qmd) page says how to add them and how to switch on a GPU.
+
+**What a working setup looks like.** The notebook prints four short blocks, and every cell runs without an error:
+
+- **The runtime:** the Python version, `yes` beside Colab, the PyTorch version, and a device line that names a GPU or says `CPU only`. A CPU is fine for this check; switch on a T4 GPU before the labs that need one.
+- **The keys:** one line per key, `found` or `not set`. With no keys, all three say `not set`, and that is fine.
+- **The provider:** with no keys, text generation is `open` and the decision model is `toy`, followed by `No API keys found. The labs will use open models. That is fine.`
+- **The checkpoint**, the last line: `Checkpoint passed. You are ready for Day 1.`
+
+If the last line is missing, or a cell stops with an error, check the [Setup](setup.qmd) page, then send the error message to the organizers before Day 1.
+
+## 4. Module 0: optional pre-work {#module-0}
+
+[Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd) is optional, and it is not a prerequisite: nothing later in the workshop depends on it, and the entry check does not test it. It runs on your own laptop, not in Colab: you install a terminal coding agent, git and the GitHub CLI, so you need permission to install software and a GitHub account. If you get stuck, bring your laptop to the optional drop-in clinic on Day 1 from 08:00 to 09:00, before the welcome.
+
+## 5. Then start with Module 1 {#start}
+
+Day 1 opens at 09:00 with a welcome and a setup check, then [Module 1 · {{< var modules.m01.title >}}](lectures/01-text-as-data.qmd). The [Day 1 page](day-1.qmd) lists the day's four modules, and the [schedule](schedule.qmd) has the times.

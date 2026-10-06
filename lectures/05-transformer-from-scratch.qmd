@@ -1,5 +1,14 @@
 ---
 title: "{{< var modules.m05.title >}}"
+live:
+  - {section: 1, minutes: 5}
+  - {section: 2, minutes: 9, activities: [{block: demo-scaling, minutes: 4}, {block: chk-scaling, minutes: 2}]}
+  - {section: 3, minutes: 5, activities: [{block: chk-mask, minutes: 2}]}
+  - {section: 4, minutes: 6}
+  - {section: 5, minutes: 5}
+  - {section: 6, minutes: 7, activities: [{block: chk-layernorm, minutes: 2}]}
+  - {section: 7, minutes: 4}
+  - {section: 8, minutes: 4}
 ---
 
 {{< include /_includes/module-05.md >}}
@@ -8,21 +17,9 @@ title: "{{< var modules.m05.title >}}"
 **Where we are.** Day 1 ended with attention connecting any two positions in a single step, but attached to two recurrent networks that still read tokens one after another and still pass gradients along long chains. This module asks one question: if a sequence attends to itself and the recurrence is removed, what has to be added back (a mask, a sense of order, depth) to get a language model that trains in parallel?
 :::
 
-## Timing
+## Live plan
 
-| Section | Minutes |
-|---|---|
-| 1. From attention over an encoder to self-attention | 5 |
-| 2. Scaled dot-product attention | 9 |
-| 3. The causal mask | 5 |
-| 4. Multi-head attention | 6 |
-| 5. Positional encodings | 5 |
-| 6. The transformer block | 7 |
-| 7. A decoder-only language model, and the other two variants | 4 |
-| 8. Cost and parallelism | 4 |
-| **Total** | **45** |
-
-The collapsed callouts are optional and sit outside the 45 minutes. Check-yourself questions and interactive demos are for self-study and sit outside the 45 minutes; an instructor may use one as a pause.
+{{< include /_includes/live-05.md >}}
 
 ## 1. From attention over an encoder to self-attention
 
@@ -200,7 +197,7 @@ viewof draw = Inputs.range([1, 20], {value: 1, step: 1, label: "Random draw"})
 Without the scaling, the spread of the scores grows as $\sqrt{d_k}$ (@eq-variance), and the row collapses onto a single position as $d_k$ grows: by $d_k = 256$ the largest weight is close to 1 on most draws. With the scaling the scores have a spread of about 1 at every $d_k$, and the row keeps the same moderate shape. The vectors here are random, so this is a picture of the first training step only. It says nothing about what a trained model's attention looks like.
 :::
 
-::: {.self-check}
+::: {#chk-scaling .self-check}
 **Check yourself.** A colleague misremembers the formula and divides the scores by $d_k$ instead of $\sqrt{d_k}$. Under the assumptions of the derivation, what is the standard deviation of the scores at $d_k = 64$? What does a row of $A$ look like at initialization, and is that a problem?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -240,7 +237,7 @@ The property is testable, and the test is the most useful one in the lab: **chan
 **In the lab.** In **Exercise 2** you build the mask of @eq-mask and pass it to your attention function. The checkpoint is the leak test: weights above the diagonal are exactly zero, and changing a later token leaves all earlier outputs unchanged. The same test is then run on the logits of the whole model twice: on the untrained model at the end of Exercise 3, as soon as the model is complete, and on the trained model after training (Checkpoint 4b). Both run in evaluation mode, with dropout off. In the measured run the logits before the changed position moved by exactly 0.0 both times.
 :::
 
-::: {.self-check}
+::: {#chk-mask .self-check}
 **Check yourself.** Row $t = 2$ of the scaled scores for a four-token sequence is $(1, 1, 5, 3)$. What is row 2 of $A$ under @eq-mask? Now a buggy implementation applies the softmax to all four scores *first* and then sets the weights of positions 3 and 4 to zero, without renormalizing. What does it return, and does it leak the future?
 
 ::: {.callout-tip collapse="true" title="Answer"}
@@ -408,7 +405,7 @@ The difference is what lies on the residual path. In post-norm every block passe
 **In the lab.** The block (@eq-block), with @eq-ffn and @eq-ln inside it, is provided in the core path; you read it and find your attention function in it. Writing the full block yourself is the **stretch** section.
 :::
 
-::: {.self-check}
+::: {#chk-layernorm .self-check}
 **Check yourself.** Let $h = (1, 2, 3, 6)$, with $\gamma$ all ones, $\beta$ all zeros and $\epsilon$ negligible. Compute $\mathrm{LN}(h)$ from @eq-ln. Without further arithmetic, what is $\mathrm{LN}(10h + 5)$? What does that mean for a sublayer in a pre-norm block when the residual stream grows from layer to layer?
 
 ::: {.callout-tip collapse="true" title="Answer"}

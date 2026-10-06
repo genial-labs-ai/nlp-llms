@@ -21,5 +21,5 @@ By the end of this module you can:
 
 - Explain subword tokenization and the masked and causal pretraining objectives
 - Load, inspect and run pretrained models with Hugging Face
-- Fine-tune an encoder for classification
+- Configure a supplied fine-tuning run for an encoder classifier and evaluate it against Labs 1 and 2
 :::

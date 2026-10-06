@@ -17,7 +17,7 @@ From the Academic Director to the **Agentic Systems Engineer**, owner of Lab 15 
 
 ## The lab in one paragraph
 
-The capstone is not a 50-minute lab. It fills the Day 4 afternoon: 85 minutes of building and 20 minutes of final evaluation, in pairs. The starter notebook gives every pair the same working research assistant over *Workshop Lectures v1*. A plan node asks a decision model whether the question needs two searches. A retrieve node uses Lab 13's retriever. An answer node uses Lab 13's cited-answer prompt through Lab 8's `PROVIDER` switch. A verify node asks the decision model whether every claim is supported, then delivers the answer, retrieves again with twice as many chunks, or abstains. The notebook also gives a fixed, human-written evaluation set and a fixed scoring cell. Pairs run a system self-test, write one function (`after_verify`), and run the baseline on `dev` and on `test`. They then fill in a hypothesis card and change one component from a menu, iterating on `dev`. At the end they run `test` once more on the frozen system and submit one JSON file with a printed share card. The scoring reports accuracy against key facts, abstention on answerable and on unanswerable questions, the unsupported-answer rate by a fixed reference judge, cost per question and latency. It also gives a capstone cost (@eq-cap-cost) and a paired sign test against the baseline. Checkpoints test code on scripted inputs, so they give the same verdict on every path. No model metric is asserted.
+The capstone is not a 50-minute lab. On the five-day schedule it fills Day 5 after Module 14: 240 minutes in pairs across two module slots, with the wrap-up running into the closing slot (lecture 15 has the timetable). This brief was written for the Day 4 afternoon of the four-day plan (85 minutes of building and 20 of final evaluation); the minute figures below are from that plan. The starter notebook gives every pair the same working research assistant over *Workshop Lectures v1*. A plan node asks a decision model whether the question needs two searches. A retrieve node uses Lab 13's retriever. An answer node uses Lab 13's cited-answer prompt through Lab 8's `PROVIDER` switch. A verify node asks the decision model whether every claim is supported, then delivers the answer, retrieves again with twice as many chunks, or abstains. The notebook also gives a fixed, human-written evaluation set and a fixed scoring cell. Pairs run a system self-test, write one function (`after_verify`), and run the baseline on `dev` and on `test`. They then fill in a hypothesis card and change one component from a menu, iterating on `dev`. At the end they run `test` once more on the frozen system and submit one JSON file with a printed share card. The scoring reports accuracy against key facts, abstention on answerable and on unanswerable questions, the unsupported-answer rate by a fixed reference judge, cost per question and latency. It also gives a capstone cost (@eq-cap-cost) and a paired sign test against the baseline. Checkpoints test code on scripted inputs, so they give the same verdict on every path. No model metric is asserted.
 
 ## Decision: the fixed evaluation set
 
@@ -99,7 +99,7 @@ The notebook checks every hash at load and refuses to score against a file that 
 3. **No-key banner** above the first results: "No TypeSafe key: the planner's and verifier's probabilities come from a small open language model scored by the probability of ' yes'. They measure that model, not Jev. Do not quote them as Jev's."
 4. **Offline banner** (Lab 8's): "These numbers measure the notebook's code, not any model. Do not quote them." The submission's `path_class` is `stub`, and the collector does not rank it.
 5. **The share card** prints the four backend labels above the numbers.
-6. **The closing cell** ("What this afternoon showed and what it did not", below) is part of the core path.
+6. **The closing cell** ("What this capstone showed and what it did not", below) is part of the core path.
 
 ## Constraints that shape the lab
 
@@ -263,7 +263,7 @@ The path class is chosen once in setup, printed, and written into every record a
 | `open-*` | the same | every metric, labeled `(not Jev)` for the decider |
 | `stub` (CI) | the same; after the recorded run, the stub baseline's `cost_bar`, `acc`, `abs_U`, `abs_A`, `uns` on `dev` and `test` against `lab15.baseline.stub` to 1e-9 (deterministic) | the same under the offline banner |
 
-## Closing cell: "What this afternoon showed and what it did not"
+## Closing cell: "What this capstone showed and what it did not"
 
 - Your change was measured against your own baseline on 80 `test` questions about one workshop's pages, by one fixed judge that has (or has not) been compared with people. Say which.
 - With $g + l$ changed questions and the printed $p$, say whether the change was shown, and compare $g + l$ with the flip count.

@@ -2,7 +2,7 @@
 
 From the Academic Director to the two owners of Lab 12 (`AGENTS.md`, "Who owns what"): the **Neural Lab Engineer** builds Exercise 1 (the toy calibration-reward model and its training code) and the `featurize` / `ToyDecider` / `LocalDecider` cell; the **Agentic Systems Engineer** builds Exercises 2 to 4, the keyed Jev path and the stretch. Lecture: `lectures/12-rlcd-jev.qmd` (same symbols and equation names: `rlhf-recall`, `outcome-objective`, `acc-reward`, `acc-optimum`, `brier-reward`, `chosen-prob`, `adapter-conf`, `three-costs`, `three-thresholds`, `three-empirical`). Lab standards: `PLAN.md` section 5. Verified Jev API surface: `briefs/jev-verification.md` (cited below as JV §n). Decision set and Lab 11 machinery: `briefs/11-calibration.md`. This file is not rendered by Quarto.
 
-**Objectives exercised** (from `_variables.yml`, `m12`): state how RLCD's objective differs from RLHF's, and what is and is not public about it; call Jev for typed decisions; use its confidence to set action thresholds. The third objective is met with **probabilities, not the `confidence` field** (lecture section 6); a wording change is proposed at the end.
+**Objectives exercised** (from `_variables.yml`, `m12`): state how RLCD's objective differs from RLHF's, and what is and is not public about it; call Jev for typed decisions; use its confidence to set action thresholds. The third objective is met with **probabilities, not the `confidence` field** (lecture section 8); a wording change is proposed at the end.
 
 **Every time, size and cost below is an estimate or a target, not a measurement,** unless marked *checked*. *Checked* means I ran it on 2026-10-05 in the build container (CPU, Python 3.12, `torch` 2.14.1, scikit-learn 1.9.1, NumPy 2.5.3, and `typesafe-sdk` 0.7.2 loaded from the local package cache), not on Colab. No live Jev call has been made by anyone on the build: there is no key.
 
@@ -16,10 +16,10 @@ Participants first train a small decision model on the decision set's training s
 
 1. **A banner cell opens Exercise 1**, verbatim in substance: "This exercise is our illustration of what a calibration-targeted reward can do, built on the proper scoring rules of Module 11. TypeSafe has not published how RLCD works. The only statement about training we found in a TypeSafe source is: 'System One models are trained for calibrated decisions; validate their performance in the target domain' (`typesafe-ai/skills`, `SKILL.md`). Nothing in this exercise is evidence about how Jev was trained."
 2. **Every plot title, table header and printed row** produced by the toy model says `toy model (our illustration)`. Every row produced by `LocalDecider` says `local toy decider (not Jev)`. The string `Jev` appears in a result label only when `JEV_PATH == "keyed"` and the row came from `TypeSafeClient`.
-3. **No sentence in the notebook describes RLCD's reward, data or algorithm.** The notebook may repeat the lecture's three-column summary (TypeSafe-stated / third-party / ours) by linking to lecture section 2; it must not restate third-party claims as facts.
+3. **No sentence in the notebook describes RLCD's reward, data or algorithm.** The notebook may repeat the lecture's three-column summary (TypeSafe-stated / third-party / ours) by linking to lecture section 5; it must not restate third-party claims as facts.
 4. **On the no-key path**, a banner above Exercise 2's results: "No TypeSafe key: the answers below come from the workshop's toy model wrapped to look like Jev's API. They measure our toy model, not Jev. Do not quote them as Jev's."
 5. **The closing cell** ("What this lab showed and what it did not", below) is part of the core path, not optional.
-6. **Damani et al.'s RLCR** may be mentioned (lecture section 3, optional callout) only as published work by other authors, with the sentence "RLCR is not RLCD".
+6. **Damani et al.'s RLCR** may be mentioned (lecture section 2, optional callout) only as published work by other authors, with the sentence "RLCR is not RLCD".
 
 ## Constraints that shape the lab
 
@@ -65,7 +65,7 @@ else:
 
 *Stand-in measurements, made before the decision set existed. The decision-set results that replace them in the lecture are under "As built".*
 
-The contrast the lecture promises (lecture section 3) shows cleanly **only for a low-capacity model** trained on many more items than it has parameters. *Checked* on two stand-ins:
+The contrast the lecture promises (lecture section 2) shows cleanly **only for a low-capacity model** trained on many more items than it has parameters. *Checked* on two stand-ins:
 
 - **Synthetic, 2 and 5 options, 2,000 train / 2,000 test items, 8 features, labels the features cannot fully determine** (`torch` linear softmax, Adam, lr 0.05, full batch, no weight penalty, seeds 0 and 1). After 3,000 steps: test accuracy within 0.011 between the two rewards; accuracy-reward model mean probability 0.968–0.986, ECE 0.176–0.299, weight norm still growing (6.5 → 11.3 → 22.8 at 300 / 1,000 / 3,000 steps for one run); Brier-reward model converged by 300 steps, ECE 0.012–0.032. Temperature fitted on 100 held-out items: τ* = 9.9–15.9 for the accuracy-reward model, after which its ECE is 0.020–0.052 and its Brier score 0.261–0.442 against the Brier-reward model's 0.256–0.423.
 - **arXiv Topics, 4,096 hashed uni- and bigram features, 2,000 training papers.** The comparison flipped with the learning rate, step count and weight penalty (for example ECE 0.111 accuracy vs 0.044 Brier at lr 0.02 / 1,000 steps, but 0.130 vs 0.182 at lr 0.005 / 200 steps). Overfitting dominated. **Do not use a high-dimensional bag-of-words model.**
@@ -263,7 +263,7 @@ Exercise 1's qualitative claims (the accuracy-reward model's weight norm keeps g
 
 ## Proposed changes (not made; for Romeo or the Architect)
 
-- **`_variables.yml` `modules.m12.objectives[2]`:** "Use its confidence to set action thresholds" → "Turn its probabilities into act, ask and escalate thresholds from stated costs". Reason: lecture section 6; the `confidence` field must not be used for thresholds.
+- **`_variables.yml` `modules.m12.objectives[2]`:** "Use its confidence to set action thresholds" → "Turn its probabilities into act, ask and escalate thresholds from stated costs". Reason: lecture section 8; the `confidence` field must not be used for thresholds.
 - **`_variables.yml` `datasets`, new entry `lab11_reference`** for `data/lab11_reference_decisions_v1.jsonl.gz` (modules `[11, 12]`, hash and size on recording, `license: "CC0 1.0"`, plus `model` and `recorded` date fields).
 - **`data/baselines.json`:** `lab12.toy.{accuracy,brier}.{dev,test}` (accuracy, mean $\hat{p}$, ECE, Brier, τ*) and `lab12.local_thresholds` after the recorded run.
 - **Lab 11 (brief and notebook):** an export cell writing `lab11_decisions_<provider>.jsonl` with the fields of constraint (b); and `ROUTE_DESCRIPTIONS` defined once in Lab 11's prompt so Lab 12 can restate it verbatim.
@@ -311,7 +311,7 @@ What this changes in the brief and the lecture:
 - **Temperature scaling closes the gap.** After one temperature per head on `dev`, the accuracy-rewarded model is no worse than the Brier one on `test` (differences below the noise floor of about 0.06). The lecture's former "its Brier score stayed slightly worse" (a stand-in result) is dropped.
 - **Feature set:** the Brier model's `test` accuracy is 0.740 (policy) and 0.633 (route), inside the 0.60–0.90 design range; no adjustment was needed.
 
-**Local thresholds (`lab12.local_thresholds`; local toy decider, not Jev).** Costs `wrong=20, ask=0.5, miss=4, esc=3`. Analytic pair $(0.375, 0.969)$; `dev`-chosen pair $(0, 0.9999993)$, printed as $(0.000, 1.000)$. The chosen $\tau_{\text{act}}$ is the 11th-largest `dev` probability (float32 softmax saturates: five `dev` answers have $\hat{p} = 1.0$), so the rule acts on the 11 most confident `dev` answers (all right), asks about the other 89 and never escalates. On `test` it asks about 88% and acts on 12% (36 items, 2 of them wrong), at 1.800 per case, against 1.753 ask-all, 3.0 escalate-all, 6.267 act-all, 5.517 Chow and 4.302 at the analytic pair (which acts on 56%). Reason: no top slice of `dev` larger than those 11 is right 96.9% of the time (the 54 answers with $\hat{p} \ge 0.969$ are right 74% of the time), and no bottom slice is mostly wrong (the five least confident are right 60% of the time; no $\hat{p}$ is below 0.375). The lecture's section 8 now states and explains this result.
+**Local thresholds (`lab12.local_thresholds`; local toy decider, not Jev).** Costs `wrong=20, ask=0.5, miss=4, esc=3`. Analytic pair $(0.375, 0.969)$; `dev`-chosen pair $(0, 0.9999993)$, printed as $(0.000, 1.000)$. The chosen $\tau_{\text{act}}$ is the 11th-largest `dev` probability (float32 softmax saturates: five `dev` answers have $\hat{p} = 1.0$), so the rule acts on the 11 most confident `dev` answers (all right), asks about the other 89 and never escalates. On `test` it asks about 88% and acts on 12% (36 items, 2 of them wrong), at 1.800 per case, against 1.753 ask-all, 3.0 escalate-all, 6.267 act-all, 5.517 Chow and 4.302 at the analytic pair (which acts on 56%). Reason: no top slice of `dev` larger than those 11 is right 96.9% of the time (the 54 answers with $\hat{p} \ge 0.969$ are right 74% of the time), and no bottom slice is mostly wrong (the five least confident are right 60% of the time; no $\hat{p}$ is below 0.375). The lecture's section 3 now states and explains this result.
 
 **Deviations from this brief, accepted:**
 
