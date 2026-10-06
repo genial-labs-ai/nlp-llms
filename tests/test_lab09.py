@@ -122,7 +122,6 @@ class CommittedFiles(unittest.TestCase):
         )
 
 
-@unittest.skipUnless(importlib.util.find_spec("torch"), "torch is not installed")
 def literal_assignments(source: str, names: set[str]) -> dict:
     """{name: value} for every `name = <literal>` in source, at any depth."""
     import ast
@@ -154,17 +153,21 @@ class Frames(unittest.TestCase):
         self.assertEqual(built["SUBJECTS"], prompts["subjects"])
         self.assertEqual(built["FRAMES"], prompts["frames"])
         for slug in ("09-preference-learning", "10-rlhf"):
-            found = {}
+            stand_ins = []  # the cells that define both, which is the stand-in builder
             for cell in notebook_cells(slug):
                 try:
-                    found.update(literal_assignments(cell, {"subjects", "frames"}))
+                    found = literal_assignments(cell, {"subjects", "frames"})
                 except SyntaxError:  # a cell with a Colab shell command
                     continue
+                if {"subjects", "frames"} <= set(found):
+                    stand_ins.append(found)
             with self.subTest(slug):
-                self.assertEqual(found.get("subjects"), prompts["subjects"])
-                self.assertEqual(found.get("frames"), prompts["frames"])
+                self.assertEqual(len(stand_ins), 1)
+                self.assertEqual(stand_ins[0]["subjects"], prompts["subjects"])
+                self.assertEqual(stand_ins[0]["frames"], prompts["frames"])
 
 
+@unittest.skipUnless(importlib.util.find_spec("torch"), "torch is not installed")
 class OfflineBuild(unittest.TestCase):
     def run_build(self, *args):
         return subprocess.run(

@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "source": "test_notebooks",
+  "env": "mac-m1pro",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit, Python 3.12.13",
+  "path": "open",
+  "mode": "worked",
+  "settings": {},
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "notebook": "09-preference-learning",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 91.9,
+      "content_sha": "3dd0935018929360",
+      "phases": {
+        "generated": 0.0,
+        "setup": 2.7,
+        "other": 86.3,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.1
+      }
+    },
+    {
+      "notebook": "11-calibration",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 325.2,
+      "content_sha": "f985a0b1a294cad5",
+      "phases": {
+        "generated": 0.1,
+        "setup": 6.1,
+        "other": 315.2,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 0.2
+      }
+    }
+  ]
+}
