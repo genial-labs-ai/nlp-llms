@@ -43,6 +43,7 @@ from pathlib import Path
 import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import live_plan  # noqa: E402
 import readiness  # noqa: E402
 import run_records  # noqa: E402
 
@@ -799,6 +800,9 @@ def main() -> None:
         write(INCLUDES / f"day-{d['n']}.md", day_cards(v, d))
     for key, m in modules_in_order(v):
         write(INCLUDES / f"module-{m['n']:02d}.md", module_block(v, key, m))
+        if live_plan.read(m["slug"])["front"].get("live"):
+            write(INCLUDES / f"live-{m['n']:02d}.md", live_plan.table(m["slug"]))
+            write(INCLUDES / f"pace-{m['n']:02d}.md", live_plan.pace_rows(m["slug"]))
     write(INCLUDES / "notebooks.md", notebooks_index(v))
     records = run_records.load_valid(set(v["readiness"]["envs"]))
     report = readiness.build(v, records)

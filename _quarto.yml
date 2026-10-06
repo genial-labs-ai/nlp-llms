@@ -127,3 +127,5 @@ format:
     filters:
       - at: pre-ast
         path: filters/pedagogy.lua
+      - at: pre-ast
+        path: filters/live.lua
