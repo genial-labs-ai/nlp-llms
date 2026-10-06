@@ -280,5 +280,30 @@ class Honesty(unittest.TestCase):
         self.assertNotIn("guard_check(", body)
 
 
+class Stretch(unittest.TestCase):
+    """The one stretch section comes after the core path and has four parts, each a TODO stub
+    followed by its folded solution (lecture 14, sections 3, 7 and 9)."""
+
+    def test_stretch_follows_the_core_path(self):
+        self.assertLess(
+            TEXT.index("This is the end of the core path."),
+            TEXT.index("## Stretch (optional) · Designing the harness"),
+        )
+        self.assertEqual(len(re.findall(r"^## Stretch", TEXT, flags=re.MULTILINE)), 1)
+
+    def test_each_part_has_a_folded_solution(self):
+        for n in (6, 7, 8, 9):
+            with self.subTest(todo=n):
+                i = next(j for j, c in enumerate(LAB14) if c.startswith(f"# TODO {n} (stretch)"))
+                self.assertTrue(LAB14[i + 1].startswith(f"#@title Solution {n} "))
+        for part in ("A", "B", "C", "D"):
+            with self.subTest(part=part):
+                self.assertIn(f"# Checkpoint (stretch {part})", CODE)
+
+    def test_subagent_isolation_is_checked(self):
+        """The checkpoint tests behavior: what the scripted model was actually sent first."""
+        self.assertIn('assert _fake.requests[0] == [{"role": "user", "content": _task}]', CODE)
+
+
 if __name__ == "__main__":
     unittest.main()
