@@ -18,6 +18,7 @@ The datasets of the workshop's running thread, and the fallback copies that note
 | Labeled decisions | 11, 12, 14 | **Workshop Desk Decisions v1**: 2,400 typed decisions under a written policy, built for this workshop | CC0 1.0 | Template items built, copy committed (`decisions_v1.jsonl.gz`). **Status `v1-template-only`**: the 80 hand-written items and the template audit need two people |
 | RAG documents | 13, 14, 15 | **Workshop Lectures v1**: lecture pages 1–12 and the reading list as plain text, frozen at one commit | CC BY 4.0 (ours) | Built, copy committed (`workshop_lectures_v1.jsonl.gz`). Rebuilt 2026-10-05 from the commit that completed `references.qmd`. **Status `provisional`**: lecture 12 and possibly lectures 6–11 will still change; freeze them, rebuild if needed, and set `final` before any question is written |
 | RAG questions | 13, 15 | **Workshop RAG Questions v1**: 80 questions with evidence spans, written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people. Validator, tools and instructions committed |
+| Capstone questions | 15 | **Workshop Capstone Questions v1**: Lab 13's 80 questions by ID plus 45 new ones (27 unanswerable, at least 13 of them memory bait; 18 `reading`), written and checked by people | CC BY 4.0 (proposed) | **Not written yet**: needs two people, after Lab 13's set. Instructions, validator and manifest builder ready |
 | Protein structure | 0 | **Ubiquitin, PDB 1UBQ**: 76 residues, 602 heavy atoms | CC0 1.0 (PDB data; license page read only through a search extract) | Fixed. Copy committed (`1ubq.pdb`) from a pinned mirror; RCSB stays canonical |
 | Customer purchases | 0 | **Workshop Purchases v1**: 48,953 synthetic invoice lines from 3,000 customers, built for this workshop | CC BY 4.0 (ours) | Fixed. Copy committed (`purchases_v1.csv.gz`). UCI Online Retail II is an optional real-data alternative, not committed |
 
@@ -394,6 +395,21 @@ def load_lectures():
 **Until the file exists**, `tests/test_rag_questions.py` runs its schema, quote and overlap checks on `tests/fixtures/rag_questions_fixture.json`: six items **written by an AI agent for exercising code, not an evaluation set; no number from it is quoted anywhere.** Lab 13 never loads it: without the real file, the notebook says so and runs its evaluation code on *plumbing probes* (sentences copied from the snapshot, each its own evidence), labelled as measuring nothing about retrieval.
 
 **When it lands:** commit the file, add `datasets.rag_questions` to `_variables.yml` (`name`, `modules: [13, 15]`, `file`, `urls`, `sha256`, `bytes`, `license`, `license_url`, `splits: {dev: 30, test: 50}`, `corpus_sha256` equal to the lectures hash), set the hash in the `DATASETS["rag_questions"]` entry of `notebooks/13-rag.ipynb`, and report here: items written, dropped, alternatives added, and the evidence agreement rate before resolution (`python data/rag_questions_tools.py agreement ...`).
+
+## Workshop Capstone Questions v1 (Module 15)
+
+**Not written yet.** `data/capstone_questions_v1.jsonl` holds the capstone's 45 new questions; with Lab 13's 80, reused by ID, they make the capstone's 125. They are written and blind-checked by people, after Lab 13's set and against the same frozen snapshot. **No language model writes, proposes, filters or labels any item**, including checking whether a model "knows" a memory-bait fact. Specification: `briefs/15-capstone.md`, "Decision: the fixed evaluation set".
+
+| | |
+|---|---|
+| Size | 45 new questions: `dev` 15 (9 unanswerable, 6 `reading`), `test` 30 (18 and 12) |
+| Memory bait | at least 13 of the 27 unanswerable items: a fact stated in a reading-list paper (`outside_source`) that the snapshot never states (`absent_terms`, checked absent mechanically) |
+| Correctness | `key_facts` on every `reading` item |
+| Instructions | [`capstone_questions_TEMPLATE.md`](capstone_questions_TEMPLATE.md): schema, write, blind check, resolve (both agreement rates from `rag_questions_tools.py agreement`), validate, manifest |
+| Validator | `tests/test_capstone_questions.py`; the manifest builder is [`build_capstone_eval.py`](build_capstone_eval.py) |
+| Status | 0 of 45 written. Agreement before resolution: not measured |
+
+**Until the file exists**, the validator runs its schema and absence checks on `tests/fixtures/capstone_questions_fixture.json`, written by an AI agent for exercising code, not an evaluation set; no number from it is quoted anywhere. Lab 15 scores *plumbing probes* without the real files and labels them so. The readiness item `capstone-questions` closes when the file exists; the release check (`scripts/release_check.py`) lists it until then.
 
 ## Module 0 sets: ubiquitin and purchases
 

@@ -235,6 +235,23 @@ def agreement(author: list[dict], checker: list[dict]) -> tuple[int, int]:
     return agree, n
 
 
+NOT_FOUND = "not in the corpus"
+
+
+def unanswerable_agreement(author: list[dict], checker: list[dict]) -> tuple[int, int]:
+    """(agreeing, unanswerable): the checker agrees with an unanswerable item when they also
+    found nothing: no evidence, and the answer "not in the corpus" (step 3 of the protocol)."""
+    sheet = {c["id"]: c for c in checker}
+    agree = n = 0
+    for it in author:
+        if it["kind"] != "unanswerable":
+            continue
+        n += 1
+        c = sheet.get(it["id"], {})
+        agree += not c.get("evidence") and c.get("answer", "").strip().lower() == NOT_FOUND
+    return agree, n
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -267,9 +284,15 @@ def main() -> int:
         )
         print(f"wrote {len(sheet)} questions to {args.dst} (no evidence, answers or kinds)")
         return 0
-    agree, n = agreement(load_items(args.author), load_items(args.checker))
+    author, checker = load_items(args.author), load_items(args.checker)
+    agree, n = agreement(author, checker)
     print(
         f"evidence agreement before resolution: {agree} of {n} answerable items "
+        f"({agree / max(n, 1):.1%})"
+    )
+    agree, n = unanswerable_agreement(author, checker)
+    print(
+        f"the checker also found nothing: {agree} of {n} unanswerable items "
         f"({agree / max(n, 1):.1%})"
     )
     return 0
