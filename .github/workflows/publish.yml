@@ -145,6 +145,8 @@ jobs:
   # hold up the deploy, which needs only the render job.
   browser:
     needs: render
+    # Not in the Genial Labs mirror: the same pages passed here.
+    if: github.repository != 'genial-labs-ai/nlp-llms'
     runs-on: ubuntu-latest
     # About 3 minutes when the CDNs answer; a hanging one makes every demo wait.
     timeout-minutes: 20

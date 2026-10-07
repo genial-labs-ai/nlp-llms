@@ -10,11 +10,16 @@
 # GitHub disables a scheduled workflow after 60 days without a push to the repository;
 # the mirror's pushes are the canonical repository's commits, so a quiet two months
 # stops the schedule. Run it by hand (Actions > Mirror > Run workflow) to re-enable it.
+# A manual run always redeploys, so it also repairs a deploy that failed.
+#
+# The schedule fires in the canonical repository too, where the job is skipped; every
+# four hours keeps that noise in its Actions list small. A pull request there can run
+# the mirror by hand after a merge that must appear at once.
 name: Mirror
 
 on:
   schedule:
-    - cron: "17 * * * *" # hourly
+    - cron: "17 */4 * * *"
   workflow_dispatch:
 
 permissions:
@@ -41,10 +46,11 @@ jobs:
         run: |
           git fetch https://github.com/project-delphi/nlp-llms.git main
           before=$(git rev-parse HEAD)
-          if ! git merge --ff-only FETCH_HEAD; then
-            echo "::error::main has diverged from project-delphi/nlp-llms; reset it by hand"
+          if ! git merge-base --is-ancestor HEAD FETCH_HEAD; then
+            echo "::error::main has commits that project-delphi/nlp-llms does not; reset it to the canonical main by hand"
             exit 1
           fi
+          git merge --ff-only FETCH_HEAD
           after=$(git rev-parse HEAD)
           echo "before=$before after=$after"
           if [ "$before" != "$after" ]; then
@@ -52,8 +58,9 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      # On a schedule, only when main moved; by hand, always (a redeploy after a failure).
       - name: Deploy the new revision
-        if: steps.sync.outputs.changed == 'true'
+        if: steps.sync.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run publish.yml --ref main
