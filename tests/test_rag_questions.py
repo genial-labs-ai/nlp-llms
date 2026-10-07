@@ -110,7 +110,8 @@ class CleaningRules(unittest.TestCase):
         "## 2. A reference section {.reference}\n\n**Objective for this section:** read it.\n\n"
         "```{ojs}\nplain_demo = 1\n```\n\n"
         "```{ojs echo=false}\noption_demo = 2\n```\n\n"
-        "```python\nkept_code = 3\n```\n\n"
+        "```python\nkept_code = 3\n# shape {B, T, d}\n```\n\n"
+        "### 2.1 A subsection {#sec-sub}\n\nSubsection text.\n\n"
         "## Live plan\n\na timetable at the end\n"
     )
 
@@ -129,12 +130,26 @@ class CleaningRules(unittest.TestCase):
         self.assertNotIn("plain_demo", self.text)
         self.assertNotIn("option_demo", self.text)
         self.assertIn("kept_code = 3", self.text)
+        self.assertIn("# shape {B, T, d}", self.text)  # a comment in code is not a heading
+
+    def test_subheadings_lose_attributes_too(self):
+        self.assertIn("### 2.1 A subsection\n\nSubsection text.", self.text)
 
     def test_the_snapshot_has_no_glued_headings(self):
-        for line in "\n".join(CORPUS.values()).split("\n## ")[1:]:
-            heading, _, rest = line.partition("\n")
-            with self.subTest(heading[:40]):
-                self.assertTrue(rest == "" or rest.startswith("\n"), heading)
+        """Every heading, at any level and outside fenced code, is followed by a blank line."""
+        for slug, text in CORPUS.items():
+            lines, fence = text.split("\n"), None
+            for i, line in enumerate(lines[:-1]):
+                opened = re.match(r"(`{3,}|~{3,})", line)
+                if fence:
+                    if opened and opened.group(1)[0] == fence[0]:
+                        fence = None
+                    continue
+                if opened:
+                    fence = opened.group(1)
+                elif re.match(r"#{1,6} ", line):
+                    with self.subTest(slug=slug, heading=line[:40]):
+                        self.assertEqual(lines[i + 1], "", line)
 
 
 class OverlapFlag(unittest.TestCase):

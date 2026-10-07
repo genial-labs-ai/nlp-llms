@@ -259,6 +259,22 @@ class EvidenceRules(unittest.TestCase):
         e = self.ev(record(source="backfill", content_sha=None))
         self.assertIsNotNone(e["other"])
 
+    def test_a_run_of_the_current_code_beats_a_same_day_backfill(self):
+        # A backfill names no code, so it cannot be stale; on the same date it must not hide
+        # a tool-made run of the current code, whatever the file names sort to.
+        tool = record(
+            env="mac-m1pro", source="test_notebooks", seconds=233, file="2026-10-06-a.json"
+        )
+        backfill = record(
+            env="mac-m1pro",
+            source="backfill",
+            content_sha=None,
+            seconds=263,
+            file="2026-10-06-z-backfill.json",
+        )
+        self.assertEqual(self.ev(tool, backfill)["other"]["seconds"], 233)
+        self.assertEqual(self.ev(backfill, tool)["other"]["seconds"], 233)
+
     def test_a_same_day_failure_beats_a_pass(self):
         e = self.ev(record(status="fail", index=0), record(status="pass", index=1))
         self.assertEqual(e["teaching"]["status"], "fail")

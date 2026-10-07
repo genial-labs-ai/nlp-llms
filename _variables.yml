@@ -147,9 +147,9 @@ datasets:
     splits: {train: 2000, dev: 100, test: 300}
   # Built by data/build_lectures_corpus.py from lectures 01-12 and references.qmd at
   # `source_commit` (spec: briefs/13-rag.md, decision (a)). references.qmd is complete
-  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12 has a
-  # TODO to quote TypeSafe's documentation and lectures 6-11 may change after their
-  # Colab T4 runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
+  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12's
+  # quotations of TypeSafe's documentation await sign-off and lectures may still change
+  # after their Colab T4 runs and spoken dry runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
   # sha256, bytes, source_commit, characters) if any page changed; questions come after.
   # tests/test_rag_questions.py fails if data/rag_questions_v1.jsonl exists while
   # this status is provisional, and on any evidence quote a rebuild breaks.

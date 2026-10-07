@@ -92,8 +92,9 @@ def _quick(r: dict) -> bool:
 
 def _newest(records: list[dict]) -> dict | None:
     """The most telling record. A record of the current code always wins over a stale one,
-    which says nothing about the current code; then the most recent; on the same date a
-    failure over a pass, then the whole notebook over a part, then full settings over
+    which says nothing about the current code; then a tool-made record, which names the code
+    it ran (content_sha), over a backfill, which cannot; then the most recent; on the same
+    date a failure over a pass, then the whole notebook over a part, then full settings over
     QUICK, then the later entry of a batch: a same-day pass never hides a same-day failure."""
     if not records:
         return None
@@ -101,6 +102,7 @@ def _newest(records: list[dict]) -> dict | None:
         records,
         key=lambda r: (
             not r.get("stale"),
+            bool(r.get("content_sha")),
             r["date"],
             r["status"] == "fail",
             r["scope"] == "notebook",
