@@ -8,6 +8,7 @@ Outputs (all overwritten on every run, never edited by hand):
   _includes/module-shape.md  one paragraph: how long a module is on each clock
   _includes/welcome-days.md  the welcome deck's five-days slide
   _includes/welcome-clocks.md  the welcome deck's timetable slide: one column per clock
+  _includes/welcome-data.md  the welcome deck's datasets slide
   _includes/day-N.md         the module cards for one day
   _includes/module-NN.md     the header block of one lecture page
   _includes/notebooks.md     the notebook index with Colab links
@@ -499,6 +500,31 @@ def welcome_days(v: dict) -> str:
     return "\n".join(rows)
 
 
+def modules_text(numbers: list[int]) -> str:
+    """'Modules 1, 2, 6 and 11'; a single module reads 'Module 7'."""
+    if len(numbers) == 1:
+        return f"Module {numbers[0]}"
+    return "Modules " + ", ".join(str(n) for n in numbers[:-1]) + f" and {numbers[-1]}"
+
+
+def welcome_data(v: dict) -> str:
+    """The welcome deck's datasets slide: the data that comes back all week. A dataset
+    used in two or more modules, in order of first use; pre-work data and the artifacts
+    one lab builds for the next (keys labNN_*) are left out."""
+    used = [
+        d
+        for key, d in v["datasets"].items()
+        if isinstance(d, dict)
+        and len(d.get("modules", [])) > 1
+        and min(d["modules"]) > 0
+        and not key.startswith("lab")
+    ]
+    rows = ["| Data | Used in |", "|---|---|"]
+    for d in sorted(used, key=lambda d: d["modules"][0]):
+        rows.append(f"| {d['name']} | {modules_text(sorted(d['modules']))} |")
+    return "\n".join(rows)
+
+
 def shared_label(pairs: list[tuple[dict, str]]) -> str:
     """One label for days that share a slot: the commonest, with the exceptions named."""
     counts = Counter(label for _, label in pairs)
@@ -962,6 +988,7 @@ def main() -> None:
     write(INCLUDES / "module-shape.md", module_shape(v))
     write(INCLUDES / "welcome-days.md", welcome_days(v))
     write(INCLUDES / "welcome-clocks.md", welcome_clocks(v))
+    write(INCLUDES / "welcome-data.md", welcome_data(v))
     for d in days_in_order(v):
         write(INCLUDES / f"day-{d['n']}.md", day_cards(v, d))
         write(INCLUDES / f"run-{d['n']}.md", run_sheet(v, d))

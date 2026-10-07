@@ -36,6 +36,7 @@ class Current(unittest.TestCase):
             "module-shape.md": g.module_shape(V),
             "welcome-days.md": g.welcome_days(V),
             "welcome-clocks.md": g.welcome_clocks(V),
+            "welcome-data.md": g.welcome_data(V),
             "notebooks.md": g.notebooks_index(V),
         }
         for d in g.days_in_order(V):

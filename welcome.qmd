@@ -1,10 +1,10 @@
 ---
 title: "{{< var workshop.title >}}"
 subtitle: "Welcome: the setup check and the week ahead"
-author: "{{< var workshop.org >}} · Day 1, 09:00"
-# The deck for the opening slot of Day 1 (facilitator-guide.md#day-1): five minutes of
-# lines, five of setup check. Days, modules, times and names come from _variables.yml
-# through var shortcodes and the generated includes; do not type them here.
+author: "{{< var workshop.org >}} · The Day 1 opening"
+# The deck for the opening slot of Day 1 (facilitator-guide.md#day-1 has the lines and
+# the minutes). Days, modules, times and names come from _variables.yml through var
+# shortcodes and the generated includes; do not type them here.
 format:
   revealjs:
     theme: [default, slides.scss]
@@ -88,12 +88,7 @@ Tell us the **provider** line it printed: `open`, a keyed provider, or an error.
 
 ## The same data all week
 
-| Data | Used in |
-|---|---|
-| {{< var datasets.topics.name >}}: short abstracts in four classes | the classifiers of Modules 1, 2, 6 and 11 |
-| {{< var datasets.lm.name >}}: character-level language modeling | the language models of Modules 1, 3 and 5 |
-| {{< var datasets.decisions.name >}}: a desk's act-or-escalate decisions | Modules 11, 12 and 14 |
-| {{< var datasets.lectures.name >}}: these lecture pages, as a corpus | retrieval in Modules 13 to 15 |
+{{< include /_includes/welcome-data.md >}}
 
 Lab 1 prints two numbers, an n-gram perplexity and a classifier accuracy. Every later module is measured against them.
 

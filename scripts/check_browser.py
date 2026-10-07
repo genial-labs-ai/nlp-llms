@@ -76,11 +76,13 @@ def theme_script(theme: str) -> str:
 
 
 def is_deck(path: Path) -> bool:
-    """A reveal.js slide deck rendered by Quarto, not a site page."""
-    return 'class="reveal"' in path.read_text(encoding="utf-8", errors="replace")
+    """A reveal.js slide deck rendered by Quarto, not a site page. The marker is in
+    the opening markup, so only the head of the file is read."""
+    with path.open("rb") as f:
+        return b'class="reveal"' in f.read(16_384)
 
 
-def check_deck(page: Page, url: str, theme: str) -> list[str]:
+def check_deck(page: Page, url: str) -> list[str]:
     """A slide deck loads without errors, has its slides and does not scroll sideways."""
     errors: list[str] = []
     page.on("pageerror", lambda e: errors.append(f"script error: {e}"))
@@ -227,9 +229,12 @@ def main() -> int:
         return 2
     # Library files (reveal.js ships a speaker view) are not pages. Slide decks
     # (welcome.qmd) have no navbar or theme toggle; check_deck covers them.
-    html = [p for p in DOCS.rglob("*.html") if "site_libs" not in p.relative_to(DOCS).parts]
-    every_page = sorted(str(p.relative_to(DOCS)) for p in html if not is_deck(p))
-    decks = sorted(str(p.relative_to(DOCS)) for p in html if is_deck(p))
+    every_page: list[str] = []
+    decks: list[str] = []
+    for p in sorted(DOCS.rglob("*.html")):
+        rel = p.relative_to(DOCS)
+        if "site_libs" not in rel.parts:
+            (decks if is_deck(p) else every_page).append(str(rel))
     server, base = serve(DOCS)
     failures = 0
     checked = 0
@@ -247,17 +252,21 @@ def main() -> int:
                         for p in problems:
                             print(f"FAIL  {size} {theme} {path}: {p}")
                         failures += bool(problems)
-                    for path in decks if n == 0 else []:
-                        problems = run(check_deck, context, base + path, theme)
-                        checked += 1
-                        for p in problems:
-                            print(f"FAIL  {size} {theme} {path}: {p}")
-                        failures += bool(problems)
                     problems = run(check_keyboard, context, base + KEYBOARD_PAGE)
                     checked += 1
                     for p in problems:
                         print(f"FAIL  {size} {theme} {KEYBOARD_PAGE} (keyboard): {p}")
                     failures += bool(problems)
+                    context.close()
+                # A deck has one theme: check it once, at the first size.
+                if n == 0:
+                    context = browser.new_context(**options)
+                    for path in decks:
+                        problems = run(check_deck, context, base + path)
+                        checked += 1
+                        for p in problems:
+                            print(f"FAIL  {size} {path}: {p}")
+                        failures += bool(problems)
                     context.close()
             browser.close()
     finally:

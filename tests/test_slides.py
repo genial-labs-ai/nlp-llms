@@ -29,7 +29,7 @@ class Deck(unittest.TestCase):
         self.assertIn("welcome.qmd", quarto["project"]["render"])
 
     def test_uses_the_generated_includes(self):
-        for name in ("welcome-days.md", "welcome-clocks.md", "module-shape.md"):
+        for name in ("welcome-days.md", "welcome-clocks.md", "welcome-data.md", "module-shape.md"):
             self.assertIn(f"{{{{< include /_includes/{name} >}}}}", DECK, name)
             self.assertTrue((ROOT / "_includes" / name).exists(), name)
 
