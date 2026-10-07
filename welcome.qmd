@@ -1,0 +1,117 @@
+---
+title: "{{< var workshop.title >}}"
+subtitle: "Welcome: the setup check and the week ahead"
+author: "{{< var workshop.org >}} · Day 1, 09:00"
+# The deck for the opening slot of Day 1 (facilitator-guide.md#day-1): five minutes of
+# lines, five of setup check. Days, modules, times and names come from _variables.yml
+# through var shortcodes and the generated includes; do not type them here.
+format:
+  revealjs:
+    theme: [default, slides.scss]
+    css: fonts/fonts.css
+    width: 1280
+    height: 720
+    slide-number: true
+    hash: true
+    transition: none
+    controls: true
+    menu: true
+    link-external-newwindow: true
+    footer: "{{< var workshop.title >}} · {{< var repo.site_url >}}"
+title-slide-attributes:
+  data-background-color: "#16324f"
+---
+
+## One line of ideas
+
+::: {.lead}
+Modern language models did not appear from nowhere.
+:::
+
+- Each module fixes a specific failure of the one before it: from counting words to attention, to training on human preferences, to agents.
+- You build each step yourself, in a notebook, and see it work.
+- The same small datasets come back all week, so every improvement is measured against the module before it, not asserted.
+
+## The five days
+
+{{< include /_includes/welcome-days.md >}}
+
+::: {.muted}
+Module 0 is optional pre-work on your own laptop. Nothing later depends on it.
+:::
+
+## Each day answers one question
+
+1. **Day 1.** {{< var days.d1.question >}}
+2. **Day 2.** {{< var days.d2.question >}}
+3. **Day 3.** {{< var days.d3.question >}}
+4. **Day 4.** {{< var days.d4.question >}}
+5. **Day 5.** {{< var days.d5.question >}}
+
+## How a module works
+
+{{< include /_includes/module-shape.md >}}
+
+Every lab follows one rhythm:
+
+1. **Predict** what a cell will output before you run it. Write the prediction down.
+2. **Run** it.
+3. **Explain** the result, especially when it differs from your prediction.
+4. **Check** your work against a checkpoint that passes or fails.
+
+## The timetable {.smaller}
+
+{{< include /_includes/welcome-clocks.md >}}
+
+::: {.muted}
+Breaks and lunch keep their length. From Day 2, each day opens with retrieval practice and closes with a synthesis of the day's results. The full [schedule](schedule.qmd) is on the site.
+:::
+
+## Setup: nothing to install
+
+- Every lab runs in **Google Colab**, in the browser. You need a Google account.
+- When a lab asks for a GPU: **Runtime → Change runtime type → T4 GPU**. The free tier is enough.
+- **API keys are optional.** With none, the API labs run on a small open model and you still complete every exercise.
+- If you have keys, put them in **Colab Secrets**, never in a cell: `{{< var secrets.openai >}}`, `{{< var secrets.anthropic >}}`, `{{< var secrets.typesafe >}}`.
+- Details are on the [Setup](setup.qmd) page.
+
+## Setup check: do this now
+
+1. Open [{{< var setup.slug >}}.ipynb in Colab]({{< var repo.colab_base >}}/{{< var setup.slug >}}.ipynb).
+2. Choose **Runtime → Run all**.
+3. It prints four blocks: the runtime, the keys, the provider, and the checkpoint.
+4. The last line should read [Checkpoint passed. You are ready for Day 1.]{.checkpoint}
+
+::: {.callout}
+Tell us the **provider** line it printed: `open`, a keyed provider, or an error. If a cell stops with an error, raise a hand now, not in Lab 1.
+:::
+
+## The same data all week
+
+| Data | Used in |
+|---|---|
+| {{< var datasets.topics.name >}}: short abstracts in four classes | the classifiers of Modules 1, 2, 6 and 11 |
+| {{< var datasets.lm.name >}}: character-level language modeling | the language models of Modules 1, 3 and 5 |
+| {{< var datasets.decisions.name >}}: a desk's act-or-escalate decisions | Modules 11, 12 and 14 |
+| {{< var datasets.lectures.name >}}: these lecture pages, as a corpus | retrieval in Modules 13 to 15 |
+
+Lab 1 prints two numbers, an n-gram perplexity and a classifier accuracy. Every later module is measured against them.
+
+## Working in the labs
+
+- Each exercise is a `TODO` stub with its solution folded directly beneath it. Try first; open the solution when you are stuck, run it, and go on.
+- A checkpoint after every exercise says whether it checked your code or the reference.
+- The core path fits the lab slot. The **stretch** section at the end is optional: fast groups may start it, the room as a whole never does.
+- In the debrief, your numbers go on the board. Keep them.
+
+## Where everything is
+
+- **The site:** [{{< var repo.site_url >}}]({{< var repo.site_url >}})
+- [Start here](prepare.qmd): the entry check and the setup, if you have not done them.
+- [Schedule](schedule.qmd) and the day pages: what runs when, with links to each lecture and lab.
+- [Notebooks](notebooks.qmd): every lab, one click to Colab.
+- [FAQ](faq.qmd) and [Readiness](readiness.qmd): what to do when Colab misbehaves, and what has been tested where.
+
+::: {.lead}
+Next: Module 1 · {{< var modules.m01.title >}}
+:::

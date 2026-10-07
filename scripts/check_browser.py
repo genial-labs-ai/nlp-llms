@@ -75,6 +75,33 @@ def theme_script(theme: str) -> str:
     return f"try {{ localStorage.setItem('quarto-color-scheme', '{value}'); }} catch (e) {{}}"
 
 
+def is_deck(path: Path) -> bool:
+    """A reveal.js slide deck rendered by Quarto, not a site page."""
+    return 'class="reveal"' in path.read_text(encoding="utf-8", errors="replace")
+
+
+def check_deck(page: Page, url: str, theme: str) -> list[str]:
+    """A slide deck loads without errors, has its slides and does not scroll sideways."""
+    errors: list[str] = []
+    page.on("pageerror", lambda e: errors.append(f"script error: {e}"))
+    page.on(
+        "console",
+        lambda m: errors.append(f"console error: {m.text}") if m.type == "error" else None,
+    )
+    page.on(
+        "requestfailed",
+        lambda r: errors.append(f"request failed: {r.url} ({r.failure})"),
+    )
+    page.goto(url, wait_until="load")
+    problems: list[str] = []
+    slides = page.locator(".reveal .slides section").count()
+    if slides < 2:
+        problems.append(f"{slides} slide(s) found")
+    if page.evaluate("document.documentElement.scrollWidth > window.innerWidth + 1"):
+        problems.append("scrolls sideways")
+    return problems + errors
+
+
 def check_page(page: Page, url: str, theme: str) -> list[str]:
     problems: list[str] = []
     errors: list[str] = []
@@ -198,7 +225,11 @@ def main() -> int:
     if not DOCS.is_dir():
         print("docs/ not found: run `quarto render` first")
         return 2
-    every_page = sorted(str(p.relative_to(DOCS)) for p in DOCS.rglob("*.html"))
+    # Library files (reveal.js ships a speaker view) are not pages. Slide decks
+    # (welcome.qmd) have no navbar or theme toggle; check_deck covers them.
+    html = [p for p in DOCS.rglob("*.html") if "site_libs" not in p.relative_to(DOCS).parts]
+    every_page = sorted(str(p.relative_to(DOCS)) for p in html if not is_deck(p))
+    decks = sorted(str(p.relative_to(DOCS)) for p in html if is_deck(p))
     server, base = serve(DOCS)
     failures = 0
     checked = 0
@@ -212,6 +243,12 @@ def main() -> int:
                     context.add_init_script(theme_script(theme))
                     for path in pages:
                         problems = run(check_page, context, base + path, theme)
+                        checked += 1
+                        for p in problems:
+                            print(f"FAIL  {size} {theme} {path}: {p}")
+                        failures += bool(problems)
+                    for path in decks if n == 0 else []:
+                        problems = run(check_deck, context, base + path, theme)
                         checked += 1
                         for p in problems:
                             print(f"FAIL  {size} {theme} {path}: {p}")

@@ -10,7 +10,7 @@ there. Every remediation link below was checked with curl on 2026-10-06 (HTTP 20
 re-check them before each delivery. The time estimates are ours, not the sources'.
 -->
 
-Do these five steps in order, at home, in the week before Day 1.
+Do these five steps in order, at home, in the week before Day 1. For a five-minute overview of the setup and the week's schedule, see the [intro slides](welcome.qmd), which open Day 1.
 
 1. **[Take the entry check](#entry-check)**, about 15 minutes.
 2. **[Read your score](#score)**: for each area where you missed two or more questions, do the reading listed there.

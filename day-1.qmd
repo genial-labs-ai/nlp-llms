@@ -12,6 +12,8 @@ Day 1 starts from counting words and ends at attention. Each module fixes a spec
 **Before Day 1: [Module 0 · {{< var modules.m00.title >}}](lectures/00-coding-agents.qmd), optional pre-work.** On your own laptop, you install a terminal coding agent, build two small data apps with it in Python or R, and publish them on GitHub Pages. If you get stuck, bring your laptop to the optional drop-in clinic from 08:00 to 09:00, before the 09:00 welcome. Nothing later in the workshop depends on it.
 :::
 
+The day opens at 09:00 with the [intro slides](welcome.qmd): the setup check and the week ahead in ten minutes.
+
 {{< include /_includes/day-1.md >}}
 
 ## Run sheet {#run-sheet}

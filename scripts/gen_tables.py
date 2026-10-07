@@ -6,6 +6,8 @@ Outputs (all overwritten on every run, never edited by hand):
   _includes/path.md          the module arc on the landing page
   _includes/schedule.md      the timetable: one grid for each run of days on the same clock
   _includes/module-shape.md  one paragraph: how long a module is on each clock
+  _includes/welcome-days.md  the welcome deck's five-days slide
+  _includes/welcome-clocks.md  the welcome deck's timetable slide: one column per clock
   _includes/day-N.md         the module cards for one day
   _includes/module-NN.md     the header block of one lecture page
   _includes/notebooks.md     the notebook index with Colab links
@@ -38,6 +40,7 @@ Run:  uv run --group site python scripts/gen_tables.py
 from __future__ import annotations
 
 import sys
+from collections import Counter
 from pathlib import Path
 
 import yaml
@@ -450,7 +453,9 @@ def schedule_grid(v: dict, name: str, days: list[dict]) -> str:
         for d in days:
             kind = slot["kind"]
             if kind in ("opening", "closing"):
-                cells.append(f"[{d[kind]}]{{.slot-{kind}}}")
+                page = d.get(f"{kind}_page")
+                target = f"({page})" if page else ""
+                cells.append(f"[{d[kind]}]{target}{{.slot-{kind}}}")
             elif kind == "clinic":
                 if d.get("clinic"):
                     key, label = slot_parts(d["clinic"])
@@ -482,6 +487,72 @@ def schedule(v: dict) -> str:
             ":::",
             "",
         ]
+    return "\n".join(out)
+
+
+def welcome_days(v: dict) -> str:
+    """The welcome deck's "five days" slide: one row per day with its modules."""
+    rows = ["| Day | Theme | Modules |", "|---|---|---|"]
+    for d in days_in_order(v):
+        mods = ", ".join(f"{m['n']} {m['title']}" for _, m in day_modules(v, d))
+        rows.append(f"| [Day {d['n']}](day-{d['n']}.qmd) | {d['title']} | {mods} |")
+    return "\n".join(rows)
+
+
+def shared_label(pairs: list[tuple[dict, str]]) -> str:
+    """One label for days that share a slot: the commonest, with the exceptions named."""
+    counts = Counter(label for _, label in pairs)
+    main = counts.most_common(1)[0][0]
+    others = [f"Day {d['n']}: {label}" for d, label in pairs if label != main]
+    return main + (f" ({'; '.join(others)})" if others else "")
+
+
+def welcome_clocks(v: dict) -> str:
+    """The welcome deck's timetable slide: one compact column per clock. Days on one
+    clock share a column; a row names the module only when the clock is one day's."""
+    groups = clock_groups(v)
+    width = f"{98 // len(groups)}%"
+    out = ["::: {.columns}"]
+    for name, days in groups:
+        clk = v["schedule"]["clocks"][name]
+        minutes = sum(clk["shape"].values())
+        out += [
+            f'::: {{.column width="{width}"}}',
+            f"**{days_label(days)}** · {minutes}-minute modules",
+            "",
+            "| Time | |",
+            "|---|---|",
+        ]
+        owner = {d["n"]: [p for p in placements(v, d) for _ in p["slots"]] for d in days}
+        i = 0
+        for slot in clk["slots"]:
+            kind = slot["kind"]
+            if kind in ("opening", "closing"):
+                text = shared_label([(d, d[kind]) for d in days])
+            elif kind == "clinic":
+                pairs = []
+                for d in days:
+                    if d.get("clinic"):
+                        key, label = slot_parts(d["clinic"])
+                        pairs.append((d, label or v["modules"][key]["title"]))
+                text = shared_label(pairs) if pairs else ""
+            elif kind == "break":
+                text = slot["label"]
+            else:
+                parts = " · ".join(
+                    f"{part.capitalize()} {mins}" for part, _, mins in segments(clk["shape"], slot)
+                )
+                if len(days) == 1:
+                    p = owner[days[0]["n"]][i]
+                    m = v["modules"][p["key"]]
+                    text = f"{m['n']} · {p['label'] or m['title']}: {parts.lower()}"
+                else:
+                    hands_on = [d for d in days if not shape(v, owner[d["n"]][i]["key"])]
+                    text = parts + "".join(f" (Day {d['n']}: hands-on)" for d in hands_on)
+                i += 1
+            out.append(f"| {slot['start']}–{slot['end']} | {text} |")
+        out += [":::"]
+    out.append(":::")
     return "\n".join(out)
 
 
@@ -889,6 +960,8 @@ def main() -> None:
     write(INCLUDES / "path.md", path_steps(v))
     write(INCLUDES / "schedule.md", schedule(v))
     write(INCLUDES / "module-shape.md", module_shape(v))
+    write(INCLUDES / "welcome-days.md", welcome_days(v))
+    write(INCLUDES / "welcome-clocks.md", welcome_clocks(v))
     for d in days_in_order(v):
         write(INCLUDES / f"day-{d['n']}.md", day_cards(v, d))
         write(INCLUDES / f"run-{d['n']}.md", run_sheet(v, d))

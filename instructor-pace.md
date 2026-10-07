@@ -44,7 +44,7 @@ Optional pre-work, planned at {{< var modules.m00.minutes >}} minutes, with no l
 
 | Minutes | Segment | By the end |
 |---|---|---|
-| 0–5 | Welcome: the [opening lines](facilitator-guide.md#day-1) | |
+| 0–5 | Welcome: the [intro slides](welcome.qmd) with the [opening lines](facilitator-guide.md#day-1) | |
 | 5–10 | Setup check: everyone runs `00-setup.ipynb` | each participant has read the provider line it prints |
 
 ### Module 1 · {{< var modules.m01.title >}}
