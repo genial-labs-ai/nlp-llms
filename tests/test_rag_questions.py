@@ -100,6 +100,58 @@ class Snapshot(unittest.TestCase):
         self.assertEqual(set(docs[0]), {"doc_id", "title", "text"})
 
 
+class CleaningRules(unittest.TestCase):
+    """The builder's rules for what a lecture page contributes to the corpus."""
+
+    PAGE = (
+        '---\ntitle: "A page"\n---\n\n'
+        "## Live plan {.unnumbered}\n\nthe in-room timetable\n\n"
+        "## 1. Intro\n\nSome prose.\n\n"
+        "## 2. A reference section {.reference}\n\n**Objective for this section:** read it.\n\n"
+        "```{ojs}\nplain_demo = 1\n```\n\n"
+        "```{ojs echo=false}\noption_demo = 2\n```\n\n"
+        "```python\nkept_code = 3\n# shape {B, T, d}\n```\n\n"
+        "### 2.1 A subsection {#sec-sub}\n\nSubsection text.\n\n"
+        "## Live plan\n\na timetable at the end\n"
+    )
+
+    def setUp(self):
+        self.title, self.text = builder.clean(self.PAGE, {})
+
+    def test_live_plans_are_dropped_wherever_they_are(self):
+        self.assertNotIn("timetable", self.text)
+        self.assertNotIn("Live plan", self.text)
+
+    def test_heading_attributes_go_and_the_blank_line_stays(self):
+        self.assertIn("## 2. A reference section\n\n**Objective", self.text)
+        self.assertNotIn("{.reference}", self.text)
+
+    def test_ojs_cells_go_and_other_code_stays(self):
+        self.assertNotIn("plain_demo", self.text)
+        self.assertNotIn("option_demo", self.text)
+        self.assertIn("kept_code = 3", self.text)
+        self.assertIn("# shape {B, T, d}", self.text)  # a comment in code is not a heading
+
+    def test_subheadings_lose_attributes_too(self):
+        self.assertIn("### 2.1 A subsection\n\nSubsection text.", self.text)
+
+    def test_the_snapshot_has_no_glued_headings(self):
+        """Every heading, at any level and outside fenced code, is followed by a blank line."""
+        for slug, text in CORPUS.items():
+            lines, fence = text.split("\n"), None
+            for i, line in enumerate(lines[:-1]):
+                opened = re.match(r"(`{3,}|~{3,})", line)
+                if fence:
+                    if opened and opened.group(1)[0] == fence[0]:
+                        fence = None
+                    continue
+                if opened:
+                    fence = opened.group(1)
+                elif re.match(r"#{1,6} ", line):
+                    with self.subTest(slug=slug, heading=line[:40]):
+                        self.assertEqual(lines[i + 1], "", line)
+
+
 class OverlapFlag(unittest.TestCase):
     def test_runs(self):
         quote = "The dot products grow with the dimension of the keys."

@@ -13,6 +13,13 @@ Rules for `text` (documented in data/README.md):
 - `{{< include /_includes/module-NN.md >}}` becomes the module's summary and
   objectives from _variables.yml, as plain text;
 - `{{< var a.b.c >}}` is resolved from _variables.yml at the same commit;
+- the "## Live plan" section (the lecture's in-room timetable, generated from its
+  front matter) is deleted up to the next second-level heading: it is logistics, not
+  content;
+- heading attributes such as `{.reference}` are removed from heading lines (outside
+  fenced code, where a `#` line is a comment);
+- Observable JS cells (```` ```{ojs} ```` blocks, with or without options; the
+  interactive demos' code) are deleted; the demos' prose stays;
 - HTML comments (the figure specs) are deleted; figure captions and alt text stay;
 - callout fence lines (`::: {.callout-...}` and `:::`) are deleted; a callout's
   title, if it has one, is kept as a line of its own; the content stays;
@@ -44,15 +51,16 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "workshop_lectures_v1.jsonl.gz"
 
-# The commit the v1 pages are read from: the commit that completed references.qmd for
-# Modules 1-15 and fixed the lecture citations found while checking it (2026-10-05).
-# Lecture 13 itself is not in the corpus (briefs/13-rag.md). The previous build read
-# ec97bea, before references.qmd was finished.
-# STILL PROVISIONAL: lecture 12 carries a TODO to quote TypeSafe's own documentation, and
-# lectures 6-11 may change after their Colab T4 runs. If a page changes, rebuild from the new
-# commit and update _variables.yml (sha256, bytes, source_commit, characters, status) before
-# anyone writes a question against the snapshot (data/README.md, "Status: provisional").
-SOURCE_COMMIT = "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
+# The commit the v1 pages are read from: the merge of the five-day revision's last
+# lecture edits (PR #16, 2026-10-06). Lecture 13 itself is not in the corpus
+# (briefs/13-rag.md). Earlier builds read ec97bea (before references.qmd was finished)
+# and 3ba37bc (before the five-day revision).
+# STILL PROVISIONAL: lecture 12's quotations of TypeSafe's documentation await sign-off,
+# and lectures may still change after their Colab T4 runs and spoken dry runs. If a page
+# changes, rebuild from the new commit and update _variables.yml (sha256, bytes,
+# source_commit, characters, status) before anyone writes a question against the snapshot
+# (data/README.md, "Status: provisional").
+SOURCE_COMMIT = "31d5d92cd1d5ac7c12b05f547caa6d56ca55765d"
 LECTURE = re.compile(r"^lectures/(0[1-9]|1[0-2])-[a-z0-9-]+\.qmd$")
 REFERENCES = "references.qmd"
 
@@ -60,9 +68,33 @@ FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 INCLUDE = re.compile(r"\{\{<\s*include\s+/_includes/module-(\d\d)\.md\s*>\}\}")
 VAR = re.compile(r"\{\{<\s*var\s+([A-Za-z0-9_.]+)\s*>\}\}")
+LIVE_PLAN = re.compile(r"^## Live plan\n.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+OJS_CELL = re.compile(r"^```\{ojs[^}\n]*\}.*?^```[ \t]*\n?", re.MULTILINE | re.DOTALL)
+# Spaces and tabs only around the attributes: `\s` would also eat the line break and
+# the blank line after the heading.
+HEADING_ATTRS = re.compile(r"^(#{1,6} .*?)[ \t]*\{[^}\n]*\}[ \t]*$")
+CODE_FENCE = re.compile(r"^(`{3,}|~{3,})")
+
 FENCE_OPEN = re.compile(r"^\s*:::+\s*\{[^}]*\}\s*$")
 FENCE_CLOSE = re.compile(r"^\s*:::+\s*$")
 TITLE_ATTR = re.compile(r'title="([^"]*)"')
+
+
+def strip_heading_attrs(body: str) -> str:
+    """Remove `{...}` attributes from heading lines outside fenced code, where a `#` line
+    is a comment and its braces are code."""
+    out, fence = [], None
+    for line in body.split("\n"):
+        opened = CODE_FENCE.match(line)
+        if fence:
+            if opened and opened.group(1)[0] == fence[0] and len(opened.group(1)) >= len(fence):
+                fence = None
+        elif opened:
+            fence = opened.group(1)
+        else:
+            line = HEADING_ATTRS.sub(r"\1", line)
+        out.append(line)
+    return "\n".join(out)
 
 
 def git_show(commit: str, path: str) -> bytes:
@@ -121,6 +153,9 @@ def clean(source: str, variables: dict) -> tuple[str, str]:
     meta = yaml.safe_load(resolve_vars(match.group(1), variables))
     body = source[match.end() :]
     body = COMMENT.sub("", body)
+    body = strip_heading_attrs(body)  # first, so "## Live plan {.x}" is found below
+    body = LIVE_PLAN.sub("", body)
+    body = OJS_CELL.sub("", body)
     body = INCLUDE.sub(lambda m: module_block(variables, m.group(1)), body)
     body = resolve_vars(body, variables)
     if "{{<" in body:

@@ -147,9 +147,9 @@ datasets:
     splits: {train: 2000, dev: 100, test: 300}
   # Built by data/build_lectures_corpus.py from lectures 01-12 and references.qmd at
   # `source_commit` (spec: briefs/13-rag.md, decision (a)). references.qmd is complete
-  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12 has a
-  # TODO to quote TypeSafe's documentation and lectures 6-11 may change after their
-  # Colab T4 runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
+  # for Modules 1-15 at this commit. Status stays "provisional" because lecture 12's
+  # quotations of TypeSafe's documentation await sign-off and lectures may still change
+  # after their Colab T4 runs and spoken dry runs. Set "final" once lectures 1-12 are frozen, rebuilding first (new
   # sha256, bytes, source_commit, characters) if any page changed; questions come after.
   # tests/test_rag_questions.py fails if data/rag_questions_v1.jsonl exists while
   # this status is provisional, and on any evidence quote a rebuild breaks.
@@ -160,14 +160,14 @@ datasets:
     urls:
       - https://raw.githubusercontent.com/project-delphi/nlp-llms/main/data/workshop_lectures_v1.jsonl.gz
       - https://cdn.jsdelivr.net/gh/project-delphi/nlp-llms@main/data/workshop_lectures_v1.jsonl.gz
-    sha256: "4a7e9310ea5bd9206fce4a42c414d1f942c8880f9e7b694b04f04125fcc2d395"
-    bytes: 189037
+    sha256: "8970f45034784f98a97f6feaae60de371a6992d411afdf38340db8c8c4709f47"
+    bytes: 234595
     license: "CC BY 4.0"
     license_url: https://creativecommons.org/licenses/by/4.0/
-    source_commit: "3ba37bc06e2e1f23f7896f43e04117e805b6925e"
+    source_commit: "31d5d92cd1d5ac7c12b05f547caa6d56ca55765d"
     status: "provisional"
     documents: 13
-    characters: 544974
+    characters: 684704
   # Lab 9 and Lab 10 (spec: briefs/09-preference-learning.md). Built by
   # data/build_lab09_preferences.py on 2026-10-06 from models.causal_lm at
   # models.causal_lm_revision (Apple M1 Pro CPU, torch 2.14.1, transformers 5.18.0,
