@@ -141,7 +141,7 @@ Apply these in order. The module's own "behind" rules, in its section below and 
 
 ## Day 1 · {{< var days.d1.title >}} {#day-1}
 
-**Opening (the first 10 minutes).** Use 5 minutes to say the lines below and 5 for the setup check. Welcome. The workshop follows one line: each module fixes a failure of the one before it, and you build each step yourself. Every lab follows Predict, Run, Explain, Check: write your prediction before you run a cell. The same datasets come back all week (arXiv Topics, Tiny Shakespeare, later the decision set and the lecture pages), so improvements are measured, not asserted. Then: everyone runs `00-setup.ipynb` and confirms the provider line it prints.
+**Opening (the first 10 minutes).** Show the [intro slides](welcome.qmd) and say the lines below over them; the setup check has its own slide. Welcome. The workshop follows one line: each module fixes a failure of the one before it, and you build each step yourself. Every lab follows Predict, Run, Explain, Check: write your prediction before you run a cell. The same datasets come back all week (arXiv Topics, Tiny Shakespeare, later the decision set and the lecture pages), so improvements are measured, not asserted. Then: everyone runs `00-setup.ipynb` and confirms the provider line it prints.
 
 ### Module 1 · {{< var modules.m01.title >}}
 

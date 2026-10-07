@@ -80,6 +80,7 @@ nlp-llms/
 ├── prepare.qmd              Before Day 1: entry check and remediation, setup, Module 0, then Module 1
 ├── prepare/                 entry-check.md: hand-written include shared by prepare.qmd and assessments.md
 ├── setup.qmd                Colab, API keys via Colab Secrets, open-model fallback
+├── welcome.qmd              intro slides (revealjs) for the Day 1 opening slot: setup check and the week ahead; slides.scss is its theme
 ├── schedule.qmd             five-day timetable (generated: one grid per clock)
 ├── day-1.qmd … day-5.qmd    day index pages
 ├── lectures/                one page per module: 00-coding-agents.qmd … 15-capstone.qmd
@@ -115,7 +116,7 @@ nlp-llms/
 
 ### Deliberately left out of v1
 
-Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the NotebookLM companion, Playwright navigation tests and revealjs slide decks. Each can be added after v1.0 without changing the structure above.
+Spanish translation of every page, 3D interactive widgets, Kahoot quizzes, the NotebookLM companion, Playwright navigation tests and revealjs slide decks for the lectures. Each can be added after v1.0 without changing the structure above. (The one deck in v1 is `welcome.qmd`, the ten-minute opening of Day 1, added 2026-10-07; its timetable and day slides are generated from `_variables.yml`.)
 
 ---
 
@@ -500,7 +501,7 @@ Ten working days to a first complete version, then continued review. Lectures an
 - [ ] Revise module objectives and stretch sections from pilot feedback
 - [ ] Re-verify Jev, LangChain, LangGraph and LlamaIndex APIs and pins monthly
 - [ ] Revisit Module 12 whenever TypeSafe publishes more about RLCD
-- [ ] Decide on the v1 exclusions: slide decks, quizzes, Spanish translation
+- [ ] Decide on the v1 exclusions: lecture slide decks, quizzes, Spanish translation
 
 ---
 

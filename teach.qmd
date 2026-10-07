@@ -7,6 +7,7 @@ subtitle: "Materials for instructors"
 
 {{< include /_includes/readiness-summary.md >}}
 
+- **[Intro slides](welcome.qmd):** the deck for the opening slot of Day 1, the welcome and the setup check. Days, modules, datasets and times come from `_variables.yml` through the generated includes, so it follows the schedule. Press `?` in the deck for its keyboard shortcuts.
 - **[Facilitator guide](facilitator-guide.md):** day by day, what to set up, what to say first, where groups get stuck, what to say in each debrief, what to cut when the clock slips and what to do when Colab, an API or the Hub fails. It opens with what has not yet been verified; read that first, with the [readiness page](readiness.qmd), which lists what has run, where, and the blocking work that remains.
 - **[Pace sheet](instructor-pace.md):** a minute-by-minute plan for every day: each lecture's live plan, each lab with the checkpoint participants should have passed by each point, the debriefs, and the retrieval practice and synthesis of Days 2 to 5.
 - **[Assessments](assessments.md):** an entry check on the prerequisites and an exit check with one or two questions per module objective, with answers.

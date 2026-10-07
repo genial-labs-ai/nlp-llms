@@ -6,7 +6,7 @@
 | Time | [Day 1](day-1.qmd) Foundations |
 |---|---|
 | 08:00–09:00 | [Drop-in clinic: Module 0 pre-work (optional)](lectures/00-coding-agents.qmd){.slot-clinic} |
-| 09:00–09:10 | [Welcome, setup check]{.slot-opening} |
+| 09:00–09:10 | [Welcome, setup check](welcome.qmd){.slot-opening} |
 | 09:10–10:45 | [1 · Text as data](lectures/01-text-as-data.qmd){.slot-module} [[Lecture 09:10]{.slot-lecture style="flex-grow: 45"}[Lab 09:55]{.slot-lab style="flex-grow: 50"}]{.slot-split} |
 | 10:45–11:00 | [Break]{.slot-break} |
 | 11:00–12:35 | [2 · Word vectors and neural networks](lectures/02-word-vectors.qmd){.slot-module} [[Lecture 11:00]{.slot-lecture style="flex-grow: 45"}[Lab 11:45]{.slot-lab style="flex-grow: 50"}]{.slot-split} |

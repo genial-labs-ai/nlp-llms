@@ -19,7 +19,7 @@ Modern language models did not appear from nowhere. Each step, from counting wor
 :::
 
 ::: {.hero-actions}
-[Start here](prepare.qmd){.btn-primary-action} [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
+[Start here](prepare.qmd){.btn-primary-action} [Intro slides](welcome.qmd) [See the schedule](schedule.qmd) [Open the notebooks](notebooks.qmd)
 :::
 
 {{< include /_includes/facts.md >}}

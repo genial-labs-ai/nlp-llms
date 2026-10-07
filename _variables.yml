@@ -317,6 +317,8 @@ days:
     short: "Foundations"
     question: "How do we turn text into something a model can learn from?"
     opening: "Welcome, setup check"
+    # The deck shown in the opening slot (welcome.qmd); the schedule links the slot to it.
+    opening_page: welcome.qmd
     clinic: {module: m00, label: "Drop-in clinic: Module 0 pre-work (optional)"}
     slots: [m01, m02, m03, m04]
   d2:
