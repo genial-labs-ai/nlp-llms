@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "source": "test_notebooks",
+  "env": "mac-m1pro",
+  "env_detail": "macOS-26.6.2-arm64-arm-64bit, Python 3.12.13",
+  "path": "open",
+  "mode": "worked",
+  "settings": {},
+  "evidence": "scripts/test_notebooks.py --record",
+  "runs": [
+    {
+      "notebook": "13-rag",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 126.4,
+      "content_sha": "80cc0b77947f8f1c",
+      "phases": {
+        "generated": 0.0,
+        "setup": 18.5,
+        "other": 102.5,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 1.4
+      },
+      "note": "Real encoder and reranker; evaluated on plumbing probes (copied sentences), because data/rag_questions_v1.jsonl is not written yet. The metrics measure code, not retrieval."
+    },
+    {
+      "notebook": "14-agents",
+      "scope": "notebook",
+      "status": "pass",
+      "seconds": 233.0,
+      "content_sha": "2d19feed2995859a",
+      "phases": {
+        "generated": 0.0,
+        "setup": 19.0,
+        "other": 202.9,
+        "exercise": 0.0,
+        "solution": 0.0,
+        "checkpoint": 7.1
+      }
+    }
+  ]
+}

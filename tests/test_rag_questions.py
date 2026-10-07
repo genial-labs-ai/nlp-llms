@@ -100,6 +100,43 @@ class Snapshot(unittest.TestCase):
         self.assertEqual(set(docs[0]), {"doc_id", "title", "text"})
 
 
+class CleaningRules(unittest.TestCase):
+    """The builder's rules for what a lecture page contributes to the corpus."""
+
+    PAGE = (
+        '---\ntitle: "A page"\n---\n\n'
+        "## Live plan {.unnumbered}\n\nthe in-room timetable\n\n"
+        "## 1. Intro\n\nSome prose.\n\n"
+        "## 2. A reference section {.reference}\n\n**Objective for this section:** read it.\n\n"
+        "```{ojs}\nplain_demo = 1\n```\n\n"
+        "```{ojs echo=false}\noption_demo = 2\n```\n\n"
+        "```python\nkept_code = 3\n```\n\n"
+        "## Live plan\n\na timetable at the end\n"
+    )
+
+    def setUp(self):
+        self.title, self.text = builder.clean(self.PAGE, {})
+
+    def test_live_plans_are_dropped_wherever_they_are(self):
+        self.assertNotIn("timetable", self.text)
+        self.assertNotIn("Live plan", self.text)
+
+    def test_heading_attributes_go_and_the_blank_line_stays(self):
+        self.assertIn("## 2. A reference section\n\n**Objective", self.text)
+        self.assertNotIn("{.reference}", self.text)
+
+    def test_ojs_cells_go_and_other_code_stays(self):
+        self.assertNotIn("plain_demo", self.text)
+        self.assertNotIn("option_demo", self.text)
+        self.assertIn("kept_code = 3", self.text)
+
+    def test_the_snapshot_has_no_glued_headings(self):
+        for line in "\n".join(CORPUS.values()).split("\n## ")[1:]:
+            heading, _, rest = line.partition("\n")
+            with self.subTest(heading[:40]):
+                self.assertTrue(rest == "" or rest.startswith("\n"), heading)
+
+
 class OverlapFlag(unittest.TestCase):
     def test_runs(self):
         quote = "The dot products grow with the dimension of the keys."

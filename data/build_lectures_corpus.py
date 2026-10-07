@@ -17,8 +17,8 @@ Rules for `text` (documented in data/README.md):
   front matter) is deleted up to the next second-level heading: it is logistics, not
   content;
 - heading attributes such as `{.reference}` are removed from heading lines;
-- Observable JS cells (```` ```{ojs} ```` blocks, the interactive demos' code) are
-  deleted; the demos' prose stays;
+- Observable JS cells (```` ```{ojs} ```` blocks, with or without options; the
+  interactive demos' code) are deleted; the demos' prose stays;
 - HTML comments (the figure specs) are deleted; figure captions and alt text stay;
 - callout fence lines (`::: {.callout-...}` and `:::`) are deleted; a callout's
   title, if it has one, is kept as a line of its own; the content stays;
@@ -50,10 +50,10 @@ import yaml
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "data" / "workshop_lectures_v1.jsonl.gz"
 
-# The commit the v1 pages are read from: the commit that completed references.qmd for
-# Modules 1-15 and fixed the lecture citations found while checking it (2026-10-05).
-# Lecture 13 itself is not in the corpus (briefs/13-rag.md). The previous build read
-# ec97bea, before references.qmd was finished.
+# The commit the v1 pages are read from: the merge of the five-day revision's last
+# lecture edits (PR #16, 2026-10-06). Lecture 13 itself is not in the corpus
+# (briefs/13-rag.md). Earlier builds read ec97bea (before references.qmd was finished)
+# and 3ba37bc (before the five-day revision).
 # STILL PROVISIONAL: lecture 12 carries a TODO to quote TypeSafe's own documentation, and
 # lectures 6-11 may change after their Colab T4 runs. If a page changes, rebuild from the new
 # commit and update _variables.yml (sha256, bytes, source_commit, characters, status) before
@@ -66,9 +66,11 @@ FRONT_MATTER = re.compile(r"\A---\n(.*?)\n---\n", re.DOTALL)
 COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 INCLUDE = re.compile(r"\{\{<\s*include\s+/_includes/module-(\d\d)\.md\s*>\}\}")
 VAR = re.compile(r"\{\{<\s*var\s+([A-Za-z0-9_.]+)\s*>\}\}")
-LIVE_PLAN = re.compile(r"^## Live plan\n.*?(?=^## )", re.MULTILINE | re.DOTALL)
-OJS_CELL = re.compile(r"^```\{ojs\}.*?^```[ \t]*\n?", re.MULTILINE | re.DOTALL)
-HEADING_ATTRS = re.compile(r"^(#{1,6} .*?)\s*\{[^}]*\}\s*$", re.MULTILINE)
+LIVE_PLAN = re.compile(r"^## Live plan\n.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+OJS_CELL = re.compile(r"^```\{ojs[^}\n]*\}.*?^```[ \t]*\n?", re.MULTILINE | re.DOTALL)
+# Spaces and tabs only around the attributes: `\s` would also eat the line break and
+# the blank line after the heading.
+HEADING_ATTRS = re.compile(r"^(#{1,6} .*?)[ \t]*\{[^}\n]*\}[ \t]*$", re.MULTILINE)
 FENCE_OPEN = re.compile(r"^\s*:::+\s*\{[^}]*\}\s*$")
 FENCE_CLOSE = re.compile(r"^\s*:::+\s*$")
 TITLE_ATTR = re.compile(r'title="([^"]*)"')
@@ -130,9 +132,9 @@ def clean(source: str, variables: dict) -> tuple[str, str]:
     meta = yaml.safe_load(resolve_vars(match.group(1), variables))
     body = source[match.end() :]
     body = COMMENT.sub("", body)
+    body = HEADING_ATTRS.sub(r"\1", body)  # first, so "## Live plan {.x}" is found below
     body = LIVE_PLAN.sub("", body)
     body = OJS_CELL.sub("", body)
-    body = HEADING_ATTRS.sub(r"\1", body)
     body = INCLUDE.sub(lambda m: module_block(variables, m.group(1)), body)
     body = resolve_vars(body, variables)
     if "{{<" in body:

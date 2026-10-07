@@ -69,7 +69,7 @@ A language model has two memories (Lewis et al., 2020):
 
 1. **Freshness and coverage.** Weights are frozen at a training cutoff and contain nothing private. A lecture page written last week, a company's policy or a participant's notes are not in any model. Updating an index is cheap; retraining is not.
 2. **Grounding.** An answer built from quoted passages can cite them, and a reader can check the citation. Whether the answer actually follows from the passages becomes something we can measure (section 9).
-3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The lab's snapshot of this workshop's pages (lectures 1–12 and the reading list) is 684,694 characters, 186,495 tokens of the `cl100k_base` tokenizer (measured with Lab 13's tokenizer). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 19 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, more than a hundred times less.
+3. **Cost.** Every token in the prompt is paid for on every call (Module 8, the cost equation). The lab's snapshot of this workshop's pages (lectures 1–12 and the reading list) is 684,704 characters, 186,495 tokens of the `cl100k_base` tokenizer (measured with Lab 13's tokenizer). Sent in full at the Module 8 price of \$1 per million input tokens, every question would cost about 19 cents. Five retrieved chunks of 256 tokens plus a prompt are about 1,500 tokens: 0.15 cents, more than a hundred times less.
 
 Long context windows do not remove the third reason, and they weaken the second: Liu et al. (2024) found that models use information at the start and end of a long context better than information in the middle. Retrieval keeps the context short and puts the best passages first.
 
@@ -256,7 +256,7 @@ $$
 s_{\text{cross}}(q, c) = \mathbf{w}^\top \mathrm{Enc}\big([\texttt{CLS}]\; q\; [\texttt{SEP}]\; c\big)_{\texttt{CLS}} ,
 $$ {#eq-cross}
 
-where $\mathrm{Enc}(\cdot)_{\texttt{CLS}}$ is the encoder's output vector at the first position and $\mathbf{w}$ a learned vector. This is Module 6's classification head on a sentence pair, trained to tell relevant pairs from irrelevant ones (Nogueira and Cho, 2019, did this with BERT on a passage-ranking dataset). It is usually more accurate than @eq-dense, but nothing can be precomputed: scoring all 660 chunks would take 660 encoder passes per query.
+where $\mathrm{Enc}(\cdot)_{\texttt{CLS}}$ is the encoder's output vector at the first position and $\mathbf{w}$ a learned vector. This is Module 6's classification head on a sentence pair, trained to tell relevant pairs from irrelevant ones (Nogueira and Cho, 2019, did this with BERT on a passage-ranking dataset). It is usually more accurate than @eq-dense, but nothing can be precomputed: scoring all 878 chunks would take 878 encoder passes per query.
 
 Hence **two stages**. Retrieve $k_0$ candidates cheaply (say 20) with the bi-encoder, BM25 or both; rescore only those with the cross-encoder; keep the top $k$. The reranker cannot recover a chunk the first stage missed, so $k_0$ is chosen by the first stage's recall@$k_0$ (section 8), and $k$ by the generator's budget (@eq-budget). The cost is $k_0$ pair evaluations per query.
 

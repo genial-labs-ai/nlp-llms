@@ -1,6 +1,6 @@
 {
   "notice": "AGENT-WRITTEN FIXTURE FOR EXERCISING CODE; NOT AN EVALUATION SET; NO NUMBER FROM IT IS QUOTED ANYWHERE. Written by an AI agent (the Agentic Systems Engineer persona) on 2026-10-05 so that tests/test_capstone_questions.py and the manifest builder's tests can run before people write data/capstone_questions_v1.jsonl. notebooks/15-capstone.ipynb never loads it. The outside_source fields are placeholders, not read in the papers. The real items must be written and blind-checked by people, with no language model in the loop (briefs/15-capstone.md, 'Decision: the fixed evaluation set').",
-  "corpus_sha256": "57a18256ba93551f034e1acd0e9dedeec228bd17e9cf2e4cab92be35576499fd",
+  "corpus_sha256": "8970f45034784f98a97f6feaae60de371a6992d411afdf38340db8c8c4709f47",
   "items": [
     {"id": "c001", "split": "dev", "kind": "unanswerable",
      "question": "On what hardware, and for how long, was the base model of the original transformer paper trained, according to the workshop's pages?",
