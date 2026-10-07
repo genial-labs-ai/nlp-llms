@@ -61,7 +61,7 @@ jobs:
         run: uv run --no-project --with pyyaml --with nbformat python -m unittest discover -s tests -v
 
       # The Genial Labs mirror renders with the profile in _quarto-genial-labs.yml, which
-      # sets its own site-url (canonical links, sitemap, Open Graph) and repo-url.
+      # sets its own site-url (sitemap, Open Graph); everything else stays canonical.
       - name: Render
         uses: quarto-dev/quarto-actions/render@v2
         env:
