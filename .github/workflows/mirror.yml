@@ -1,0 +1,59 @@
+# Keeps the Genial Labs mirror (genial-labs-ai/nlp-llms) equal to the canonical
+# repository's main branch, then deploys it at https://genial-labs-ai.github.io/nlp-llms/.
+#
+# The mirror is a plain copy, not a fork: pull requests go to project-delphi/nlp-llms.
+# This workflow does nothing anywhere but in the mirror. It fast-forwards main from the
+# canonical repository (a public read, no secret) and pushes with the job's own token.
+# A push made with GITHUB_TOKEN starts no other workflow, so it then dispatches
+# publish.yml itself, whose deploy job accepts the mirror.
+#
+# GitHub disables a scheduled workflow after 60 days without a push to the repository;
+# the mirror's pushes are the canonical repository's commits, so a quiet two months
+# stops the schedule. Run it by hand (Actions > Mirror > Run workflow) to re-enable it.
+name: Mirror
+
+on:
+  schedule:
+    - cron: "17 * * * *" # hourly
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: mirror
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: github.repository == 'genial-labs-ai/nlp-llms'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Fast-forward main from the canonical repository
+        id: sync
+        run: |
+          git fetch https://github.com/project-delphi/nlp-llms.git main
+          before=$(git rev-parse HEAD)
+          if ! git merge --ff-only FETCH_HEAD; then
+            echo "::error::main has diverged from project-delphi/nlp-llms; reset it by hand"
+            exit 1
+          fi
+          after=$(git rev-parse HEAD)
+          echo "before=$before after=$after"
+          if [ "$before" != "$after" ]; then
+            git push origin main
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy the new revision
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run publish.yml --ref main

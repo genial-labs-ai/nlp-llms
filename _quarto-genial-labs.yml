@@ -1,0 +1,8 @@
+# Quarto profile for the Genial Labs mirror of the site (QUARTO_PROFILE=genial-labs).
+# publish.yml selects it when the workflow runs in genial-labs-ai/nlp-llms, so the
+# mirror's canonical links, sitemap and Open Graph tags name its own address.
+# Everything else (Colab badges, data URLs, the "Source on GitHub" link) stays on the
+# canonical repository, project-delphi/nlp-llms, where issues and pull requests go.
+website:
+  site-url: https://genial-labs-ai.github.io/nlp-llms
+  repo-url: https://github.com/genial-labs-ai/nlp-llms

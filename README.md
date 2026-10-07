@@ -91,6 +91,8 @@ uv run --group site python scripts/new_notebook.py m03        # add --api for AP
 
 `.github/workflows/publish.yml` regenerates the derived files, fails if they differ from what is committed, lints, tests, renders the site and checks its links. On a push to `main`, or a manual run on `main`, it deploys the site to GitHub Pages at <https://project-delphi.github.io/nlp-llms/>. Pages must be set to deploy from GitHub Actions (Settings → Pages → Source). Forks skip the deploy job.
 
+The same site is mirrored at <https://genial-labs-ai.github.io/nlp-llms/>. The repository `genial-labs-ai/nlp-llms` is a plain copy of this one, not a fork: its `.github/workflows/mirror.yml` fast-forwards `main` from here every hour, or on a manual run, and then dispatches `publish.yml`, which renders with the `genial-labs` Quarto profile (`_quarto-genial-labs.yml`: the mirror's own `site-url` and `repo-url`) and deploys. The mirror skips the notebook and health runs. Issues and pull requests go here, never to the mirror.
+
 ## Repository layout
 
 | Path | What it holds |

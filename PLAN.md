@@ -112,6 +112,7 @@ nlp-llms/
 - **Generated files are never edited by hand.** `scripts/gen_tables.py` writes the tables in `_includes/` and the marked regions in `README.md`. `scripts/gen_notebooks.py` owns the first cell (title, Colab badge, time, objectives) and the last cell (next notebook, site link) of every notebook, strips outputs and execution counts, and is idempotent. CI fails if running the generators changes anything.
 - **Notebooks are not executed at render time.** `_quarto.yml` lists pages explicitly under `render:` and ships `notebooks/*.ipynb` as `resources:`. There is no `_freeze/`.
 - **Deploy from an Actions artifact.** `publish.yml` renders to `docs/`, which is gitignored, and deploys with `actions/deploy-pages`.
+- **A mirror at Genial Labs.** `genial-labs-ai/nlp-llms` is a plain copy kept equal to `main` by its `mirror.yml` (an hourly fast-forward from here, then a `publish.yml` dispatch). It renders with the `genial-labs` profile (`_quarto-genial-labs.yml`), so its site-url is <https://genial-labs-ai.github.io/nlp-llms/>, and it skips the notebook and health jobs. (Added 2026-10-07.)
 - **Navbar, plus a module sidebar on lecture pages.** Navbar: Home, Schedule, Days (dropdown: Module 0 as pre-work, then Days 1–5), Notebooks, Setup, References, Teach, FAQ. Inside `lectures/` a generated left sidebar (`_includes/sidebar.yml`) lists Module 0 as pre-work, then the modules by day, with previous/next module links at the foot of each page. (Changed 2026-10-05; `tensors-workshop` has no sidebar.)
 
 ### Deliberately left out of v1

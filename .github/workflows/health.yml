@@ -54,6 +54,8 @@ env:
 jobs:
   notebooks:
     name: notebooks (${{ matrix.leg }})
+    # Not in the Genial Labs mirror (genial-labs-ai/nlp-llms): its notebooks are these.
+    if: github.repository != 'genial-labs-ai/nlp-llms'
     runs-on: ubuntu-latest
     timeout-minutes: ${{ matrix.timeout }}
     continue-on-error: ${{ matrix.leg != 'offline' }}
@@ -211,7 +213,9 @@ jobs:
           if-no-files-found: ignore
 
   keyed:
-    if: github.event_name == 'workflow_dispatch' && inputs.keyed
+    if: >-
+      github.event_name == 'workflow_dispatch' && inputs.keyed &&
+      github.repository != 'genial-labs-ai/nlp-llms'
     runs-on: ubuntu-latest
     timeout-minutes: 240
     steps:
